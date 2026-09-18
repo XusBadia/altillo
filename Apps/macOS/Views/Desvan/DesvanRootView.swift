@@ -140,9 +140,8 @@ private struct DesvanEarsFace: View {
                 DesvanUsageEar(usage: model.demo.primaryUsage)
             }
         } trailing: {
-            if model.demo.waitingAgent != nil, model.scenario == nil {
-                DesvanKnockingHand(size: 11)
-            } else if !model.shelf.isEmpty {
+            // Real data only: the knocking hand arrives with live agents (phase 4).
+            if !model.shelf.isEmpty {
                 DesvanShelfCountTag(count: model.shelf.count)
             }
         }

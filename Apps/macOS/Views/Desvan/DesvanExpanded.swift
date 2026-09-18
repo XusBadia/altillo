@@ -133,7 +133,7 @@ private struct DesvanTabs: View {
                 DesvanTabButton(
                     tab: tab,
                     isSelected: model.tab == tab,
-                    knocks: tab == .agents && model.demo.waitingAgent != nil,
+                    knocks: tab == .agents && model.scenario != nil && model.demo.waitingAgent != nil,
                     namespace: namespace
                 ) {
                     withAnimation(Desvan.Motion.pick(.spring(duration: 0.24, bounce: 0), reduceMotion: reduceMotion)) {
@@ -238,6 +238,11 @@ private struct DesvanHeaderAccessory: View {
         Group {
             if isDropTarget {
                 EmptyView()
+            } else if model.tab != .shelf, model.scenario == nil {
+                // Usage and agents still show sample data until their modules exist (phases 3 and 4).
+                Text("Datos de ejemplo")
+                    .font(Self.caption)
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
             } else {
                 switch model.tab {
                 case .shelf: shelf
