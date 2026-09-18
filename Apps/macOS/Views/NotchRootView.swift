@@ -9,10 +9,20 @@ import SwiftUI
 /// coordinator uses for hit-testing and hover tracking.
 struct NotchRootView: View {
     let model: NotchModel
+    /// Prototypes fall back to the current design through this flag.
+    var ignoresDirection = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        if !ignoresDirection, let direction = DesignDirection.current {
+            direction.rootView(model: model)
+        } else {
+            currentDesign
+        }
+    }
+
+    @ViewBuilder private var currentDesign: some View {
         let chrome = NotchChrome(model: model)
         let shape = NotchShape(topCornerRadius: chrome.topRadius, bottomCornerRadius: chrome.bottomRadius)
 
