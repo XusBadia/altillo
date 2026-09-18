@@ -14,3 +14,4 @@ Config/Local.xcconfig
 
 # macOS
 .DS_Store
+.claude/worktrees/
