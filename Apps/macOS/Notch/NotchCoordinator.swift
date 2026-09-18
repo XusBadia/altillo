@@ -63,6 +63,7 @@ final class NotchCoordinator {
         cancelAllTimers()
         if let scenario {
             model.tab = scenario.tab
+            model.shelf = scenario.showsDemoShelf ? model.demo.shelfItems : []
             machine = NotchStateMachine(state: scenario.state)
         } else {
             machine = NotchStateMachine()

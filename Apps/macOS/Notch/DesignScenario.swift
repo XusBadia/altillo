@@ -42,6 +42,14 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Scenarios that show sample files in the shelf.
+    var showsDemoShelf: Bool {
+        switch self {
+        case .idleWithEars, .peekShelf, .dropTarget, .openShelf: true
+        default: false
+        }
+    }
+
     var tab: NotchTab {
         switch self {
         case .openUsage, .peekUsageAlert: .usage
