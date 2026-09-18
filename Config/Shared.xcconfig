@@ -1,0 +1,7 @@
+// Defaults that let anyone build Altillo without an Apple Developer account.
+// Override them in Config/Local.xcconfig (ignored by git). See Local.xcconfig.example.
+ALTILLO_TEAM =
+ALTILLO_BUNDLE_PREFIX = dev.altillo
+ALTILLO_MAC_SIGN_IDENTITY = -
+
+#include? "Local.xcconfig"

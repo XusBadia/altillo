@@ -1,0 +1,4 @@
+// Copy to Config/Local.xcconfig and fill in your own values.
+ALTILLO_TEAM = ABCDE12345
+ALTILLO_BUNDLE_PREFIX = com.example.altillo
+ALTILLO_MAC_SIGN_IDENTITY = Apple Development

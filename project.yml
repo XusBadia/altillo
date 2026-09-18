@@ -1,0 +1,137 @@
+name: Altillo
+options:
+  deploymentTarget:
+    macOS: "26.0"
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: es
+
+configFiles:
+  Debug: Config/Shared.xcconfig
+  Release: Config/Shared.xcconfig
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    SWIFT_STRICT_CONCURRENCY: complete
+    DEVELOPMENT_TEAM: $(ALTILLO_TEAM)
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: 1
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+
+packages:
+  AltilloKit:
+    path: Packages/AltilloKit
+
+targets:
+  Altillo:
+    type: application
+    platform: macOS
+    sources:
+      - Apps/macOS
+    dependencies:
+      - package: AltilloKit
+        product: AltilloCore
+      - package: AltilloKit
+        product: AltilloDesign
+      - target: altillo-hook
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX)
+        PRODUCT_NAME: Altillo
+        INFOPLIST_KEY_CFBundleDisplayName: Altillo
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_NSHumanReadableCopyright: © 2026 Xus Badia. MIT License.
+        ENABLE_APP_SANDBOX: NO
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
+        PROVISIONING_PROFILE_SPECIFIER: ""
+        COMBINE_HIDPI_IMAGES: YES
+    scheme:
+      testTargets:
+        - AltilloMacTests
+
+  AltilloMacTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - Tests/AltilloMacTests
+    dependencies:
+      - target: Altillo
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Altillo.app/Contents/MacOS/Altillo
+        BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
+
+  altillo-hook:
+    type: tool
+    platform: macOS
+    sources:
+      - Apps/Hook
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).hook
+        PRODUCT_NAME: altillo-hook
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
+        SKIP_INSTALL: YES
+
+  AltilloiOS:
+    type: application
+    platform: iOS
+    sources:
+      - Apps/iOS
+    dependencies:
+      - package: AltilloKit
+        product: AltilloCore
+      - package: AltilloKit
+        product: AltilloDesign
+      - target: AltilloWidgets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).ios
+        PRODUCT_NAME: Altillo
+        INFOPLIST_KEY_CFBundleDisplayName: Altillo
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone: UIInterfaceOrientationPortrait
+        TARGETED_DEVICE_FAMILY: "1,2"
+        CODE_SIGN_STYLE: Automatic
+
+  AltilloWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Apps/Widgets
+    dependencies:
+      - package: AltilloKit
+        product: AltilloCore
+      - package: AltilloKit
+        product: AltilloDesign
+    info:
+      path: Apps/Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Altillo
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).ios.widgets
+        PRODUCT_NAME: AltilloWidgets
+        SKIP_INSTALL: YES
+        CODE_SIGN_STYLE: Automatic

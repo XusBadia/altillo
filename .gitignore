@@ -1,0 +1,16 @@
+# Xcode
+*.xcodeproj
+*.xcworkspace
+!Packages/**/*.xcworkspace
+xcuserdata/
+DerivedData/
+build/
+.build/
+.swiftpm/
+*.xcresult
+
+# Local config (team, bundle ids, containers)
+Config/Local.xcconfig
+
+# macOS
+.DS_Store
