@@ -14,11 +14,36 @@ final class NotchPanel: NSPanel {
         collectionBehavior = [.canJoinAllSpaces, .stationary, .fullScreenAuxiliary, .ignoresCycle]
         appearance = NSAppearance(named: .darkAqua)
         ignoresMouseEvents = true
+        acceptsMouseMovedEvents = true
     }
 
-    // Never steal focus from the app the user is working in.
-    override var canBecomeKey: Bool { false }
+    /// Called for ⌘W / ⌘Q while the notch has keyboard focus.
+    var onCloseRequest: () -> Void = {}
+
+    /// While the open notch is key, ⌘Q and ⌘W would reach Altillo instead of the app the user sees:
+    /// they just close the notch.
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
+        if flags == .command, let key = event.charactersIgnoringModifiers?.lowercased(), key == "q" || key == "w" {
+            onCloseRequest()
+            return true
+        }
+        return super.performKeyEquivalent(with: event)
+    }
+
+    /// Only true while the notch is open, so keyboard shortcuts (⌫, space, ⌘A, Esc) reach the shelf.
+    /// Being a non-activating panel, becoming key never activates Altillo or hides the user's app.
+    var allowsKey = false
+
+    override var canBecomeKey: Bool { allowsKey }
     override var canBecomeMain: Bool { false }
+
+    /// Gives keyboard focus back to the app the user was working in.
+    func relinquishKey() {
+        guard isKeyWindow else { return }
+        orderOut(nil)
+        orderFrontRegardless()
+    }
 }
 
 /// Root view of the panel. Only the visible notch shape is hit-testable; the rest of the panel is empty space.

@@ -210,6 +210,16 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **9. Altillo compartido + iPad** | `ShelfItem` en CloudKit, extensión de compartir en iPhone, shelf en iPad, dashboard de iPad | 5 | 2 semanas |
 | **10. Publicación** | Icono, nombre, bienvenida, web/README, Homebrew Cask, App Store (iOS) | — | 1 semana |
 
+### Estado
+
+- **Fase 0 (18-09-2026):** el código está hecho.
+  - Monorepo y CI.
+  - Tokens de diseño y mock visual de los 11 estados (capturas en `docs/design/phase0/`).
+  - Spikes de drag & drop con registro en la app.
+  - 19 tests en el paquete y 33 en macOS.
+  - Revisión independiente del código aplicada.
+  - **Pendiente, que haces tú:** la matriz manual de `docs/pruebas-drag-drop.md` en el Mac mini y en el MacBook, y dar el visto bueno a la estética.
+
 ### Criterios de aceptación clave
 - **0:** los spikes de drag & drop pasan la matriz §8 y el mock visual te convence.
 - **1:** 2-3 días sin NotchNook, la matriz §8 en verde y CPU en reposo < 0,1 %.
@@ -236,6 +246,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | Seguridad al aprobar desde fuera de la terminal | Nunca automático, timeout, confirmación extra para comandos peligrosos, y en iPhone Face ID + caducidad |
 | Apple rompe la barra de menú o MediaRemote en cada versión | Módulos aislados que se desactivan solos; alcance limitado (sin reordenar) |
 | El desarrollo principal es en un Mac sin notch | Release notarizada con Sparkle desde la fase 2 para probar de forma continua en el MacBook |
+| macOS pide permiso (TCC) al acceder de nuevo a archivos de Documentos, Escritorio o Descargas tras reiniciar la app | Se verifica en la fase 1 con referencias persistidas. Si molesta, se copia (`clonefile`) en vez de referenciar en esas carpetas, o se explica el permiso en la bienvenida |
 | Scope creep | Cada módulo está desactivado por defecto salvo en su preset, y cada feature pasa el checklist de UX |
 
 ## 10. Pendiente de validar contigo

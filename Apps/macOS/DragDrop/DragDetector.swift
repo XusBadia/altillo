@@ -66,6 +66,12 @@ final class DragDetector {
         phase = .idle
     }
 
+    /// Ends the drag in progress without calling `ended`: Altillo accepted the drop, so the coordinator already knows.
+    /// Guards against a mouse-up that the global monitor never sees.
+    func finishCurrentDrag() {
+        if case .dragging = phase { phase = .idle }
+    }
+
     /// Hot path: runs for every drag event, so it only compares integers until a drag is confirmed.
     func handle(_ type: NSEvent.EventType) {
         switch type {

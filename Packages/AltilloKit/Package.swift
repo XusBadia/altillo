@@ -13,5 +13,6 @@ let package = Package(
         .target(name: "AltilloCore"),
         .target(name: "AltilloDesign", dependencies: ["AltilloCore"]),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),
+        .testTarget(name: "AltilloDesignTests", dependencies: ["AltilloDesign"]),
     ]
 )

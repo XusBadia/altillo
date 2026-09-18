@@ -162,9 +162,9 @@ private struct ShelfTile: View {
         .contentShape(RoundedRectangle(cornerRadius: Tokens.Radius.base, style: .continuous))
         .onHover { hovering in withAnimation(Tokens.Motion.hover) { isHovering = hovering } }
         .onTapGesture(perform: onClick)
-        .shelfDraggable(items: menuItems) { operation, items in
+        .shelfDraggable(items: menuItems) { _, departed in
             // Moved to a folder or dropped on the Trash → it's gone from here too. Copied elsewhere → it stays.
-            if operation.contains(.move) || operation.contains(.delete) { model.actions.remove(Set(items.map(\.id))) }
+            if !departed.isEmpty { model.actions.remove(Set(departed.map(\.id))) }
         }
         .contextMenu { contextMenu }
         .accessibilityElement(children: .ignore)

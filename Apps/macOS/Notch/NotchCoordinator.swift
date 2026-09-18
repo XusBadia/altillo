@@ -1,4 +1,5 @@
 import AltilloCore
+import AltilloDesign
 import AppKit
 import SwiftUI
 
@@ -19,6 +20,8 @@ final class NotchCoordinator {
     private var pendingTimers: [TimerKind: Task<Void, Never>] = [:]
     private var droppedDuringCurrentDrag = false
     private var isHovering = false
+    /// The user's shelf, kept aside while a design scenario shows demo items.
+    private var stashedShelf: (items: [ShelfItem], selection: Set<ShelfItem.ID>)?
 
     private enum TimerKind { case hoverIntent, hoverSustained, closeGrace, alert }
 
@@ -59,16 +62,26 @@ final class NotchCoordinator {
 
     /// Freezes the notch in a design-review scenario (nil returns to normal behaviour).
     func show(_ scenario: DesignScenario?) {
-        model.scenario = scenario
         cancelAllTimers()
         if let scenario {
+            if model.scenario == nil { stashedShelf = (model.shelf, model.selection) }
             model.tab = scenario.tab
             model.shelf = scenario.showsDemoShelf ? model.demo.shelfItems : []
+            model.selection = []
             machine = NotchStateMachine(state: scenario.state)
         } else {
+            restoreStashedShelf()
             machine = NotchStateMachine()
         }
+        model.scenario = scenario
         apply()
+    }
+
+    private func restoreStashedShelf() {
+        guard let stashed = stashedShelf else { return }
+        model.shelf = stashed.items
+        model.selection = stashed.selection
+        stashedShelf = nil
     }
 
     // MARK: - Window
@@ -85,7 +98,8 @@ final class NotchCoordinator {
             controller.dropTarget.onDragEntered = { [weak self] in self?.model.isDropHovering = true }
             controller.dropTarget.onDragExited = { [weak self] in self?.model.isDropHovering = false }
             // Accepted before slow file promises (Photos, Mail) resolve, so the notch stays open while they arrive.
-            controller.dropTarget.onDropAccepted = { [weak self] in self?.droppedDuringCurrentDrag = true }
+            controller.dropTarget.onDropAccepted = { [weak self] in self?.dropAccepted() }
+            controller.panel.onCloseRequest = { [weak self] in self?.send(.escape) }
             controller.dropTarget.onDrop = { [weak self] items in self?.receive(items) }
             window = controller
         }
@@ -97,7 +111,11 @@ final class NotchCoordinator {
 
     private func send(_ event: NotchEvent) {
         guard model.scenario == nil || event == .escape else { return }
-        if event == .escape { model.scenario = nil }
+        if event == .escape, model.scenario != nil {
+            show(nil)
+            return
+        }
+        if event == .dragBegan { droppedDuringCurrentDrag = false }
         if machine.handle(event) { apply() }
     }
 
@@ -106,7 +124,11 @@ final class NotchCoordinator {
         withAnimation(state == .idle ? .closeNotch : .openNotch) {
             model.state = state
         }
-        window?.panel.ignoresMouseEvents = !state.isInteractive
+        if let panel = window?.panel {
+            panel.ignoresMouseEvents = !state.isInteractive
+            panel.allowsKey = state == .open
+            if state != .open { panel.relinquishKey() }
+        }
         if state == .idle { model.isDropHovering = false }
         if state != .open { cancel(.closeGrace) }
     }
@@ -135,10 +157,13 @@ final class NotchCoordinator {
     }
 
     private func mouseDown(at point: CGPoint, isLocal: Bool) {
-        guard let window else { return }
+        // Design scenarios stay frozen (e.g. while taking a ⇧⌘4 screenshot); leave them with Esc or the menu.
+        guard let window, model.scenario == nil else { return }
         let onShape = window.visibleShapeScreenRect.contains(point)
         if onShape, model.state == .idle || model.state == .peek {
             send(.click)
+            // An explicit click means the user wants to interact: take keyboard focus (hover-opening never does).
+            window.panel.makeKey()
         } else if !onShape, model.state != .idle, model.state != .dragArmed, model.state != .dropTarget {
             send(.escape)
         }
@@ -147,6 +172,17 @@ final class NotchCoordinator {
     private func dragMoved(to point: CGPoint) {
         guard let window else { return }
         send(.dragMoved(near: window.geometry.distance(to: point) < NotchLayout.dropActivationDistance))
+    }
+
+    /// Altillo accepted a drop: end the drag right away instead of waiting for a mouse-up the global monitor
+    /// may never see, and track the hover so the notch closes normally once the pointer leaves.
+    private func dropAccepted() {
+        droppedDuringCurrentDrag = true
+        dragDetector.finishCurrentDrag()
+        send(.dragEnded(dropped: true))
+        if let window {
+            isHovering = window.visibleShapeScreenRect.contains(NSEvent.mouseLocation)
+        }
     }
 
     private func dragEnded() {
@@ -203,6 +239,11 @@ final class NotchCoordinator {
 }
 
 extension Animation {
-    static let openNotch = Animation.spring(response: 0.42, dampingFraction: 0.8)
-    static let closeNotch = Animation.spring(response: 0.45, dampingFraction: 1.0)
+    @MainActor static var openNotch: Animation {
+        Tokens.Motion.open(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+    }
+
+    @MainActor static var closeNotch: Animation {
+        Tokens.Motion.close(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+    }
 }

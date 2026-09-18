@@ -5,7 +5,8 @@ import UniformTypeIdentifiers
 
 extension View {
     /// Makes a shelf tile draggable out of Altillo. `items` is evaluated when the drag starts
-    /// (the whole selection when the tile is selected). `onEnded` reports the operation the destination performed.
+    /// (the whole selection when the tile is selected). About 0.5 s after the drop, `onEnded` reports the operation
+    /// and the items that actually left the shelf (moved away or trashed), judged by what happened to the files.
     ///
     /// Clicks, selection and context menus keep working: the AppKit drag source is an overlay that never takes part
     /// in hit-testing. A local event monitor watches left-button presses on the tile and only starts an AppKit dragging
@@ -163,8 +164,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         SpikeLog.shared.record(SpikeLog.Category.dragOut,
                                "fin: operación \(operation.logDescription) en (\(Int(screenPoint.x)), \(Int(screenPoint.y))) · \(items.count) ítem(s)")
         releaseSwiftUIPress()
-        onEnded(operation, items)
-        Self.verifyFiles(items, after: operation)
+        Self.resolveDeparted(items, after: operation, then: onEnded)
     }
 
     // MARK: - Helpers
@@ -180,26 +180,47 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         window.sendEvent(up)
     }
 
-    /// Logs whether each original still exists (a Finder move removes it). The Dock's Trash reports `delete`
-    /// but may leave the file where it was; in that case Altillo moves it to the Trash itself.
-    private static func verifyFiles(_ items: [ShelfItem], after operation: NSDragOperation) {
-        let urls = items.compactMap(\.fileURL)
-        guard !urls.isEmpty, operation != [] else { return }
+    /// Decides which items actually left the shelf, from what happened to the files rather than from the reported
+    /// operation: some destinations return every bit of the source mask, so `.move`/`.delete` bits can't be trusted.
+    ///
+    /// - A file that no longer exists at its URL 0.5 s later was moved (Finder, same volume) or deleted → it left.
+    /// - Only an exact `.delete` (the Dock's Trash) may send a still-present file to the Trash; Altillo does it itself
+    ///   because the Dock doesn't delete files for third-party drag sources.
+    /// - Text and links never leave: dragging them out always copies.
+    static func resolveDeparted(
+        _ items: [ShelfItem],
+        after operation: NSDragOperation,
+        then onEnded: @escaping (NSDragOperation, [ShelfItem]) -> Void
+    ) {
+        guard operation != [], items.contains(where: { $0.fileURL != nil }) else {
+            onEnded(operation, [])
+            return
+        }
         Task { @MainActor in
             try? await Task.sleep(for: .milliseconds(500))
-            var leftovers: [URL] = []
-            for url in urls {
+            var departed: [ShelfItem] = []
+            var toRecycle: [URL] = []
+            for item in items {
+                guard let url = item.fileURL else { continue }
                 let exists = FileManager.default.fileExists(atPath: url.path)
-                if operation.contains(.delete), exists { leftovers.append(url) }
                 SpikeLog.shared.record(SpikeLog.Category.dragOut, "\(url.lastPathComponent): existe después: \(exists ? "sí" : "no") · \(url.path)")
+                if !exists {
+                    departed.append(item)
+                } else if operation == .delete {
+                    toRecycle.append(url)
+                    departed.append(item)
+                }
             }
-            guard !leftovers.isEmpty else { return }
-            do {
-                let moved = try await NSWorkspace.shared.recycle(leftovers)
-                SpikeLog.shared.record(SpikeLog.Category.dragOut, "papelera: Altillo movió \(moved.count) archivo(s) a la Papelera")
-            } catch {
-                SpikeLog.shared.record(SpikeLog.Category.dragOut, "FALLO moviendo a la Papelera: \(error.localizedDescription)")
+            if !toRecycle.isEmpty {
+                do {
+                    let moved = try await NSWorkspace.shared.recycle(toRecycle)
+                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "papelera: Altillo movió \(moved.count) archivo(s) a la Papelera")
+                } catch {
+                    departed.removeAll { item in toRecycle.contains { $0 == item.fileURL } }
+                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "FALLO moviendo a la Papelera: \(error.localizedDescription)")
+                }
             }
+            onEnded(operation, departed)
         }
     }
 

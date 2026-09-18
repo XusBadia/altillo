@@ -1,9 +1,10 @@
 import AppKit
 import Quartz
 
-/// Shows Quick Look for shelf files. The notch panel can never become key, so the responder-chain handshake
-/// (`acceptsPreviewPanelControl`) has no key window to start from: the presenter feeds the shared panel directly
-/// and activates Altillo so the preview panel itself can become key (arrow keys, space and Esc work there).
+/// Shows Quick Look for shelf files. The notch panel is a non-activating panel, so instead of the responder-chain
+/// handshake (`acceptsPreviewPanelControl`) the presenter feeds the shared panel directly and activates Altillo so the
+/// preview panel itself can become key (arrow keys, space and Esc work there). When it closes, Altillo deactivates
+/// again so the keyboard goes back to the user's app.
 @MainActor
 enum QuickLookPresenter {
     static func show(_ urls: [URL]) {
@@ -19,11 +20,19 @@ enum QuickLookPresenter {
         panel.reloadData()
         NSApp.activate()
         panel.makeKeyAndOrderFront(nil)
+        if closeObserver == nil {
+            closeObserver = NotificationCenter.default.addObserver(
+                forName: NSWindow.willCloseNotification, object: panel, queue: .main
+            ) { _ in
+                MainActor.assumeIsolated { NSApp.deactivate() }
+            }
+        }
         SpikeLog.shared.record(SpikeLog.Category.quickLook,
                                "\(urls.count) archivo(s) · visible: \(panel.isVisible ? "sí" : "no") · key: \(panel.isKeyWindow ? "sí" : "no")")
     }
 
     private static let source = Source()
+    private static var closeObserver: NSObjectProtocol?
 
     private final class Source: NSObject, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
         var urls: [URL] = []
