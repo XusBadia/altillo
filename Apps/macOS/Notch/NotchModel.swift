@@ -3,6 +3,11 @@ import CoreGraphics
 import Foundation
 import Observation
 
+/// Areas of the open notch that accept a drop.
+enum DropZone: Hashable, Sendable {
+    case shelf, airDrop
+}
+
 enum NotchTab: String, CaseIterable, Identifiable, Sendable {
     case shelf, usage, agents
     var id: Self { self }
@@ -20,8 +25,12 @@ final class NotchModel {
 
     var shelf: [ShelfItem] = []
     var selection: Set<ShelfItem.ID> = []
-    /// True while a drag hovers the drop zone itself (not just near the notch).
-    var isDropHovering = false
+    /// The drop zone under the pointer during a drag, if any. Zones only light up while the pointer is over them.
+    var dropZone: DropZone?
+    /// Frames of the drop zones, in the hosting view's coordinates (top-left origin), reported by the views.
+    var dropZoneFrames: [DropZone: CGRect] = [:]
+    /// True while a drag hovers the shelf drop zone itself (not just near the notch).
+    var isDropHovering: Bool { dropZone == .shelf }
 
     /// Fake usage/agents/etc. used until the real modules exist (phase 0 design review).
     var demo: DemoContent = .sample

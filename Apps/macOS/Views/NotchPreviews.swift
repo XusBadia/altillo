@@ -78,7 +78,7 @@ private struct PreviewMenuBar: View {
 #Preview("Zona de soltar") { NotchPreviewStage(model: .preview(.dropTarget)) }
 #Preview("Zona de soltar · encima") {
     let model = NotchModel.preview(.dropTarget)
-    model.isDropHovering = true
+    model.dropZone = .shelf
     return NotchPreviewStage(model: model)
 }
 #Preview("Abierto: altillo vacío") { NotchPreviewStage(model: .preview(.openShelfEmpty)) }

@@ -17,6 +17,8 @@ enum NotchFace: Hashable {
 }
 
 enum PeekKind: Hashable {
+    /// Hovering with nothing to report: a quiet hint of what opens, no instructions.
+    case hint
     case shelf, usageAlert, agentWaiting
 }
 
@@ -84,6 +86,16 @@ struct NotchChrome: Equatable {
             topRadius = 6
             bottomRadius = hasNotch ? 10 : notch.height / 2
             size = CGSize(width: clearWidth + 2 * Self.earWidth + 2 * topRadius, height: notch.height)
+        case .peek(.hint):
+            topRadius = 6
+            if hasNotch {
+                bottomRadius = 12
+                size = CGSize(width: clearWidth + 2 * Self.earWidth + 2 * topRadius, height: notch.height + 4)
+            } else {
+                bottomRadius = 13
+                bandHeight = 0
+                size = CGSize(width: 104 + 2 * topRadius, height: 28)
+            }
         case .peek:
             topRadius = 8
             let width = max(notch.width + 2 * Self.peekEarWidth, 360) + 2 * topRadius
@@ -125,7 +137,8 @@ struct NotchChrome: Equatable {
             switch model.scenario {
             case .peekUsageAlert: return .peek(.usageAlert)
             case .peekAgentWaiting: return .peek(.agentWaiting)
-            default: return .peek(.shelf)
+            case .peekShelf: return .peek(.shelf)
+            default: return model.shelf.isEmpty ? .peek(.hint) : .peek(.shelf)
             }
         case .dragArmed:
             return .dragArmed

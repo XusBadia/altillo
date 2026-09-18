@@ -6,8 +6,14 @@ import AppKit
 final class DropTargetView: NSView {
     var onDragEntered: () -> Void = {}
     var onDragExited: () -> Void = {}
+    /// Which drop zone is under a point (view coordinates). Nil means "not a drop target": the drag is refused there.
+    var zoneAt: (NSPoint) -> DropZone? = { _ in .shelf }
+    /// The zone under the dragged pointer changed (nil when it left every zone).
+    var onZoneChanged: (DropZone?) -> Void = { _ in }
     /// Delivered on the main actor once every dropped item is ingested (file promises resolve asynchronously).
     var onDrop: ([ShelfItem]) -> Void = { _ in }
+    /// Items dropped on the AirDrop zone, ingested the same way (promises become real files to send).
+    var onAirDrop: ([ShelfItem]) -> Void = { _ in }
     /// Fired synchronously when a drop is accepted, before `onDrop` (which can take seconds with file promises).
     var onDropAccepted: () -> Void = {}
 
@@ -16,6 +22,7 @@ final class DropTargetView: NSView {
     var promiseTimeout: Duration = .seconds(120)
 
     private var isTargeted = false
+    private var currentZone: DropZone?
 
     private static let promiseQueue: OperationQueue = {
         let queue = OperationQueue()
@@ -37,7 +44,21 @@ final class DropTargetView: NSView {
     override func wantsPeriodicDraggingUpdates() -> Bool { false }
 
     override func draggingEntered(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        let operation = operation(for: sender)
+        track(sender)
+    }
+
+    override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        track(sender)
+    }
+
+    /// Follows the pointer across zones: only a zone under the pointer accepts (and lights up).
+    private func track(_ sender: any NSDraggingInfo) -> NSDragOperation {
+        let zone = zone(for: sender)
+        if zone != currentZone {
+            currentZone = zone
+            onZoneChanged(zone)
+        }
+        let operation = zone == nil ? [] : operation(for: sender)
         if operation != [], !isTargeted {
             isTargeted = true
             onDragEntered()
@@ -45,8 +66,9 @@ final class DropTargetView: NSView {
         return operation
     }
 
-    override func draggingUpdated(_ sender: any NSDraggingInfo) -> NSDragOperation {
-        operation(for: sender)
+    private func zone(for sender: any NSDraggingInfo) -> DropZone? {
+        guard !isOwnDrag(sender) else { return nil }
+        return zoneAt(convert(sender.draggingLocation, from: nil))
     }
 
     override func draggingExited(_ sender: (any NSDraggingInfo)?) {
@@ -58,19 +80,19 @@ final class DropTargetView: NSView {
     }
 
     override func prepareForDragOperation(_ sender: any NSDraggingInfo) -> Bool {
-        operation(for: sender) != []
+        zone(for: sender) != nil && operation(for: sender) != []
     }
 
     override func performDragOperation(_ sender: any NSDraggingInfo) -> Bool {
-        guard !isOwnDrag(sender) else { return false }
-        return receive(sender.draggingPasteboard, sourceMask: sender.draggingSourceOperationMask)
+        guard !isOwnDrag(sender), let zone = zone(for: sender) else { return false }
+        return receive(sender.draggingPasteboard, sourceMask: sender.draggingSourceOperationMask, zone: zone)
     }
 
     // MARK: - Receiving
 
     /// Reads the pasteboard, starts receiving promises (must happen during the drop) and ingests the rest off the main thread.
     @discardableResult
-    func receive(_ pasteboard: NSPasteboard, sourceMask: NSDragOperation) -> Bool {
+    func receive(_ pasteboard: NSPasteboard, sourceMask: NSDragOperation, zone: DropZone = .shelf) -> Bool {
         let start = ContinuousClock.now
         let payload = DropReader.read(from: pasteboard)
         let app = NSWorkspace.shared.frontmostApplication?.localizedName ?? "?"
@@ -97,12 +119,19 @@ final class DropTargetView: NSView {
             }
             SpikeLog.shared.record(SpikeLog.Category.drop,
                                    "entregados \(items.count) ítems en \(Self.milliseconds(since: start)) desde que se soltó")
-            self?.onDrop(items)
+            switch zone {
+            case .shelf: self?.onDrop(items)
+            case .airDrop: self?.onAirDrop(items)
+            }
         }
         return true
     }
 
     private func endTargeting() {
+        if currentZone != nil {
+            currentZone = nil
+            onZoneChanged(nil)
+        }
         guard isTargeted else { return }
         isTargeted = false
         onDragExited()

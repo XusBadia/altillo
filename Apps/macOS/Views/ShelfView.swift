@@ -25,11 +25,7 @@ struct ShelfView: View {
         .focusEffectDisabled()
         .focused($isFocused)
         .onAppear { isFocused = true }
-        .onKeyPress(keys: [.delete, .deleteForward]) { _ in
-            guard !model.selection.isEmpty else { return .ignored }
-            model.actions.remove(model.selection)
-            return .handled
-        }
+        // ⌫ is handled by NotchCoordinator in AppKit: SwiftUI never receives the Mac's backspace key here.
         .onKeyPress(.space) {
             let items = selectedItems
             guard !items.isEmpty else { return .ignored }

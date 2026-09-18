@@ -86,6 +86,35 @@ struct ShelfCountEar: View {
 
 // MARK: - Peek
 
+/// Hover with nothing to report: the notch grows a touch and shows what's inside, without instructions.
+struct HintFace: View {
+    let chrome: NotchChrome
+
+    private let symbols = ["tray", "gauge.with.needle", "terminal"]
+
+    var body: some View {
+        if chrome.hasNotch {
+            EarBand(chrome: chrome, earWidth: NotchChrome.earWidth) {
+                icon(symbols[0])
+            } trailing: {
+                HStack(spacing: 10) { icon(symbols[1]); icon(symbols[2]) }
+            }
+        } else {
+            HStack(spacing: 14) {
+                ForEach(symbols, id: \.self, content: icon)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    private func icon(_ name: String) -> some View {
+        Image(systemName: name)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundStyle(Tokens.Palette.textSecondary)
+            .accessibilityHidden(true)
+    }
+}
+
 struct PeekFace: View {
     let model: NotchModel
     let chrome: NotchChrome
@@ -94,7 +123,9 @@ struct PeekFace: View {
     @Environment(\.altilloAccent) private var accent
 
     var body: some View {
-        if chrome.hasNotch {
+        if kind == .hint {
+            HintFace(chrome: chrome)
+        } else if chrome.hasNotch {
             VStack(spacing: 0) {
                 EarBand(chrome: chrome, earWidth: NotchChrome.peekEarWidth) { leadingEar } trailing: { trailingEar }
                 line
@@ -112,6 +143,8 @@ struct PeekFace: View {
     @ViewBuilder
     private var leadingEar: some View {
         switch kind {
+        case .hint:
+            EmptyView()
         case .shelf:
             Image(systemName: model.shelf.isEmpty ? "tray" : "tray.full.fill")
                 .font(.system(size: 11, weight: .medium))
@@ -127,6 +160,8 @@ struct PeekFace: View {
     @ViewBuilder
     private var trailingEar: some View {
         switch kind {
+        case .hint:
+            EmptyView()
         case .shelf:
             if !model.shelf.isEmpty {
                 Text("\(model.shelf.count)")
@@ -146,6 +181,7 @@ struct PeekFace: View {
     @ViewBuilder
     private var line: some View {
         switch kind {
+        case .hint: EmptyView()
         case .shelf: shelfLine
         case .usageAlert: usageLine
         case .agentWaiting: agentLine

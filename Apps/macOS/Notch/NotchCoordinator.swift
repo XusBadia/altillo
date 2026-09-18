@@ -20,6 +20,7 @@ final class NotchCoordinator {
     private var pendingTimers: [TimerKind: Task<Void, Never>] = [:]
     private var droppedDuringCurrentDrag = false
     private var isHovering = false
+    private var keyMonitor: Any?
     /// The user's shelf, kept aside while a design scenario shows demo items.
     private var stashedShelf: (items: [ShelfItem], selection: Set<ShelfItem.ID>)?
 
@@ -43,6 +44,7 @@ final class NotchCoordinator {
         input.mouseDown = { [weak self] point, isLocal in self?.mouseDown(at: point, isLocal: isLocal) }
         input.start()
         dragDetector.start()
+        installKeyMonitor()
 
         let center = NotificationCenter.default
         observers.append(center.addObserver(
@@ -54,6 +56,8 @@ final class NotchCoordinator {
     }
 
     func stop() {
+        if let keyMonitor { NSEvent.removeMonitor(keyMonitor) }
+        keyMonitor = nil
         input.stop()
         dragDetector.stop()
         observers.forEach { NotificationCenter.default.removeObserver($0) }
@@ -95,8 +99,12 @@ final class NotchCoordinator {
             window.update(geometry: geometry)
         } else {
             let controller = NotchWindowController(geometry: geometry, model: model)
-            controller.dropTarget.onDragEntered = { [weak self] in self?.model.isDropHovering = true }
-            controller.dropTarget.onDragExited = { [weak self] in self?.model.isDropHovering = false }
+            controller.dropTarget.zoneAt = { [weak self, weak controller] point in
+                guard let self, let controller else { return nil }
+                return self.dropZone(at: point, in: controller.dropTarget)
+            }
+            controller.dropTarget.onZoneChanged = { [weak self] zone in self?.model.dropZone = zone }
+            controller.dropTarget.onAirDrop = { [weak self] items in self?.sendViaAirDrop(items) }
             // Accepted before slow file promises (Photos, Mail) resolve, so the notch stays open while they arrive.
             controller.dropTarget.onDropAccepted = { [weak self] in self?.dropAccepted() }
             controller.panel.onCloseRequest = { [weak self] in self?.send(.escape) }
@@ -129,7 +137,7 @@ final class NotchCoordinator {
             panel.allowsKey = state == .open
             if state != .open { panel.relinquishKey() }
         }
-        if state == .idle { model.isDropHovering = false }
+        if state == .idle || state == .open { model.dropZone = nil }
         if state != .open { cancel(.closeGrace) }
     }
 
@@ -171,7 +179,42 @@ final class NotchCoordinator {
 
     private func dragMoved(to point: CGPoint) {
         guard let window else { return }
-        send(.dragMoved(near: window.geometry.distance(to: point) < NotchLayout.dropActivationDistance))
+        // Near the notch, or anywhere over the open notch (plus a margin): the open shelf reaches far below the
+        // notch itself, so measuring only from the notch would close it under the pointer.
+        let nearNotch = window.geometry.distance(to: point) < NotchLayout.dropActivationDistance
+        let overOpenNotch = model.state == .dropTarget
+            && window.visibleShapeScreenRect.insetBy(dx: -NotchLayout.dropKeepOpenMargin, dy: -NotchLayout.dropKeepOpenMargin)
+                .contains(point)
+        send(.dragMoved(near: nearNotch || overOpenNotch))
+    }
+
+    /// Zone under a point of the drop target view. Zone frames come from SwiftUI in the hosting view's
+    /// top-left coordinates; anywhere else on the open notch counts as the shelf, outside it nothing accepts.
+    private func dropZone(at point: NSPoint, in view: NSView) -> DropZone? {
+        guard model.state == .dropTarget else { return nil }
+        let topLeft = CGPoint(x: point.x, y: view.bounds.height - point.y)
+        if model.dropZoneFrames[.airDrop]?.contains(topLeft) == true { return .airDrop }
+        if model.dropZoneFrames[.shelf]?.contains(topLeft) == true { return .shelf }
+        return nil
+    }
+
+    private func sendViaAirDrop(_ items: [ShelfItem]) {
+        let payload: [Any] = items.compactMap { item in
+            switch item.kind {
+            case let .file(url, _): url
+            case let .link(url): url
+            case let .text(text): text
+            }
+        }
+        send(.escape)
+        guard !payload.isEmpty, let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: payload) else {
+            SpikeLog.shared.record(SpikeLog.Category.drop, "AirDrop no disponible para \(items.count) ítem(s)")
+            NSSound.beep()
+            return
+        }
+        SpikeLog.shared.record(SpikeLog.Category.drop, "AirDrop: enviando \(items.count) ítem(s)")
+        NSApp.activate()
+        service.perform(withItems: payload)
     }
 
     /// Altillo accepted a drop: end the drag right away instead of waiting for a mouse-up the global monitor
@@ -193,6 +236,31 @@ final class NotchCoordinator {
             send(.dragEnded(dropped: droppedDuringCurrentDrag))
             droppedDuringCurrentDrag = false
         }
+    }
+
+    // MARK: - Keyboard
+
+    /// ⌫ (and ⌘⌫, fn⌫) remove the selection. Handled in AppKit: SwiftUI's `onKeyPress` never sees the Mac's
+    /// backspace key in a hosting view (it arrives as the `deleteBackward:` text command).
+    private func installKeyMonitor() {
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            let keyCode = event.keyCode
+            let windowNumber = event.windowNumber
+            let handled = MainActor.assumeIsolated {
+                self?.handleKey(keyCode, inWindow: windowNumber) ?? false
+            }
+            return handled ? nil : event
+        }
+    }
+
+    private func handleKey(_ keyCode: UInt16, inWindow windowNumber: Int) -> Bool {
+        let deleteKeys: Set<UInt16> = [51, 117] // backspace, forward delete
+        guard windowNumber == window?.panel.windowNumber, deleteKeys.contains(keyCode),
+              model.state == .open, model.tab == .shelf, !model.selection.isEmpty else {
+            return false
+        }
+        remove(model.selection)
+        return true
     }
 
     // MARK: - Shelf
