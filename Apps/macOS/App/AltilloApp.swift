@@ -31,14 +31,6 @@ struct AppMenu: View {
             Divider()
             Button("Volver al modo normal") { coordinator.show(nil) }
         }
-        Menu("Dirección de diseño") {
-            Button(DesignDirection.current == nil ? "✓ Actual" : "Actual") { DesignDirection.switchTo(nil) }
-            ForEach(DesignDirection.allCases, id: \.self) { direction in
-                Button(DesignDirection.current == direction ? "✓ \(direction.title)" : direction.title) {
-                    DesignDirection.switchTo(direction)
-                }
-            }
-        }
         Button("Registro de pruebas de arrastre…") {
             NSApp.activate()
             openWindow(id: SpikeLogView.windowID)

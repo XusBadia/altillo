@@ -20,7 +20,7 @@
 | Versiones | **macOS 26 mínimo, probado en 26 y 27** (macOS 27 salió el 14-09-2026). iOS/iPadOS 26 mínimo |
 | Shelf | Referencia + mover al sacar (estilo Yoink). Lo temporal se copia |
 | Módulos | Shelf · Uso de IA · **Agentes en vivo** · Iconos de la barra de menú · AirDrop/compartir · Now Playing · Calendario |
-| UX | **Prioridad máxima.** Personalizable, con edición directa del notch y buenos defaults. Estética inspirada en Seam |
+| UX | **Prioridad máxima.** Personalizable, con edición directa del notch y buenos defaults. Estética **«Desván»: cálida y skeuomórfica** (§3) |
 | Fuera de alcance por ahora | Asistente o agente propio dentro de Altillo, portapapeles, HUDs, batería |
 
 ## 1. Principios
@@ -61,15 +61,23 @@ altillo/
 - contenedor `iCloud.me.badia.altillo`
 - App Group `group.me.badia.altillo`
 
-## 3. Lenguaje visual (inspirado en Seam)
+## 3. Lenguaje visual: «Desván»
 
-- **Silueta:** negro puro opaco, que empasta con el notch físico. En el notch nunca se usa cristal. En la isla virtual (sin notch) la píldora sí puede ser de cristal.
-- **Interior:** tarjetas en negro cálido (≈ `#1C1917` / `#292524`) y texto en blanco cálido (≈ `#FFFFFB`). El acento es ámbar por defecto y se puede cambiar.
-- **Cristal solo en los controles:** `glassEffect(.regular.interactive())`, con reflejo superior, sombra interior y **grano de ruido muy sutil**.
-- **Forma y tipografía:** radio 12 pt, botones en cápsula y miniaturas en squircle. SF Pro, con `monospacedDigit()` en los números.
-- **Movimiento:** springs de 250-420 ms, sin rebote al cerrar. Los cambios de contenido son un fundido con un desplazamiento del 2 %. Con Reducir movimiento, solo fundidos.
-- **Orejas:** la información mínima va a los lados del notch físico y solo aparece si hay algo que mostrar. Qué va en cada oreja es configurable (§4).
-- **iOS:** el mismo sistema de tokens (`AltilloDesign`), adaptado a cada plataforma. La Dynamic Island es "el notch del iPhone" y se diseña igual que el notch del Mac.
+Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especificación completa está en [docs/design/direcciones.md](docs/design/direcciones.md#dirección-b-desván) y las capturas en `docs/design/direcciones/`.
+
+- **Concepto:** el altillo de casa, con una bombilla cálida, cajas de cartón y etiquetas de papel. Software **cálido y skeuomórfico**, hecho a mano, pero sobrio fuera de sus momentos firma.
+- **Silueta:** negro puro opaco, que empasta con el notch físico. La personalidad va dentro: la luz de la bombilla, la madera, el papel y el kraft.
+- **Paleta:**
+  - madera `#1E1914` / `#2A231C`, balda `#3A3027`, texto papel `#F6EFE3`;
+  - acento bombilla `#FFB547`, que se usa como luz y no como pintura;
+  - kraft `#C9A77C`;
+  - 7 colores de etiqueta, solo para identidad.
+  - En iOS, los widgets y la pantalla de bloqueo van en papel claro.
+- **Tipografía:** Fraunces (OFL, incluida en la app) en títulos, estados vacíos y el sello; New York en las cifras; SF Pro Rounded en pestañas y botones; SF Pro / SF Mono en nombres y comandos.
+- **Materiales:** grano de papel, balda de madera en la que se apoyan los ítems con su etiqueta kraft y una ligera rotación, caja de cartón en la zona de soltar y el avión de papel de AirDrop. Más adelante se pueden generar texturas bitmap (madera, kraft, cartón) con IA si mejoran el resultado.
+- **Movimiento:** con peso: las cosas caen, se aplastan un poco y se asientan. Al cerrar, nunca rebotan. Los momentos firma son el ítem que aterriza en la balda con la etiqueta en péndulo, la caja que abre las solapas bajo el cursor, el "toc, toc" del agente que espera y el sello "Hecho". Con Reducir movimiento, todo son fundidos.
+- **Voz:** cálida y doméstica, de tú, con verbos del altillo: "Súbelo ↑", "Suéltalo, ya lo guardo arriba", "¿Lo bajamos?".
+- **Límite para no caer en lo cursi:** las etiquetas solo aparecen en el shelf, el sello solo al terminar y las solapas solo en la zona de soltar. Todo lo demás es sobrio.
 
 ## 4. UX y personalización
 
