@@ -58,21 +58,6 @@ extension Desvan {
         static let done = sage
     }
 
-    /// The identity colour of a shelf item, by kind (tag edge, never state).
-    static func labelColor(for item: ShelfItem) -> Color {
-        switch item.kind {
-        case .text: return Palette.mustard
-        case .link: return Palette.lavender
-        case let .file(url, _):
-            let ext = url.pathExtension.lowercased()
-            if ["png", "jpg", "jpeg", "heic", "gif", "tiff", "webp"].contains(ext) { return Palette.sky }
-            if ext == "pdf" { return Palette.tomato }
-            if ["txt", "md", "rtf", "doc", "docx", "pages"].contains(ext) { return Palette.sage }
-            if ["zip", "dmg", "tar", "gz", "rar", "7z"].contains(ext) { return Palette.sand }
-            if ["mov", "mp4", "m4v", "mp3", "wav", "m4a"].contains(ext) { return Palette.rose }
-            return Palette.kraft
-        }
-    }
 
     /// Usage tint: paper while calm, mustard from 80 %, tomato from 95 %.
     static func usageTint(_ fraction: Double) -> Color {
@@ -104,7 +89,6 @@ extension Desvan {
         static let close = Animation.spring(duration: 0.32, bounce: 0)
         static let content = Animation.spring(duration: 0.30, bounce: 0)
         static let settle = Animation.spring(duration: 0.5, bounce: 0.35)
-        static let pendulum = Animation.interpolatingSpring(stiffness: 120, damping: 6)
         static let flaps = Animation.spring(duration: 0.26, bounce: 0.28)
         static let flapsClose = Animation.spring(duration: 0.22, bounce: 0)
         static let hover = Animation.easeOut(duration: 0.15)
@@ -119,69 +103,34 @@ extension Desvan {
 // MARK: - Typography
 
 extension Desvan {
-    /// Fraunces for the logotype, empty-state titles and the "Hecho" stamp; New York for figures;
+    /// SF Pro Rounded for titles, empty states, the "Hecho" stamp and figures;
     /// SF Pro Rounded for tabs, buttons and chips; SF Pro / SF Mono for names, sentences and commands.
     enum Typeface {
-        /// New York with tabular digits.
+        /// Big numbers: SF Pro Rounded, one step bolder than asked, with tabular digits.
         static func figure(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
-            .system(size: size, weight: weight, design: .serif).monospacedDigit()
+            .system(size: size, weight: weight == .semibold ? .bold : weight, design: .rounded).monospacedDigit()
         }
 
         static func rounded(_ size: CGFloat, weight: Font.Weight = .semibold) -> Font {
             .system(size: size, weight: weight, design: .rounded)
         }
 
-        /// Fraunces with its soft, slightly wonky personality (`SOFT 100`, `WONK 1`), optical size following the
-        /// point size. Falls back to New York if the bundled font can't be loaded.
-        @MainActor
-        static func fraunces(_ size: CGFloat, weight: CGFloat = 600, italic: Bool = false) -> Font {
-            FrauncesLoader.font(size: size, weight: weight, italic: italic)
-                ?? (italic
-                    ? .system(size: size, weight: .semibold, design: .serif).italic()
-                    : .system(size: size, weight: .semibold, design: .serif))
+        /// Titles, empty states and the stamp: SF Pro Rounded (chosen by the user over bundled display fonts).
+        /// `weight` keeps the old variable-font scale (100–900).
+        static func display(_ size: CGFloat, weight: CGFloat = 600, italic: Bool = false) -> Font {
+            let font = Font.system(size: size, weight: Self.weight(weight), design: .rounded)
+            return italic ? font.italic() : font
         }
-    }
-}
 
-/// Registers the bundled Fraunces variable fonts (OFL, see Fonts/Fraunces-OFL.txt) for this process and builds
-/// instances with explicit variation axes.
-@MainActor
-enum FrauncesLoader {
-    private static var cache: [String: Font] = [:]
-
-    private static let descriptors: (roman: CTFontDescriptor?, italic: CTFontDescriptor?) = {
-        func load(_ name: String) -> CTFontDescriptor? {
-            guard let url = Bundle.main.url(forResource: name, withExtension: "ttf") else { return nil }
-            var error: Unmanaged<CFError>?
-            // Process scope: nothing is installed system-wide. Already-registered is fine.
-            CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error)
-            let all = CTFontManagerCreateFontDescriptorsFromURL(url as CFURL) as? [CTFontDescriptor]
-            return all?.first
+        private static func weight(_ value: CGFloat) -> Font.Weight {
+            switch value {
+            case ..<350: .regular
+            case ..<550: .medium
+            case ..<650: .semibold
+            case ..<750: .bold
+            default: .heavy
+            }
         }
-        return (load("Fraunces-Variable"), load("Fraunces-Italic-Variable"))
-    }()
-
-    private static func tag(_ string: String) -> NSNumber {
-        NSNumber(value: string.unicodeScalars.reduce(UInt32(0)) { ($0 << 8) | $1.value })
-    }
-
-    static func font(size: CGFloat, weight: CGFloat, italic: Bool) -> Font? {
-        let key = "\(size)-\(weight)-\(italic)"
-        if let font = cache[key] { return font }
-        guard let base = italic ? descriptors.italic : descriptors.roman else { return nil }
-        let variation: [NSNumber: NSNumber] = [
-            tag("wght"): NSNumber(value: Double(weight)),
-            tag("opsz"): NSNumber(value: Double(min(max(size, 9), 144))),
-            tag("SOFT"): 100,
-            tag("WONK"): 1,
-        ]
-        let descriptor = CTFontDescriptorCreateCopyWithAttributes(
-            base,
-            [kCTFontVariationAttribute: variation] as CFDictionary
-        )
-        let font = Font(CTFontCreateWithFontDescriptor(descriptor, size, nil))
-        cache[key] = font
-        return font
     }
 }
 

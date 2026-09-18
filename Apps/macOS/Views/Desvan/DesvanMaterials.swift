@@ -326,7 +326,7 @@ struct DesvanBulbGlyph: View {
 
 // MARK: - Rubber stamp
 
-/// "Hecho": a sage rubber stamp in Fraunces italic, tilted −8°. It drops from 1.3× with a small shake when fresh,
+/// "Hecho": a sage rubber stamp in SF Pro Rounded italic, tilted −8°. It drops from 1.3× with a small shake when fresh,
 /// and shrinks to a plain label after 4 s.
 struct DesvanRubberStamp: View {
     var text = "Hecho"
@@ -337,7 +337,7 @@ struct DesvanRubberStamp: View {
     var body: some View {
         let big = isFresh
         Text(text)
-            .font(Desvan.Typeface.fraunces(big ? 13.5 : 11.5, weight: 700, italic: true))
+            .font(Desvan.Typeface.display(big ? 13.5 : 11.5, weight: 700, italic: true))
             .foregroundStyle(Desvan.Palette.done)
             .padding(.horizontal, big ? 7 : 5)
             .padding(.vertical, big ? 1 : 0.5)

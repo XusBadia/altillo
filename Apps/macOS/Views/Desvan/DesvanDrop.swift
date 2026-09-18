@@ -48,7 +48,7 @@ private struct DesvanBoxZone: View {
 
             VStack(alignment: .leading, spacing: 3) {
                 Text(isHovering ? "Suéltalo, ya lo guardo arriba" : "Guárdalo en el altillo")
-                    .font(Desvan.Typeface.fraunces(16, weight: 600))
+                    .font(Desvan.Typeface.display(16, weight: 600))
                     .foregroundStyle(Desvan.Palette.paper)
                     .contentTransition(.opacity)
                     .lineLimit(1)

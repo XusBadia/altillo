@@ -148,7 +148,7 @@ private struct DesvanEarsFace: View {
     }
 }
 
-/// Left ear: a tiny ring and the session figure in New York.
+/// Left ear: a tiny ring and the session figure in SF Pro Rounded.
 struct DesvanUsageEar: View {
     let usage: ProviderUsage
 
@@ -166,7 +166,7 @@ struct DesvanUsageEar: View {
     }
 }
 
-/// Right ear: the house with its light on and how many things wait upstairs, in New York.
+/// Right ear: the house with its light on and how many things wait upstairs, in SF Pro Rounded.
 struct DesvanShelfCount: View {
     let count: Int
 
@@ -441,7 +441,7 @@ private struct DesvanHintFace: View {
 
     private var wordmark: some View {
         Text("altillo")
-            .font(Desvan.Typeface.fraunces(13.5, weight: 600))
+            .font(Desvan.Typeface.display(13.5, weight: 600))
             .foregroundStyle(Desvan.Palette.paper.opacity(0.9))
             .fixedSize()
             .accessibilityLabel("Altillo")

@@ -464,7 +464,7 @@ struct DesvanShelfEmptyState: View {
                 DesvanHouseMark(size: 26)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("El altillo está vacío.")
-                        .font(Desvan.Typeface.fraunces(16, weight: 600))
+                        .font(Desvan.Typeface.display(16, weight: 600))
                         .foregroundStyle(Desvan.Palette.paper)
                     Text("Sube aquí lo que quieras tener a mano un rato.")
                         .font(.system(size: 11.5))

@@ -73,11 +73,12 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
   - kraft `#C9A77C`;
   - 7 colores de etiqueta, solo para identidad.
   - En iOS, los widgets y la pantalla de bloqueo van en papel claro.
-- **Tipografía:** Fraunces (OFL, incluida en la app) en títulos, estados vacíos y el sello; New York en las cifras; SF Pro Rounded en pestañas y botones; SF Pro / SF Mono en nombres y comandos.
-- **Materiales:** grano de papel, balda de madera en la que se apoyan los ítems con su etiqueta kraft y una ligera rotación, caja de cartón en la zona de soltar y el avión de papel de AirDrop. Más adelante se pueden generar texturas bitmap (madera, kraft, cartón) con IA si mejoran el resultado.
-- **Movimiento:** con peso: las cosas caen, se aplastan un poco y se asientan. Al cerrar, nunca rebotan. Los momentos firma son el ítem que aterriza en la balda con la etiqueta en péndulo, la caja que abre las solapas bajo el cursor, el "toc, toc" del agente que espera y el sello "Hecho". Con Reducir movimiento, todo son fundidos.
+- **Tipografía:** SF Pro Rounded, la del sistema, elegida el 18-09-2026 entre 10 candidatas (muestra en `docs/design/tipografia/candidatas.png`). Se usa en títulos, cifras grandes, pestañas y botones; SF Pro / SF Mono en nombres y comandos. No se incluye ninguna fuente en la app.
+- **Materiales:** grano de papel, balda de madera en la que se apoyan las miniaturas (nombre en una línea debajo, **sin etiquetas kraft**: ocupaban demasiado), caja de cartón en la zona de soltar y el avión de papel de AirDrop. Más adelante se pueden generar texturas bitmap (madera, cartón) con IA si mejoran el resultado.
+- **Compacto:** el notch abierto mide unos 150 pt de alto (franja del notch + unos 104 pt de contenido) y el peek, 60 pt. Hay que ocupar poco espacio vertical.
+- **Movimiento:** con peso: las cosas caen, se aplastan un poco y se asientan. Al cerrar, nunca rebotan. Los momentos firma son el ítem que aterriza en la balda, la caja que abre las solapas bajo el cursor, el "toc, toc" del agente que espera y el sello "Hecho". Con Reducir movimiento, todo son fundidos.
 - **Voz:** cálida y doméstica, de tú, con verbos del altillo: "Súbelo ↑", "Suéltalo, ya lo guardo arriba", "¿Lo bajamos?".
-- **Límite para no caer en lo cursi:** las etiquetas solo aparecen en el shelf, el sello solo al terminar y las solapas solo en la zona de soltar. Todo lo demás es sobrio.
+- **Límite para no caer en lo cursi:** el sello solo aparece al terminar y las solapas solo en la zona de soltar. Todo lo demás es sobrio.
 
 ## 4. UX y personalización
 

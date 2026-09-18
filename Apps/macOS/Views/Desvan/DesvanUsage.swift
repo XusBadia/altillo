@@ -1,7 +1,7 @@
 import AltilloDesign
 import SwiftUI
 
-/// The usage tab: one compact wood card per provider. The session ring with its figure in New York, when it
+/// The usage tab: one compact wood card per provider. The session ring with its figure, when it
 /// refills, the pace in italics ("vas 9 puntos por delante del ritmo") and the weekly bar with a notch where an even
 /// pace would be.
 struct DesvanUsageView: View {
@@ -104,14 +104,14 @@ private struct DesvanUsageCard: View {
     }
 }
 
-/// The pace, in New York italic: "vas 9 puntos por delante del ritmo" / "vas con 12 de margen" / "vas a buen ritmo".
+/// The pace, in SF Pro Rounded italic: "vas 9 puntos por delante del ritmo" / "vas con 12 de margen" / "vas a buen ritmo".
 private struct DesvanPace: View {
     let delta: Double
 
     var body: some View {
         let points = Int((abs(delta) * 100).rounded())
         Text(longText(points))
-            .font(.system(size: 11.5, weight: .regular, design: .serif).italic())
+            .font(.system(size: 11.5, weight: .medium, design: .rounded).italic())
             .foregroundStyle(color)
             .monospacedDigit()
             .lineLimit(1)
