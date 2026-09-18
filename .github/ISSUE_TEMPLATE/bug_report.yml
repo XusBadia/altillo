@@ -1,0 +1,90 @@
+name: Bug report
+description: Something in Altillo doesn't work as expected
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Altillo is early-stage software
+        (phase 0), so please include as much detail as you can — especially about
+        your notch/display setup, which affects a lot of the app's behavior.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug. What did you expect instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Numbered steps, if you can reliably reproduce it.
+      placeholder: |
+        1. ...
+        2. ...
+        3. ...
+    validations:
+      required: false
+
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      description: "System Settings > General > About, e.g. macOS 26.1 (Tahoe)"
+      placeholder: macOS 26.1
+    validations:
+      required: true
+
+  - type: input
+    id: mac-model
+    attributes:
+      label: Mac model
+      description: "System Settings > General > About, e.g. MacBook Pro 14\" (M3, 2023)"
+      placeholder: MacBook Pro 14" (M3, 2023)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: has-notch
+    attributes:
+      label: Does this Mac have a physical notch?
+      options:
+        - "Yes — physical notch"
+        - "No — Altillo shows a virtual island"
+    validations:
+      required: true
+
+  - type: textarea
+    id: displays
+    attributes:
+      label: Displays
+      description: >
+        Every display connected when the bug happened: built-in vs external,
+        resolution/scaling if relevant, and which display the notch/island appeared on.
+      placeholder: |
+        - Built-in: 14" (notch)
+        - External: Dell 27" 4K, connected via Thunderbolt, mirrored: no
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / screenshots
+      description: >
+        If relevant, paste output from the "Registro de pruebas" window (menu bar
+        icon > "Registro de pruebas de arrastre…"), Console.app entries for
+        `Altillo`, or a screenshot/screen recording.
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: Altillo version
+      description: Version/build, or the commit SHA if you built from source.
+    validations:
+      required: false

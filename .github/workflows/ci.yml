@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # No Config/Local.xcconfig in CI on purpose: Shared.xcconfig's defaults apply
+  # (no team, bundle prefix dev.altillo, ad-hoc signing "-"). This is exactly
+  # what a fork sees with zero setup, so CI must build the same way.
+  DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+jobs:
+  package-tests:
+    name: AltilloKit (swift test)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          # macos-26 runners ship several Xcode 26.x installs; pick the newest one
+          # available instead of hardcoding a patch version.
+          latest=$(find /Applications -maxdepth 1 -name "Xcode_26*.app" 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "${latest:-/Applications/Xcode.app}"
+          xcodebuild -version
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: Packages/AltilloKit/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Packages/AltilloKit/Package.swift', 'Packages/AltilloKit/Package.resolved') }}
+          restore-keys: |
+            spm-${{ runner.os }}-
+
+      - name: swift test
+        working-directory: Packages/AltilloKit
+        run: swift test
+
+  macos-build-test:
+    name: macOS app (build + test)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          latest=$(find /Applications -maxdepth 1 -name "Xcode_26*.app" 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "${latest:-/Applications/Xcode.app}"
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-${{ runner.os }}-${{ hashFiles('Packages/AltilloKit/Package.swift', 'Packages/AltilloKit/Package.resolved') }}
+          restore-keys: |
+            spm-xcode-${{ runner.os }}-
+
+      - name: xcodegen generate
+        run: xcodegen generate
+
+      - name: Build + test (Altillo, ad-hoc signed)
+        run: |
+          xcodebuild \
+            -project Altillo.xcodeproj \
+            -scheme Altillo \
+            -derivedDataPath build/dd-ci \
+            test
+
+  ios-simulator-build:
+    name: iOS app + widget (simulator build)
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          latest=$(find /Applications -maxdepth 1 -name "Xcode_26*.app" 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "${latest:-/Applications/Xcode.app}"
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Cache SwiftPM
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/**/SourcePackages
+          key: spm-xcode-${{ runner.os }}-${{ hashFiles('Packages/AltilloKit/Package.swift', 'Packages/AltilloKit/Package.resolved') }}
+          restore-keys: |
+            spm-xcode-${{ runner.os }}-
+
+      - name: xcodegen generate
+        run: xcodegen generate
+
+      - name: Build for iOS Simulator (unsigned)
+        run: |
+          xcodebuild \
+            -project Altillo.xcodeproj \
+            -scheme AltilloiOS \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/dd-ci-ios \
+            CODE_SIGNING_ALLOWED=NO \
+            build

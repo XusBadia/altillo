@@ -1,0 +1,43 @@
+name: Feature request
+description: Suggest an idea or improvement for Altillo
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before opening a request, please skim [PLAN.md](../../PLAN.md) — it
+        already covers the roadmap, the modules considered in/out of scope, and
+        the UX principles the project follows. That will help you see whether
+        your idea is already planned, and helps frame the request if it isn't.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem does this solve?
+      description: What are you trying to do, and where does Altillo currently fall short?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What would you like Altillo to do instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other apps, workarounds, or approaches you've tried or considered.
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mockups, links, or anything else that helps explain the idea.
+    validations:
+      required: false
