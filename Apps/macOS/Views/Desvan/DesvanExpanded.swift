@@ -14,7 +14,10 @@ struct DesvanExpandedFace: View {
     private var isDropTarget: Bool { model.state == .dropTarget }
     private var bodyKey: String { isDropTarget ? "drop" : model.tab.rawValue }
     private var hoveredZone: DropZone? {
-        model.dropZone ?? (model.scenario == .dropTarget ? DesvanDebug.forcedZone : nil)
+        guard model.scenario == .dropTarget else { return model.dropZone }
+        // `-demoMotion flaps`: the pointer comes and goes over the box.
+        if DesvanDebug.demoMotion == .flaps { return DesvanDebug.clock.phase ? .shelf : nil }
+        return DesvanDebug.forcedZone
     }
 
     var body: some View {
@@ -51,27 +54,44 @@ struct DesvanExpandedFace: View {
         return hoveredZone == .shelf ? 0.14 : 0.09
     }
 
+    @ViewBuilder
     private var header: some View {
-        let sideZone = (chrome.size.width - chrome.notchWidth) / 2 - chrome.topRadius - 10
-        return HStack(spacing: 0) {
-            Color.clear
-                .frame(width: sideZone)
-                .overlay(alignment: .leading) {
-                    DesvanTabs(model: model)
-                        .fixedSize()
-                        .opacity(isDropTarget ? 0.4 : 1)
-                        .allowsHitTesting(!isDropTarget)
-                }
-            Color.clear.frame(width: chrome.notchWidth)
-            Color.clear
-                .frame(width: sideZone)
-                .overlay(alignment: .trailing) {
-                    DesvanHeaderAccessory(model: model, isDropTarget: isDropTarget)
-                        .fixedSize()
-                }
+        if chrome.hasNotch {
+            // Tabs and context sit either side of the camera; the notch body stays clear.
+            let sideZone = (chrome.size.width - chrome.notchWidth) / 2 - chrome.topRadius - 10
+            HStack(spacing: 0) {
+                Color.clear
+                    .frame(width: sideZone)
+                    .overlay(alignment: .leading) { tabs }
+                Color.clear.frame(width: chrome.notchWidth)
+                Color.clear
+                    .frame(width: sideZone)
+                    .overlay(alignment: .trailing) { accessory }
+            }
+            .frame(height: chrome.bandHeight)
+            .padding(.horizontal, chrome.topRadius + 10)
+        } else {
+            // No camera to dodge: one plain row.
+            HStack(spacing: 12) {
+                tabs
+                Spacer(minLength: 0)
+                accessory
+            }
+            .frame(height: chrome.bandHeight)
+            .padding(.horizontal, chrome.topRadius + 10)
         }
-        .frame(height: chrome.bandHeight)
-        .padding(.horizontal, chrome.topRadius + 10)
+    }
+
+    private var tabs: some View {
+        DesvanTabs(model: model)
+            .fixedSize()
+            .opacity(isDropTarget ? 0.4 : 1)
+            .allowsHitTesting(!isDropTarget)
+    }
+
+    private var accessory: some View {
+        DesvanHeaderAccessory(model: model, isDropTarget: isDropTarget)
+            .fixedSize()
     }
 
     @ViewBuilder
@@ -142,26 +162,19 @@ private struct DesvanTabButton: View {
                     .font(Desvan.Typeface.rounded(12, weight: .semibold))
             }
             .foregroundStyle(isSelected || isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
+            // On the plaque the label is pressed into the wood: a hairline of shade above, of light below.
+            .shadow(color: .black.opacity(isSelected ? 0.7 : 0), radius: 0, y: -0.5)
             .padding(.horizontal, 10)
             .frame(height: 24)
             .background {
                 if isSelected {
-                    Capsule()
-                        .fill(Desvan.Palette.woodRaised)
-                        .overlay {
-                            Capsule().strokeBorder(
-                                LinearGradient(colors: [Desvan.Palette.paper.opacity(0.22), Desvan.Palette.paper.opacity(0.04)],
-                                               startPoint: .top, endPoint: .bottom),
-                                lineWidth: 0.75
-                            )
-                        }
-                        .shadow(color: .black.opacity(0.5), radius: 2, y: 1)
+                    DesvanTabPlaque()
                         .matchedGeometryEffect(id: "tab", in: namespace)
                 } else if isHovering {
-                    Capsule().fill(Desvan.Palette.paper.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Desvan.Palette.paper.opacity(0.06))
                 }
             }
-            .contentShape(Capsule())
+            .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
         .buttonStyle(.plain)
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
@@ -187,6 +200,31 @@ private struct DesvanTabButton: View {
                     .symbolRenderingMode(.hierarchical)
             }
         }
+    }
+}
+
+/// The active tab: a small plaque of lighter wood in a thin brass frame, like the label holder on an attic drawer.
+private struct DesvanTabPlaque: View {
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        shape
+            .fill(LinearGradient(colors: [Color(hex: 0x3B3026), Color(hex: 0x2B231B)], startPoint: .top, endPoint: .bottom))
+            .desvanTexture(DesvanTexture.wood, opacity: 0.7, in: shape)
+            .overlay {
+                // Brass rim: bright where it faces the bulb, dark underneath.
+                shape.strokeBorder(
+                    LinearGradient(
+                        colors: [Color(hex: 0xE8C987), Color(hex: 0xA9824A), Color(hex: 0x5E4522)],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    ),
+                    lineWidth: 1
+                )
+            }
+            .overlay {
+                shape.inset(by: 1).strokeBorder(.black.opacity(0.45), lineWidth: 0.5)
+            }
+            .shadow(color: .black.opacity(0.7), radius: 1.5, y: 1)
     }
 }
 

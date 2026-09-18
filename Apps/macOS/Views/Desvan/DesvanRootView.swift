@@ -57,19 +57,35 @@ struct DesvanRootView: View {
         .environment(\.colorScheme, .dark)
         .environment(\.altilloAccent, Desvan.Palette.bulb)
         .tint(Desvan.Palette.bulb)
-        .task(id: model.scenario) { applyScenarioDemoState() }
+        .task {
+            // Wood, kraft and cardboard are generated once, off the main thread, before the notch first opens.
+            await Task.detached(priority: .utility) { DesvanTexture.prewarm() }.value
+        }
+        .task(id: model.scenario) {
+            applyScenarioDemoState()
+            await DesvanDebug.clock.run(for: model.scenario)
+        }
         .onChange(of: model.shelf.count) { old, new in
             guard new > old else { return }
             Task { await flickerBulb() }
         }
+        .onChange(of: DesvanDebug.clock.tick) {
+            if DesvanDebug.demoMotion == .landing { Task { await flickerBulb() } }
+        }
     }
 
-    /// The bulb flickers once (+4 %, 120 ms) when something is saved.
+    /// The bulb flickers when something is saved: as the thing hits the plank, the light jumps (+4 %), dips and
+    /// catches again, then settles (≈ 120 ms of flicker, like a filament shaken on its wires).
     private func flickerBulb() async {
         guard !reduceMotion else { return }
-        withAnimation(.easeOut(duration: 0.04)) { flicker = 0.04 }
-        try? await Task.sleep(for: .milliseconds(120))
-        withAnimation(.easeIn(duration: 0.25)) { flicker = 0 }
+        try? await Task.sleep(for: .milliseconds(230)) // the thing lands
+        withAnimation(.linear(duration: 0.015)) { flicker = 0.05 }
+        try? await Task.sleep(for: .milliseconds(50))
+        withAnimation(.linear(duration: 0.015)) { flicker = -0.03 }
+        try? await Task.sleep(for: .milliseconds(35))
+        withAnimation(.linear(duration: 0.015)) { flicker = 0.04 }
+        try? await Task.sleep(for: .milliseconds(50))
+        withAnimation(.easeIn(duration: 0.3)) { flicker = 0 }
     }
 
     /// A pre-selected tile so the review screenshot shows the selection style.
@@ -236,18 +252,34 @@ struct DesvanKnockingHand: View {
         if reduceMotion {
             hand
         } else {
-            hand.keyframeAnimator(initialValue: 0.0, repeating: true) { content, angle in
-                content.rotationEffect(.degrees(angle), anchor: .bottom)
+            hand.keyframeAnimator(initialValue: Knock(), repeating: true) { content, knock in
+                content
+                    .rotationEffect(.degrees(knock.angle), anchor: .bottom)
+                    .offset(x: knock.jolt)
             } keyframes: { _ in
-                KeyframeTrack {
+                // Two taps every 3 s: the hand swings at the door (±12°) and jolts forward a point on each tap,
+                // so it still reads at 1×.
+                KeyframeTrack(\.angle) {
                     LinearKeyframe(0, duration: 2.3)
                     CubicKeyframe(-12, duration: 0.09)
                     CubicKeyframe(4, duration: 0.1)
                     CubicKeyframe(-12, duration: 0.09)
                     CubicKeyframe(0, duration: 0.42)
                 }
+                KeyframeTrack(\.jolt) {
+                    LinearKeyframe(0, duration: 2.3)
+                    CubicKeyframe(-1, duration: 0.09)
+                    CubicKeyframe(0.3, duration: 0.1)
+                    CubicKeyframe(-1, duration: 0.09)
+                    CubicKeyframe(0, duration: 0.42)
+                }
             }
         }
+    }
+
+    private struct Knock {
+        var angle = 0.0
+        var jolt = 0.0
     }
 }
 
@@ -427,59 +459,70 @@ private struct DesvanHintFace: View {
 
 // MARK: - Drag armed
 
-/// A drag is in progress: the bulb lights up as the pointer comes closer, and a warm "Súbelo ↑".
+/// A drag is in progress: the bulb hanging under the notch lights up as the pointer comes closer
+/// (`model.dragProximity`), and a warm "Súbelo ↑".
 private struct DesvanDragArmedFace: View {
     let model: NotchModel
     let chrome: NotchChrome
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        TimelineView(.animation(minimumInterval: 1 / 30, paused: model.scenario != nil)) { _ in
-            let near = proximity
-            content(near: near)
-        }
-    }
-
-    private func content(near: Double) -> some View {
-        VStack(spacing: 0) {
-            Color.clear.frame(height: chrome.hasNotch ? chrome.bandHeight : 0)
-            HStack(alignment: .top, spacing: 8) {
-                // The bulb hangs from the notch on a short cord.
+        let near = proximity
+        Group {
+            if chrome.hasNotch {
                 VStack(spacing: 0) {
-                    Rectangle()
-                        .fill(Desvan.Palette.paper.opacity(0.35))
-                        .frame(width: 1, height: chrome.hasNotch ? 5 : 3)
-                    DesvanBulbGlyph(size: 17, lit: 0.3 + 0.7 * near)
+                    Color.clear.frame(height: chrome.bandHeight)
+                    HStack(alignment: .top, spacing: 9) {
+                        // The bulb hangs from the notch on a short cord.
+                        VStack(spacing: 0) {
+                            Rectangle()
+                                .fill(LinearGradient(colors: [Desvan.Palette.paper.opacity(0.1), Desvan.Palette.paper.opacity(0.4)],
+                                                     startPoint: .top, endPoint: .bottom))
+                                .frame(width: 1, height: 3)
+                            DesvanBulbGlyph(size: 17, lit: 0.12 + 0.88 * near)
+                        }
+                        label(near: near)
+                            .padding(.top, 8)
+                    }
+                    .frame(maxHeight: .infinity, alignment: .top)
                 }
-                HStack(spacing: 3) {
-                    Text("Súbelo")
-                    Image(systemName: "arrow.up")
-                        .font(.system(size: 10.5, weight: .bold))
-                        .symbolEffect(.bounce.up.byLayer, options: .repeat(.periodic(delay: 1.4)), isActive: !reduceMotion)
+            } else {
+                // The island: one centred row.
+                HStack(spacing: 8) {
+                    DesvanBulbGlyph(size: 15, lit: 0.12 + 0.88 * near)
+                        .offset(y: 1)
+                    label(near: near)
                 }
-                .font(Desvan.Typeface.rounded(13, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.bulb)
-                .padding(.top, chrome.hasNotch ? 8 : 6)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
-            .frame(maxHeight: .infinity, alignment: .top)
         }
         .background {
+            // The bulb's light spills from under the notch: faint far away, warm and wide right at the notch.
             DesvanBulbGlow(
-                // On bare black the bulb needs a little more to read as light than it does on wood.
-                intensity: 0.08 + 0.16 * near,
-                radius: 80 + 50 * near,
-                originY: chrome.hasNotch ? chrome.bandHeight : 0
+                intensity: 0.05 + 0.25 * near,
+                radius: 70 + 70 * near,
+                originY: chrome.hasNotch ? chrome.bandHeight + 10 : chrome.size.height / 2
             )
         }
+        .animation(Desvan.Motion.pick(.easeOut(duration: 0.18), reduceMotion: reduceMotion), value: near)
     }
 
-    /// 0 far … 1 at the notch. Frozen at a telling value in design scenarios.
+    private func label(near: Double) -> some View {
+        HStack(spacing: 3) {
+            Text("Súbelo")
+            Image(systemName: "arrow.up")
+                .font(.system(size: 10.5, weight: .bold))
+                .symbolEffect(.bounce.up.byLayer, options: .repeat(.periodic(delay: 1.4)), isActive: !reduceMotion)
+        }
+        .font(Desvan.Typeface.rounded(13, weight: .semibold))
+        .foregroundStyle(Desvan.Palette.bulb.mix(with: Desvan.Palette.paper, by: 0.35 * (1 - near)))
+        .shadow(color: Desvan.Palette.bulb.opacity(0.5 * near), radius: 6)
+    }
+
+    /// 0 far … 1 at the notch. Frozen at a telling value in design scenarios; `-demoMotion approach` sweeps it.
     private var proximity: Double {
-        if model.scenario != nil { return 0.75 }
-        let mouse = NSEvent.mouseLocation
-        guard let screen = NSScreen.screens.first(where: { NSMouseInRect(mouse, $0.frame, false) }) else { return 0 }
-        let top = CGPoint(x: screen.frame.midX, y: screen.frame.maxY)
-        let distance = hypot(mouse.x - top.x, mouse.y - top.y)
-        return min(max(1 - (distance - 40) / 460, 0), 1)
+        guard model.scenario != nil else { return model.dragProximity }
+        if DesvanDebug.demoMotion == .approach { return DesvanDebug.clock.phase ? 1 : 0.05 }
+        return 0.75
     }
 }

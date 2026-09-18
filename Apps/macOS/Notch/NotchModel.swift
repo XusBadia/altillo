@@ -31,6 +31,8 @@ final class NotchModel {
     var dropZoneFrames: [DropZone: CGRect] = [:]
     /// True while a drag hovers the shelf drop zone itself (not just near the notch).
     var isDropHovering: Bool { dropZone == .shelf }
+    /// How close a drag is to the notch: 1 at the notch, 0 at 300 pt or more. Lights the bulb while dragArmed.
+    var dragProximity: Double = 0
 
     /// Fake usage/agents/etc. used until the real modules exist (phase 0 design review).
     var demo: DemoContent = .sample

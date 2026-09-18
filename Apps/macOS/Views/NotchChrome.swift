@@ -138,6 +138,7 @@ struct NotchChrome: Equatable {
             case .peekUsageAlert: return .peek(.usageAlert)
             case .peekAgentWaiting: return .peek(.agentWaiting)
             case .peekShelf: return .peek(.shelf)
+            case .peekHint: return .peek(.hint)
             default: return model.shelf.isEmpty ? .peek(.hint) : .peek(.shelf)
             }
         case .dragArmed:

@@ -12,7 +12,8 @@ struct DesvanShelfView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    static let plankY: CGFloat = 86
+    /// Top of the plank (its top surface) in the card.
+    static let plankY: CGFloat = 76
 
     var body: some View {
         Group {
@@ -58,7 +59,7 @@ struct DesvanShelfView: View {
                 .padding(.top, Self.plankY)
 
             ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 2) {
+                HStack(alignment: .top, spacing: 1) {
                     ForEach(model.shelf) { item in
                         DesvanShelfTile(
                             item: item,
@@ -70,15 +71,15 @@ struct DesvanShelfView: View {
                         .transition(.opacity)
                     }
                 }
-                .padding(.horizontal, 10)
+                .padding(.horizontal, 8)
             }
             .scrollIndicators(.never)
             .scrollClipDisabled()
-            .frame(height: 160)
+            .frame(height: 170)
 
             DesvanShelfHint(hasSelection: !model.selection.isEmpty)
                 .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, 9)
+                .padding(.bottom, 8)
         }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
@@ -126,14 +127,26 @@ private struct DesvanShelfTile: View {
     @State private var landing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    static let width: CGFloat = 98
-    static let shelfHeight: CGFloat = DesvanShelfView.plankY - 10
+    static let width: CGFloat = 99
+    static let thumbnailSide: CGFloat = 64
+    /// Height of the space things stand in; their base sinks 3 pt into the plank's top surface (depth).
+    static let thingHeight: CGFloat = thumbnailSide + 8
+    static let sink: CGFloat = 3
+    static let tagWidth: CGFloat = width - 2
 
-    /// The name written on the tag. The extension is already under it ("PNG · 294 KB"), so it's left off.
+    /// The name written on the tag, fitted to its lines. The extension is already under it ("PNG · 294 KB"), so
+    /// it's left off; file names keep their end (dates, versions), text keeps its beginning.
     private var tagTitle: String {
-        guard case .file = item.kind else { return item.displayName }
-        let stem = (item.displayName as NSString).deletingPathExtension
-        return stem.isEmpty ? item.displayName : stem
+        let textWidth = Self.tagWidth - 2 * DesvanLuggageTag.horizontalPadding
+        switch item.kind {
+        case .file:
+            let stem = (item.displayName as NSString).deletingPathExtension
+            return DesvanTagText.fit(stem.isEmpty ? item.displayName : stem, width: textWidth, keepEnd: true)
+        case .link:
+            return DesvanTagText.fit(item.displayName, width: textWidth, keepEnd: true)
+        case .text:
+            return DesvanTagText.fit(item.displayName, width: textWidth, keepEnd: false)
+        }
     }
 
     /// Things left on a shelf, not a grid: a fixed, stable tilt of ±1.5° per item.
@@ -143,27 +156,20 @@ private struct DesvanShelfTile: View {
     var body: some View {
         VStack(spacing: 0) {
             thing
-                .frame(width: Self.width, height: Self.shelfHeight, alignment: .bottom)
-            Color.clear.frame(height: 4) // the plank
+                .frame(width: Self.width, height: Self.thingHeight, alignment: .bottom)
+            Color.clear.frame(height: DesvanPlank.height - Self.sink - 2.5) // the plank (the pin sits on its edge)
             DesvanLuggageTag(
                 title: tagTitle,
+                detail: NotchFormat.subtitle(for: item),
                 edge: Desvan.labelColor(for: item),
                 isSelected: isSelected,
-                width: Self.width - 6,
-                cord: 8
+                width: Self.tagWidth,
+                cord: 6
             )
             .rotationEffect(.degrees(swingAngle), anchor: .top)
-            Text(NotchFormat.subtitle(for: item))
-                .font(Desvan.Typeface.rounded(10, weight: .medium))
-                .foregroundStyle(Desvan.Palette.paperSecondary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .monospacedDigit()
-                .frame(width: Self.width - 8)
-                .padding(.top, 5)
         }
         .frame(width: Self.width)
-        .padding(.top, 10)
+        .padding(.top, DesvanShelfView.plankY + Self.sink - Self.thingHeight)
         .contentShape(Rectangle())
         .onHover { hovering in
             withAnimation(Desvan.Motion.hover) { isHovering = hovering }
@@ -177,13 +183,11 @@ private struct DesvanShelfTile: View {
         .contextMenu { contextMenu }
         .onAppear {
             // Just saved: it falls from the notch onto the plank.
-            if Date.now.timeIntervalSince(item.addedAt) < 1.5, !reduceMotion {
-                landing = true
-                Task {
-                    try? await Task.sleep(for: .milliseconds(260))
-                    push(8)
-                }
-            }
+            if Date.now.timeIntervalSince(item.addedAt) < 1.5 { land() }
+        }
+        .onChange(of: DesvanDebug.clock.tick) {
+            // `-demoMotion landing`: the newest thing lands again and again.
+            if DesvanDebug.demoMotion == .landing, model.shelf.last?.id == item.id { land() }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(item.displayName)
@@ -193,43 +197,79 @@ private struct DesvanShelfTile: View {
 
     /// The thumbnail resting on the plank, with its contact shadow.
     private var thing: some View {
-        DesvanThumbnail(item: item, side: 68)
-            .background(alignment: .bottom) {
-                Ellipse()
-                    .fill(.black.opacity(isSelected ? 0.55 : 0.6))
-                    .frame(width: 58, height: 5)
-                    .blur(radius: 2.5)
-                    .offset(y: 2)
+        ZStack(alignment: .bottom) {
+            contactShadow
+            DesvanThumbnail(item: item, side: Self.thumbnailSide)
+                .rotationEffect(.degrees(tilt), anchor: .bottom)
+                .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.28) : .clear, radius: 10, y: -2)
+                .offset(y: -lift)
+                .animation(Desvan.Motion.pick(.spring(duration: 0.25, bounce: 0.2), reduceMotion: reduceMotion), value: lift)
+                .keyframeAnimator(initialValue: LandingPose(), trigger: landing) { content, pose in
+                    content
+                        .scaleEffect(x: pose.scaleX, y: pose.scaleY, anchor: .bottom)
+                        .rotationEffect(.degrees(pose.rotation), anchor: .bottom)
+                        .offset(y: pose.offsetY)
+                } keyframes: { _ in
+                    KeyframeTrack(\.offsetY) {
+                        // Falls from above the card, accelerating (≈ y = t²).
+                        MoveKeyframe(-90)
+                        LinearKeyframe(-80, duration: 0.08)
+                        LinearKeyframe(-50, duration: 0.08)
+                        LinearKeyframe(0, duration: 0.08)
+                    }
+                    KeyframeTrack(\.rotation) {
+                        MoveKeyframe(-4)
+                        LinearKeyframe(-3, duration: 0.24)
+                        SpringKeyframe(0, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
+                    }
+                    KeyframeTrack(\.scaleX) {
+                        LinearKeyframe(1, duration: 0.24)
+                        LinearKeyframe(1.04, duration: 0.06) // squash on impact
+                        SpringKeyframe(1, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
+                    }
+                    KeyframeTrack(\.scaleY) {
+                        LinearKeyframe(1, duration: 0.24)
+                        LinearKeyframe(0.94, duration: 0.06)
+                        SpringKeyframe(1, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
+                    }
+                }
+        }
+    }
+
+    /// Contact shadow on the plank's top surface: a tight dark core and a wider, softer penumbra. It stays on the
+    /// board: lifting (hover, selection) spreads it and makes it lighter, and it gathers as a falling thing arrives.
+    private var contactShadow: some View {
+        ZStack {
+            Ellipse()
+                .fill(.black.opacity(0.4 - 0.06 * lift))
+                .frame(width: 68 + 3 * lift, height: 7 + lift)
+                .blur(radius: 3 + lift)
+            Ellipse()
+                .fill(.black.opacity(0.8 - 0.2 * lift))
+                .frame(width: 52, height: 3)
+                .blur(radius: 1 + 0.6 * lift)
+        }
+        .offset(y: 2.5)
+        .animation(Desvan.Motion.pick(.spring(duration: 0.25, bounce: 0), reduceMotion: reduceMotion), value: lift)
+        .keyframeAnimator(initialValue: 1.0, trigger: landing) { content, presence in
+            content.opacity(presence).scaleEffect(x: 0.5 + 0.5 * presence, y: 1)
+        } keyframes: { _ in
+            KeyframeTrack {
+                MoveKeyframe(0.1)
+                CubicKeyframe(1, duration: 0.24)
             }
-            .rotationEffect(.degrees(tilt), anchor: .bottom)
-            .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.28) : .clear, radius: 10, y: -2)
-            .offset(y: -lift)
-            .animation(Desvan.Motion.pick(.spring(duration: 0.25, bounce: 0.2), reduceMotion: reduceMotion), value: lift)
-            .keyframeAnimator(initialValue: LandingPose(), trigger: landing) { content, pose in
-                content
-                    .scaleEffect(x: pose.scaleX, y: pose.scaleY, anchor: .bottom)
-                    .rotationEffect(.degrees(pose.rotation), anchor: .bottom)
-                    .offset(y: pose.offsetY)
-            } keyframes: { _ in
-                KeyframeTrack(\.offsetY) {
-                    CubicKeyframe(-90, duration: 0.001)
-                    CubicKeyframe(0, duration: 0.24) // falls, accelerating
-                }
-                KeyframeTrack(\.rotation) {
-                    LinearKeyframe(-4, duration: 0.24)
-                    SpringKeyframe(0, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
-                }
-                KeyframeTrack(\.scaleX) {
-                    LinearKeyframe(1, duration: 0.24)
-                    LinearKeyframe(1.04, duration: 0.06) // squash on impact
-                    SpringKeyframe(1, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
-                }
-                KeyframeTrack(\.scaleY) {
-                    LinearKeyframe(1, duration: 0.24)
-                    LinearKeyframe(0.94, duration: 0.06)
-                    SpringKeyframe(1, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
-                }
-            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    /// Falls from above, squashes on the plank and settles; the tag swings as the thing hits the board.
+    private func land() {
+        guard !reduceMotion else { return }
+        landing.toggle()
+        Task {
+            try? await Task.sleep(for: .milliseconds(250))
+            push(8)
+        }
     }
 
     /// A gentle push on the tag: it swings like a pendulum and comes to rest.
@@ -423,10 +463,9 @@ private struct DesvanShelfHint: View {
 struct DesvanShelfEmptyState: View {
     var body: some View {
         ZStack(alignment: .top) {
+            // The bare board, running wall to wall like the full shelf's.
             DesvanPlank()
-                .padding(.top, 118)
-                .padding(.horizontal, 60)
-                .opacity(0.8)
+                .padding(.top, 128)
             VStack(spacing: 6) {
                 DesvanHouseMark(size: 22)
                     .padding(.bottom, 4)
@@ -437,8 +476,9 @@ struct DesvanShelfEmptyState: View {
                     .font(.system(size: 12))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
             }
-            .padding(.top, 26)
+            .padding(.top, 28)
         }
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
     }
 }

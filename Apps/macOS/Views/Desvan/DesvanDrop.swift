@@ -15,7 +15,7 @@ struct DesvanDropZones: View {
             DesvanBoxZone(model: model, isHovering: hovered == .shelf)
                 .desvanDropZoneFrame(.shelf, model: model)
             DesvanAirDropZone(isHovering: hovered == .airDrop)
-                .frame(width: 154)
+                .frame(width: 148)
                 .desvanDropZoneFrame(.airDrop, model: model)
         }
     }
@@ -38,41 +38,41 @@ private struct DesvanBoxZone: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 10) {
             DesvanCardboardBox(openness: isHovering ? 1 : 0, warmth: isHovering ? 1 : 0)
                 .animation(
                     reduceMotion ? Desvan.Motion.fade : (isHovering ? Desvan.Motion.flaps : Desvan.Motion.flapsClose),
                     value: isHovering
                 )
-                .frame(width: 184, height: 150)
-                .padding(.top, 4)
+                .padding(.top, 10)
 
-            VStack(alignment: .leading, spacing: 6) {
-                Text(isHovering ? "Suéltalo, ya lo guardo arriba" : "Guárdalo en el altillo")
+            VStack(alignment: .leading, spacing: 5) {
+                Text(isHovering ? "Suéltalo,\nya lo guardo arriba" : "Guárdalo en el altillo")
                     .font(Desvan.Typeface.fraunces(17.5, weight: 600))
                     .foregroundStyle(Desvan.Palette.paper)
                     .contentTransition(.opacity)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text(subtitle)
                     .font(.system(size: 12))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if !model.shelf.isEmpty {
                     DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 20)
-                        .padding(.top, 4)
+                        .padding(.top, 5)
                 }
             }
             .opacity(isHovering ? 1 : 0.4)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.leading, 12)
-        .padding(.trailing, 14)
+        .padding(.leading, 4)
+        .padding(.trailing, 18)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
             // The inside of the zone warms up under the pointer.
             RadialGradient(
                 colors: [Desvan.Palette.bulb.opacity(isHovering ? 0.16 : 0), .clear],
-                center: UnitPoint(x: 0.22, y: 0.5),
+                center: UnitPoint(x: 0.24, y: 0.52),
                 startRadius: 0,
                 endRadius: 220
             )
@@ -142,19 +142,18 @@ private struct DesvanAirDropZone: View {
     }
 
     private func planeGlyph(lean: Double) -> some View {
-        Image(systemName: "paperplane.fill")
-            .font(.system(size: 30, weight: .medium))
-            .symbolRenderingMode(.hierarchical)
-            .foregroundStyle(isHovering ? Desvan.Palette.sky : Desvan.Palette.paperTertiary)
-            .shadow(color: isHovering ? Desvan.Palette.sky.opacity(0.5) : .clear, radius: 8)
+        DesvanPaperPlane(tint: isHovering ? Desvan.Palette.sky : nil)
+            .frame(width: 46, height: 38)
+            .opacity(isHovering ? 1 : 0.5)
+            .shadow(color: isHovering ? Desvan.Palette.sky.opacity(0.45) : .clear, radius: 8)
             .rotationEffect(.degrees(lean))
             .offset(y: isHovering ? -3 : 0)
             .background(alignment: .bottom) {
                 Ellipse()
-                    .fill(.black.opacity(isHovering ? 0.35 : 0.2))
-                    .frame(width: 30, height: 5)
-                    .blur(radius: 2)
-                    .offset(y: 8)
+                    .fill(.black.opacity(isHovering ? 0.4 : 0.25))
+                    .frame(width: isHovering ? 30 : 34, height: 5)
+                    .blur(radius: isHovering ? 3 : 2)
+                    .offset(y: 9)
             }
             .animation(.spring(duration: 0.35, bounce: 0.2), value: lean)
             .accessibilityHidden(true)
@@ -187,6 +186,45 @@ struct DesvanThumbStack: View {
                     .rotationEffect(.degrees(Desvan.jitter(item.id) * 4))
                     .zIndex(Double(index))
             }
+        }
+        .accessibilityHidden(true)
+    }
+}
+
+/// A folded paper plane (AirDrop): two facets of paper with a crease, lit from above. `tint` washes it in a colour.
+struct DesvanPaperPlane: View {
+    var tint: Color?
+
+    var body: some View {
+        Canvas { context, size in
+            let w = size.width, h = size.height
+            let nose = CGPoint(x: w * 0.98, y: h * 0.06)
+            let wing = CGPoint(x: w * 0.02, y: h * 0.46)
+            let keel = CGPoint(x: w * 0.40, y: h * 0.60)
+            let tail = CGPoint(x: w * 0.52, y: h * 0.98)
+            let paper = tint.map { Desvan.Palette.paper.mix(with: $0, by: 0.35) } ?? Desvan.Palette.paper
+            // Lower facet (in shade).
+            var lower = Path()
+            lower.addLines([nose, keel, tail])
+            lower.closeSubpath()
+            context.fill(lower, with: .color(paper.mix(with: Color(hex: 0x6B5A48), by: 0.45)))
+            // Upper wing (facing the light).
+            var upper = Path()
+            upper.addLines([nose, wing, keel])
+            upper.closeSubpath()
+            context.fill(upper, with: .linearGradient(
+                Gradient(colors: [paper, paper.mix(with: Color(hex: 0xB9A98F), by: 0.35)]),
+                startPoint: nose, endPoint: wing
+            ))
+            context.fill(upper, with: .tiledImage(DesvanTexture.kraft, origin: .zero,
+                                                  sourceRect: CGRect(x: 0, y: 0, width: 1, height: 1), scale: 1))
+            // The crease.
+            var crease = Path()
+            crease.move(to: nose)
+            crease.addLine(to: keel)
+            context.stroke(crease, with: .color(Color(hex: 0x6B5A48).opacity(0.55)), lineWidth: 0.75)
+            context.stroke(upper, with: .color(.black.opacity(0.25)), lineWidth: 0.5)
+            context.stroke(lower, with: .color(.black.opacity(0.25)), lineWidth: 0.5)
         }
         .accessibilityHidden(true)
     }

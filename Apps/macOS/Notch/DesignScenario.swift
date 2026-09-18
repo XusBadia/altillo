@@ -4,6 +4,7 @@ import AltilloCore
 enum DesignScenario: String, CaseIterable, Identifiable {
     case idle
     case idleWithEars
+    case peekHint
     case peekShelf
     case peekUsageAlert
     case peekAgentWaiting
@@ -20,6 +21,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         switch self {
         case .idle: "Reposo"
         case .idleWithEars: "Reposo con orejas"
+        case .peekHint: "Peek: pista (altillo vacío)"
         case .peekShelf: "Peek: altillo"
         case .peekUsageAlert: "Peek: alerta de uso"
         case .peekAgentWaiting: "Peek: agente esperando"
@@ -35,7 +37,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     var state: NotchState {
         switch self {
         case .idle, .idleWithEars: .idle
-        case .peekShelf, .peekUsageAlert, .peekAgentWaiting: .peek
+        case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting: .peek
         case .dragArmed: .dragArmed
         case .dropTarget: .dropTarget
         case .openShelfEmpty, .openShelf, .openUsage, .openAgents: .open

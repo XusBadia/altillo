@@ -200,12 +200,49 @@ extension Desvan {
     }
 }
 
-/// Launch flag for design screenshots only: `-prototypeHoverZone shelf|airDrop` lights that zone in the frozen
-/// dropTarget scenario, as if the pointer were over it.
+/// Launch flags for design reviews only.
+///
+/// - `-prototypeHoverZone shelf|airDrop` lights that zone in the frozen dropTarget scenario, as if the pointer were
+///   over it.
+/// - `-demoMotion landing|flaps|knock|stamp|approach` loops a signature moment in its design scenario so it can be
+///   watched (and recorded) live: `landing` in openShelf, `flaps` in dropTarget, `knock` in peekAgentWaiting or
+///   openAgents (the knock already repeats every 3 s), `stamp` in openAgents, `approach` in dragArmed. Nothing runs
+///   without the flag, and nothing runs outside a design scenario.
 enum DesvanDebug {
     static let forcedZone: DropZone? = switch UserDefaults.standard.string(forKey: "prototypeHoverZone") {
     case "shelf": .shelf
     case "airDrop", "airdrop": .airDrop
     default: nil
+    }
+
+    enum Moment: String {
+        case landing, flaps, knock, stamp, approach
+    }
+
+    static let demoMotion: Moment? = UserDefaults.standard.string(forKey: "demoMotion").flatMap(Moment.init(rawValue:))
+
+    /// Ticks while a `-demoMotion` loop runs; views replay their moment on each tick.
+    @MainActor static let clock = MotionClock()
+
+    @MainActor
+    @Observable
+    final class MotionClock {
+        /// Increments every `period`; `phase` alternates on each tick (open/closed, near/far).
+        private(set) var tick = 0
+        var phase: Bool { tick % 2 == 1 }
+
+        /// Runs until cancelled (tie it to the scenario's `.task`). Does nothing without `-demoMotion`.
+        func run(for scenario: DesignScenario?) async {
+            guard let moment = DesvanDebug.demoMotion, scenario != nil else { return }
+            let period: Duration = switch moment {
+            case .flaps, .approach: .milliseconds(1400)
+            case .landing, .knock, .stamp: .milliseconds(2500)
+            }
+            try? await Task.sleep(for: .milliseconds(700))
+            while !Task.isCancelled {
+                tick += 1
+                try? await Task.sleep(for: period)
+            }
+        }
     }
 }

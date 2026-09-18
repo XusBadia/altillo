@@ -117,6 +117,8 @@ private struct DesvanAgentRow: View {
     @State private var isHovering = false
     /// A freshly finished session wears the big stamp for 4 s, then a plain label.
     @State private var freshStamp = false
+    /// Bumped to stamp again (`-demoMotion stamp`).
+    @State private var stampTake = 0
 
     var body: some View {
         HStack(spacing: 10) {
@@ -156,8 +158,14 @@ private struct DesvanAgentRow: View {
             freshStamp = true
             Task {
                 try? await Task.sleep(for: .seconds(4))
+                guard DesvanDebug.demoMotion != .stamp else { return }
                 withAnimation(.spring(duration: 0.35, bounce: 0)) { freshStamp = false }
             }
+        }
+        .onChange(of: DesvanDebug.clock.tick) {
+            guard DesvanDebug.demoMotion == .stamp, session.phase == .finished else { return }
+            freshStamp = true
+            stampTake += 1
         }
     }
 
@@ -173,6 +181,7 @@ private struct DesvanAgentRow: View {
         switch session.phase {
         case .finished:
             DesvanRubberStamp(isFresh: freshStamp)
+                .id(stampTake)
         case .working:
             HStack(spacing: 6) {
                 DesvanWorkingDots()

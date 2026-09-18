@@ -181,7 +181,9 @@ final class NotchCoordinator {
         guard let window else { return }
         // Near the notch, or anywhere over the open notch (plus a margin): the open shelf reaches far below the
         // notch itself, so measuring only from the notch would close it under the pointer.
-        let nearNotch = window.geometry.distance(to: point) < NotchLayout.dropActivationDistance
+        let distance = window.geometry.distance(to: point)
+        model.dragProximity = 1 - min(max(distance / 300, 0), 1)
+        let nearNotch = distance < NotchLayout.dropActivationDistance
         let overOpenNotch = model.state == .dropTarget
             && window.visibleShapeScreenRect.insetBy(dx: -NotchLayout.dropKeepOpenMargin, dy: -NotchLayout.dropKeepOpenMargin)
                 .contains(point)
