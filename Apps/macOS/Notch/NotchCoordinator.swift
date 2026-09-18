@@ -84,6 +84,8 @@ final class NotchCoordinator {
             let controller = NotchWindowController(geometry: geometry, model: model)
             controller.dropTarget.onDragEntered = { [weak self] in self?.model.isDropHovering = true }
             controller.dropTarget.onDragExited = { [weak self] in self?.model.isDropHovering = false }
+            // Accepted before slow file promises (Photos, Mail) resolve, so the notch stays open while they arrive.
+            controller.dropTarget.onDropAccepted = { [weak self] in self?.droppedDuringCurrentDrag = true }
             controller.dropTarget.onDrop = { [weak self] items in self?.receive(items) }
             window = controller
         }
