@@ -19,7 +19,9 @@ struct DesvanCardboardBox: View, Animatable {
         }
     }
 
+    /// The size the box is designed at; `scale` draws it smaller without changing its geometry.
     static let canvasSize = CGSize(width: 196, height: 146)
+    var scale: CGFloat = 1
 
     // Box dimensions in points (world space). x right, y up, z towards the viewer.
     private let width: Double = 108
@@ -31,10 +33,11 @@ struct DesvanCardboardBox: View, Animatable {
     private let elevation = 26.0 * .pi / 180
 
     var body: some View {
-        Canvas { context, size in
-            draw(in: &context, size: size)
+        Canvas { context, _ in
+            context.scaleBy(x: scale, y: scale)
+            draw(in: &context, size: Self.canvasSize)
         }
-        .frame(width: Self.canvasSize.width, height: Self.canvasSize.height)
+        .frame(width: Self.canvasSize.width * scale, height: Self.canvasSize.height * scale)
         .accessibilityHidden(true)
     }
 

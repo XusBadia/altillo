@@ -1,7 +1,7 @@
 import AltilloDesign
 import SwiftUI
 
-/// The agents tab: whoever knocks first (glowing with the bulb, Permitir / Denegar), then the rest as wood rows.
+/// The agents tab: whoever knocks first (glowing with the bulb, Permitir / Denegar), then the rest as slim wood rows.
 /// Finished sessions get a rubber stamp.
 struct DesvanAgentsView: View {
     let model: NotchModel
@@ -14,99 +14,78 @@ struct DesvanAgentsView: View {
     }
 
     var body: some View {
-        VStack(spacing: 6) {
-            ForEach(ordered) { session in
-                if session.phase.needsUser {
-                    DesvanWaitingCard(session: session)
-                } else {
-                    DesvanAgentRow(session: session, isReview: model.scenario != nil)
+        ScrollView(.vertical) {
+            VStack(spacing: 4) {
+                ForEach(ordered) { session in
+                    if session.phase.needsUser {
+                        DesvanWaitingCard(session: session)
+                    } else {
+                        DesvanAgentRow(session: session, isReview: model.scenario != nil)
+                    }
                 }
             }
-            Spacer(minLength: 0)
         }
+        .scrollIndicators(.never)
+        .scrollBounceBehavior(.basedOnSize)
     }
 }
 
-/// An agent knocking on the door. Buttons are no-ops until phase 4 wires the hook socket.
+/// An agent knocking on the door: who and where on top, the command below, Denegar / Permitir to the right.
+/// Buttons are no-ops until phase 4 wires the hook socket.
 private struct DesvanWaitingCard: View {
     let session: AgentSession
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 9) {
-                AgentGlyph(agent: session.agent, size: 20)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("\(session.agent.name) quiere hacer algo en \(Text(session.project).font(Desvan.Typeface.figure(13.5, weight: .medium).italic()).foregroundStyle(Desvan.Palette.paper))")
-                        .font(.system(size: 12.5))
+        HStack(spacing: 10) {
+            AgentGlyph(agent: session.agent, size: 16)
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(spacing: 6) {
+                    Text("\(session.agent.name) quiere hacer algo en \(Text(session.project).font(Desvan.Typeface.figure(12.5, weight: .medium).italic()).foregroundStyle(Desvan.Palette.paper))")
+                        .font(.system(size: 11.5))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
-                    Text("espera tu permiso · \(NotchFormat.ago(session.lastActivity))")
-                        .font(Desvan.Typeface.rounded(10.5, weight: .medium))
+                    Text(NotchFormat.ago(session.lastActivity))
+                        .font(Desvan.Typeface.rounded(10, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperTertiary)
                         .monospacedDigit()
                 }
-                Spacer(minLength: 8)
-                HStack(spacing: 6) {
-                    DesvanKnockingHand(size: 11)
-                    Text("Toc, toc")
-                        .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.bulb)
-                }
-                .padding(.horizontal, 9)
-                .frame(height: 22)
-                .background(Capsule().fill(Desvan.Palette.bulb.opacity(0.12)))
-            }
-
-            if let request = session.request {
-                HStack(spacing: 8) {
-                    HStack(spacing: 8) {
+                if let request = session.request {
+                    HStack(spacing: 6) {
                         Text(request.tool)
-                            .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                            .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
                             .foregroundStyle(Desvan.Palette.paperTertiary)
                         Text(request.command)
-                            .font(.system(size: 11.5, weight: .regular, design: .monospaced))
+                            .font(.system(size: 11, weight: .regular, design: .monospaced))
                             .foregroundStyle(Desvan.Palette.paper)
-                            .lineLimit(1)
                             .truncationMode(.middle)
                             .textSelection(.enabled)
-                        Spacer(minLength: 0)
                     }
-                    .padding(.horizontal, 10)
-                    .frame(height: 28)
-                    .background {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .fill(Desvan.Palette.woodRaised)
-                            .overlay {
-                                // A shallow well: shadow at the top edge.
-                                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .strokeBorder(
-                                        LinearGradient(colors: [.black.opacity(0.5), Desvan.Palette.hairline],
-                                                       startPoint: .top, endPoint: .bottom),
-                                        lineWidth: 1
-                                    )
-                            }
-                    }
-
-                    Button {} label: {
-                        Image(systemName: "arrow.up.forward.app")
-                            .font(.system(size: 11, weight: .medium))
-                    }
-                    .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
-                    .help("Ir a la terminal")
-                    Button("Denegar") {}
-                        .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 28))
-                    Button("Permitir") {}
-                        .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
                 }
             }
+            .lineLimit(1)
+            Spacer(minLength: 6)
+            DesvanKnockingHand(size: 11)
+                .help("Toc, toc: espera tu permiso")
+            Button {} label: {
+                Image(systemName: "arrow.up.forward.app")
+                    .font(.system(size: 11, weight: .medium))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
+            .help("Ir a la terminal")
+            Button("Denegar") {}
+                .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 24))
+            Button("Permitir") {}
+                .buttonStyle(DesvanButtonStyle(kind: .primary, height: 24))
         }
-        .padding(12)
+        .padding(.leading, 10)
+        .padding(.trailing, 8)
+        .frame(height: 44)
         .background {
             // The bulb's light on the card.
-            RadialGradient(colors: [Desvan.Palette.bulb.opacity(0.10), .clear], center: .topTrailing, startRadius: 0, endRadius: 260)
+            RadialGradient(colors: [Desvan.Palette.bulb.opacity(0.10), .clear], center: .trailing, startRadius: 0, endRadius: 240)
                 .blendMode(.plusLighter)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
         }
-        .desvanCard(glow: Desvan.Palette.bulb.opacity(0.75))
+        .desvanCard(radius: 11, glow: Desvan.Palette.bulb.opacity(0.75))
     }
 }
 
@@ -121,35 +100,35 @@ private struct DesvanAgentRow: View {
     @State private var stampTake = 0
 
     var body: some View {
-        HStack(spacing: 10) {
-            AgentGlyph(agent: session.agent, size: 18)
+        HStack(spacing: 9) {
+            AgentGlyph(agent: session.agent, size: 15)
             Text(session.project)
-                .font(.system(size: 12.5, weight: .semibold))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paper)
             Text(activity)
-                .font(.system(size: 12))
+                .font(.system(size: 11.5))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .monospacedDigit()
                 .lineLimit(1)
             Spacer(minLength: 8)
             Text(NotchFormat.ago(session.lastActivity))
-                .font(Desvan.Typeface.rounded(10.5, weight: .medium))
+                .font(Desvan.Typeface.rounded(10, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .monospacedDigit()
             status
                 .frame(minWidth: 84, alignment: .trailing)
             Button {} label: {
                 Image(systemName: "arrow.up.forward.app")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.system(size: 10.5, weight: .medium))
             }
-            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
             .help("Ir a la terminal")
             .opacity(isHovering ? 1 : 0)
         }
-        .padding(.leading, 12)
-        .padding(.trailing, 4)
-        .frame(height: 38)
-        .desvanCard(radius: 12, fill: isHovering ? Desvan.Palette.woodRaised : Desvan.Palette.wood)
+        .padding(.leading, 10)
+        .padding(.trailing, 2)
+        .frame(height: 26)
+        .desvanCard(radius: 9, fill: isHovering ? Desvan.Palette.woodRaised : Desvan.Palette.wood)
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .onAppear {
             guard session.phase == .finished else { return }
@@ -186,12 +165,12 @@ private struct DesvanAgentRow: View {
             HStack(spacing: 6) {
                 DesvanWorkingDots()
                 Text("Trabajando")
-                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(11, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
             }
         case .error:
             Label("Error", systemImage: "exclamationmark.triangle.fill")
-                .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                .font(Desvan.Typeface.rounded(11, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.critical)
         case .waitingAnswer, .waitingPermission:
             DesvanKnockingHand(size: 11)

@@ -1,8 +1,7 @@
 import AltilloDesign
-import AppKit
 import SwiftUI
 
-// Materials of the attic: the bulb's light, wood cards with paper grain, the plank, luggage tags, the house mark,
+// Materials of the attic: the bulb's light, wood cards with paper grain, the plank, the house mark,
 // a rubber stamp. Nothing here ever draws on the silhouette itself: it stays pure black.
 
 // MARK: - Bulb light
@@ -147,42 +146,7 @@ struct DesvanPlank: View {
     }
 }
 
-// MARK: - Luggage tag
-
-/// A hanging kraft tag: a pentagon pointing up (like the house mark) with rounded corners and a punched hole.
-struct DesvanTagShape: Shape {
-    /// Height of the pointed top.
-    var peak: CGFloat = 6
-    var radius: CGFloat = 3
-
-    func path(in rect: CGRect) -> Path {
-        let points = [
-            CGPoint(x: rect.midX, y: rect.minY),
-            CGPoint(x: rect.maxX, y: rect.minY + peak),
-            CGPoint(x: rect.maxX, y: rect.maxY),
-            CGPoint(x: rect.minX, y: rect.maxY),
-            CGPoint(x: rect.minX, y: rect.minY + peak),
-        ]
-        return Path.rounded(points, radius: radius)
-    }
-}
-
-/// A small tag pointing left (the right ear's shelf counter).
-struct DesvanSideTagShape: Shape {
-    var peak: CGFloat = 5
-    var radius: CGFloat = 2
-
-    func path(in rect: CGRect) -> Path {
-        let points = [
-            CGPoint(x: rect.minX, y: rect.midY),
-            CGPoint(x: rect.minX + peak, y: rect.minY),
-            CGPoint(x: rect.maxX, y: rect.minY),
-            CGPoint(x: rect.maxX, y: rect.maxY),
-            CGPoint(x: rect.minX + peak, y: rect.maxY),
-        ]
-        return Path.rounded(points, radius: radius)
-    }
-}
+// MARK: - Rounded polygons
 
 extension Path {
     /// A closed polygon with every corner rounded by `radius` (tangent arcs).
@@ -203,175 +167,6 @@ extension Path {
         path.closeSubpath()
         return path
     }
-}
-
-/// The hanging tag: a kraft card with the item's name written on it (up to three lines) and its details underneath,
-/// hanging on a twine cord from a brass pin on the plank's front edge. The edge colour is the item's kind
-/// (identity, never state). Longer names make longer tags, like a row of tags in a hardware store.
-struct DesvanLuggageTag: View {
-    let title: String
-    var detail: String? = nil
-    let edge: Color
-    var isSelected = false
-    var width: CGFloat = 88
-    var cord: CGFloat = 9
-
-    static let font = Font.system(size: 11, weight: .medium)
-    static let nsFont = NSFont.systemFont(ofSize: 11, weight: .medium)
-    static let maxLines = 3
-    static let horizontalPadding: CGFloat = 5
-
-    var body: some View {
-        let shape = DesvanTagShape()
-        VStack(spacing: 0) {
-            // Twine: two twisted strands read as one cord.
-            ZStack {
-                Rectangle().fill(Color(hex: 0xD9C4A0).opacity(0.55)).frame(width: 1)
-                Rectangle().fill(Color(hex: 0x6E5A40).opacity(0.5)).frame(width: 0.5).offset(x: 0.35)
-            }
-            .frame(width: 1.5, height: cord + 5)
-            .overlay(alignment: .top) { DesvanBrassPin().offset(y: -2.5) }
-            .padding(.bottom, -5)
-            .zIndex(1)
-            VStack(spacing: 2) {
-                Text(title)
-                    .font(Self.font)
-                    .foregroundStyle(isSelected ? Desvan.Palette.bulbInk : Desvan.Palette.ink)
-                    .lineLimit(Self.maxLines)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let detail {
-                    Text(detail)
-                        .font(Desvan.Typeface.rounded(9.5, weight: .medium))
-                        .foregroundStyle((isSelected ? Desvan.Palette.bulbInk : Desvan.Palette.ink).opacity(0.62))
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .monospacedDigit()
-                }
-            }
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, Self.horizontalPadding)
-            .padding(.top, 9)
-            .padding(.bottom, 4)
-            .frame(width: width)
-            .background {
-                shape.fill(isSelected ? Desvan.Palette.bulb : Desvan.Palette.kraft)
-                    .overlay {
-                        // Light from above: the top of the card is a touch paler.
-                        shape.fill(LinearGradient(
-                            colors: [.white.opacity(0.12), .clear, .black.opacity(0.10)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ))
-                    }
-                    .desvanTexture(DesvanTexture.kraft, opacity: isSelected ? 0.55 : 1, in: shape)
-                    .overlay {
-                        shape.inset(by: 0.75).stroke(edge, lineWidth: 1.5)
-                            .opacity(isSelected ? 0 : 1)
-                    }
-                    .overlay(alignment: .top) {
-                        // The punched hole, with a reinforcement ring in the item's colour.
-                        ZStack {
-                            Circle().fill(edge.opacity(isSelected ? 0 : 0.95)).frame(width: 7, height: 7)
-                            Circle().strokeBorder(.black.opacity(0.25), lineWidth: 0.5).frame(width: 7, height: 7)
-                            Circle().fill(Color.black.opacity(0.85)).frame(width: 3.5, height: 3.5)
-                        }
-                        .offset(y: 2.5)
-                    }
-                    .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.45) : .black.opacity(0.45),
-                            radius: isSelected ? 7 : 1.5, y: isSelected ? 0 : 1.5)
-            }
-        }
-    }
-}
-
-/// A tiny brass pin: the hook the tag's cord hangs from.
-struct DesvanBrassPin: View {
-    var body: some View {
-        Circle()
-            .fill(RadialGradient(
-                colors: [Color(hex: 0xF3D9A0), Color(hex: 0xB08A4A), Color(hex: 0x5E4522)],
-                center: UnitPoint(x: 0.35, y: 0.3),
-                startRadius: 0,
-                endRadius: 2.6
-            ))
-            .frame(width: 3.5, height: 3.5)
-            .shadow(color: .black.opacity(0.6), radius: 0.5, y: 0.5)
-            .accessibilityHidden(true)
-    }
-}
-
-/// Fits a name on a tag of a given width in `DesvanLuggageTag.maxLines` lines. Names that don't fit keep their
-/// beginning and, for files, their last few characters (where versions, dates and counters live):
-/// "Captura de pantalla 2026-09-18 a…10.24.12".
-@MainActor
-enum DesvanTagText {
-    private static var cache: [String: String] = [:]
-
-    static func fit(_ name: String, width: CGFloat, keepEnd: Bool) -> String {
-        let key = "\(width)|\(keepEnd)|\(name)"
-        if let fitted = cache[key] { return fitted }
-        let fitted = compute(name, width: width - 2, keepEnd: keepEnd)
-        cache[key] = fitted
-        return fitted
-    }
-
-    private static func height(_ text: String, width: CGFloat) -> CGFloat {
-        NSAttributedString(string: text, attributes: [.font: DesvanLuggageTag.nsFont]).boundingRect(
-            with: CGSize(width: width, height: .greatestFiniteMagnitude),
-            options: [.usesLineFragmentOrigin, .usesFontLeading]
-        ).height
-    }
-
-    private static let oneLine = height("Ág", width: 1000)
-
-    private static func fits(_ text: String, width: CGFloat) -> Bool {
-        height(text, width: width) <= oneLine * CGFloat(DesvanLuggageTag.maxLines) + 0.5
-    }
-
-    private static func compute(_ name: String, width: CGFloat, keepEnd: Bool) -> String {
-        let name = name.trimmingCharacters(in: .whitespacesAndNewlines)
-            .replacingOccurrences(of: "\n", with: " ")
-        if fits(name, width: width) { return name }
-        let characters = Array(name)
-        // The tail: the last token if it's short (a time, a version), else the last 6 characters.
-        var tail = ""
-        if keepEnd {
-            let separators: Set<Character> = [" ", "-", "_", "."]
-            let window = characters.suffix(9)
-            if let cut = window.firstIndex(where: { separators.contains($0) }), characters.count - cut > 3 {
-                tail = String(characters[(cut + 1)...])
-            } else {
-                tail = String(characters.suffix(6))
-            }
-            if characters.count - tail.count < 6 { tail = String(characters.suffix(6)) }
-        }
-        var low = 1, high = characters.count - tail.count
-        var best = String(characters.prefix(1)) + "…" + tail
-        while low <= high {
-            let mid = (low + high) / 2
-            let head = String(characters.prefix(mid)).trimmingCharacters(in: .whitespaces)
-            let candidate = head + "…" + tail
-            if fits(candidate, width: width) {
-                best = candidate
-                low = mid + 1
-            } else {
-                high = mid - 1
-            }
-        }
-        return best
-    }
-}
-
-extension DesvanTagShape {
-    func inset(by amount: CGFloat) -> some Shape {
-        InsetTag(base: self, amount: amount)
-    }
-}
-
-private struct InsetTag: Shape {
-    let base: DesvanTagShape
-    let amount: CGFloat
-    func path(in rect: CGRect) -> Path { base.path(in: rect.insetBy(dx: amount, dy: amount)) }
 }
 
 // MARK: - House mark
@@ -542,10 +337,10 @@ struct DesvanRubberStamp: View {
     var body: some View {
         let big = isFresh
         Text(text)
-            .font(Desvan.Typeface.fraunces(big ? 15 : 12, weight: 700, italic: true))
+            .font(Desvan.Typeface.fraunces(big ? 13.5 : 11.5, weight: 700, italic: true))
             .foregroundStyle(Desvan.Palette.done)
-            .padding(.horizontal, big ? 8 : 6)
-            .padding(.vertical, big ? 1.5 : 1)
+            .padding(.horizontal, big ? 7 : 5)
+            .padding(.vertical, big ? 1 : 0.5)
             .overlay {
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
                     .strokeBorder(Desvan.Palette.done, lineWidth: big ? 1.6 : 1)

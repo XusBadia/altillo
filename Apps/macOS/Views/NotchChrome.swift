@@ -48,13 +48,16 @@ struct NotchChrome: Equatable {
         : nil
 
     static let expandedSize = CGSize(width: 680, height: 0)
-    static let expandedContentHeight: CGFloat = 188
+    /// Height of the open tabs' body, between the band and the bottom margin.
+    static let expandedContentHeight: CGFloat = 104
+    static let expandedContentGap: CGFloat = 4
+    static let expandedBottomInset: CGFloat = 10
     static let earWidth: CGFloat = 50
     static let peekEarWidth: CGFloat = 64
-    static let peekLineHeight: CGFloat = 34
+    static let peekLineHeight: CGFloat = 28
 
     /// Horizontal inset of content inside the expanded shape (fillet + breathing room).
-    var contentInset: CGFloat { topRadius + 16 }
+    var contentInset: CGFloat { topRadius + 12 }
 
     @MainActor
     init(model: NotchModel) {
@@ -113,7 +116,7 @@ struct NotchChrome: Equatable {
             topRadius = 8
             if hasNotch {
                 bottomRadius = 16
-                size = CGSize(width: notch.width + 2 * 36 + 2 * topRadius, height: notch.height + 30)
+                size = CGSize(width: notch.width + 2 * 36 + 2 * topRadius, height: notch.height + 26)
             } else {
                 bottomRadius = 15
                 bandHeight = 0
@@ -121,10 +124,14 @@ struct NotchChrome: Equatable {
             }
         case .expanded:
             topRadius = 14
-            bottomRadius = 26
-            let band = max(notch.height, 34)
+            bottomRadius = 24
+            // Beside a hardware notch the band is exactly the notch; the island keeps room for the tabs.
+            let band = hasNotch ? notch.height : max(notch.height, 28)
             bandHeight = band
-            size = CGSize(width: Self.expandedSize.width, height: band + 8 + Self.expandedContentHeight + 16)
+            size = CGSize(
+                width: Self.expandedSize.width,
+                height: band + Self.expandedContentGap + Self.expandedContentHeight + Self.expandedBottomInset
+            )
         }
     }
 

@@ -1,13 +1,14 @@
 import AltilloDesign
 import SwiftUI
 
-/// The usage tab: one wood card per provider. The session ring with its figure in New York, the pace in italics
-/// ("vas 9 puntos por delante del ritmo") and the weekly bar with a notch where an even pace would be.
+/// The usage tab: one compact wood card per provider. The session ring with its figure in New York, when it
+/// refills, the pace in italics ("vas 9 puntos por delante del ritmo") and the weekly bar with a notch where an even
+/// pace would be.
 struct DesvanUsageView: View {
     let demo: DemoContent
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             ForEach(demo.usage) { usage in
                 DesvanUsageCard(usage: usage)
             }
@@ -21,95 +22,84 @@ private struct DesvanUsageCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            header
-                .padding(.bottom, 10)
             session
-                .padding(.bottom, 11)
-            Rectangle()
-                .fill(Desvan.Palette.hairline)
-                .frame(height: 1)
-                .padding(.bottom, 9)
+            Spacer(minLength: 6)
             weekly
         }
-        .padding(.horizontal, 14)
-        .padding(.top, 12)
-        .padding(.bottom, 12)
+        .padding(.horizontal, 12)
+        .padding(.top, 11)
+        .padding(.bottom, 11)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .desvanCard()
-    }
-
-    private var header: some View {
-        HStack(spacing: 8) {
-            AgentGlyph(agent: usage.agent, size: 18)
-            Text(usage.agent.name)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paper)
-            Text(usage.plan)
-                .font(Desvan.Typeface.rounded(10, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paperSecondary)
-                .padding(.horizontal, 7)
-                .frame(height: 17)
-                .background(Capsule().fill(Desvan.Palette.woodRaised))
-                .overlay(Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
-            Spacer(minLength: 0)
-        }
     }
 
     private var session: some View {
         let window = usage.session
         let used = window.used
-        return HStack(spacing: 14) {
-            DesvanRing(value: used, lineWidth: 5, pace: window.expectedPace()) {
+        return HStack(spacing: 11) {
+            DesvanRing(value: used, lineWidth: 4, pace: window.expectedPace()) {
                 HStack(alignment: .firstTextBaseline, spacing: 0.5) {
                     Text("\(Int((used * 100).rounded()))")
-                        .font(Desvan.Typeface.figure(24, weight: .semibold))
+                        .font(Desvan.Typeface.figure(17, weight: .semibold))
                         .contentTransition(.numericText(value: used))
                     Text("%")
-                        .font(Desvan.Typeface.figure(10, weight: .medium))
+                        .font(Desvan.Typeface.figure(8, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                 }
                 .foregroundStyle(Desvan.Palette.paper)
                 .offset(x: 1)
             }
-            .frame(width: 62, height: 62)
+            .frame(width: 46, height: 46)
 
-            VStack(alignment: .leading, spacing: 3) {
-                Text("Sesión de 5 h")
-                    .font(Desvan.Typeface.rounded(10.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    AgentGlyph(agent: usage.agent, size: 14)
+                    Text(usage.agent.name)
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    Text(usage.plan)
+                        .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .padding(.horizontal, 6)
+                        .frame(height: 15)
+                        .background(Capsule().fill(Desvan.Palette.woodRaised))
+                        .overlay(Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
+                    Spacer(minLength: 4)
+                    Text("5 h")
+                        .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paperTertiary)
+                        .help("Sesión de 5 h")
+                }
                 Text("se repone en \(NotchFormat.countdown(to: window.resetsAt))")
-                    .font(Desvan.Typeface.rounded(12, weight: .medium))
-                    .foregroundStyle(Desvan.Palette.paper)
+                    .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+                    .foregroundStyle(Desvan.Palette.paper.opacity(0.85))
                     .monospacedDigit()
                 DesvanPace(delta: window.paceDelta())
-                    .padding(.top, 1)
             }
         }
         .accessibilityElement(children: .combine)
     }
 
+    /// One line: the week's bar, its figure and when it refills.
     private var weekly: some View {
         let window = usage.weekly
-        return VStack(alignment: .leading, spacing: 7) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("Semana")
-                    .font(Desvan.Typeface.rounded(10.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                Spacer()
-                Text(NotchFormat.percent(window.used))
-                    .font(Desvan.Typeface.figure(13, weight: .medium))
-                    .foregroundStyle(Desvan.usageTint(window.used))
-            }
+        return HStack(spacing: 8) {
+            Text("Semana")
+                .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperTertiary)
             DesvanBar(value: window.used, pace: window.expectedPace())
-            HStack {
-                Text("se repone en \(NotchFormat.countdown(to: window.resetsAt))")
-                    .font(Desvan.Typeface.rounded(11, weight: .medium))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .monospacedDigit()
-                Spacer()
-                DesvanPace(delta: window.paceDelta(), compact: true)
-            }
+            Text(NotchFormat.percent(window.used))
+                .font(Desvan.Typeface.figure(12, weight: .medium))
+                .foregroundStyle(Desvan.usageTint(window.used))
+                .monospacedDigit()
+            Text(NotchFormat.countdown(to: window.resetsAt))
+                .font(Desvan.Typeface.rounded(10, weight: .medium))
+                .foregroundStyle(Desvan.Palette.paperTertiary)
+                .monospacedDigit()
         }
+        .lineLimit(1)
+        .fixedSize(horizontal: false, vertical: true)
+        .help("Semana: se repone en \(NotchFormat.countdown(to: window.resetsAt)) · \(DesvanPace.shortText(delta: window.paceDelta()))")
         .accessibilityElement(children: .combine)
     }
 }
@@ -117,12 +107,11 @@ private struct DesvanUsageCard: View {
 /// The pace, in New York italic: "vas 9 puntos por delante del ritmo" / "vas con 12 de margen" / "vas a buen ritmo".
 private struct DesvanPace: View {
     let delta: Double
-    var compact = false
 
     var body: some View {
         let points = Int((abs(delta) * 100).rounded())
-        Text(compact ? shortText(points) : longText(points))
-            .font(.system(size: compact ? 11.5 : 12, weight: .regular, design: .serif).italic())
+        Text(longText(points))
+            .font(.system(size: 11.5, weight: .regular, design: .serif).italic())
             .foregroundStyle(color)
             .monospacedDigit()
             .lineLimit(1)
@@ -140,7 +129,8 @@ private struct DesvanPace: View {
         return "vas a buen ritmo"
     }
 
-    private func shortText(_ points: Int) -> String {
+    static func shortText(delta: Double) -> String {
+        let points = Int((abs(delta) * 100).rounded())
         if delta > 0.05 { return "\(points) por delante" }
         if delta < -0.05 { return "con margen" }
         return "a buen ritmo"
@@ -175,13 +165,13 @@ private struct DesvanBar: View {
                 VStack(spacing: 0) {
                     Triangle()
                         .fill(Desvan.Palette.paper)
-                        .frame(width: 7, height: 4)
+                        .frame(width: 6, height: 3.5)
                     Rectangle()
                         .fill(Desvan.Palette.paper)
-                        .frame(width: 1.5, height: 8)
+                        .frame(width: 1.5, height: 7)
                 }
                 .shadow(color: .black.opacity(0.7), radius: 0.75)
-                .offset(x: x - 3.5, y: -3)
+                .offset(x: x - 3, y: -2.5)
             }
         }
         .frame(height: 6)

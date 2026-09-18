@@ -21,7 +21,7 @@ struct DesvanExpandedFace: View {
     }
 
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: NotchChrome.expandedContentGap) {
             header
             ZStack(alignment: .top) {
                 content
@@ -36,7 +36,7 @@ struct DesvanExpandedFace: View {
         .overlay {
             // The bulb hangs just under the notch; its light warms whatever sits below.
             // The band beside the notch stays pure black so it melts into the hardware notch.
-            DesvanBulbGlow(intensity: glow + flicker, radius: 200, originY: chrome.bandHeight)
+            DesvanBulbGlow(intensity: glow + flicker, radius: 160, originY: chrome.bandHeight)
                 .animation(.easeInOut(duration: 0.25), value: glow)
                 .mask {
                     VStack(spacing: 0) {
@@ -58,7 +58,7 @@ struct DesvanExpandedFace: View {
     private var header: some View {
         if chrome.hasNotch {
             // Tabs and context sit either side of the camera; the notch body stays clear.
-            let sideZone = (chrome.size.width - chrome.notchWidth) / 2 - chrome.topRadius - 10
+            let sideZone = (chrome.size.width - chrome.notchWidth) / 2 - chrome.topRadius - 8
             HStack(spacing: 0) {
                 Color.clear
                     .frame(width: sideZone)
@@ -69,7 +69,7 @@ struct DesvanExpandedFace: View {
                     .overlay(alignment: .trailing) { accessory }
             }
             .frame(height: chrome.bandHeight)
-            .padding(.horizontal, chrome.topRadius + 10)
+            .padding(.horizontal, chrome.topRadius + 8)
         } else {
             // No camera to dodge: one plain row.
             HStack(spacing: 12) {
@@ -78,7 +78,7 @@ struct DesvanExpandedFace: View {
                 accessory
             }
             .frame(height: chrome.bandHeight)
-            .padding(.horizontal, chrome.topRadius + 10)
+            .padding(.horizontal, chrome.topRadius + 8)
         }
     }
 
@@ -164,8 +164,8 @@ private struct DesvanTabButton: View {
             .foregroundStyle(isSelected || isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
             // On the plaque the label is pressed into the wood: a hairline of shade above, of light below.
             .shadow(color: .black.opacity(isSelected ? 0.7 : 0), radius: 0, y: -0.5)
-            .padding(.horizontal, 10)
-            .frame(height: 24)
+            .padding(.horizontal, 9)
+            .frame(height: 22)
             .background {
                 if isSelected {
                     DesvanTabPlaque()
@@ -260,13 +260,33 @@ private struct DesvanHeaderAccessory: View {
     private var shelf: some View {
         if !model.shelf.isEmpty {
             HStack(spacing: 6) {
-                Text("\(Text("\(model.shelf.count)").font(Desvan.Typeface.figure(12, weight: .semibold)).foregroundStyle(Desvan.Palette.paper)) \(model.shelf.count == 1 ? "cosa" : "cosas") arriba")
+                if model.selection.isEmpty {
+                    Text("\(Text("\(model.shelf.count)").font(Desvan.Typeface.figure(12, weight: .semibold)).foregroundStyle(Desvan.Palette.paper)) \(model.shelf.count == 1 ? "cosa" : "cosas") arriba")
+                        .font(Self.caption)
+                        .foregroundStyle(Desvan.Palette.paperTertiary)
+                        .contentTransition(.numericText(value: Double(model.shelf.count)))
+                        .help("Arrástralo fuera para bajarlo")
+                } else {
+                    // With something picked, the keys that act on it.
+                    HStack(spacing: 10) {
+                        hint("space", "Mirar")
+                        hint("delete.left", "Quitar")
+                    }
                     .font(Self.caption)
                     .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .contentTransition(.numericText(value: Double(model.shelf.count)))
+                    .transition(.opacity)
+                }
                 Button("Vaciar") { model.actions.clearShelf() }
                     .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
             }
+            .animation(Desvan.Motion.hover, value: model.selection.isEmpty)
+        }
+    }
+
+    private func hint(_ symbol: String, _ text: String) -> some View {
+        HStack(spacing: 4) {
+            Image(systemName: symbol).font(.system(size: 9.5, weight: .medium))
+            Text(text)
         }
     }
 

@@ -11,11 +11,11 @@ struct DesvanDropZones: View {
     let hovered: DropZone?
 
     var body: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 8) {
             DesvanBoxZone(model: model, isHovering: hovered == .shelf)
                 .desvanDropZoneFrame(.shelf, model: model)
             DesvanAirDropZone(isHovering: hovered == .airDrop)
-                .frame(width: 148)
+                .frame(width: 150)
                 .desvanDropZoneFrame(.airDrop, model: model)
         }
     }
@@ -38,43 +38,44 @@ private struct DesvanBoxZone: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 10) {
-            DesvanCardboardBox(openness: isHovering ? 1 : 0, warmth: isHovering ? 1 : 0)
+        HStack(spacing: 8) {
+            DesvanCardboardBox(openness: isHovering ? 1 : 0, warmth: isHovering ? 1 : 0, scale: 0.66)
                 .animation(
                     reduceMotion ? Desvan.Motion.fade : (isHovering ? Desvan.Motion.flaps : Desvan.Motion.flapsClose),
                     value: isHovering
                 )
-                .padding(.top, 10)
+                .padding(.top, 2)
 
-            VStack(alignment: .leading, spacing: 5) {
-                Text(isHovering ? "Suéltalo,\nya lo guardo arriba" : "Guárdalo en el altillo")
-                    .font(Desvan.Typeface.fraunces(17.5, weight: 600))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(isHovering ? "Suéltalo, ya lo guardo arriba" : "Guárdalo en el altillo")
+                    .font(Desvan.Typeface.fraunces(16, weight: 600))
                     .foregroundStyle(Desvan.Palette.paper)
                     .contentTransition(.opacity)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(subtitle)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if !model.shelf.isEmpty {
-                    DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 20)
-                        .padding(.top, 5)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+                HStack(spacing: 8) {
+                    Text(subtitle)
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .lineLimit(1)
+                    if !model.shelf.isEmpty {
+                        DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 16)
+                    }
                 }
             }
             .opacity(isHovering ? 1 : 0.4)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.leading, 4)
-        .padding(.trailing, 18)
+        .padding(.leading, 2)
+        .padding(.trailing, 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
             // The inside of the zone warms up under the pointer.
             RadialGradient(
                 colors: [Desvan.Palette.bulb.opacity(isHovering ? 0.16 : 0), .clear],
-                center: UnitPoint(x: 0.24, y: 0.52),
+                center: UnitPoint(x: 0.2, y: 0.5),
                 startRadius: 0,
-                endRadius: 220
+                endRadius: 180
             )
             .blendMode(.plusLighter)
         }
@@ -100,15 +101,15 @@ private struct DesvanAirDropZone: View {
     @State private var frame: CGRect = .zero
 
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 6) {
             plane
-                .frame(width: 60, height: 52)
-            VStack(spacing: 3) {
+                .frame(width: 44, height: 38)
+            VStack(spacing: 1) {
                 Text("AirDrop")
-                    .font(Desvan.Typeface.rounded(13, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(12, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
-                Text("mandarlo a otro dispositivo")
-                    .font(.system(size: 11))
+                Text("a otro dispositivo")
+                    .font(.system(size: 10.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .multilineTextAlignment(.center)
             }
@@ -121,7 +122,7 @@ private struct DesvanAirDropZone: View {
                 colors: [Desvan.Palette.sky.opacity(isHovering ? 0.16 : 0), .clear],
                 center: .center,
                 startRadius: 0,
-                endRadius: 110
+                endRadius: 90
             )
             .blendMode(.plusLighter)
         }
@@ -143,17 +144,17 @@ private struct DesvanAirDropZone: View {
 
     private func planeGlyph(lean: Double) -> some View {
         DesvanPaperPlane(tint: isHovering ? Desvan.Palette.sky : nil)
-            .frame(width: 46, height: 38)
+            .frame(width: 34, height: 28)
             .opacity(isHovering ? 1 : 0.5)
-            .shadow(color: isHovering ? Desvan.Palette.sky.opacity(0.45) : .clear, radius: 8)
+            .shadow(color: isHovering ? Desvan.Palette.sky.opacity(0.45) : .clear, radius: 6)
             .rotationEffect(.degrees(lean))
             .offset(y: isHovering ? -3 : 0)
             .background(alignment: .bottom) {
                 Ellipse()
                     .fill(.black.opacity(isHovering ? 0.4 : 0.25))
-                    .frame(width: isHovering ? 30 : 34, height: 5)
-                    .blur(radius: isHovering ? 3 : 2)
-                    .offset(y: 9)
+                    .frame(width: isHovering ? 22 : 26, height: 4)
+                    .blur(radius: isHovering ? 2.5 : 1.5)
+                    .offset(y: 7)
             }
             .animation(.spring(duration: 0.35, bounce: 0.2), value: lean)
             .accessibilityHidden(true)

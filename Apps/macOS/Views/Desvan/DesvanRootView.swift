@@ -142,7 +142,7 @@ private struct DesvanEarsFace: View {
         } trailing: {
             // Real data only: the knocking hand arrives with live agents (phase 4).
             if !model.shelf.isEmpty {
-                DesvanShelfCountTag(count: model.shelf.count)
+                DesvanShelfCount(count: model.shelf.count)
             }
         }
     }
@@ -166,28 +166,20 @@ struct DesvanUsageEar: View {
     }
 }
 
-/// Right ear: a tiny kraft tag with how many things wait upstairs.
-struct DesvanShelfCountTag: View {
+/// Right ear: the house with its light on and how many things wait upstairs, in New York.
+struct DesvanShelfCount: View {
     let count: Int
 
     var body: some View {
-        Text("\(count)")
-            .font(Desvan.Typeface.figure(11.5, weight: .semibold))
-            .foregroundStyle(Desvan.Palette.ink)
-            .contentTransition(.numericText(value: Double(count)))
-            .padding(.leading, 9)
-            .padding(.trailing, 5)
-            .frame(height: 14)
-            .background {
-                DesvanSideTagShape(peak: 5, radius: 2)
-                    .fill(Desvan.Palette.kraft)
-                    .overlay(alignment: .leading) {
-                        Circle().fill(.black.opacity(0.9)).frame(width: 2.5, height: 2.5).padding(.leading, 3.5)
-                    }
-            }
-            .rotationEffect(.degrees(-4))
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel("\(NotchFormat.things(count)) en el altillo")
+        HStack(spacing: 4) {
+            DesvanHouseMark(size: 11)
+            Text("\(count)")
+                .font(Desvan.Typeface.figure(13, weight: .medium))
+                .foregroundStyle(Desvan.Palette.paper)
+                .contentTransition(.numericText(value: Double(count)))
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(NotchFormat.things(count)) en el altillo")
     }
 }
 
@@ -326,7 +318,7 @@ private struct DesvanPeekFace: View {
         switch kind {
         case .hint: EmptyView()
         case .shelf:
-            if !model.shelf.isEmpty { DesvanShelfCountTag(count: model.shelf.count) }
+            if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
         case .usageAlert:
             // The alert itself: burning faster than the window allows.
             HStack(spacing: 3) {

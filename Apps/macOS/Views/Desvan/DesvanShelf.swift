@@ -3,8 +3,8 @@ import AltilloDesign
 import AppKit
 import SwiftUI
 
-/// The shelf tab: things left on a plank, each with a kraft luggage tag hanging below it. Finder-like selection
-/// (click, ⌘-click, ⇧-click), double-click opens, context menu, drag out with `shelfDraggable`.
+/// The shelf tab: things left on a plank, each standing on the board with its name written on the wall below it.
+/// Finder-like selection (click, ⌘-click, ⇧-click), double-click opens, context menu, drag out with `shelfDraggable`.
 struct DesvanShelfView: View {
     let model: NotchModel
 
@@ -12,8 +12,21 @@ struct DesvanShelfView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    nonisolated static let rowPadding: CGFloat = 6
+
     /// Top of the plank (its top surface) in the card.
-    static let plankY: CGFloat = 76
+    static let plankY: CGFloat = 66
+
+    /// Width available to the tiles (the card minus the row's side padding).
+    @State private var rowWidth: CGFloat = 0
+
+    /// Tiles share the plank: wide enough to read the names when there are few, never narrower than the minimum
+    /// (then the row scrolls).
+    private var tileWidth: CGFloat {
+        guard rowWidth > 0, !model.shelf.isEmpty else { return DesvanShelfTile.minWidth }
+        let share = (rowWidth / CGFloat(model.shelf.count)).rounded(.down)
+        return min(max(share, DesvanShelfTile.minWidth), DesvanShelfTile.maxWidth)
+    }
 
     var body: some View {
         Group {
@@ -59,10 +72,11 @@ struct DesvanShelfView: View {
                 .padding(.top, Self.plankY)
 
             ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 1) {
+                HStack(alignment: .top, spacing: 0) {
                     ForEach(model.shelf) { item in
                         DesvanShelfTile(
                             item: item,
+                            width: tileWidth,
                             isSelected: model.selection.contains(item.id),
                             onClick: { click(item) },
                             menuItems: { targets(for: item) },
@@ -71,16 +85,12 @@ struct DesvanShelfView: View {
                         .transition(.opacity)
                     }
                 }
-                .padding(.horizontal, 8)
+                .padding(.horizontal, Self.rowPadding)
             }
             .scrollIndicators(.never)
             .scrollClipDisabled()
-            .frame(height: 170)
-
-            DesvanShelfHint(hasSelection: !model.selection.isEmpty)
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, 8)
         }
+        .onGeometryChange(for: CGFloat.self, of: { $0.size.width - 2 * Self.rowPadding }) { rowWidth = $0 }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 
@@ -117,36 +127,38 @@ struct DesvanShelfView: View {
 
 private struct DesvanShelfTile: View {
     let item: ShelfItem
+    let width: CGFloat
     let isSelected: Bool
     let onClick: () -> Void
     let menuItems: () -> [ShelfItem]
     let model: NotchModel
 
     @State private var isHovering = false
-    @State private var swingAngle = 0.0
     @State private var landing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    static let width: CGFloat = 99
-    static let thumbnailSide: CGFloat = 64
+    static let minWidth: CGFloat = 68
+    static let maxWidth: CGFloat = 104
+    static let thumbnailSide: CGFloat = 50
     /// Height of the space things stand in; their base sinks 3 pt into the plank's top surface (depth).
     static let thingHeight: CGFloat = thumbnailSide + 8
     static let sink: CGFloat = 3
-    static let tagWidth: CGFloat = width - 2
 
-    /// The name written on the tag, fitted to its lines. The extension is already under it ("PNG · 294 KB"), so
-    /// it's left off; file names keep their end (dates, versions), text keeps its beginning.
-    private var tagTitle: String {
-        let textWidth = Self.tagWidth - 2 * DesvanLuggageTag.horizontalPadding
+    /// The name written under the plank. Files lose their extension (the thumbnail already says what it is) and
+    /// truncate in the middle so the end (dates, versions) survives; notes keep their beginning.
+    private var name: String {
         switch item.kind {
         case .file:
             let stem = (item.displayName as NSString).deletingPathExtension
-            return DesvanTagText.fit(stem.isEmpty ? item.displayName : stem, width: textWidth, keepEnd: true)
-        case .link:
-            return DesvanTagText.fit(item.displayName, width: textWidth, keepEnd: true)
-        case .text:
-            return DesvanTagText.fit(item.displayName, width: textWidth, keepEnd: false)
+            return stem.isEmpty ? item.displayName : stem
+        case .link, .text:
+            return item.displayName.replacingOccurrences(of: "\n", with: " ")
         }
+    }
+
+    private var truncation: Text.TruncationMode {
+        if case .text = item.kind { return .tail }
+        return .middle
     }
 
     /// Things left on a shelf, not a grid: a fixed, stable tilt of ±1.5° per item.
@@ -156,25 +168,22 @@ private struct DesvanShelfTile: View {
     var body: some View {
         VStack(spacing: 0) {
             thing
-                .frame(width: Self.width, height: Self.thingHeight, alignment: .bottom)
-            Color.clear.frame(height: DesvanPlank.height - Self.sink - 2.5) // the plank (the pin sits on its edge)
-            DesvanLuggageTag(
-                title: tagTitle,
-                detail: NotchFormat.subtitle(for: item),
-                edge: Desvan.labelColor(for: item),
-                isSelected: isSelected,
-                width: Self.tagWidth,
-                cord: 6
-            )
-            .rotationEffect(.degrees(swingAngle), anchor: .top)
+                .frame(width: width, height: Self.thingHeight, alignment: .bottom)
+            Color.clear.frame(height: DesvanPlank.height - Self.sink + 3) // the plank and a little wall
+            Text(name)
+                .font(.system(size: 10.5, weight: isSelected ? .semibold : .medium))
+                .foregroundStyle(isSelected ? Desvan.Palette.bulb : (isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary))
+                .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.45) : .clear, radius: 5)
+                .lineLimit(1)
+                .truncationMode(truncation)
+                .padding(.horizontal, 4)
+                .frame(width: width)
         }
-        .frame(width: Self.width)
+        .frame(width: width)
         .padding(.top, DesvanShelfView.plankY + Self.sink - Self.thingHeight)
         .contentShape(Rectangle())
-        .onHover { hovering in
-            withAnimation(Desvan.Motion.hover) { isHovering = hovering }
-            if hovering { push(3.5) }
-        }
+        .help(help)
+        .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .onTapGesture(perform: onClick)
         .shelfDraggable(items: menuItems) { _, departed in
             // Moved to a folder or dropped on the Trash → it's gone from here too. Copied elsewhere → it stays.
@@ -195,13 +204,18 @@ private struct DesvanShelfTile: View {
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
     }
 
+    /// Full name and details, on hover.
+    private var help: String {
+        "\(item.displayName)\n\(NotchFormat.subtitle(for: item))"
+    }
+
     /// The thumbnail resting on the plank, with its contact shadow.
     private var thing: some View {
         ZStack(alignment: .bottom) {
             contactShadow
             DesvanThumbnail(item: item, side: Self.thumbnailSide)
                 .rotationEffect(.degrees(tilt), anchor: .bottom)
-                .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.28) : .clear, radius: 10, y: -2)
+                .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.4) : .clear, radius: 8, y: -1)
                 .offset(y: -lift)
                 .animation(Desvan.Motion.pick(.spring(duration: 0.25, bounce: 0.2), reduceMotion: reduceMotion), value: lift)
                 .keyframeAnimator(initialValue: LandingPose(), trigger: landing) { content, pose in
@@ -212,27 +226,37 @@ private struct DesvanShelfTile: View {
                 } keyframes: { _ in
                     KeyframeTrack(\.offsetY) {
                         // Falls from above the card, accelerating (≈ y = t²).
-                        MoveKeyframe(-90)
-                        LinearKeyframe(-80, duration: 0.08)
-                        LinearKeyframe(-50, duration: 0.08)
-                        LinearKeyframe(0, duration: 0.08)
+                        MoveKeyframe(-66)
+                        LinearKeyframe(-58, duration: 0.07)
+                        LinearKeyframe(-36, duration: 0.07)
+                        LinearKeyframe(0, duration: 0.07)
                     }
                     KeyframeTrack(\.rotation) {
                         MoveKeyframe(-4)
-                        LinearKeyframe(-3, duration: 0.24)
+                        LinearKeyframe(-3, duration: 0.21)
                         SpringKeyframe(0, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
                     }
                     KeyframeTrack(\.scaleX) {
-                        LinearKeyframe(1, duration: 0.24)
-                        LinearKeyframe(1.04, duration: 0.06) // squash on impact
+                        LinearKeyframe(1, duration: 0.21)
+                        LinearKeyframe(1.05, duration: 0.06) // squash on impact
                         SpringKeyframe(1, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
                     }
                     KeyframeTrack(\.scaleY) {
-                        LinearKeyframe(1, duration: 0.24)
-                        LinearKeyframe(0.94, duration: 0.06)
+                        LinearKeyframe(1, duration: 0.21)
+                        LinearKeyframe(0.93, duration: 0.06)
                         SpringKeyframe(1, duration: 0.5, spring: .init(duration: 0.5, bounce: 0.35))
                     }
                 }
+        }
+        .background(alignment: .bottom) {
+            // Selected: the bulb's light pools on the board under it.
+            Ellipse()
+                .fill(RadialGradient(colors: [Desvan.Palette.bulb.opacity(isSelected ? 0.32 : 0), .clear],
+                                     center: .center, startRadius: 0, endRadius: 30))
+                .frame(width: 64, height: 16)
+                .offset(y: 5)
+                .blendMode(.plusLighter)
+                .allowsHitTesting(false)
         }
     }
 
@@ -242,11 +266,11 @@ private struct DesvanShelfTile: View {
         ZStack {
             Ellipse()
                 .fill(.black.opacity(0.4 - 0.06 * lift))
-                .frame(width: 68 + 3 * lift, height: 7 + lift)
-                .blur(radius: 3 + lift)
+                .frame(width: 50 + 3 * lift, height: 6 + lift)
+                .blur(radius: 2.5 + lift)
             Ellipse()
                 .fill(.black.opacity(0.8 - 0.2 * lift))
-                .frame(width: 52, height: 3)
+                .frame(width: 38, height: 2.5)
                 .blur(radius: 1 + 0.6 * lift)
         }
         .offset(y: 2.5)
@@ -256,27 +280,16 @@ private struct DesvanShelfTile: View {
         } keyframes: { _ in
             KeyframeTrack {
                 MoveKeyframe(0.1)
-                CubicKeyframe(1, duration: 0.24)
+                CubicKeyframe(1, duration: 0.21)
             }
         }
         .allowsHitTesting(false)
     }
 
-    /// Falls from above, squashes on the plank and settles; the tag swings as the thing hits the board.
+    /// Falls from above, squashes on the plank and settles.
     private func land() {
         guard !reduceMotion else { return }
         landing.toggle()
-        Task {
-            try? await Task.sleep(for: .milliseconds(250))
-            push(8)
-        }
-    }
-
-    /// A gentle push on the tag: it swings like a pendulum and comes to rest.
-    private func push(_ degrees: Double) {
-        guard !reduceMotion else { return }
-        swingAngle = degrees * (Desvan.jitter(item.id, salt: 7) >= 0 ? 1 : -1)
-        withAnimation(Desvan.Motion.pendulum) { swingAngle = 0 }
     }
 
     @ViewBuilder
@@ -318,9 +331,9 @@ struct DesvanThumbnail: View {
             case let .file(url, _):
                 file(url)
             case let .text(text):
-                DesvanNote(text: text)
+                DesvanNote(text: text, scale: side / 64)
             case let .link(url):
-                DesvanPostcard(host: url.host(percentEncoded: false) ?? url.absoluteString)
+                DesvanPostcard(host: url.host(percentEncoded: false) ?? url.absoluteString, scale: side / 64)
             }
         }
         .frame(width: side + 12, height: side + 8, alignment: .bottom)
@@ -351,33 +364,36 @@ struct DesvanThumbnail: View {
     }
 }
 
-/// A paper note held with a strip of masking tape.
+/// A paper note held with a strip of masking tape. Drawn at `scale` × its 64 pt design size.
 private struct DesvanNote: View {
     let text: String
+    var scale: CGFloat = 1
 
     var body: some View {
+        let k = scale
         VStack(alignment: .leading, spacing: 0) {
             Text(text)
-                .font(.system(size: 7.5, weight: .medium))
+                .font(.system(size: 7.5 * k, weight: .medium))
                 .foregroundStyle(Desvan.Palette.ink)
-                .lineSpacing(1)
+                .lineSpacing(1 * k)
                 .lineLimit(5)
-                .padding(.horizontal, 6)
-                .padding(.top, 9)
+                .padding(.horizontal, 6 * k)
+                .padding(.top, 9 * k)
             Spacer(minLength: 0)
         }
-        .frame(width: 54, height: 60, alignment: .topLeading)
+        .frame(width: 54 * k, height: 60 * k, alignment: .topLeading)
+        .clipped()
         .background {
             Rectangle()
                 .fill(Desvan.Palette.paper)
                 .overlay {
                     // Faint ruled lines.
-                    VStack(spacing: 9.5) {
+                    VStack(spacing: 9.5 * k) {
                         ForEach(0..<6, id: \.self) { _ in
                             Rectangle().fill(Desvan.Palette.sky.opacity(0.25)).frame(height: 0.5)
                         }
                     }
-                    .padding(.top, 16)
+                    .padding(.top, 16 * k)
                     .frame(maxHeight: .infinity, alignment: .top)
                 }
                 .shadow(color: .black.opacity(0.5), radius: 2, y: 1)
@@ -385,45 +401,47 @@ private struct DesvanNote: View {
         .overlay(alignment: .top) {
             Rectangle()
                 .fill(Desvan.Palette.tape.opacity(0.85))
-                .frame(width: 26, height: 8)
+                .frame(width: 26 * k, height: 8 * k)
                 .rotationEffect(.degrees(-4))
-                .offset(y: -4)
+                .offset(y: -4 * k)
         }
         .accessibilityHidden(true)
     }
 }
 
-/// A postcard for a link: the host written on it and a stamp in the link colour.
+/// A postcard for a link: the host written on it and a stamp in the link colour. Drawn at `scale` × 64 pt.
 private struct DesvanPostcard: View {
     let host: String
+    var scale: CGFloat = 1
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
+        let k = scale
+        VStack(alignment: .leading, spacing: 3 * k) {
             HStack(alignment: .top) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Capsule().fill(Desvan.Palette.ink.opacity(0.25)).frame(width: 22, height: 1.5)
-                    Capsule().fill(Desvan.Palette.ink.opacity(0.25)).frame(width: 16, height: 1.5)
+                VStack(alignment: .leading, spacing: 3 * k) {
+                    Capsule().fill(Desvan.Palette.ink.opacity(0.25)).frame(width: 22 * k, height: 1.5)
+                    Capsule().fill(Desvan.Palette.ink.opacity(0.25)).frame(width: 16 * k, height: 1.5)
                 }
-                .padding(.top, 3)
+                .padding(.top, 3 * k)
                 Spacer(minLength: 0)
                 ZStack {
                     RoundedRectangle(cornerRadius: 1.5).fill(Desvan.Palette.lavender)
                     Image(systemName: "link")
-                        .font(.system(size: 8, weight: .bold))
+                        .font(.system(size: 8 * k, weight: .bold))
                         .foregroundStyle(Desvan.Palette.ink.opacity(0.8))
                 }
-                .frame(width: 15, height: 17)
+                .frame(width: 15 * k, height: 17 * k)
                 .overlay(RoundedRectangle(cornerRadius: 1.5).strokeBorder(.white.opacity(0.6), style: StrokeStyle(lineWidth: 1, dash: [1.5, 1])))
             }
             Spacer(minLength: 0)
             Text(host)
-                .font(.system(size: 8, weight: .semibold))
+                .font(.system(size: 8 * k, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.ink)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
-        .padding(6)
-        .frame(width: 70, height: 48)
+        .padding(6 * k)
+        .frame(width: 70 * k, height: 48 * k)
         .background {
             RoundedRectangle(cornerRadius: 2, style: .continuous)
                 .fill(Color(hex: 0xEFE5D2))
@@ -433,50 +451,28 @@ private struct DesvanPostcard: View {
     }
 }
 
-// MARK: - Hint and empty state
+// MARK: - Empty state
 
-/// One quiet line of help at the bottom of the shelf.
-private struct DesvanShelfHint: View {
-    let hasSelection: Bool
-
-    var body: some View {
-        HStack(spacing: 14) {
-            hint("hand.draw", "Arrástralo fuera para bajarlo")
-            hint("space", "Mirar")
-            if hasSelection { hint("delete.left", "Quitar") }
-        }
-        .font(Desvan.Typeface.rounded(10.5, weight: .medium))
-        .foregroundStyle(Desvan.Palette.paperTertiary)
-        .frame(maxWidth: .infinity)
-        .animation(Desvan.Motion.hover, value: hasSelection)
-    }
-
-    private func hint(_ symbol: String, _ text: String) -> some View {
-        HStack(spacing: 4) {
-            Image(systemName: symbol).font(.system(size: 9.5, weight: .medium))
-            Text(text)
-        }
-    }
-}
-
-/// «El altillo está vacío.» An empty plank, the house with its light on, and one warm sentence.
+/// «El altillo está vacío.» The bare plank with the house standing on it, and one warm sentence.
 struct DesvanShelfEmptyState: View {
     var body: some View {
         ZStack(alignment: .top) {
             // The bare board, running wall to wall like the full shelf's.
             DesvanPlank()
-                .padding(.top, 128)
-            VStack(spacing: 6) {
-                DesvanHouseMark(size: 22)
-                    .padding(.bottom, 4)
-                Text("El altillo está vacío.")
-                    .font(Desvan.Typeface.fraunces(17, weight: 600))
-                    .foregroundStyle(Desvan.Palette.paper)
-                Text("Sube aquí lo que quieras tener a mano un rato.")
-                    .font(.system(size: 12))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                .padding(.top, DesvanShelfView.plankY)
+            HStack(alignment: .center, spacing: 12) {
+                DesvanHouseMark(size: 26)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("El altillo está vacío.")
+                        .font(Desvan.Typeface.fraunces(16, weight: 600))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    Text("Sube aquí lo que quieras tener a mano un rato.")
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                }
             }
-            .padding(.top, 28)
+            .frame(height: DesvanShelfView.plankY)
+            .padding(.top, 1)
         }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
