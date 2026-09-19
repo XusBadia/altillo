@@ -12,7 +12,7 @@ extension NotchModel {
         model.hasNotch = hasNotch
         model.notchSize = hasNotch ? CGSize(width: 185, height: 32) : CGSize(width: 196, height: 24)
         model.scenario = scenario
-        model.tab = scenario.tab
+        model.module = scenario.module
         model.shelf = scenario.showsDemoShelf ? model.demo.shelfItems : []
         model.state = scenario.state
         return model

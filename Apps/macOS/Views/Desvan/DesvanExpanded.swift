@@ -12,7 +12,7 @@ struct DesvanExpandedFace: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var isDropTarget: Bool { model.state == .dropTarget }
-    private var bodyKey: String { isDropTarget ? "drop" : model.tab.rawValue }
+    private var bodyKey: String { isDropTarget ? "drop" : model.module.rawValue }
     private var hoveredZone: DropZone? {
         guard model.scenario == .dropTarget else { return model.dropZone }
         // `-demoMotion flaps`: the pointer comes and goes over the box.
@@ -99,10 +99,13 @@ struct DesvanExpandedFace: View {
         if isDropTarget {
             DesvanDropZones(model: model, hovered: hoveredZone)
         } else {
-            switch model.tab {
+            switch model.module {
             case .shelf: DesvanShelfView(model: model)
             case .usage: DesvanUsageView(demo: model.demo)
             case .agents: DesvanAgentsView(model: model)
+            case .calendar: DesvanCalendarView(model: model)
+            case .mirror: DesvanMirrorView(model: model)
+            case .nowPlaying: DesvanNowPlayingView(model: model)
             }
         }
     }
@@ -110,14 +113,8 @@ struct DesvanExpandedFace: View {
 
 // MARK: - Tabs
 
-private extension NotchTab {
-    var desvanTitle: String {
-        switch self {
-        case .shelf: "Altillo"
-        case .usage: "Uso"
-        case .agents: "Agentes"
-        }
-    }
+private extension NotchModule {
+    var desvanTitle: String { title }
 }
 
 /// SF Pro Rounded 12 semibold, lowercase-friendly. The active tab sits on a `woodRaised` capsule with a top lip.
@@ -129,15 +126,15 @@ private struct DesvanTabs: View {
 
     var body: some View {
         HStack(spacing: 2) {
-            ForEach(NotchTab.allCases) { tab in
+            ForEach(model.settings.modules) { tab in
                 DesvanTabButton(
                     tab: tab,
-                    isSelected: model.tab == tab,
+                    isSelected: model.module == tab,
                     knocks: tab == .agents && model.scenario != nil && model.demo.waitingAgent != nil,
                     namespace: namespace
                 ) {
                     withAnimation(Desvan.Motion.pick(.spring(duration: 0.24, bounce: 0), reduceMotion: reduceMotion)) {
-                        model.tab = tab
+                        model.module = tab
                     }
                 }
             }
@@ -146,7 +143,7 @@ private struct DesvanTabs: View {
 }
 
 private struct DesvanTabButton: View {
-    let tab: NotchTab
+    let tab: NotchModule
     let isSelected: Bool
     let knocks: Bool
     let namespace: Namespace.ID
@@ -187,6 +184,10 @@ private struct DesvanTabButton: View {
         case .shelf:
             DesvanHouseMark(size: 12, lit: isSelected ? 1 : 0.25,
                             outline: isSelected ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
+        case .calendar, .mirror, .nowPlaying:
+            Image(systemName: tab.symbol)
+                .font(.system(size: 11, weight: .medium))
+                .symbolRenderingMode(.hierarchical)
         case .usage:
             Image(systemName: "gauge.with.needle")
                 .font(.system(size: 11, weight: .medium))
@@ -238,16 +239,17 @@ private struct DesvanHeaderAccessory: View {
         Group {
             if isDropTarget {
                 EmptyView()
-            } else if model.tab != .shelf, model.scenario == nil {
+            } else if model.module != .shelf, model.scenario == nil {
                 // Usage and agents still show sample data until their modules exist (phases 3 and 4).
                 Text("Datos de ejemplo")
                     .font(Self.caption)
                     .foregroundStyle(Desvan.Palette.paperTertiary)
             } else {
-                switch model.tab {
+                switch model.module {
                 case .shelf: shelf
                 case .usage: usage
                 case .agents: agents
+                case .calendar, .mirror, .nowPlaying: EmptyView()
                 }
             }
         }

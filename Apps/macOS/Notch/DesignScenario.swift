@@ -14,6 +14,9 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     case openShelf
     case openUsage
     case openAgents
+    case openCalendar
+    case openMirror
+    case openNowPlaying
 
     var id: Self { self }
 
@@ -31,6 +34,9 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openShelf: "Abierto: altillo con archivos"
         case .openUsage: "Abierto: uso de IA"
         case .openAgents: "Abierto: agentes"
+        case .openCalendar: "Abierto: agenda"
+        case .openMirror: "Abierto: espejo"
+        case .openNowPlaying: "Abierto: sonando"
         }
     }
 
@@ -40,7 +46,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting: .peek
         case .dragArmed: .dragArmed
         case .dropTarget: .dropTarget
-        case .openShelfEmpty, .openShelf, .openUsage, .openAgents: .open
+        case .openShelfEmpty, .openShelf, .openUsage, .openAgents, .openCalendar, .openMirror, .openNowPlaying: .open
         }
     }
 
@@ -52,10 +58,13 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         }
     }
 
-    var tab: NotchTab {
+    var module: NotchModule {
         switch self {
         case .openUsage, .peekUsageAlert: .usage
         case .openAgents, .peekAgentWaiting: .agents
+        case .openCalendar: .calendar
+        case .openMirror: .mirror
+        case .openNowPlaying: .nowPlaying
         default: .shelf
         }
     }

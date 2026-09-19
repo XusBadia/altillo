@@ -8,7 +8,7 @@ import SwiftUI
 final class NotchCoordinator {
     let model = NotchModel()
 
-    private var machine = NotchStateMachine()
+    private var machine = NotchStateMachine(opensOnHover: AltilloSettings.shared.opensOnHover)
     private var window: NotchWindowController?
     private let input = InputMonitor()
     private lazy var dragDetector = DragDetector(callbacks: .init(
@@ -69,13 +69,13 @@ final class NotchCoordinator {
         cancelAllTimers()
         if let scenario {
             if model.scenario == nil { stashedShelf = (model.shelf, model.selection) }
-            model.tab = scenario.tab
+            model.module = scenario.module
             model.shelf = scenario.showsDemoShelf ? model.demo.shelfItems : []
             model.selection = []
             machine = NotchStateMachine(state: scenario.state)
         } else {
             restoreStashedShelf()
-            machine = NotchStateMachine()
+            machine = NotchStateMachine(opensOnHover: model.settings.opensOnHover)
         }
         model.scenario = scenario
         apply()
@@ -128,6 +128,9 @@ final class NotchCoordinator {
     }
 
     private func apply() {
+        machine.opensOnHover = model.settings.opensOnHover
+        // A module that was turned off in Settings must not stay open.
+        if !model.settings.modules.contains(model.module) { model.module = .shelf }
         let state = machine.state
         withAnimation(state == .idle ? .closeNotch : .openNotch) {
             model.state = state
@@ -258,7 +261,7 @@ final class NotchCoordinator {
     private func handleKey(_ keyCode: UInt16, inWindow windowNumber: Int) -> Bool {
         let deleteKeys: Set<UInt16> = [51, 117] // backspace, forward delete
         guard windowNumber == window?.panel.windowNumber, deleteKeys.contains(keyCode),
-              model.state == .open, model.tab == .shelf, !model.selection.isEmpty else {
+              model.state == .open, model.module == .shelf, !model.selection.isEmpty else {
             return false
         }
         remove(model.selection)

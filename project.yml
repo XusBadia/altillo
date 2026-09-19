@@ -50,6 +50,9 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: © 2026 Xus Badia. MIT License.
+        INFOPLIST_KEY_NSCameraUsageDescription: El espejo muestra la cámara del Mac dentro del notch. La imagen no sale de tu Mac.
+        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: La agenda muestra tu próximo evento en el notch. Los eventos no salen de tu Mac.
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: Altillo pregunta a Música y Spotify qué está sonando para mostrarlo en el notch.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual

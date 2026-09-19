@@ -8,11 +8,6 @@ enum DropZone: Hashable, Sendable {
     case shelf, airDrop
 }
 
-enum NotchTab: String, CaseIterable, Identifiable, Sendable {
-    case shelf, usage, agents
-    var id: Self { self }
-}
-
 /// Everything the notch views render. Owned by `NotchCoordinator`, one per app (shared by every screen's panel).
 @MainActor
 @Observable
@@ -21,7 +16,14 @@ final class NotchModel {
     /// Size of the hardware notch (or virtual island) on the screen being rendered, in points.
     var notchSize = CGSize(width: 185, height: 32)
     var hasNotch = true
-    var tab: NotchTab = .shelf
+    /// Active section of the open notch. Always one of `settings.modules`.
+    var module: NotchModule = .shelf
+    let settings = AltilloSettings.shared
+
+    // Module data. Each store only works while its module is visible.
+    let calendar = CalendarStore()
+    let mirror = MirrorStore()
+    let nowPlaying = NowPlayingStore()
 
     var shelf: [ShelfItem] = []
     var selection: Set<ShelfItem.ID> = []

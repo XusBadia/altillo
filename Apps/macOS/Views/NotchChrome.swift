@@ -47,7 +47,6 @@ struct NotchChrome: Equatable {
         ? CGSize(width: 185, height: 32)
         : nil
 
-    static let expandedSize = CGSize(width: 680, height: 0)
     /// Height of the open tabs' body, between the band and the bottom margin.
     static let expandedContentHeight: CGFloat = 104
     static let expandedContentGap: CGFloat = 4
@@ -129,7 +128,7 @@ struct NotchChrome: Equatable {
             let band = hasNotch ? notch.height : max(notch.height, 28)
             bandHeight = band
             size = CGSize(
-                width: Self.expandedSize.width,
+                width: model.settings.openWidth,
                 height: band + Self.expandedContentGap + Self.expandedContentHeight + Self.expandedBottomInset
             )
         }
