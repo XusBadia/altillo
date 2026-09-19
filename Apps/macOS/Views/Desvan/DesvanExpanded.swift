@@ -285,8 +285,8 @@ private struct DesvanHeaderAccessory: View {
         Group {
             if isDropTarget {
                 EmptyView()
-            } else if model.module != .shelf, model.scenario == nil {
-                // Usage and agents still show sample data until their modules exist (phases 3 and 4).
+            } else if model.module == .usage || model.module == .agents, model.scenario == nil {
+                // Only usage and agents still show sample data, until their modules exist (phases 3 and 4).
                 ViewThatFits(in: .horizontal) {
                     sampleCaption("Datos de ejemplo")
                     sampleCaption("Ejemplo")

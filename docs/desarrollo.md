@@ -3,6 +3,19 @@
 Notas prácticas para trabajar en Altillo en local. Para el plan, los
 principios y el diseño técnico, ver [PLAN.md](../PLAN.md).
 
+## Dónde compilar (importante)
+
+Compila **fuera de `~/Documents`**. Si la app compilada vive dentro de Documentos, macOS pide permiso de acceso a Documentos en cada arranque:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
+  -project Altillo.xcodeproj -scheme Altillo \
+  -derivedDataPath ~/Library/Developer/AltilloBuild build
+open ~/Library/Developer/AltilloBuild/Build/Products/Debug/Altillo.app
+```
+
+En CI da igual, porque no hay TCC.
+
 ## Xcode y `xcode-select`
 
 Altillo necesita **Xcode 26**, no solo las Command Line Tools. Si tu Mac tiene
