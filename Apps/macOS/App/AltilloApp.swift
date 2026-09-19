@@ -23,6 +23,8 @@ struct AppMenu: View {
     var body: some View {
         Button("Abrir Altillo") { coordinator.model.actions.send(.click) }
             .keyboardShortcut("a", modifiers: [.command, .option])
+        Button("Ajustes…") { SettingsWindowController.shared.show() }
+            .keyboardShortcut(",", modifiers: .command)
         Divider()
         Menu("Revisión de diseño") {
             ForEach(DesignScenario.allCases) { scenario in

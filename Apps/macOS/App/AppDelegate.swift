@@ -10,6 +10,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if let name = UserDefaults.standard.string(forKey: "designScenario"), let scenario = DesignScenario(rawValue: name) {
             coordinator.show(scenario)
         }
+        // `open Altillo.app --args -openSettings YES` opens the Settings window on launch (design reviews).
+        if SettingsWindowController.shouldOpenOnLaunch {
+            SettingsWindowController.shared.show()
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
