@@ -15,7 +15,8 @@ struct DesvanDropZones: View {
             DesvanBoxZone(model: model, isHovering: hovered == .shelf)
                 .desvanDropZoneFrame(.shelf, model: model)
             DesvanAirDropZone(isHovering: hovered == .airDrop)
-                .frame(width: 150)
+                // The plane keeps a comfortable corner whatever the notch is set to; the box takes the rest.
+                .frame(minWidth: 116, idealWidth: 150, maxWidth: 168)
                 .desvanDropZoneFrame(.airDrop, model: model)
         }
     }
@@ -47,24 +48,18 @@ private struct DesvanBoxZone: View {
                 .padding(.top, 2)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(isHovering ? "Suéltalo, ya lo guardo arriba" : "Guárdalo en el altillo")
-                    .font(Desvan.Typeface.display(16, weight: 600))
-                    .foregroundStyle(Desvan.Palette.paper)
-                    .contentTransition(.opacity)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
-                HStack(spacing: 8) {
-                    Text(subtitle)
-                        .font(.system(size: 11.5))
-                        .foregroundStyle(Desvan.Palette.paperSecondary)
-                        .lineLimit(1)
-                    if !model.shelf.isEmpty {
-                        DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 16)
-                    }
+                // Narrow notches get the short sentences instead of a truncated long one.
+                ViewThatFits(in: .horizontal) {
+                    title(isHovering ? "Suéltalo, ya lo guardo arriba" : "Guárdalo en el altillo")
+                    title(isHovering ? "Suéltalo, ya lo guardo" : "Guárdalo arriba")
+                }
+                ViewThatFits(in: .horizontal) {
+                    subtitle(long, showsStack: true)
+                    subtitle(short, showsStack: true)
+                    subtitle(short, showsStack: false)
                 }
             }
             .opacity(isHovering ? 1 : 0.4)
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.leading, 2)
         .padding(.trailing, 14)
@@ -84,10 +79,36 @@ private struct DesvanBoxZone: View {
         .accessibilityElement(children: .combine)
     }
 
-    private var subtitle: String {
+    private func title(_ text: String) -> some View {
+        Text(text)
+            .font(Desvan.Typeface.display(16, weight: 600))
+            .foregroundStyle(Desvan.Palette.paper)
+            .contentTransition(.opacity)
+            .lineLimit(1)
+            .fixedSize()
+    }
+
+    private func subtitle(_ text: String, showsStack: Bool) -> some View {
+        HStack(spacing: 8) {
+            Text(text)
+                .font(.system(size: 11.5))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .lineLimit(1)
+                .fixedSize()
+            if showsStack, !model.shelf.isEmpty {
+                DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 16)
+            }
+        }
+    }
+
+    private var long: String {
         model.shelf.isEmpty
             ? "Se queda arriba hasta que lo bajes a otro sitio."
             : "Ya hay \(NotchFormat.things(model.shelf.count)) esperando."
+    }
+
+    private var short: String {
+        model.shelf.isEmpty ? "Hasta que lo bajes." : "Ya hay \(model.shelf.count) esperando."
     }
 }
 

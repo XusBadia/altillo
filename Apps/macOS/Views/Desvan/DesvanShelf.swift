@@ -9,6 +9,8 @@ struct DesvanShelfView: View {
     let model: NotchModel
 
     @State private var anchor: ShelfItem.ID?
+    /// The moving end of a keyboard walk (⇧← / ⇧→ keep `anchor` still and move this one).
+    @State private var cursor: ShelfItem.ID?
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -17,16 +19,15 @@ struct DesvanShelfView: View {
     /// Top of the plank (its top surface) in the card.
     static let plankY: CGFloat = 66
 
-    /// Width available to the tiles (the card minus the row's side padding).
-    @State private var rowWidth: CGFloat = 0
+    /// How wide the card is, so the row can centre itself while everything fits and the fades know their size.
+    @State private var cardWidth: CGFloat = 0
+    /// Where the row is scrolled and how far it can go, for the edge fades and the mouse wheel.
+    @State private var scrollX: CGFloat = 0
+    @State private var maxScrollX: CGFloat = 0
+    @State private var position = ScrollPosition(idType: ShelfItem.ID.self)
 
-    /// Tiles share the plank: wide enough to read the names when there are few, never narrower than the minimum
-    /// (then the row scrolls).
-    private var tileWidth: CGFloat {
-        guard rowWidth > 0, !model.shelf.isEmpty else { return DesvanShelfTile.minWidth }
-        let share = (rowWidth / CGFloat(model.shelf.count)).rounded(.down)
-        return min(max(share, DesvanShelfTile.minWidth), DesvanShelfTile.maxWidth)
-    }
+    /// Width of the fade at each end of the row when there is more shelf out of sight.
+    private static let fade: CGFloat = 22
 
     var body: some View {
         Group {
@@ -59,6 +60,12 @@ struct DesvanShelfView: View {
             model.actions.send(.escape)
             return .handled
         }
+        // ← / → walk along the plank (⇧ extends the pick) and bring whatever they reach into view.
+        .onKeyPress(keys: [.leftArrow, .rightArrow], phases: .down) { press in
+            guard !model.shelf.isEmpty else { return .ignored }
+            move(press.key == .leftArrow ? -1 : 1, extend: press.modifiers.contains(.shift))
+            return .handled
+        }
     }
 
     private var shelf: some View {
@@ -71,27 +78,111 @@ struct DesvanShelfView: View {
             DesvanPlank()
                 .padding(.top, Self.plankY)
 
-            ScrollView(.horizontal) {
-                HStack(alignment: .top, spacing: 0) {
-                    ForEach(model.shelf) { item in
-                        DesvanShelfTile(
-                            item: item,
-                            width: tileWidth,
-                            isSelected: model.selection.contains(item.id),
-                            onClick: { click(item) },
-                            menuItems: { targets(for: item) },
-                            model: model
-                        )
-                        .transition(.opacity)
-                    }
-                }
-                .padding(.horizontal, Self.rowPadding)
-            }
-            .scrollIndicators(.never)
-            .scrollClipDisabled()
+            row
         }
-        .onGeometryChange(for: CGFloat.self, of: { $0.size.width - 2 * Self.rowPadding }) { rowWidth = $0 }
+        .onGeometryChange(for: CGFloat.self, of: \.size.width) { cardWidth = $0 }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+    }
+
+    private var row: some View {
+        ScrollView(.horizontal) {
+            HStack(alignment: .top, spacing: 0) {
+                ForEach(model.shelf) { item in
+                    DesvanShelfTile(
+                        item: item,
+                        isSelected: model.selection.contains(item.id),
+                        onClick: { click(item) },
+                        menuItems: { targets(for: item) },
+                        model: model
+                    )
+                    .id(item.id)
+                    .transition(.opacity)
+                }
+            }
+            .padding(.horizontal, Self.rowPadding)
+            // While everything fits, the things sit centred on the plank instead of huddling on the left.
+            .frame(minWidth: cardWidth)
+        }
+        .scrollIndicators(.visible, axes: .horizontal)
+        .scrollClipDisabled()
+        .scrollPosition($position)
+        .onScrollGeometryChange(for: ShelfScroll.self) { geometry in
+            ShelfScroll(
+                offset: geometry.contentOffset.x,
+                limit: max(0, geometry.contentSize.width - geometry.containerSize.width)
+            )
+        } action: { _, new in
+            scrollX = new.offset
+            maxScrollX = new.limit
+        }
+        .mask { fades }
+        // A plain mouse has no horizontal wheel: turning it moves the shelf sideways.
+        .overlay {
+            DesvanWheelCatcher { delta in scrollBy(delta) }
+                .allowsHitTesting(false)
+        }
+        .onChange(of: model.shelf.count) { old, new in
+            // Something new landed: make room for it in view.
+            guard new > old, let last = model.shelf.last?.id else { return }
+            withAnimation(Desvan.Motion.pick(.spring(duration: 0.35, bounce: 0), reduceMotion: reduceMotion)) {
+                position.scrollTo(id: last, anchor: .center)
+            }
+        }
+    }
+
+    /// Both ends fade out while there is more shelf that way, so it reads as scrollable at a glance.
+    private var fades: some View {
+        let width = max(cardWidth, 1)
+        let stop = min(0.45, Self.fade / width)
+        let leading = scrollX > 1
+        let trailing = scrollX < maxScrollX - 1
+        return LinearGradient(
+            stops: [
+                .init(color: .black.opacity(leading ? 0 : 1), location: 0),
+                .init(color: .black, location: stop),
+                .init(color: .black, location: 1 - stop),
+                .init(color: .black.opacity(trailing ? 0 : 1), location: 1),
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+        .animation(.easeOut(duration: 0.2), value: leading)
+        .animation(.easeOut(duration: 0.2), value: trailing)
+    }
+
+    /// Moves the row by `delta` points, if there is anywhere to go. Returns false so the wheel event goes on its way.
+    private func scrollBy(_ delta: CGFloat) -> Bool {
+        guard maxScrollX > 0.5 else { return false }
+        let target = min(max(0, scrollX - delta), maxScrollX)
+        guard abs(target - scrollX) > 0.01 else { return false }
+        scrollX = target
+        position.scrollTo(x: target)
+        return true
+    }
+
+    /// Where the row sits and how far it can still go.
+    private struct ShelfScroll: Equatable {
+        var offset: CGFloat
+        var limit: CGFloat
+    }
+
+    /// ← / →: picks the neighbour of the current pick (or the first thing), and scrolls it into view.
+    private func move(_ step: Int, extend: Bool) {
+        let items = model.shelf
+        let current = (cursor ?? anchor).flatMap { id in items.firstIndex { $0.id == id } }
+            ?? (step > 0 ? -1 : items.count)
+        let next = min(max(current + step, 0), items.count - 1)
+        let item = items[next]
+        cursor = item.id
+        if extend, let anchor, let from = items.firstIndex(where: { $0.id == anchor }) {
+            model.selection = Set(items[min(from, next)...max(from, next)].map(\.id))
+        } else {
+            model.selection = [item.id]
+            anchor = item.id
+        }
+        withAnimation(Desvan.Motion.pick(.spring(duration: 0.3, bounce: 0), reduceMotion: reduceMotion)) {
+            position.scrollTo(id: item.id, anchor: .center)
+        }
     }
 
     private var selectedItems: [ShelfItem] {
@@ -112,13 +203,16 @@ struct DesvanShelfView: View {
         if flags.contains(.command) {
             if model.selection.contains(item.id) { model.selection.remove(item.id) } else { model.selection.insert(item.id) }
             anchor = item.id
+            cursor = item.id
         } else if flags.contains(.shift), let anchor,
                   let from = model.shelf.firstIndex(where: { $0.id == anchor }),
                   let to = model.shelf.firstIndex(where: { $0.id == item.id }) {
             model.selection = Set(model.shelf[min(from, to)...max(from, to)].map(\.id))
+            cursor = item.id
         } else {
             model.selection = [item.id]
             anchor = item.id
+            cursor = item.id
         }
     }
 }
@@ -127,7 +221,6 @@ struct DesvanShelfView: View {
 
 private struct DesvanShelfTile: View {
     let item: ShelfItem
-    let width: CGFloat
     let isSelected: Bool
     let onClick: () -> Void
     let menuItems: () -> [ShelfItem]
@@ -137,8 +230,8 @@ private struct DesvanShelfTile: View {
     @State private var landing = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    static let minWidth: CGFloat = 68
-    static let maxWidth: CGFloat = 104
+    /// Things keep the same comfortable width whatever the notch is set to: the row scrolls instead of stretching.
+    static let width: CGFloat = 82
     static let thumbnailSide: CGFloat = 50
     /// Height of the space things stand in; their base sinks 3 pt into the plank's top surface (depth).
     static let thingHeight: CGFloat = thumbnailSide + 8
@@ -168,7 +261,7 @@ private struct DesvanShelfTile: View {
     var body: some View {
         VStack(spacing: 0) {
             thing
-                .frame(width: width, height: Self.thingHeight, alignment: .bottom)
+                .frame(width: Self.width, height: Self.thingHeight, alignment: .bottom)
             Color.clear.frame(height: DesvanPlank.height - Self.sink + 3) // the plank and a little wall
             Text(name)
                 .font(.system(size: 10.5, weight: isSelected ? .semibold : .medium))
@@ -177,9 +270,9 @@ private struct DesvanShelfTile: View {
                 .lineLimit(1)
                 .truncationMode(truncation)
                 .padding(.horizontal, 4)
-                .frame(width: width)
+                .frame(width: Self.width)
         }
-        .frame(width: width)
+        .frame(width: Self.width)
         .padding(.top, DesvanShelfView.plankY + Self.sink - Self.thingHeight)
         .contentShape(Rectangle())
         .help(help)
@@ -476,5 +569,84 @@ struct DesvanShelfEmptyState: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+    }
+}
+
+// MARK: - Mouse wheel
+
+/// A plain mouse only has a vertical wheel, and SwiftUI's horizontal `ScrollView` ignores it. This invisible
+/// AppKit view watches the scroll wheel while the pointer is over the shelf and turns a vertical turn into a
+/// sideways move of the row. Trackpad gestures that are mostly horizontal are left untouched, and so is every
+/// event the shelf can't use (`onWheel` returns false), which then continues on its way.
+///
+/// It never takes a click: `hitTest` returns nil, so selection and dragging out are unaffected.
+struct DesvanWheelCatcher: NSViewRepresentable {
+    /// Called with the wheel's movement in points. Returns true when the shelf used it.
+    var onWheel: (CGFloat) -> Bool
+
+    func makeNSView(context: Context) -> NSView {
+        let view = WheelView()
+        view.onWheel = onWheel
+        return view
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {
+        (nsView as? WheelView)?.onWheel = onWheel
+    }
+
+    static func dismantleNSView(_ nsView: NSView, coordinator: ()) {
+        (nsView as? WheelView)?.stop()
+    }
+
+    private final class WheelView: NSView {
+        var onWheel: ((CGFloat) -> Bool)?
+        private var monitor: Any?
+
+        /// Lines to points for a notched (non-precise) wheel: about one thing per notch.
+        private static let lineHeight: CGFloat = 16
+
+        override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            if window == nil { stop() } else { start() }
+        }
+
+        func start() {
+            guard monitor == nil else { return }
+            monitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
+                // Only plain values cross into the main actor: `NSEvent` itself is not Sendable.
+                let turn = Turn(
+                    x: event.scrollingDeltaX,
+                    y: event.scrollingDeltaY,
+                    precise: event.hasPreciseScrollingDeltas,
+                    location: event.locationInWindow,
+                    windowNumber: event.windowNumber
+                )
+                let used = MainActor.assumeIsolated { self?.handle(turn) ?? false }
+                return used ? nil : event
+            }
+        }
+
+        func stop() {
+            if let monitor { NSEvent.removeMonitor(monitor) }
+            monitor = nil
+        }
+
+        private func handle(_ turn: Turn) -> Bool {
+            guard let window, window.windowNumber == turn.windowNumber, let onWheel else { return false }
+            guard turn.y != 0, abs(turn.y) > abs(turn.x) else { return false }
+            guard bounds.contains(convert(turn.location, from: nil)) else { return false }
+            return onWheel(turn.precise ? turn.y : turn.y * Self.lineHeight)
+        }
+
+        /// One turn of the wheel, in values that can cross actors.
+        private struct Turn: Sendable {
+            var x: CGFloat
+            var y: CGFloat
+            var precise: Bool
+            var location: CGPoint
+            var windowNumber: Int
+        }
     }
 }

@@ -88,8 +88,23 @@ struct DesvanRootView: View {
         withAnimation(.easeIn(duration: 0.3)) { flicker = 0 }
     }
 
-    /// A pre-selected tile so the review screenshot shows the selection style.
+    /// A pre-selected tile so the review screenshot shows the selection style, and `-demoShelfCount` fills the
+    /// shelf with copies of the samples to review how the row scrolls.
     private func applyScenarioDemoState() {
+        guard model.scenario != nil else { return }
+        if let wanted = DesvanDebug.demoShelfCount, !model.shelf.isEmpty, model.shelf.count < wanted {
+            let samples = model.shelf
+            var filled = samples
+            while filled.count < wanted {
+                let sample = samples[filled.count % samples.count]
+                filled.append(ShelfItem(
+                    kind: sample.kind,
+                    displayName: sample.displayName,
+                    addedAt: sample.addedAt.addingTimeInterval(-Double(filled.count) * 60)
+                ))
+            }
+            model.shelf = filled
+        }
         guard model.scenario == .openShelf, model.selection.isEmpty, model.shelf.count > 1 else { return }
         model.selection = [model.shelf[1].id]
     }

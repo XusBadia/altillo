@@ -40,6 +40,8 @@ struct NotchChrome: Equatable {
     /// Drawing over a hardware notch (or simulating one). Without a notch, compact faces collapse to a single row.
     var hasNotch: Bool
     var showsShadow: Bool
+    /// Height reserved for the open notch's body (0 unless `face == .expanded`).
+    var contentHeight: CGFloat = 0
 
     /// `-simulateNotch YES` draws every face as if the display had a MacBook Pro 14" notch (185×32 pt), to review the
     /// notch look on a display without one. Views only: the window and hit-testing follow the drawn shape as usual.
@@ -47,8 +49,24 @@ struct NotchChrome: Equatable {
         ? CGSize(width: 185, height: 32)
         : nil
 
-    /// Height of the open tabs' body, between the band and the bottom margin.
-    static let expandedContentHeight: CGFloat = 104
+    /// Height of the open tabs' body, between the band and the bottom margin. Never taller than what the visible
+    /// module needs (PLAN §3: the attic takes as little vertical room as it can), so the silhouette is shorter for
+    /// an empty shelf than for the usage cards and morphs between the two.
+    enum ExpandedContent {
+        /// Things standing on the plank plus their names underneath.
+        static let shelf: CGFloat = 97
+        /// Just the plank with the house and one sentence above it: nothing below the board.
+        static let emptyShelf: CGFloat = 84
+        /// Ring, plan, countdown and pace, with the week's bar underneath.
+        static let usage: CGFloat = 92
+        /// The one knocking on a tall card plus two slim rows.
+        static let agents: CGFloat = 104
+        /// The cardboard box and the paper plane.
+        static let drop: CGFloat = 100
+        /// Calendar (next event card plus rows), mirror and now playing: the tallest the attic gets.
+        static let module: CGFloat = 104
+    }
+
     static let expandedContentGap: CGFloat = 4
     static let expandedBottomInset: CGFloat = 10
     static let earWidth: CGFloat = 50
@@ -127,10 +145,24 @@ struct NotchChrome: Equatable {
             // Beside a hardware notch the band is exactly the notch; the island keeps room for the tabs.
             let band = hasNotch ? notch.height : max(notch.height, 28)
             bandHeight = band
+            let content = Self.expandedContentHeight(for: model)
+            contentHeight = content
             size = CGSize(
                 width: model.settings.openWidth,
-                height: band + Self.expandedContentGap + Self.expandedContentHeight + Self.expandedBottomInset
+                height: band + Self.expandedContentGap + content + Self.expandedBottomInset
             )
+        }
+    }
+
+    /// What the open notch needs below the band for whatever it is showing.
+    @MainActor
+    static func expandedContentHeight(for model: NotchModel) -> CGFloat {
+        if model.state == .dropTarget { return ExpandedContent.drop }
+        switch model.module {
+        case .shelf: return model.shelf.isEmpty ? ExpandedContent.emptyShelf : ExpandedContent.shelf
+        case .usage: return ExpandedContent.usage
+        case .agents: return ExpandedContent.agents
+        case .calendar, .mirror, .nowPlaying: return ExpandedContent.module
         }
     }
 

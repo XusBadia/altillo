@@ -13,20 +13,25 @@ struct DesvanAgentsView: View {
         }
     }
 
+    /// The notch can be as narrow as 440 pt: below this the rows drop their optional controls.
+    @State private var width: CGFloat = 0
+    private var isCompact: Bool { width > 0 && width < 470 }
+
     var body: some View {
         ScrollView(.vertical) {
             VStack(spacing: 4) {
                 ForEach(ordered) { session in
                     if session.phase.needsUser {
-                        DesvanWaitingCard(session: session)
+                        DesvanWaitingCard(session: session, isCompact: isCompact)
                     } else {
-                        DesvanAgentRow(session: session, isReview: model.scenario != nil)
+                        DesvanAgentRow(session: session, isReview: model.scenario != nil, isCompact: isCompact)
                     }
                 }
             }
         }
         .scrollIndicators(.never)
         .scrollBounceBehavior(.basedOnSize)
+        .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
     }
 }
 
@@ -34,20 +39,46 @@ struct DesvanAgentsView: View {
 /// Buttons are no-ops until phase 4 wires the hook socket.
 private struct DesvanWaitingCard: View {
     let session: AgentSession
+    var isCompact = false
+
+    /// The whole sentence when there is room, then without the elapsed time, then just who and where.
+    @ViewBuilder
+    private func sentence(long: Bool, showsAgo: Bool) -> some View {
+        let project = Text(session.project)
+            .font(Desvan.Typeface.figure(12.5, weight: .medium).italic())
+            .foregroundStyle(Desvan.Palette.paper)
+        HStack(spacing: 6) {
+            Group {
+                if long {
+                    Text("\(session.agent.name) quiere hacer algo en \(project)")
+                } else {
+                    Text("\(session.agent.name) · \(project)")
+                }
+            }
+            .font(.system(size: 11.5))
+            .foregroundStyle(Desvan.Palette.paperSecondary)
+            .fixedSize()
+            if showsAgo {
+                Text(NotchFormat.ago(session.lastActivity))
+                    .font(Desvan.Typeface.rounded(10, weight: .medium))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .monospacedDigit()
+                    .fixedSize()
+            }
+        }
+    }
 
     var body: some View {
         HStack(spacing: 10) {
             AgentGlyph(agent: session.agent, size: 16)
             VStack(alignment: .leading, spacing: 3) {
-                HStack(spacing: 6) {
-                    Text("\(session.agent.name) quiere hacer algo en \(Text(session.project).font(Desvan.Typeface.figure(12.5, weight: .medium).italic()).foregroundStyle(Desvan.Palette.paper))")
-                        .font(.system(size: 11.5))
-                        .foregroundStyle(Desvan.Palette.paperSecondary)
-                    Text(NotchFormat.ago(session.lastActivity))
-                        .font(Desvan.Typeface.rounded(10, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.paperTertiary)
-                        .monospacedDigit()
+                ViewThatFits(in: .horizontal) {
+                    sentence(long: true, showsAgo: true)
+                    sentence(long: true, showsAgo: false)
+                    sentence(long: false, showsAgo: true)
+                    sentence(long: false, showsAgo: false)
                 }
+                .help("\(session.agent.name) quiere hacer algo en \(session.project) · \(NotchFormat.ago(session.lastActivity))")
                 if let request = session.request {
                     HStack(spacing: 6) {
                         Text(request.tool)
@@ -63,14 +94,16 @@ private struct DesvanWaitingCard: View {
             }
             .lineLimit(1)
             Spacer(minLength: 6)
-            DesvanKnockingHand(size: 11)
-                .help("Toc, toc: espera tu permiso")
-            Button {} label: {
-                Image(systemName: "arrow.up.forward.app")
-                    .font(.system(size: 11, weight: .medium))
+            if !isCompact {
+                DesvanKnockingHand(size: 11)
+                    .help("Toc, toc: espera tu permiso")
+                Button {} label: {
+                    Image(systemName: "arrow.up.forward.app")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
+                .help("Ir a la terminal")
             }
-            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
-            .help("Ir a la terminal")
             Button("Denegar") {}
                 .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 24))
             Button("Permitir") {}
@@ -92,6 +125,7 @@ private struct DesvanWaitingCard: View {
 private struct DesvanAgentRow: View {
     let session: AgentSession
     let isReview: Bool
+    var isCompact = false
 
     @State private var isHovering = false
     /// A freshly finished session wears the big stamp for 4 s, then a plain label.
@@ -116,7 +150,7 @@ private struct DesvanAgentRow: View {
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .monospacedDigit()
             status
-                .frame(minWidth: 84, alignment: .trailing)
+                .frame(minWidth: isCompact ? 0 : 84, alignment: .trailing)
             Button {} label: {
                 Image(systemName: "arrow.up.forward.app")
                     .font(.system(size: 10.5, weight: .medium))
@@ -164,10 +198,14 @@ private struct DesvanAgentRow: View {
         case .working:
             HStack(spacing: 6) {
                 DesvanWorkingDots()
-                Text("Trabajando")
-                    .font(Desvan.Typeface.rounded(11, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                if !isCompact {
+                    Text("Trabajando")
+                        .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize()
+                }
             }
+            .help("Trabajando")
         case .error:
             Label("Error", systemImage: "exclamationmark.triangle.fill")
                 .font(Desvan.Typeface.rounded(11, weight: .semibold))

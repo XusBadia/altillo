@@ -28,7 +28,7 @@ struct DesvanExpandedFace: View {
                     .id(bodyKey)
                     .transition(.contentSwap(shift: 4, reduceMotion: reduceMotion))
             }
-            .frame(height: NotchChrome.expandedContentHeight, alignment: .top)
+            .frame(height: chrome.contentHeight, alignment: .top)
             .padding(.horizontal, chrome.contentInset)
             .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion), value: bodyKey)
         }
@@ -58,7 +58,7 @@ struct DesvanExpandedFace: View {
     private var header: some View {
         if chrome.hasNotch {
             // Tabs and context sit either side of the camera; the notch body stays clear.
-            let sideZone = (chrome.size.width - chrome.notchWidth) / 2 - chrome.topRadius - 8
+            let sideZone = max(0, (chrome.size.width - chrome.notchWidth) / 2 - chrome.topRadius - Self.bandInset)
             HStack(spacing: 0) {
                 Color.clear
                     .frame(width: sideZone)
@@ -69,29 +69,31 @@ struct DesvanExpandedFace: View {
                     .overlay(alignment: .trailing) { accessory }
             }
             .frame(height: chrome.bandHeight)
-            .padding(.horizontal, chrome.topRadius + 8)
+            .padding(.horizontal, chrome.topRadius + Self.bandInset)
         } else {
             // No camera to dodge: one plain row.
             HStack(spacing: 12) {
                 tabs
-                Spacer(minLength: 0)
+                Spacer(minLength: 8)
                 accessory
             }
             .frame(height: chrome.bandHeight)
-            .padding(.horizontal, chrome.topRadius + 8)
+            .padding(.horizontal, chrome.topRadius + Self.bandInset)
         }
     }
 
+    /// Room kept between the silhouette's fillet and the band's content. Every point counts: beside the camera
+    /// the narrowest notch only leaves ~105 pt a side.
+    private static let bandInset: CGFloat = 6
+
     private var tabs: some View {
         DesvanTabs(model: model)
-            .fixedSize()
             .opacity(isDropTarget ? 0.4 : 1)
             .allowsHitTesting(!isDropTarget)
     }
 
     private var accessory: some View {
         DesvanHeaderAccessory(model: model, isDropTarget: isDropTarget)
-            .fixedSize()
     }
 
     @ViewBuilder
@@ -113,39 +115,78 @@ struct DesvanExpandedFace: View {
 
 // MARK: - Tabs
 
-private extension NotchModule {
-    var desvanTitle: String { title }
-}
-
-/// SF Pro Rounded 12 semibold, lowercase-friendly. The active tab sits on a `woodRaised` capsule with a top lip.
-/// Switching tabs is frequent, so the capsule moves with a short, bounce-free spring.
+/// The open notch's menu: one icon per module and, on the active one only, its name inside a raised plaque that
+/// grows and shrinks with a spring as the selection moves (PLAN §4).
+///
+/// Beside a hardware notch there is very little room (at the narrowest width, ~105 pt for up to six modules), so the
+/// strip has four densities and `ViewThatFits` picks the roomiest one that still fits. The last one drops the name;
+/// every icon always carries the module's name as a tooltip and as its accessibility label.
 private struct DesvanTabs: View {
     let model: NotchModel
     @Namespace private var namespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 2) {
+        ViewThatFits(in: .horizontal) {
+            strip(.roomy)
+            strip(.snug)
+            strip(.tight)
+            strip(.cramped)
+            strip(.iconsOnly)
+        }
+        .animation(Desvan.Motion.pick(.spring(duration: 0.3, bounce: 0.18), reduceMotion: reduceMotion),
+                   value: model.module)
+    }
+
+    private func strip(_ metrics: DesvanTabMetrics) -> some View {
+        HStack(spacing: metrics.spacing) {
             ForEach(model.settings.modules) { tab in
                 DesvanTabButton(
                     tab: tab,
                     isSelected: model.module == tab,
                     knocks: tab == .agents && model.scenario != nil && model.demo.waitingAgent != nil,
+                    metrics: metrics,
                     namespace: namespace
                 ) {
-                    withAnimation(Desvan.Motion.pick(.spring(duration: 0.24, bounce: 0), reduceMotion: reduceMotion)) {
+                    withAnimation(Desvan.Motion.pick(.spring(duration: 0.3, bounce: 0.18), reduceMotion: reduceMotion)) {
                         model.module = tab
                     }
                 }
             }
         }
+        .fixedSize()
     }
+}
+
+/// How tightly the tab strip is packed. Every density keeps the same anatomy; only the numbers shrink.
+private struct DesvanTabMetrics: Hashable {
+    /// Point size of the module's symbol.
+    var icon: CGFloat
+    /// Width of an inactive tab (the icon's tap target).
+    var slot: CGFloat
+    /// Point size of the active tab's name, or `nil` when there is no room for it.
+    var label: CGFloat?
+    /// Horizontal padding inside the active plaque.
+    var padding: CGFloat
+    /// Icon-to-name gap.
+    var gap: CGFloat
+    var spacing: CGFloat
+
+    static let roomy = DesvanTabMetrics(icon: 12.5, slot: 26, label: 12, padding: 9, gap: 5, spacing: 2)
+    static let snug = DesvanTabMetrics(icon: 12, slot: 22, label: 11.5, padding: 8, gap: 4, spacing: 1)
+    static let tight = DesvanTabMetrics(icon: 11, slot: 19, label: 11, padding: 7, gap: 3.5, spacing: 0)
+    static let cramped = DesvanTabMetrics(icon: 10.5, slot: 17, label: 10.5, padding: 6, gap: 3, spacing: 0)
+    /// Last resort (six modules at the narrowest width): the name lives in the tooltip only.
+    static let iconsOnly = DesvanTabMetrics(icon: 11, slot: 17, label: nil, padding: 6, gap: 0, spacing: 0)
+
+    var height: CGFloat { 22 }
 }
 
 private struct DesvanTabButton: View {
     let tab: NotchModule
     let isSelected: Bool
     let knocks: Bool
+    let metrics: DesvanTabMetrics
     let namespace: Namespace.ID
     let action: () -> Void
 
@@ -153,53 +194,56 @@ private struct DesvanTabButton: View {
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: metrics.gap) {
                 icon
-                Text(tab.desvanTitle)
-                    .font(Desvan.Typeface.rounded(12, weight: .semibold))
+                    .frame(width: metrics.icon + 4, height: metrics.icon + 4)
+                if isSelected, let size = metrics.label {
+                    Text(tab.title)
+                        .font(Desvan.Typeface.rounded(size, weight: .semibold))
+                        .fixedSize()
+                        .transition(.opacity.combined(with: .scale(scale: 0.8, anchor: .leading)))
+                }
             }
-            .foregroundStyle(isSelected || isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
+            .foregroundStyle(foreground)
             // On the plaque the label is pressed into the wood: a hairline of shade above, of light below.
             .shadow(color: .black.opacity(isSelected ? 0.7 : 0), radius: 0, y: -0.5)
-            .padding(.horizontal, 9)
-            .frame(height: 22)
+            .padding(.horizontal, isSelected ? metrics.padding : 0)
+            .frame(width: isSelected ? nil : metrics.slot, height: metrics.height)
             .background {
                 if isSelected {
                     DesvanTabPlaque()
                         .matchedGeometryEffect(id: "tab", in: namespace)
                 } else if isHovering {
-                    RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Desvan.Palette.paper.opacity(0.06))
+                    RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Desvan.Palette.paper.opacity(0.08))
                 }
             }
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
         .buttonStyle(.plain)
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+        .help(tab.title)
+        .accessibilityLabel(tab.title)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
+    }
+
+    private var foreground: Color {
+        if isSelected { return Desvan.Palette.paper }
+        return isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary
     }
 
     @ViewBuilder
     private var icon: some View {
         switch tab {
         case .shelf:
-            DesvanHouseMark(size: 12, lit: isSelected ? 1 : 0.25,
-                            outline: isSelected ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
-        case .calendar, .mirror, .nowPlaying:
+            DesvanHouseMark(size: metrics.icon, lit: isSelected ? 1 : (isHovering ? 0.5 : 0.25),
+                            outline: foreground)
+        case .agents where knocks:
+            // The knock only happens with a live (or scripted) agent waiting; it stays on the icon.
+            DesvanKnockingHand(size: metrics.icon - 1.5)
+        default:
             Image(systemName: tab.symbol)
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: metrics.icon - 1, weight: .medium))
                 .symbolRenderingMode(.hierarchical)
-        case .usage:
-            Image(systemName: "gauge.with.needle")
-                .font(.system(size: 11, weight: .medium))
-                .symbolRenderingMode(.hierarchical)
-        case .agents:
-            if knocks {
-                DesvanKnockingHand(size: 10.5)
-            } else {
-                Image(systemName: "terminal")
-                    .font(.system(size: 10.5, weight: .medium))
-                    .symbolRenderingMode(.hierarchical)
-            }
         }
     }
 }
@@ -231,6 +275,8 @@ private struct DesvanTabPlaque: View {
 
 // MARK: - Header accessory
 
+/// The right-hand side of the band: what the active module has to say, and its one action. Like the tabs it has
+/// several lengths and keeps the longest one that fits the room left beside the notch.
 private struct DesvanHeaderAccessory: View {
     let model: NotchModel
     let isDropTarget: Bool
@@ -241,9 +287,10 @@ private struct DesvanHeaderAccessory: View {
                 EmptyView()
             } else if model.module != .shelf, model.scenario == nil {
                 // Usage and agents still show sample data until their modules exist (phases 3 and 4).
-                Text("Datos de ejemplo")
-                    .font(Self.caption)
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                ViewThatFits(in: .horizontal) {
+                    sampleCaption("Datos de ejemplo")
+                    sampleCaption("Ejemplo")
+                }
             } else {
                 switch model.module {
                 case .shelf: shelf
@@ -258,30 +305,91 @@ private struct DesvanHeaderAccessory: View {
 
     private static let caption = Desvan.Typeface.rounded(11, weight: .medium)
 
+    private func sampleCaption(_ text: String) -> some View {
+        Text(text)
+            .font(Self.caption)
+            .foregroundStyle(Desvan.Palette.paperTertiary)
+            .fixedSize()
+    }
+
+    // MARK: Shelf
+
     @ViewBuilder
     private var shelf: some View {
         if !model.shelf.isEmpty {
-            HStack(spacing: 6) {
-                if model.selection.isEmpty {
-                    Text("\(Text("\(model.shelf.count)").font(Desvan.Typeface.figure(12, weight: .semibold)).foregroundStyle(Desvan.Palette.paper)) \(model.shelf.count == 1 ? "cosa" : "cosas") arriba")
-                        .font(Self.caption)
-                        .foregroundStyle(Desvan.Palette.paperTertiary)
-                        .contentTransition(.numericText(value: Double(model.shelf.count)))
-                        .help("Arrástralo fuera para bajarlo")
-                } else {
-                    // With something picked, the keys that act on it.
-                    HStack(spacing: 10) {
-                        hint("space", "Mirar")
-                        hint("delete.left", "Quitar")
-                    }
-                    .font(Self.caption)
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .transition(.opacity)
-                }
-                Button("Vaciar") { model.actions.clearShelf() }
-                    .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
+            ViewThatFits(in: .horizontal) {
+                // "Vaciar" is the action, so it keeps its word for as long as possible; the status gives way first.
+                shelfRow(status: .long, clear: .word)
+                shelfRow(status: .short, clear: .word)
+                shelfRow(status: .none, clear: .word)
+                shelfRow(status: .short, clear: .glyph)
+                shelfRow(status: .none, clear: .glyph)
             }
             .animation(Desvan.Motion.hover, value: model.selection.isEmpty)
+        }
+    }
+
+    private enum ShelfStatus { case long, short, none }
+    private enum ClearButton { case word, glyph }
+
+    @ViewBuilder
+    private func shelfRow(status: ShelfStatus, clear: ClearButton) -> some View {
+        HStack(spacing: 6) {
+            switch status {
+            case .long: shelfStatusLong
+            case .short: shelfStatusShort
+            case .none: EmptyView()
+            }
+            switch clear {
+            case .word:
+                Button("Vaciar") { model.actions.clearShelf() }
+                    .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
+            case .glyph:
+                Button { model.actions.clearShelf() } label: {
+                    Image(systemName: "arrow.down.to.line").font(.system(size: 10.5, weight: .semibold))
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
+                .help("Vaciar el altillo")
+            }
+        }
+        .fixedSize()
+    }
+
+    @ViewBuilder
+    private var shelfStatusLong: some View {
+        if model.selection.isEmpty {
+            Text("\(Text("\(model.shelf.count)").font(Desvan.Typeface.figure(12, weight: .semibold)).foregroundStyle(Desvan.Palette.paper)) \(model.shelf.count == 1 ? "cosa" : "cosas") arriba")
+                .font(Self.caption)
+                .foregroundStyle(Desvan.Palette.paperTertiary)
+                .contentTransition(.numericText(value: Double(model.shelf.count)))
+                .help("Arrástralo fuera para bajarlo")
+        } else {
+            // With something picked, the keys that act on it.
+            HStack(spacing: 10) {
+                hint("space", "Mirar")
+                hint("delete.left", "Quitar")
+            }
+            .font(Self.caption)
+            .foregroundStyle(Desvan.Palette.paperTertiary)
+            .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    private var shelfStatusShort: some View {
+        if model.selection.isEmpty {
+            Text("\(model.shelf.count)")
+                .font(Desvan.Typeface.figure(12, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .contentTransition(.numericText(value: Double(model.shelf.count)))
+                .help("\(NotchFormat.things(model.shelf.count)) en el altillo")
+        } else {
+            HStack(spacing: 8) {
+                Image(systemName: "space").font(.system(size: 9.5, weight: .medium))
+                Image(systemName: "delete.left").font(.system(size: 9.5, weight: .medium))
+            }
+            .foregroundStyle(Desvan.Palette.paperTertiary)
+            .help("Espacio: mirar · Retroceso: quitar")
         }
     }
 
@@ -292,30 +400,90 @@ private struct DesvanHeaderAccessory: View {
         }
     }
 
+    // MARK: Usage
+
     private var usage: some View {
-        HStack(spacing: 5) {
-            Circle().fill(Desvan.Palette.done).frame(width: 5, height: 5)
-            Text("Al día · \(NotchFormat.ago(model.demo.usageUpdatedAt))")
-                .font(Self.caption)
-                .foregroundStyle(Desvan.Palette.paperTertiary)
-                .monospacedDigit()
+        let ago = NotchFormat.ago(model.demo.usageUpdatedAt)
+        return ViewThatFits(in: .horizontal) {
+            usageRow(Text("Al día · \(ago)"))
+            usageRow(Text(ago))
+            usageRow(nil)
         }
     }
+
+    private func usageRow(_ text: Text?) -> some View {
+        HStack(spacing: 5) {
+            Circle().fill(Desvan.Palette.done).frame(width: 5, height: 5)
+            if let text {
+                text
+                    .font(Self.caption)
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .monospacedDigit()
+            }
+        }
+        .fixedSize()
+        .help("Al día · \(NotchFormat.ago(model.demo.usageUpdatedAt))")
+    }
+
+    // MARK: Agents
 
     private var agents: some View {
         let waiting = model.demo.agents.count { $0.phase.needsUser }
         let working = model.demo.workingAgentsCount
-        return HStack(spacing: 10) {
+        return ViewThatFits(in: .horizontal) {
+            agentsRow(waiting: waiting, working: working, long: true)
+            agentsRow(waiting: waiting, working: working, long: false)
+        }
+        .help(agentsSummary(waiting: waiting, working: working))
+    }
+
+    private func agentsRow(waiting: Int, working: Int, long: Bool) -> some View {
+        HStack(spacing: long ? 10 : 8) {
             if waiting > 0 {
-                Text("\(waiting) llama a la puerta")
-                    .foregroundStyle(Desvan.Palette.bulb)
+                Group {
+                    if long {
+                        Text("\(waiting) llama a la puerta")
+                    } else {
+                        Label("\(waiting)", systemImage: "hand.raised")
+                    }
+                }
+                .foregroundStyle(Desvan.Palette.bulb)
             }
             if working > 0 {
-                Text("\(working) trabajando")
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                Group {
+                    if long {
+                        Text("\(working) trabajando")
+                    } else {
+                        Label("\(working)", systemImage: "gearshape")
+                    }
+                }
+                .foregroundStyle(Desvan.Palette.paperTertiary)
             }
         }
         .font(Self.caption)
+        .labelStyle(.desvanCompact)
         .monospacedDigit()
+        .fixedSize()
     }
+
+    private func agentsSummary(waiting: Int, working: Int) -> String {
+        var parts: [String] = []
+        if waiting > 0 { parts.append("\(waiting) llama a la puerta") }
+        if working > 0 { parts.append("\(working) trabajando") }
+        return parts.joined(separator: " · ")
+    }
+}
+
+/// A label with its symbol tight against the figure, for the narrow band.
+private struct DesvanCompactLabelStyle: LabelStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: 3) {
+            configuration.icon.font(.system(size: 9.5, weight: .semibold))
+            configuration.title
+        }
+    }
+}
+
+private extension LabelStyle where Self == DesvanCompactLabelStyle {
+    static var desvanCompact: DesvanCompactLabelStyle { DesvanCompactLabelStyle() }
 }

@@ -153,6 +153,8 @@ extension Desvan {
 ///
 /// - `-prototypeHoverZone shelf|airDrop` lights that zone in the frozen dropTarget scenario, as if the pointer were
 ///   over it.
+/// - `-demoShelfCount <n>` repeats the sample files until the shelf holds `n` things, to review how the row
+///   scrolls when the altillo is full.
 /// - `-demoMotion landing|flaps|knock|stamp|approach` loops a signature moment in its design scenario so it can be
 ///   watched (and recorded) live: `landing` in openShelf, `flaps` in dropTarget, `knock` in peekAgentWaiting or
 ///   openAgents (the knock already repeats every 3 s), `stamp` in openAgents, `approach` in dragArmed. Nothing runs
@@ -163,6 +165,12 @@ enum DesvanDebug {
     case "airDrop", "airdrop": .airDrop
     default: nil
     }
+
+    /// How many things the design scenarios put on the shelf (nil: the six real samples).
+    static let demoShelfCount: Int? = {
+        let value = UserDefaults.standard.integer(forKey: "demoShelfCount")
+        return value > 0 ? min(value, 60) : nil
+    }()
 
     enum Moment: String {
         case landing, flaps, knock, stamp, approach

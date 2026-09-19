@@ -20,6 +20,16 @@ struct DesvanUsageView: View {
 private struct DesvanUsageCard: View {
     let usage: ProviderUsage
 
+    /// The card measures itself and drops what it can't hold: the plan chip and the window length first, then the
+    /// long sentences. The notch can be as narrow as 440 pt, which leaves ~190 pt per provider.
+    @State private var width: CGFloat = 0
+    private var density: Density {
+        if width <= 0 || width >= 278 { return .full }
+        return width >= 216 ? .medium : .compact
+    }
+
+    private enum Density { case full, medium, compact }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             session
@@ -31,6 +41,7 @@ private struct DesvanUsageCard: View {
         .padding(.bottom, 11)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .desvanCard()
+        .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
     }
 
     private var session: some View {
@@ -57,24 +68,34 @@ private struct DesvanUsageCard: View {
                     Text(usage.agent.name)
                         .font(.system(size: 12.5, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paper)
-                    Text(usage.plan)
-                        .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paperSecondary)
-                        .padding(.horizontal, 6)
-                        .frame(height: 15)
-                        .background(Capsule().fill(Desvan.Palette.woodRaised))
-                        .overlay(Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
-                    Spacer(minLength: 4)
-                    Text("5 h")
-                        .font(Desvan.Typeface.rounded(10, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paperTertiary)
-                        .help("Sesión de 5 h")
+                        .lineLimit(1)
+                    if density != .compact {
+                        Text(usage.plan)
+                            .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
+                            .foregroundStyle(Desvan.Palette.paperSecondary)
+                            .padding(.horizontal, 6)
+                            .frame(height: 15)
+                            .background(Capsule().fill(Desvan.Palette.woodRaised))
+                            .overlay(Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
+                            .fixedSize()
+                        Spacer(minLength: 4)
+                        Text("5 h")
+                            .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .help("Sesión de 5 h")
+                    } else {
+                        Spacer(minLength: 0)
+                    }
                 }
-                Text("se repone en \(NotchFormat.countdown(to: window.resetsAt))")
+                Text(density == .compact
+                     ? "en \(NotchFormat.countdown(to: window.resetsAt))"
+                     : "se repone en \(NotchFormat.countdown(to: window.resetsAt))")
                     .font(Desvan.Typeface.rounded(11.5, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paper.opacity(0.85))
                     .monospacedDigit()
-                DesvanPace(delta: window.paceDelta())
+                    .lineLimit(1)
+                    .help("\(usage.plan) · se repone en \(NotchFormat.countdown(to: window.resetsAt))")
+                DesvanPace(delta: window.paceDelta(), long: density == .full)
             }
         }
         .accessibilityElement(children: .combine)
@@ -84,18 +105,25 @@ private struct DesvanUsageCard: View {
     private var weekly: some View {
         let window = usage.weekly
         return HStack(spacing: 8) {
-            Text("Semana")
-                .font(Desvan.Typeface.rounded(10, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paperTertiary)
+            if density != .compact {
+                Text("Semana")
+                    .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .fixedSize()
+            }
             DesvanBar(value: window.used, pace: window.expectedPace())
             Text(NotchFormat.percent(window.used))
                 .font(Desvan.Typeface.figure(12, weight: .medium))
                 .foregroundStyle(Desvan.usageTint(window.used))
                 .monospacedDigit()
-            Text(NotchFormat.countdown(to: window.resetsAt))
-                .font(Desvan.Typeface.rounded(10, weight: .medium))
-                .foregroundStyle(Desvan.Palette.paperTertiary)
-                .monospacedDigit()
+                .fixedSize()
+            if density == .full {
+                Text(NotchFormat.countdown(to: window.resetsAt))
+                    .font(Desvan.Typeface.rounded(10, weight: .medium))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .monospacedDigit()
+                    .fixedSize()
+            }
         }
         .lineLimit(1)
         .fixedSize(horizontal: false, vertical: true)
@@ -107,14 +135,17 @@ private struct DesvanUsageCard: View {
 /// The pace, in SF Pro Rounded italic: "vas 9 puntos por delante del ritmo" / "vas con 12 de margen" / "vas a buen ritmo".
 private struct DesvanPace: View {
     let delta: Double
+    /// The whole sentence, or the short form when the card is narrow.
+    var long = true
 
     var body: some View {
         let points = Int((abs(delta) * 100).rounded())
-        Text(longText(points))
+        Text(long ? longText(points) : Self.shortText(delta: delta))
             .font(.system(size: 11.5, weight: .medium, design: .rounded).italic())
             .foregroundStyle(color)
             .monospacedDigit()
             .lineLimit(1)
+            .help(longText(Int((abs(delta) * 100).rounded())))
     }
 
     private var color: Color {
