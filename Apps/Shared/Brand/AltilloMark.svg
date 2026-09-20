@@ -1,16 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
   <title id="title">Altillo</title>
-  <desc id="description">Marca de Altillo formada por dos piezas: un ático naranja sobre una base marfil.</desc>
+  <desc id="description">Una A redondeada con forma de casa y un altillo naranja.</desc>
   <rect width="1024" height="1024" fill="#171411"/>
-  <path
-    id="attic"
-    fill="#FFB547"
-    d="M218 521 377 252c24-41 70-59 110-48 15 4 25 17 25 32v28c0 17 10 29 25 29s25-12 25-29v-28c0-15 10-28 25-32 40-11 86 7 110 48l159 269H667L558 342c-21-36-71-36-92 0L357 521Z"
-  />
-  <path
-    id="loft"
-    fill="#F6EFE3"
-    d="M211 537h133l-66 105c-18 29 2 54 40 54h388c38 0 58-25 40-54l-66-105h133l44 71c59 95-9 196-108 196H275c-99 0-167-101-108-196Z"
-  />
+  <g id="structure" fill="#F6EFE3">
+    <path d="M210 467 474 209c21-21 55-21 76 0l264 258c15 15 15 40 0 55s-40 15-55 0L548 316c-20-20-52-20-72 0L265 522c-15 15-40 15-55 0s-15-40 0-55Z"/>
+    <path d="M300 490c4-32 31-50 65-45 32 5 51 32 47 65l-46 250c-4 31-31 50-65 45-32-5-51-32-47-65Z"/>
+    <path d="M724 490c-4-32-31-50-65-45-32 5-51 32-47 65l46 250c4 31 31 50 65 45 32-5 51-32 47-65Z"/>
+    <rect x="354" y="570" width="316" height="104" rx="34"/>
+  </g>
+  <path id="attic" fill="#FFB547" d="M512 388c9 0 16 4 23 12l59 70c10 12 2 30-14 30H444c-16 0-24-18-14-30l59-70c7-8 14-12 23-12Z"/>
 </svg>
