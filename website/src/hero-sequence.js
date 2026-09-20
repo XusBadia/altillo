@@ -28,6 +28,9 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
   let generation = 0;
   let width = 0;
   let height = 0;
+  let pixelWidth = 0;
+  let pixelHeight = 0;
+  let openingPositionX = 0.5;
   let lastDrawn = -1;
   let lastPosition = -1;
   let needsResizeDraw = true;
@@ -57,7 +60,7 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
 
   function draw() {
     frameRequest = 0;
-    if (!enabled() || !frames.size || !width || !height) return;
+    if (!enabled() || !firstFrameReady || !frames.size || !width || !height) return;
     const target = targetFrame();
     let closest;
     for (const index of frames.keys()) {
@@ -68,13 +71,20 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     }
     if (closest === undefined) return;
     const bitmap = frames.get(closest);
+    // Resizing clears a canvas. Allocate and paint in the same callback so a
+    // cleared canvas can never reach the screen between animation frames.
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+      needsResizeDraw = true;
+    }
     // Touch the frame so the cache evicts its least recently used bitmap.
     frames.delete(closest);
     frames.set(closest, bitmap);
     const scale = Math.max(canvas.width / bitmap.width, canvas.height / bitmap.height);
     const drawnWidth = bitmap.width * scale;
     const drawnHeight = bitmap.height * scale;
-    const positionX = width < height ? 0.62 - Math.min(progress / 0.4, 1) * 0.12 : 0.5;
+    const positionX = openingPositionX + (0.5 - openingPositionX) * Math.min(progress / 0.4, 1);
     if (closest === lastDrawn && positionX === lastPosition && !needsResizeDraw) return;
     context.drawImage(
       bitmap,
@@ -107,13 +117,9 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     height = bounds.height || fallback?.height || canvas.parentElement?.clientHeight || 0;
     if (!width || !height) return;
     const ratio = Math.min(window.devicePixelRatio || 1, 1.5, 1600 / width);
-    const nextWidth = Math.max(1, Math.round(width * ratio));
-    const nextHeight = Math.max(1, Math.round(height * ratio));
-    if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
-      canvas.width = nextWidth;
-      canvas.height = nextHeight;
-      needsResizeDraw = true;
-    }
+    pixelWidth = Math.max(1, Math.round(width * ratio));
+    pixelHeight = Math.max(1, Math.round(height * ratio));
+    openingPositionX = poster ? parseFloat(getComputedStyle(poster).objectPosition) / 100 : 0.5;
     requestDraw();
   }
 

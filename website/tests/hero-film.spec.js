@@ -68,7 +68,8 @@ test("the actual film advances with scrolling, introduces the next section and r
 test("reduced motion keeps a static hero without requesting film assets", async ({ page }) => {
   const filmRequests = [];
   page.on("request", (request) => {
-    if (request.url().includes("/media/hero-sequence/")) filmRequests.push(request.url());
+    // Frame zero is also the static HTML poster, including in reduced motion.
+    if (request.resourceType() !== "image" && request.url().includes("/media/hero-sequence/")) filmRequests.push(request.url());
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
@@ -108,6 +109,7 @@ test("delayed frames never reverse a forward swipe and are reused on the way bac
   await page.emulateMedia({ reducedMotion: "no-preference" });
   const requests = new Map();
   await page.route("**/hero-sequence/frame-*.webp", async (route) => {
+    if (route.request().resourceType() === "image") return route.continue();
     const url = route.request().url();
     requests.set(url, (requests.get(url) || 0) + 1);
     // Out-of-order arrivals reproduce a variable mobile connection.

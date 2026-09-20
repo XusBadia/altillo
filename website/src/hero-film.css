@@ -1,4 +1,23 @@
 /* Static by default. Only a decoded film activates the scroll scene. */
+.hero {
+  height: 100svh;
+  min-height: 620px;
+  max-height: none;
+}
+.hero .hero-stage {
+  height: 100svh;
+  min-height: 620px;
+}
+/* The poster is frame zero, with the same crop and layout as the canvas. */
+.hero .hero-media {
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-position: 50% 50%;
+}
+@media (orientation: portrait) {
+  .hero .hero-media { object-position: 62% 50%; }
+}
 .hero-canvas,
 .hero-film-track {
   display: none;
@@ -99,7 +118,7 @@
   .has-film .hero-stage {
     min-height: 620px;
   }
-  .has-film .hero-shade {
+  .hero .hero-shade {
     background: linear-gradient(180deg, #100d0be8 0%, #100d0baa 42%, #100d0b15 68%, #10100f80 100%);
   }
   .has-film .hero-stage::after {
@@ -118,10 +137,10 @@
   .has-film .intro h2 {
     font-size: clamp(38px, 11.5vw, 54px);
   }
-  .has-film .hero-bottom {
+  .hero .hero-bottom {
     bottom: 32px;
   }
-  .has-film .hero-index {
+  .hero .hero-index {
     max-width: 140px;
   }
 }

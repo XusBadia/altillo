@@ -73,6 +73,8 @@ Todo sucede con archivos y datos ficticios en memoria. La demo no abre ni sube a
 
 El scroll es nativo. La película conserva los 24 fps de Grok, con 240 fotogramas en canvas y una suavización breve del avance visual, sin alterar el desplazamiento de la página. Se precargan imágenes comprimidas y se conservan solo 24 fotogramas decodificados, con hasta cuatro cargas simultáneas. Las descargas en curso no se cancelan al mover el scroll y las imágenes se reutilizan al retroceder. Con `prefers-reduced-motion: reduce` o ahorro de datos, se mantiene la imagen estática y no se descargan los fotogramas. Si falla la carga inicial, la explicación conserva su posición normal. El contenido permanece visible sin JavaScript, aunque la demo requiere activarlo.
 
+El póster HTML usa el primer fotograma de la película con el mismo encuadre, tamaño y sombreado del canvas. El relevo espera a que ese fotograma esté decodificado; los cambios de resolución y el dibujo se realizan juntos para evitar destellos vacíos. Con movimiento reducido solo se carga ese póster, no la secuencia.
+
 Los iconos utilizan Phosphor Icons en peso regular. `scripts/build-icons.mjs` genera un sprite SVG con los símbolos usados durante `predev` y `build`. Los iconos de la página funcionan también sin JavaScript. La licencia se sirve en `public/phosphor-LICENSE.txt`.
 
 El consumo de IA y los agentes son prototipos en desarrollo, no integraciones disponibles. La app requiere macOS 26 o posterior; la web no requiere macOS. GitHub permite consultar el proyecto mientras no haya una descarga publicada.
