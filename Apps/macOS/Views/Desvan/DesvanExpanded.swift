@@ -277,11 +277,46 @@ private struct DesvanTabPlaque: View {
 
 /// The right-hand side of the band: what the active module has to say, and its one action. Like the tabs it has
 /// several lengths and keeps the longest one that fits the room left beside the notch.
+/// Opens the Settings window from the notch itself: there is no Dock icon and no menu bar to discover.
+private struct DesvanSettingsButton: View {
+    let action: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "gearshape")
+                .font(.system(size: 11, weight: .medium))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
+                .frame(width: 20, height: 18)
+                .background {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(Desvan.Palette.paper.opacity(isHovering ? 0.10 : 0))
+                }
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+        .help("Ajustes de Altillo")
+        .accessibilityLabel("Ajustes de Altillo")
+    }
+}
+
 private struct DesvanHeaderAccessory: View {
     let model: NotchModel
     let isDropTarget: Bool
 
     var body: some View {
+        HStack(spacing: 6) {
+            summary
+            if !isDropTarget {
+                DesvanSettingsButton { model.actions.openSettings() }
+            }
+        }
+        .lineLimit(1)
+    }
+
+    @ViewBuilder
+    private var summary: some View {
         Group {
             if isDropTarget {
                 EmptyView()

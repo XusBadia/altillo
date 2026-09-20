@@ -36,7 +36,8 @@ final class NotchCoordinator {
                 else if case let .link(url) = item.kind { NSWorkspace.shared.open(url) }
             },
             revealInFinder: { items in NSWorkspace.shared.activateFileViewerSelecting(items.compactMap(\.fileURL)) },
-            quickLook: { items in QuickLookPresenter.show(items.compactMap(\.fileURL)) }
+            quickLook: { items in QuickLookPresenter.show(items.compactMap(\.fileURL)) },
+            openSettings: { SettingsWindowController.shared.show() }
         )
 
         rebuildWindow()

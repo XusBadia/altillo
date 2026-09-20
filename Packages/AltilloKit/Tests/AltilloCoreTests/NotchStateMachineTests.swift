@@ -2,9 +2,15 @@ import Testing
 @testable import AltilloCore
 
 struct NotchStateMachineTests {
-    @Test func hoverPeeksThenOpens() {
+    @Test func hoverOpensStraightAway() {
         var machine = NotchStateMachine()
         machine.handle(.hoverIntent)
+        #expect(machine.state == .open, "no peek stage in between: it only delays what the user asked for")
+    }
+
+    @Test func alertPeekOpensOnSustainedHover() {
+        var machine = NotchStateMachine()
+        machine.handle(.alert)
         #expect(machine.state == .peek)
         machine.handle(.hoverSustained)
         #expect(machine.state == .open)
@@ -20,8 +26,9 @@ struct NotchStateMachineTests {
     }
 
     @Test func leavingPeekClosesImmediately() {
-        var machine = NotchStateMachine()
+        var machine = NotchStateMachine(opensOnHover: false)
         machine.handle(.hoverIntent)
+        #expect(machine.state == .peek)
         machine.handle(.pointerLeft)
         #expect(machine.state == .idle)
     }
@@ -33,6 +40,13 @@ struct NotchStateMachineTests {
         #expect(machine.state == .open)
         machine.handle(.closeGraceElapsed)
         #expect(machine.state == .idle)
+    }
+
+    @Test func hoverOnlyPeeksWhenClickIsRequired() {
+        var machine = NotchStateMachine(opensOnHover: false)
+        machine.handle(.hoverIntent)
+        machine.handle(.hoverSustained)
+        #expect(machine.state == .peek)
     }
 
     @Test func returningDuringGracePeriodKeepsItOpen() {

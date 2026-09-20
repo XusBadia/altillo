@@ -47,6 +47,8 @@ struct AltilloSettingsTests {
 
     @Test func modulesAreEnabledAndDisabled() {
         let settings = AltilloSettings(defaults: Self.makeDefaults())
+        #expect(settings.isEnabled(.calendar), "every section is on by default")
+        settings.setEnabled(.calendar, false)
         #expect(!settings.isEnabled(.calendar))
         settings.setEnabled(.calendar, true)
         #expect(settings.isEnabled(.calendar))

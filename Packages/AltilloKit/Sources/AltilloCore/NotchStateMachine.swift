@@ -17,9 +17,9 @@ public enum NotchState: String, Sendable, CaseIterable {
 
 /// Inputs to the state machine. Timing (dwell, grace periods) lives in the caller, which reports elapsed timers as events.
 public enum NotchEvent: Sendable, Equatable {
-    /// The pointer has rested on the notch for the short dwell (~80 ms).
+    /// The pointer has rested on the notch for the short dwell (~80 ms). Opens the notch when `opensOnHover`.
     case hoverIntent
-    /// The pointer has rested on the notch (or the peek) for the long dwell (~300 ms).
+    /// The pointer has rested on a peek (an alert, say) for the long dwell (~300 ms): open it.
     case hoverSustained
     case click
     /// The pointer left the notch area.
@@ -66,7 +66,8 @@ public struct NotchStateMachine: Sendable {
 
         case (.idle, .hoverIntent):
             isPointerInside = true
-            return .peek
+            // Hovering goes straight to the open notch: a peek first only delays what the user already asked for.
+            return opensOnHover ? .open : .peek
         case (.peek, .hoverIntent), (.open, .hoverIntent):
             isPointerInside = true
             return state

@@ -57,4 +57,5 @@ struct NotchActions {
     var open: (ShelfItem) -> Void = { _ in }
     var revealInFinder: ([ShelfItem]) -> Void = { _ in }
     var quickLook: ([ShelfItem]) -> Void = { _ in }
+    var openSettings: () -> Void = {}
 }

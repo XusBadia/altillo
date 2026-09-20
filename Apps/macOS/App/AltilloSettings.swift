@@ -59,7 +59,8 @@ final class AltilloSettings {
 
     static let widthRange: ClosedRange<Double> = 440...760
     static let widthPresets: [(name: String, value: Double)] = [("Estrecho", 480), ("Medio", 560), ("Ancho", 680)]
-    static let defaultModules: [NotchModule] = [.shelf, .usage, .agents]
+    /// Everything on by default: sections are easier to discover in the notch than in Settings.
+    static let defaultModules: [NotchModule] = NotchModule.allCases
 
     private let defaults: UserDefaults
     private let loginItem: LoginItem
