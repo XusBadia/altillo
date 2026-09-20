@@ -1,0 +1,69 @@
+import { test, expect } from '@playwright/test';
+
+async function chapter(page, name) {
+  const step = page.locator(`.story-step[data-chapter="${name}"]`);
+  await step.evaluate((el) => {
+    const r = el.getBoundingClientRect();
+    window.scrollTo({ top: scrollY + r.top + r.height / 2 - innerHeight * (innerWidth < 1000 ? 0.72 : 0.5), behavior: 'instant' });
+  });
+  await expect(step).toHaveClass(/is-active/);
+}
+
+test('explains the product, labels development and links to Aurio without overflow', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
+  await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
+  await expect(page.locator('#proyecto')).toContainText('Todavía no hay una versión pública para descargar');
+  await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toHaveAttribute('href', 'https://www.aurioapp.com');
+  await expect(page.getByRole('tab')).toHaveCount(0);
+  for (const name of ['shelf', 'usage', 'agents']) {
+    await chapter(page, name);
+    await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', name === 'shelf' ? 'idle' : name);
+    if (name !== 'shelf') await expect(page.locator(`.story-step[data-chapter="${name}"]`)).toContainText('EN DESARROLLO');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+  expect(errors).toEqual([]);
+});
+
+test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
+  await page.goto('/');
+  await chapter(page, 'shelf');
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'idle');
+  await page.getByRole('button', { name: 'Ver consumo de Claude y Codex' }).click();
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await page.evaluate(() => window.scrollBy({ top: 12, behavior: 'instant' }));
+  await expect(page.locator('.story-step[data-chapter="shelf"]')).toHaveClass(/is-active/);
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await chapter(page, 'agents');
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'agents');
+  await expect(page.locator('.chapter-current')).toHaveText('03');
+  await chapter(page, 'usage');
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await expect(page.locator('.chapter-current')).toHaveText('02');
+});
+
+test('reduced motion disables parallax while chapters remain usable', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await chapter(page, 'usage');
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await expect(page.locator('.hero-media')).toHaveCSS('transform', 'none');
+  await expect(page.locator('.hero-copy')).toHaveCSS('transform', 'none');
+  await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
+  await expect(page.locator('.intro h2')).toHaveCSS('opacity', '1');
+});
+
+test('page remains readable without JavaScript', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false });
+  const page = await context.newPage();
+  await page.goto(baseURL);
+  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
+  await expect(page.locator('.intro h2')).toBeVisible();
+  await expect(page.locator('noscript p')).toBeVisible();
+  await expect(page.locator('noscript p')).toContainText('Activa JavaScript');
+  await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toBeVisible();
+  await context.close();
+});

@@ -1,0 +1,46 @@
+/* Elements are visible by default, including when JavaScript is unavailable. */
+.motion-reveal {
+  animation: altillo-reveal 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes altillo-reveal {
+  from {
+    opacity: 0.72;
+    translate: 0 12px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.hero-media {
+  transform-origin: center center;
+}
+
+.chapter-progress {
+  transform-origin: left center;
+}
+
+.story-step {
+  transition:
+    border-color 180ms ease-out,
+    background-color 180ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .motion-reveal {
+    animation: none;
+    opacity: 1;
+    translate: none;
+  }
+
+  .hero-media,
+  .hero-copy {
+    transform: none !important;
+  }
+
+  .story-step {
+    transition: none;
+  }
+}

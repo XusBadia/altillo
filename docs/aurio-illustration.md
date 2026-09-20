@@ -1,0 +1,11 @@
+# Ilustración de Aurio para Altillo
+
+Generada con la herramienta integrada `image_gen` y referencias de las poses oficiales Guardian y Accountant del repositorio Aurio. Se verificaron la identidad naranja/dorada, el medallón frontal y el fondo transparente. No contiene texto, por lo que sirve para ambos idiomas.
+
+Archivo web: `website/public/media/aurio-mascot.webp`. La conversión a WebP mantiene la transparencia.
+
+## Prompt
+
+Use case: illustration-story. Create a NEW polished 3D illustration for the compact Aurio support section on the Altillo website. The two supplied images are CHARACTER IDENTITY REFERENCES, not compositions to copy. Preserve exactly Aurio's recognizable baby orange dragon identity: textured vivid orange scales, large kind brown eyes, broad friendly rounded snout, cream segmented belly, two curved gold horns, small gold central crest, round gold forehead medallion with a faceted diamond emblem, orange wings with amber membranes, gold claws and gold tail tip. The guardian reference establishes the face. No shield. No glasses needed.
+Scene: Aurio is comfortably sitting on a small warm walnut wooden storage chest, beside two modest cream and sage account books, holding a single cream paper in one paw and giving a small welcoming wave with the other. Tail curled neatly alongside the chest, both wings partly folded, all anatomy coherent. He is looking slightly toward the viewer's left, toward the adjacent website copy, with an attentive warm smile. Tie the wooden chest subtly to a cozy attic. Only one character and these few props. NO piles of gold, NO floating UI, NO coins, NO text, NO lettering, NO extra symbols beyond the exact forehead medallion.
+Composition: landscape 4:3, isolated complete character and props occupy center/right of image, enough breathing room around ears wings and feet, no cropping. Designed to be displayed at about 360px wide by 270px tall. Rich but restrained tactile 3D rendering, soft warm window light from upper left, beautiful gentle shadows. True transparent background (alpha), no backdrop, no white rectangle, no checkerboard baked in. It will sit on a warm paper background #e9e4d9. Preserve orange and gold colors from the identity references. High craftsmanship, clean silhouette.
