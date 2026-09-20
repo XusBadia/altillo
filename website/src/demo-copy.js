@@ -83,6 +83,14 @@ const english = {
   'Acción denegada en la demo.': 'Action denied in the demo.',
   'Archivo sin mover. Suéltalo sobre el destino.': 'File not moved. Drop it over the destination.',
   'Altillo abierto. Arrastra un archivo al estante.': 'Altillo is open. Drag a file to the shelf.',
+  'El estante ya no admite más secretos.': 'The shelf has no room for more secrets.',
+  'Has dejado la casa completamente vacía.': 'You left the house completely empty.',
+  'El cajón tiene una escalera que no sale en el plano.': 'The drawer has a staircase that is not on the blueprint.',
+  'Las dos reuniones llevan al mismo sitio.': 'Both meetings lead to the same place.',
+  'Hay una canción que todavía no quiere sonar.': 'There is a song that does not want to play yet.',
+  'No estás solo frente al espejo.': 'You are not alone in front of the mirror.',
+  'Las cifras esconden una habitación más.': 'The numbers hide one more room.',
+  'La casa recuerda quién dijo que no.': 'The house remembers who said no.',
 };
 
 export function createDemoCopy(locale) {

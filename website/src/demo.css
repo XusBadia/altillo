@@ -1770,6 +1770,30 @@
     display: none !important;
   }
 }
+
+/* Some discoveries leave a trace inside the simulated desktop. */
+.ad-mirror-art.is-haunted {
+  filter: saturate(.72) brightness(.78);
+}
+.ad-mirror-art.is-haunted::after {
+  content: "·";
+  position: absolute;
+  top: 31%;
+  left: 53%;
+  z-index: 4;
+  color: #f0b878;
+  font-size: 25px;
+  line-height: 1;
+  text-shadow: 0 0 12px #f0b878;
+  animation: ad-egg-glint 1.4s ease-in-out infinite;
+}
+@keyframes ad-egg-glint {
+  0%, 100% { opacity: .25; transform: scale(.8); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ad-mirror-art.is-haunted::after { animation: none; opacity: .75; }
+}
 .ad-notch {
   transition:
     width 240ms cubic-bezier(0.2, 0.75, 0.25, 1),

@@ -54,6 +54,12 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     elapsed: 0,
     audioError: false,
     mirrorFlipped: true,
+    drawerToggles: 0,
+    joinedEvents: [],
+    musicMoves: 0,
+    mirrorFlips: 0,
+    usageTaps: 0,
+    agentPath: [],
   };
   const tracks = [
     { title: "Azotea", artist: "Estudio Altillo", src: "/media/music/azotea.mp3", duration: 0 },
@@ -148,6 +154,12 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   const announce = (message) => {
     status.textContent = t(message);
   };
+  const revealDemoEgg = (id, message, mood = "door") => {
+    element.dispatchEvent(new CustomEvent("demo:egg", {
+      bubbles: true,
+      detail: { id, message: t(message), mood },
+    }));
+  };
   const getDoc = (id) => docs.find((doc) => doc.id === id);
   function fileButton(doc, source) {
     return `<button type="button" class="ad-file ${source === "finder" && state.selected === doc.id ? "is-selected" : ""}" data-doc="${doc.id}" data-source="${source}" aria-label="${doc.name}${source === "shelf" ? ", en el estante" : ", documento de ejemplo"}" aria-pressed="${source === "finder" && state.selected === doc.id}">${art(doc)}<span class="ad-filename">${doc.name}</span>${source === "finder" && state.shelf.includes(doc.id) ? `<span class="ad-file-shelved" aria-label="En el estante">${svg("external")}</span>` : ""}</button>`;
@@ -203,7 +215,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     return `<div class="ad-module-surface ad-music-surface"><div class="ad-album-art ad-album-${state.track}" aria-hidden="true"><i></i><span>${["AZOTEA", "LUZ DE<br>TARDE", "ÚLTIMO<br>TRANVÍA"][state.track]}</span></div><div class="ad-music-body"><div class="ad-music-source">${svg("music", 13)}<span>Estudio Altillo</span><small>Ahora suena</small></div><strong class="ad-track-title">${track.title}</strong><span class="ad-track-artist">${track.artist}</span><div class="ad-music-controls"><button type="button" data-action="music-previous" aria-label="Canción anterior">${svg("previous", 18)}</button><button type="button" class="ad-music-play" data-action="music-play" aria-label="${state.playing ? "Pausar" : "Reproducir"}" aria-pressed="${state.playing}">${svg(state.playing ? "pause" : "play", 20)}</button><button type="button" data-action="music-next" aria-label="Siguiente canción">${svg("next", 18)}</button></div><div class="ad-track-progress" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="${track.duration}" aria-valuenow="${state.elapsed}"><i style="transform:scaleX(${track.duration ? state.elapsed / track.duration : 0})"></i></div><div class="ad-track-time"><span>${clockTime(state.elapsed)}</span><span>${clockTime(track.duration)}</span></div></div></div><div class="ad-panel-footer"><span>${state.audioError ? "No se pudo reproducir. Pulsa para reintentar." : "Tres canciones originales · audio real"}</span><span>${state.track + 1} / ${tracks.length}</span></div>`;
   }
   function renderMirror() {
-    return `<div class="ad-module-surface ad-mirror-surface"><div class="ad-mirror-art" data-flipped="${state.mirrorFlipped}" role="img" aria-label="Retrato ilustrado de ejemplo"><span class="ad-mirror-window"></span><span class="ad-mirror-plant"><i></i><i></i></span><span class="ad-mirror-person"><i class="ad-mirror-head"></i><i class="ad-mirror-hair"></i><i class="ad-mirror-shirt"></i></span></div><div class="ad-mirror-controls"><span>${svg("mirror", 14)}<span>Un vistazo antes de entrar.</span></span><button type="button" data-action="mirror-flip" aria-label="Invertir espejo" aria-pressed="${state.mirrorFlipped}">${svg("flip", 17)}<span>Invertir</span></button></div></div><div class="ad-panel-footer"><span>Vista de ejemplo · cámara apagada</span></div>`;
+    return `<div class="ad-module-surface ad-mirror-surface"><div class="ad-mirror-art${state.mirrorFlips >= 3 ? " is-haunted" : ""}" data-flipped="${state.mirrorFlipped}" role="img" aria-label="Retrato ilustrado de ejemplo"><span class="ad-mirror-window"></span><span class="ad-mirror-plant"><i></i><i></i></span><span class="ad-mirror-person"><i class="ad-mirror-head"></i><i class="ad-mirror-hair"></i><i class="ad-mirror-shirt"></i></span></div><div class="ad-mirror-controls"><span>${svg("mirror", 14)}<span>Un vistazo antes de entrar.</span></span><button type="button" data-action="mirror-flip" aria-label="Invertir espejo" aria-pressed="${state.mirrorFlipped}">${svg("flip", 17)}<span>Invertir</span></button></div></div><div class="ad-panel-footer"><span>Vista de ejemplo · cámara apagada</span></div>`;
   }
   function syncPlayback() {
     if (destroyed) return;
@@ -391,6 +403,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     renderFiles();
     renderPanel();
     announce(`${getDoc(id).name} añadido al estante.`);
+    if (state.shelf.length === docs.length) {
+      revealDemoEgg("full-shelf", "El estante ya no admite más secretos.", "night");
+    }
   }
   function deliver(id = state.shelf[0]) {
     if (!id || !state.shelf.includes(id)) {
@@ -405,6 +420,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     const folder = element.querySelector(".ad-destination");
     folder.classList.add("is-received");
     setTimeout(() => folder.classList.remove("is-received"), 550);
+    if (state.delivered.length === docs.length) {
+      revealDemoEgg("empty-house", "Has dejado la casa completamente vacía.", "night");
+    }
   }
   function reset() {
     ++playRequest;
@@ -427,6 +445,12 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       elapsed: 0,
       audioError: false,
       mirrorFlipped: true,
+      drawerToggles: 0,
+      joinedEvents: [],
+      musicMoves: 0,
+      mirrorFlips: 0,
+      usageTaps: 0,
+      agentPath: [],
     });
     renderFiles();
     renderTerminal();
@@ -472,9 +496,13 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     switch (button.dataset.action) {
       case "drawer-toggle":
         state.drawerExpanded = !state.drawerExpanded;
+        state.drawerToggles += 1;
         if (!state.drawerExpanded) state.drawerMenu = false;
         renderPanel();
         panel.querySelector('[data-action="drawer-toggle"]')?.focus({ preventScroll: true });
+        if (state.drawerToggles === 3) {
+          revealDemoEgg("drawer-stairs", "El cajón tiene una escalera que no sale en el plano.", "night");
+        }
         break;
       case "drawer-menu":
         state.drawerMenu = !state.drawerMenu;
@@ -483,9 +511,13 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         break;
       case "join":
         state.joinedEvent = Number(button.dataset.event);
+        if (!state.joinedEvents.includes(state.joinedEvent)) state.joinedEvents.push(state.joinedEvent);
         renderPanel();
         announce("Enlace preparado · videollamada simulada");
         panel.querySelector(`[data-action="join"][data-event="${state.joinedEvent}"]`)?.focus({ preventScroll: true });
+        if (state.joinedEvents.length === 2) {
+          revealDemoEgg("calendar-door", "Las dos reuniones llevan al mismo sitio.", "night");
+        }
         break;
       case "music-play":
         if (audio.paused || state.audioError || audio.error) void playAudio();
@@ -494,19 +526,31 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       case "music-previous":
       case "music-next":
         changeTrack(button.dataset.action === "music-next" ? 1 : -1);
+        state.musicMoves += 1;
         announce(tracks[state.track].title);
         panel.querySelector(`[data-action="${button.dataset.action}"]`)?.focus({ preventScroll: true });
+        if (state.musicMoves === 3) {
+          revealDemoEgg("fourth-track", "Hay una canción que todavía no quiere sonar.", "night");
+        }
         break;
       case "mirror-flip":
         state.mirrorFlipped = !state.mirrorFlipped;
+        state.mirrorFlips += 1;
         renderPanel();
         panel.querySelector('[data-action="mirror-flip"]')?.focus({ preventScroll: true });
+        if (state.mirrorFlips === 3) {
+          revealDemoEgg("mirror-guest", "No estás solo frente al espejo.", "night");
+        }
         break;
       case "usage":
         clearTimeout(hoverOpenTimer);
         clearTimeout(hoverCloseTimer);
+        state.usageTaps += 1;
         if (state.open === "usage" && pinned) close();
         else { pinned = true; hoverOpened = false; open("usage"); }
+        if (state.usageTaps === 3) {
+          revealDemoEgg("usage-shadow", "Las cifras esconden una habitación más.", "night");
+        }
         break;
       case "shelf":
         clearTimeout(hoverOpenTimer);
@@ -539,6 +583,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       case "allow":
       case "deny":
         state.agent = button.dataset.action === "allow" ? "allowed" : "denied";
+        state.agentPath.push(state.agent);
         renderTerminal();
         renderPanel();
         announce(
@@ -549,6 +594,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         panel
           .querySelector("[data-action=agent]")
           ?.focus({ preventScroll: true });
+        if (state.agentPath.at(-2) === "denied" && state.agent === "allowed") {
+          revealDemoEgg("agent-house-rules", "La casa recuerda quién dijo que no.", "night");
+        }
         break;
       case "reset":
         reset();
