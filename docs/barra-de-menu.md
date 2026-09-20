@@ -1,5 +1,7 @@
 # Iconos de la barra de menú: investigación (septiembre 2026)
 
+> **Implementación actual:** [Cajón / Drawer](cajon.md). Ocultación mediante separador solo en macOS 26; catálogo AX en otras versiones. Las notas históricas sobre otras versiones y proyectos no constituyen una garantía de compatibilidad comprobada en Altillo.
+
 **Contexto:** macOS 27 "Golden Gate" salió el 14-09-2026. En 27 toda la barra de menú es **una sola ventana**, y Apple ha añadido un **chevrón de desbordamiento nativo** para los iconos que tapa el notch.
 
 ## Enumerar los iconos
@@ -22,9 +24,9 @@ Un icono está oculto si su marco corta el notch o queda fuera de pantalla. Se c
 - **Imagen:**
   - Sin permiso, el icono de la app (`NSRunningApplication.icon`).
   - Con **Grabación de Pantalla**, en 26 se puede capturar con ScreenCaptureKit (`SCScreenshotManager`). En 27 no hay captura por icono.
-- **Pulsar:** `AXPress` (y `AXShowMenu` para el clic derecho). Funciona aunque el icono esté fuera de pantalla, como hace HiddenBarIcons (MIT).
-  - **Hay que recoger el panel del notch antes de pulsar**, porque el menú se abre bajo el notch.
-  - Algunos popovers se colocan mal.
+- **Pulsar:** `AXPress` (y `AXShowMenu` para el clic derecho). La llamada puede ejecutarse con el icono fuera de pantalla, pero eso **no garantiza un menú visible**: se ha reproducido un menú abierto miles de puntos fuera de pantalla con una app de prueba.
+  - **Hay que mostrar el grupo, actualizar los marcos y recoger el panel del notch antes de pulsar.**
+  - Si el icono sigue fuera por saturación física de la barra, Drawer no pulsa: explica que falta espacio. No reubica menús ajenos ni simula arrastres.
 - **Moverlos temporalmente** (el "Ice Bar"): ⌘+arrastre simulado con CGEvent. Tarda 1-1,5 s por icono, secuestra el cursor, requiere más de 10k líneas para ser fiable y **no funciona en 27**. Descartado.
 
 ## Ocultar y reordenar

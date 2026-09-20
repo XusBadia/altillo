@@ -64,10 +64,12 @@ final class NotchCoordinator {
             },
             revealInFinder: { items in NSWorkspace.shared.activateFileViewerSelecting(items.compactMap(\.fileURL)) },
             quickLook: { items in QuickLookPresenter.show(items.compactMap(\.fileURL)) },
-            openSettings: { SettingsWindowController.shared.show() }
+            openSettings: { SettingsWindowController.shared.show() },
+            openDrawerSettings: { SettingsWindowController.shared.show(tab: .drawer) }
         )
 
         rebuildWindow()
+        model.drawer.start()
         input.mouseMoved = { [weak self] in self?.mouseMoved(to: $0) }
         input.mouseDown = { [weak self] point, isLocal in self?.mouseDown(at: point, isLocal: isLocal) }
         input.start()
@@ -98,6 +100,7 @@ final class NotchCoordinator {
         keyMonitor = nil
         input.stop()
         dragDetector.stop()
+        model.drawer.stop()
         observers.forEach {
             NotificationCenter.default.removeObserver($0)
             NSWorkspace.shared.notificationCenter.removeObserver($0)

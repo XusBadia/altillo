@@ -158,14 +158,12 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **Instalador de hooks:** con consentimiento explícito, muestra el diff antes de escribir, hace copia de seguridad, es idempotente y **se puede desinstalar con un clic**. Los hooks existentes del usuario no se tocan.
 - **Limitación conocida:** los hooks no se disparan de forma fiable en la app Claude Desktop. Funcionan en la CLI y en VS Code/JetBrains.
 
-### 5.4 Iconos de la barra de menú ([detalle](docs/barra-de-menu.md))
-- **Qué hace:** muestra dentro del notch abierto los iconos que el notch tapa y permite pulsarlos. Se enumeran con la API de Accesibilidad (`AXExtrasMenuBar`), se detecta cuáles caen detrás del notch y se pulsan con `AXPress` (clic derecho: `AXShowMenu`), recogiendo antes el panel.
-- **Permisos:** **Accesibilidad** es obligatoria. **Grabación de Pantalla** es opcional, solo para mostrar el icono real en vez del de la app.
-- **macOS 27:** Apple ya añade su propio chevrón de desbordamiento, así que ahí Altillo ofrece **lista y búsqueda** de todos los iconos por Accesibilidad.
-- **Ocultar secciones:**
-  - En 26, con el separador de 10.000 pt (API pública).
-  - En 27, enlace a Ajustes › Barra de menús.
-- **Reordenar: no.** Es frágil y exige mucho mantenimiento (Bartender e Ice viven rotos).
+### 5.4 Cajón / Drawer ([implementación y pruebas](docs/cajon.md))
+- **Qué hace:** el usuario elige un grupo de iconos con ⌘-arrastre a la izquierda de un separador. Drawer los oculta y ofrece búsqueda y apertura desde el notch, con `AXExtrasMenuBar`, `AXPress` y `AXShowMenu`. El panel se recoge antes de abrir un menú.
+- **Permisos:** Accesibilidad. Se muestran iconos de aplicación; no se solicita Grabación de Pantalla ni Monitorización de Entrada.
+- **Ocultación en macOS 26:** separador de longitud adaptable y control visible para recuperar el grupo. Opt-in; posiciones conservadas por macOS. Cambios de pantalla, apps nuevas y fallos de acceso muestran el grupo.
+- **Otras versiones:** ocultación deshabilitada; catálogo AX disponible según las apps. Sin APIs privadas ni garantía de compatibilidad no comprobada.
+- **Reordenación:** solo el gesto nativo del usuario; sin arrastres simulados. La aceptación en MacBook con notch y monitores externos sigue la matriz manual del documento enlazado.
 
 ### 5.5 Sincronización Mac ⇄ iPhone/iPad
 - **CloudKit, base privada, con `CKSyncEngine`**, en el contenedor `iCloud.me.badia.altillo`.
@@ -220,6 +218,8 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **10. Publicación** | Icono, nombre, bienvenida, web/README, Homebrew Cask, App Store (iOS) | — | 1 semana |
 
 ### Estado
+
+- **Cajón / Drawer (20-09-2026, primera implementación de fase 7):** módulo con búsqueda y accesos AX, ajustes y selección mediante ⌘-arrastre, ocultación de grupo opt-in en macOS 26 y recuperación segura. La apertura vuelve a mostrar el grupo para dar al menú un anclaje visible. Si la barra sigue llena, explica el límite y no abre un menú fuera de pantalla. Pendiente aceptación física con notch, varias pantallas y barra autooculta; [detalle](docs/cajon.md).
 
 - **Fase 0 (18-09-2026):** el código está hecho.
   - Monorepo y CI.

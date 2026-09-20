@@ -19,6 +19,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     case openCalendar
     case openMirror
     case openNowPlaying
+    case openDrawer
 
     var id: Self { self }
 
@@ -41,6 +42,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openCalendar: "Abierto: agenda"
         case .openMirror: "Abierto: espejo"
         case .openNowPlaying: "Abierto: sonando"
+        case .openDrawer: "Open: Drawer"
         }
     }
 
@@ -51,7 +53,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .dragArmed: .dragArmed
         case .dropTarget: .dropTarget
         case .openShelfEmpty, .openShelfLoading, .openShelfError, .openShelf, .openUsage, .openAgents,
-             .openCalendar, .openMirror, .openNowPlaying: .open
+             .openCalendar, .openMirror, .openNowPlaying, .openDrawer: .open
         }
     }
 
@@ -70,6 +72,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openCalendar: .calendar
         case .openMirror: .mirror
         case .openNowPlaying: .nowPlaying
+        case .openDrawer: .drawer
         default: .shelf
         }
     }

@@ -69,7 +69,10 @@ struct SettingsModuleRow: View {
     private var isOn: Binding<Bool> {
         Binding(
             get: { settings.isEnabled(module) },
-            set: { settings.setEnabled(module, $0) }
+            set: {
+                settings.setEnabled(module, $0)
+                if module == .drawer, !$0 { MenuBarDrawerStore.shared.setEnabled(false) }
+            }
         )
     }
 

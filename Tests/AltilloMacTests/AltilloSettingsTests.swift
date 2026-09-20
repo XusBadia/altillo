@@ -173,7 +173,7 @@ struct AltilloSettingsTests {
     }
 
     @Test func settingsTabsAreAllNamed() {
-        #expect(SettingsTab.allCases.count == 4)
+        #expect(SettingsTab.allCases.count == 5)
         #expect(SettingsTab.allCases.allSatisfy { !$0.title.isEmpty && !$0.symbol.isEmpty })
     }
 }

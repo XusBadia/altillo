@@ -2,7 +2,7 @@ import Foundation
 
 /// A section of the open notch. The shelf is always present; the rest are opt-in and reorderable (PLAN §4).
 enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
-    case shelf, usage, agents, calendar, mirror, nowPlaying
+    case shelf, usage, agents, calendar, mirror, nowPlaying, drawer
 
     var id: Self { self }
 
@@ -15,6 +15,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .calendar: "Agenda"
         case .mirror: "Espejo"
         case .nowPlaying: "Sonando"
+        case .drawer: "Drawer"
         }
     }
 
@@ -26,6 +27,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .calendar: "calendar"
         case .mirror: "person.crop.square"
         case .nowPlaying: "music.note"
+        case .drawer: "archivebox"
         }
     }
 
@@ -38,6 +40,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .calendar: "Tu próximo evento, con botón para unirte."
         case .mirror: "La cámara del Mac, para verte antes de una llamada."
         case .nowPlaying: "Lo que suena, con sus controles."
+        case .drawer: "Menu bar icons, put away but still within reach."
         }
     }
 

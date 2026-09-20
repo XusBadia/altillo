@@ -163,6 +163,7 @@ struct NotchChrome: Equatable {
         case .usage: return ExpandedContent.usage
         case .agents: return ExpandedContent.agents
         case .calendar, .mirror, .nowPlaying: return ExpandedContent.module
+        case .drawer: return 144
         }
     }
 

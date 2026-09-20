@@ -108,6 +108,7 @@ struct DesvanExpandedFace: View {
             case .calendar: DesvanCalendarView(model: model)
             case .mirror: DesvanMirrorView(model: model)
             case .nowPlaying: DesvanNowPlayingView(model: model)
+            case .drawer: DesvanDrawerView(model: model)
             }
         }
     }
@@ -133,9 +134,34 @@ private struct DesvanTabs: View {
             strip(.tight)
             strip(.cramped)
             strip(.iconsOnly)
+            overflowMenu(showTitle: true)
+            overflowMenu(showTitle: false)
         }
         .animation(Desvan.Motion.pick(.spring(duration: 0.3, bounce: 0.18), reduceMotion: reduceMotion),
                    value: model.module)
+    }
+
+    /// Seven sections cannot fit beside a hardware notch at narrow widths.
+    /// A named menu keeps every section reachable without shrinking the targets further.
+    private func overflowMenu(showTitle: Bool) -> some View {
+        Menu {
+            ForEach(model.settings.modules) { tab in
+                Button { model.module = tab } label: {
+                    Label(tab.title, systemImage: tab.symbol)
+                }
+            }
+        } label: {
+            Group {
+                if showTitle { Label(model.module.title, systemImage: model.module.symbol) }
+                else { Image(systemName: model.module.symbol) }
+            }
+            .font(.system(size: 11, weight: .medium))
+            .lineLimit(1)
+        }
+        .menuStyle(.borderlessButton)
+        .fixedSize()
+        .help("Choose a section")
+        .accessibilityLabel("Sections, \(model.module.title) selected")
     }
 
     private func strip(_ metrics: DesvanTabMetrics) -> some View {
@@ -331,7 +357,7 @@ private struct DesvanHeaderAccessory: View {
                 case .shelf: shelf
                 case .usage: usage
                 case .agents: agents
-                case .calendar, .mirror, .nowPlaying: EmptyView()
+                case .calendar, .mirror, .nowPlaying, .drawer: EmptyView()
                 }
             }
         }

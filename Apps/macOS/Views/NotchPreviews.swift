@@ -89,4 +89,6 @@ private struct PreviewMenuBar: View {
 #Preview("Abierto: altillo con archivos") { NotchPreviewStage(model: .preview(.openShelf)) }
 #Preview("Abierto: uso de IA") { NotchPreviewStage(model: .preview(.openUsage)) }
 #Preview("Abierto: agentes") { NotchPreviewStage(model: .preview(.openAgents)) }
+#Preview("Open: Drawer") { NotchPreviewStage(model: .preview(.openDrawer)) }
+#Preview("Open: Drawer · island") { NotchPreviewStage(model: .preview(.openDrawer, hasNotch: false)) }
 #Preview("Abierto: agentes · isla") { NotchPreviewStage(model: .preview(.openAgents, hasNotch: false)) }

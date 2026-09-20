@@ -24,6 +24,7 @@ final class NotchModel {
     let calendar = CalendarStore()
     let mirror = MirrorStore()
     let nowPlaying = NowPlayingStore()
+    let drawer = MenuBarDrawerStore.shared
 
     var shelf: [ShelfItem] = []
     var selection: Set<ShelfItem.ID> = []
@@ -70,4 +71,5 @@ struct NotchActions {
     var revealInFinder: ([ShelfItem]) -> Void = { _ in }
     var quickLook: ([ShelfItem]) -> Void = { _ in }
     var openSettings: () -> Void = {}
+    var openDrawerSettings: () -> Void = {}
 }

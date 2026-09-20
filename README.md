@@ -16,7 +16,7 @@ screen:
 - **Live agents** — see your AI coding agents (Claude Code, Codex, …) working,
   waiting for a permission, or done, and approve or deny requests right from
   the notch.
-- **Menu bar icons** — reach the menu bar icons your notch hides.
+- **Drawer** — put away the menu bar icons you choose and open their menus from Altillo. Hiding is available on macOS 26; Accessibility access is required. [Setup and limitations](docs/cajon.md).
 - **iPhone/iPad companion** — the same modules, adapted to iOS/iPadOS, with
   Live Activities in the Dynamic Island for your agents.
 

@@ -3,13 +3,14 @@ import SwiftUI
 /// Sections of the Settings window. A plain macOS tabbed settings window, dressed in Desván's warmth:
 /// dark wood surfaces, rounded type and the bulb as the accent.
 enum SettingsTab: String, CaseIterable, Identifiable {
-    case modules, size, behaviour, about
+    case modules, drawer, size, behaviour, about
 
     var id: Self { self }
 
     var title: String {
         switch self {
         case .modules: "Secciones"
+        case .drawer: "Drawer"
         case .size: "Tamaño"
         case .behaviour: "Comportamiento"
         case .about: "Acerca de"
@@ -24,6 +25,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var symbol: String {
         switch self {
         case .modules: "square.stack.3d.up"
+        case .drawer: "archivebox"
         case .size: "arrow.left.and.right"
         case .behaviour: "hand.tap"
         case .about: "info.circle"
@@ -32,13 +34,15 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 }
 
 struct SettingsRootView: View {
-    @State private var tab: SettingsTab = SettingsTab.launchOverride ?? .modules
+    @Bindable var navigation: SettingsNavigation
     @Bindable private var settings = AltilloSettings.shared
 
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: $navigation.tab) {
             SettingsModulesPane(settings: settings)
                 .settingsTab(.modules)
+            SettingsDrawerPane()
+                .settingsTab(.drawer)
             SettingsSizePane(settings: settings)
                 .settingsTab(.size)
             SettingsBehaviourPane(settings: settings)

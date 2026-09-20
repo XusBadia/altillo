@@ -25,6 +25,13 @@ struct AppMenu: View {
             .keyboardShortcut("a", modifiers: [.command, .option])
         Button("Ajustes…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",", modifiers: .command)
+        Button("Drawer Settings…") { SettingsWindowController.shared.show(tab: .drawer) }
+        if coordinator.model.drawer.enabled {
+            Button(coordinator.model.drawer.isHidden ? "Show menu bar icons" : "Hide menu bar icons") {
+                if coordinator.model.drawer.isHidden { coordinator.model.drawer.reveal() }
+                else { coordinator.model.drawer.hide() }
+            }
+        }
         Divider()
         Button(coordinator.model.undoShelfTitle) { coordinator.model.actions.undo() }
             .keyboardShortcut("z", modifiers: .command)

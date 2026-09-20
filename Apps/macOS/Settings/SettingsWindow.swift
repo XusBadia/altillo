@@ -1,5 +1,11 @@
 import AppKit
 import SwiftUI
+import Observation
+
+@MainActor @Observable
+final class SettingsNavigation {
+    var tab: SettingsTab = SettingsTab.launchOverride ?? .modules
+}
 
 /// The Settings window. Altillo is an `LSUIElement` app, so it owns its window instead of using the
 /// `Settings` scene: that way the menu bar item and `-openSettings YES` can both bring it up and focus it.
@@ -11,9 +17,11 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     static let contentSize = CGSize(width: 540, height: 502)
 
     private var window: NSWindow?
+    private let navigation = SettingsNavigation()
 
     /// Opens the window, activating Altillo first so it really takes focus from a menu bar app.
-    func show() {
+    func show(tab: SettingsTab? = nil) {
+        if let tab { navigation.tab = tab }
         AltilloSettings.shared.refreshLaunchAtLogin()
         let window = window ?? makeWindow()
         self.window = window
@@ -22,7 +30,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     private func makeWindow() -> NSWindow {
-        let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsRootView()))
+        let window = NSWindow(contentViewController: NSHostingController(rootView: SettingsRootView(navigation: navigation)))
         window.title = "Ajustes de Altillo"
         window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
         window.titlebarAppearsTransparent = true
