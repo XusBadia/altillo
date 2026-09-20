@@ -2,7 +2,7 @@
 
 Web en español (`/`) e inglés (`/en/`) para presentar Altillo y probar un escritorio Mac simulado. Usa HTML, CSS y JavaScript con Vite. No necesita servidor de aplicación ni base de datos.
 
-La página tiene un hero oscuro con la imagen del Mac y su puerta, una explicación del estante, tres capítulos acompañados por scroll, una escena del altillo y una sección final compacta para conocer Aurio, con una nueva ilustración de su mascota oficial.
+La página abre con una secuencia cinematográfica del Mac y su puerta. El scroll controla el avance y el retroceso del vídeo, hasta entrar en el altillo y mostrar allí la explicación del estante. Después siguen tres capítulos interactivos, una escena del altillo y una sección compacta para conocer Aurio con su mascota oficial.
 
 El selector ES/EN de la cabecera navega entre páginas estáticas y conserva el fragmento de la URL cuando lo hay. Cada página incluye su idioma, título, descripción y enlaces `hreflang`. La demo también cambia de idioma: controles, instrucciones, documentos de ejemplo, solicitudes y anuncios accesibles.
 
@@ -45,7 +45,9 @@ La configuración arranca Vite en el puerto 4174 y contempla Safari de escritori
 - `src/style.css`: composición responsive de la página.
 - `src/demo.js` y `src/demo.css`: escritorio, notch, archivos y solicitudes simuladas.
 - `src/demo-copy.js`: textos de la demo por idioma.
-- `src/motion.js` y `src/motion.css`: movimiento del hero, entradas y coordinación de los capítulos con el scroll.
+- `src/hero-film.js` y `src/hero-film.css`: escena fija durante el scroll y transición hacia la explicación del estante.
+- `src/hero-sequence.js`: reproducción reversible de fotogramas WebP, con caché limitada y descarga por proximidad.
+- `src/motion.js` y `src/motion.css`: entradas y coordinación de los capítulos con el scroll.
 - `src/main.js`: montaje de la demo según el idioma del documento, movimiento y navegación entre idiomas.
 - `public/`: imágenes, iconos y símbolo de Aurio servidos localmente.
 
@@ -61,7 +63,7 @@ El indicador del notch abre el consumo ficticio de Claude y Codex. La terminal p
 
 Todo sucede con archivos y datos ficticios en memoria. La demo no abre ni sube archivos personales, no conecta cuentas y no envía solicitudes a servicios para realizar las acciones simuladas. La carga de la página solo necesita sus recursos estáticos. Los enlaces externos conducen a GitHub y Aurio.
 
-El scroll es nativo. Con `prefers-reduced-motion: reduce`, se desactivan parallax y animaciones; los controles y capítulos siguen disponibles. El contenido de la página permanece visible sin JavaScript, aunque la demo requiere activarlo.
+El scroll es nativo. La película se dibuja en un canvas a partir de fotogramas del vídeo de Grok, sin autoplay ni saltos de búsqueda de vídeo en Safari. Solo se conservan 20 fotogramas decodificados y se descargan hasta cuatro en paralelo. Con `prefers-reduced-motion: reduce` o ahorro de datos, se mantiene la imagen estática y no se descargan los fotogramas. Si falla la carga inicial, la explicación conserva su posición normal. El contenido permanece visible sin JavaScript, aunque la demo requiere activarlo.
 
 El consumo de IA y los agentes son prototipos en desarrollo, no integraciones disponibles. La app requiere macOS 26 o posterior; la web no requiere macOS. GitHub permite consultar el proyecto mientras no haya una descarga publicada.
 
@@ -72,6 +74,7 @@ Se reutilizaron imágenes de marca de Altillo y se creó una ilustración de la 
 | Recurso servido | Origen |
 | --- | --- |
 | `public/media/mac-door.webp` | `../promo/public/film/01-door.png`, convertido a WebP |
+| `public/media/hero-sequence/` | 120 fotogramas de un vídeo nuevo de Grok; original y prompts documentados en `../docs/hero-film-production.md` |
 | `public/media/attic.webp` | `../promo/public/film/02-attic.png`, convertido a WebP |
 | `public/altillo-icon.png` | Versión de 128 px del máster canónico: `../Apps/Shared/Assets.xcassets/AppIcon.appiconset/AppIcon-128.png` |
 | `public/aurio-symbol.svg` | Símbolo oficial del repositorio vecino `aurio/apps/web/public/logo.svg` |

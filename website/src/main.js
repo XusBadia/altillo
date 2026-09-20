@@ -1,12 +1,17 @@
 import "./style.css";
 import { mountDemo } from "./demo.js";
 import { mountMotion } from "./motion.js";
+import { mountHeroFilm } from "./hero-film.js";
 
 const demo = mountDemo(document.querySelector("#interactive-demo"), {
   locale: document.documentElement.lang,
 });
 const motion = mountMotion({ demo });
-if (import.meta.hot) import.meta.hot.dispose(() => motion.destroy());
+const heroFilm = mountHeroFilm();
+if (import.meta.hot) import.meta.hot.dispose(() => {
+  heroFilm.destroy();
+  motion.destroy();
+});
 
 // Keep the current section when changing language with a normal page navigation.
 for (const link of document.querySelectorAll(".language-switch a")) {

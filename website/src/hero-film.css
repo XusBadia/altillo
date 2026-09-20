@@ -1,0 +1,133 @@
+/* Static by default. Only a decoded film activates the scroll scene. */
+.hero-canvas,
+.hero-film-track {
+  display: none;
+}
+.hero.has-film {
+  height: 340svh;
+  min-height: 1800px;
+  max-height: none;
+  --film-copy: 1;
+  --film-intro: 0;
+  --film-intro-y: 32px;
+  --film-shade: 0;
+  --film-opening: 1;
+}
+.has-film .hero-stage {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  min-height: 620px;
+  background: #10100f;
+}
+.has-film .hero-canvas:not([hidden]) {
+  position: absolute;
+  display: block;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -3;
+}
+.has-film .hero-media {
+  opacity: 0;
+}
+.has-film .hero-media:has(+ .hero-canvas[hidden]) {
+  opacity: 1;
+}
+.has-film .hero-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(0deg, #10100f, transparent 30%),
+    linear-gradient(90deg, #10100fed 0%, #10100fbb 48%, #10100f5e 100%);
+  opacity: var(--film-shade);
+  pointer-events: none;
+}
+.has-film .hero-shade {
+  opacity: var(--film-opening);
+}
+.has-film .hero-copy,
+.has-film .hero-bottom,
+.has-film .image-caption {
+  opacity: var(--film-copy);
+}
+.has-film .hero-copy {
+  transform: translateY(calc((1 - var(--film-copy)) * -28px));
+}
+.has-film .intro {
+  position: absolute;
+  inset: auto 0;
+  top: 50%;
+  margin-inline: auto;
+  padding-block: 0;
+  transform: translateY(calc(-50% + var(--film-intro-y)));
+  opacity: var(--film-intro);
+}
+.has-film .intro h2 > span {
+  color: #e6b783;
+}
+.has-film .intro-copy p {
+  color: #d2c8bc;
+}
+.has-film .intro .motion-reveal {
+  animation: none;
+}
+.has-film .hero-film-track {
+  display: block;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #eab77917;
+}
+.hero-film-track > span {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: #d6a76d;
+  transform: scaleX(0);
+  transform-origin: left;
+}
+@media (max-width: 700px) {
+  .hero.has-film {
+    height: 310svh;
+    min-height: 1800px;
+  }
+  .has-film .hero-stage {
+    min-height: 620px;
+  }
+  .has-film .hero-shade {
+    background: linear-gradient(180deg, #100d0be8 0%, #100d0baa 42%, #100d0b15 68%, #10100f80 100%);
+  }
+  .has-film .hero-stage::after {
+    background: linear-gradient(180deg, #10100fd9, #10100fc4 70%, #10100f);
+  }
+  .has-film .intro {
+    width: calc(100% - 48px);
+  }
+  .has-film .intro > .eyebrow {
+    margin-bottom: 24px;
+  }
+  .has-film .intro-grid {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  .has-film .intro h2 {
+    font-size: clamp(38px, 11.5vw, 54px);
+  }
+  .has-film .hero-bottom {
+    bottom: 32px;
+  }
+  .has-film .hero-index {
+    max-width: 140px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-canvas,
+  .hero-film-track {
+    display: none !important;
+  }
+}

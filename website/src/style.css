@@ -282,20 +282,6 @@ button {
   letter-spacing: 0.5px;
   color: #b0a28f8a;
 }
-@media (min-width: 701px) and (min-height: 650px) {
-  .hero {
-    height: min(145svh, 1400px);
-  }
-  .hero-stage {
-    position: sticky;
-    top: 0;
-    height: 100svh;
-    min-height: 650px;
-  }
-  .hero-media {
-    transform-origin: 64% 13%;
-  }
-}
 .intro {
   padding-block: 128px 100px;
 }
