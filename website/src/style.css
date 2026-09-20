@@ -379,6 +379,45 @@ h2 {
   color: #d8b081;
   margin-right: 7px;
 }
+.module-actions {
+  margin-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.module-actions button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 58px;
+  padding: 12px 0;
+  color: #e1ddd3;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.module-actions small {
+  display: block;
+  margin-top: 3px;
+  color: #93938a;
+  font-size: 10px;
+}
+.module-actions .site-icon {
+  width: 17px;
+  height: 17px;
+  color: #d6ac79;
+}
+.module-actions button:focus-visible {
+  outline: 2px solid #d6ac79;
+  outline-offset: 4px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .module-actions button:hover { color: #edc89b; }
+}
 .demo-sticky {
   position: sticky;
   top: max(24px, calc((100svh - 590px) / 2));
@@ -918,7 +957,7 @@ h2 {
   .story-step {
     min-height: 400px;
     align-items: flex-start;
-    padding: 40px 0 80px;
+    padding: 40px 0 48px;
   }
   .ad-instruction {
     font-size: 11px !important;

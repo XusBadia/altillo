@@ -122,7 +122,7 @@
           <div class="story-rail">
             <article class="story-step is-active" data-chapter="shelf">
               <div class="step-content">
-                <span class="step-index">01 / THE SHELF</span>
+                <span class="step-index">01 / FILES AND ORDER</span>
                 <h3>Put a file up top. <br />Carry on.</h3>
                 <p>
                   Move your cursor over the notch to open it. Drag a document
@@ -132,34 +132,47 @@
                   <svg class="site-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="/icons.svg#arrow-up-right"></use></svg> On your phone, tap the
                   notch. You can also move files with the buttons.
                 </p>
+                <div class="module-actions" aria-label="Try files and organization">
+                  <button type="button" data-module="shelf" aria-controls="interactive-demo"><span>Use the shelf<small>A temporary place for your files</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                  <button type="button" data-module="drawer" aria-controls="interactive-demo"><span>Open the drawer<small>Tidy away your menu bar icons</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                </div>
               </div>
             </article>
-            <article class="story-step" data-chapter="usage">
+            <article class="story-step" data-chapter="day">
               <div class="step-content">
                 <span class="step-index"
-                  >02 / AI USAGE <b>IN DEVELOPMENT</b></span
+                  >02 / YOUR DAY</span
                 >
-                <h3>Before you hit <br />the limit.</h3>
+                <h3>What's next, <br />within reach.</h3>
                 <p>
-                  We're building a view of your Claude and Codex usage. Click
-                  the notch indicator to explore the example figures.
+                  Check your next meeting, pause your music or see yourself
+                  before a call. All in the space up top.
                 </p>
-                <p class="step-tip">Your desktop stays where you left it.</p>
+                <div class="module-actions" aria-label="Try your daily tools">
+                  <button type="button" data-module="calendar" aria-controls="interactive-demo"><span>Calendar<small>Your next event and a link to join</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                  <button type="button" data-module="music" aria-controls="interactive-demo"><span>Now playing<small>Controls for Apple Music and Spotify</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                  <button type="button" data-module="mirror" aria-controls="interactive-demo"><span>Mirror<small>A quick look before joining the call</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                </div>
               </div>
             </article>
-            <article class="story-step" data-chapter="agents">
+            <article class="story-step" data-chapter="ai">
               <div class="step-content">
                 <span class="step-index"
-                  >03 / AGENTS <b>IN DEVELOPMENT</b></span
+                  >03 / AI <b>IN DEVELOPMENT</b></span
                 >
-                <h3>Your turn <br />to decide.</h3>
+                <h3>When you're coding, <br />look up.</h3>
                 <p>
-                  An agent needs permission. Open the request in the notch and
-                  decide whether it can continue.
+                  We're building usage tracking for Claude and Codex alongside
+                  agent updates. Try checking your limits or responding to a
+                  permission request.
                 </p>
                 <p class="step-tip">
                   This is a simulated request. No commands run here.
                 </p>
+                <div class="module-actions" aria-label="Try the AI prototypes">
+                  <button type="button" data-module="usage" aria-controls="interactive-demo"><span>Check usage<small>Quotas and pace at a glance</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                  <button type="button" data-module="agents" aria-controls="interactive-demo"><span>Respond to an agent<small>You decide what gets permission</small></span><svg class="site-icon" aria-hidden="true"><use href="/icons.svg#arrow-up-right"></use></svg></button>
+                </div>
               </div>
             </article>
           </div>
@@ -177,8 +190,9 @@
         <noscript
           ><p>
             Enable JavaScript to try the desktop. Altillo lets you leave files
-            in your Mac's notch and move them to another window. The AI usage
-            and agent modules are in development.
+            in your Mac's notch and move them to another window. It also includes
+            a calendar, Apple Music and Spotify controls, a mirror and a menu bar
+            drawer. AI usage and agent modules are in development.
           </p></noscript
         >
       </section>
@@ -205,9 +219,9 @@
         </div>
         <div class="project-details" data-reveal>
           <p>
-            The file shelf already works in the app. The AI usage and agent
-            modules are in development. There isn't a public release to download
-            yet.
+            The shelf, calendar, music controls, mirror and drawer are already
+            implemented in the app. AI usage and agents are still in development.
+            There isn't a public release to download yet.
           </p>
           <p>
             You can follow our progress, read the code or build Altillo from

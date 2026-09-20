@@ -43,7 +43,7 @@ La configuración arranca Vite en el puerto 4174 y contempla Safari de escritori
 - `index.html` y `en/index.html`: contenido, navegación y secciones en español e inglés.
 - `vite.config.js`: entradas de compilación para ambas páginas.
 - `src/style.css`: composición responsive de la página.
-- `src/demo.js` y `src/demo.css`: escritorio, notch, archivos y solicitudes simuladas.
+- `src/demo.js`, `src/demo.css` y `src/demo-modules.css`: escritorio, notch y siete módulos simulados.
 - `src/demo-copy.js`: textos de la demo por idioma.
 - `src/hero-film.js` y `src/hero-film.css`: escena fija durante el scroll y transición hacia la explicación del estante.
 - `src/hero-sequence.js`: reproducción reversible de fotogramas WebP, con caché limitada y descarga por proximidad.
@@ -53,7 +53,13 @@ La configuración arranca Vite en el puerto 4174 y contempla Safari de escritori
 
 ## Interacción y límites
 
-Hay un único escritorio, sin pestañas de demostración. Los capítulos recorren el estante, el consumo de IA y los agentes; el escritorio conserva sus archivos y resultados mientras se explora.
+Hay un único escritorio, sin pestañas de demostración, y solo tres capítulos de scroll:
+
+1. **Archivos y orden:** estante y cajón de la barra de menús.
+2. **Tu día:** calendario, música y espejo.
+3. **IA:** consumo y agentes, marcados como prototipos en desarrollo.
+
+Los botones dentro de cada capítulo permiten probar sus funciones en el mismo notch. El escritorio conserva sus archivos y los estados de los módulos mientras se explora. Una selección manual permanece al hacer pequeños desplazamientos; al llegar al siguiente capítulo, el scroll presenta su módulo inicial.
 
 En escritorio, una pista invita a acercar el cursor al notch para abrirlo. En móvil, la pista permite tocar para abrir. El notch también dispone de botones para acceder al estante y al consumo.
 
@@ -61,13 +67,17 @@ Arrastra un documento desde Finder al notch y después desde el estante a Entreg
 
 El indicador del notch abre el consumo ficticio de Claude y Codex. La terminal permite pedir un permiso y probar Permitir o Denegar; no se ejecuta ningún comando. Reiniciar devuelve la demo al estado inicial.
 
+El calendario permite probar una invitación de ejemplo; no abre una reunión real. Música ofrece reproducción/pausa y cambio de pista simulados, sin audio. El espejo usa una ilustración de ejemplo y permite reflejarla, sin solicitar acceso a la cámara. El cajón muestra cómo recoger un grupo de iconos y acceder a sus menús.
+
 Todo sucede con archivos y datos ficticios en memoria. La demo no abre ni sube archivos personales, no conecta cuentas y no envía solicitudes a servicios para realizar las acciones simuladas. La carga de la página solo necesita sus recursos estáticos. Los enlaces externos conducen a GitHub y Aurio.
 
 El scroll es nativo. La película conserva los 24 fps de Grok, con 240 fotogramas en canvas y una suavización breve del avance visual, sin alterar el desplazamiento de la página. Se precargan imágenes comprimidas y se conservan solo 24 fotogramas decodificados, con hasta cuatro cargas simultáneas. Las descargas en curso no se cancelan al mover el scroll y las imágenes se reutilizan al retroceder. Con `prefers-reduced-motion: reduce` o ahorro de datos, se mantiene la imagen estática y no se descargan los fotogramas. Si falla la carga inicial, la explicación conserva su posición normal. El contenido permanece visible sin JavaScript, aunque la demo requiere activarlo.
 
-Los iconos utilizan Lucide. `scripts/build-icons.mjs` genera un sprite SVG con los símbolos usados, durante `predev` y `prebuild`. Los iconos de la página funcionan también sin JavaScript. La licencia se sirve en `public/lucide-LICENSE.txt`.
+Los iconos utilizan Phosphor Icons en peso regular. `scripts/build-icons.mjs` genera un sprite SVG con los símbolos usados durante `predev` y `build`. Los iconos de la página funcionan también sin JavaScript. La licencia se sirve en `public/phosphor-LICENSE.txt`.
 
 El consumo de IA y los agentes son prototipos en desarrollo, no integraciones disponibles. La app requiere macOS 26 o posterior; la web no requiere macOS. GitHub permite consultar el proyecto mientras no haya una descarga publicada.
+
+Las descripciones de los demás módulos se contrastaron con sus stores y vistas nativas: calendario lee eventos y enlaces de reunión; música controla Apple Music y Spotify; espejo muestra la cámara sin grabar; cajón requiere Accesibilidad para gestionar los iconos. La web no promete compatibilidad musical universal ni presenta iOS/widgets como funciones terminadas.
 
 ## Procedencia de los recursos
 

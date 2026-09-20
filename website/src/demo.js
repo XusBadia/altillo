@@ -1,4 +1,5 @@
 import "./demo.css";
+import "./demo-modules.css";
 import { createDemoCopy } from "./demo-copy.js";
 
 const icons = {
@@ -9,6 +10,10 @@ const icons = {
   safari: "compass", terminal: "terminal", trash: "trash-2",
   wifi: "wifi", battery: "battery-medium", command: "command", star: "asterisk",
   request: "corner-down-right", enter: "corner-down-left",
+  calendar: "calendar", music: "music-note", play: "play", pause: "pause",
+  previous: "skip-back", next: "skip-forward", mirror: "camera", flip: "flip",
+  drawer: "archive", more: "dots-three", cloud: "cloud", bluetooth: "bluetooth",
+  video: "video", speaker: "speaker-high", bell: "bell",
 };
 const svg = (name, size = 18) =>
   `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="/icons.svg#${icons[name] || icons.folder}"></use></svg>`;
@@ -23,7 +28,7 @@ const traffic =
   '<span class="ad-traffic" aria-hidden="true"><i></i><i></i><i></i></span>';
 
 export function mountDemo(element, { locale = document.documentElement.lang || "es" } = {}) {
-  if (!element) return { setChapter() {}, reset() {} };
+  if (!element) return { setChapter() {}, setModule() {}, reset() {}, destroy() {} };
   element.classList.add("alt-demo");
   element.lang = String(locale).toLowerCase().startsWith("en") ? "en" : "es";
   const { t, localize } = createDemoCopy(locale);
@@ -39,7 +44,20 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     delivered: [],
     selected: "ideas",
     agent: "idle",
+    drawerExpanded: false,
+    drawerMenu: false,
+    joinedEvent: null,
+    track: 0,
+    playing: false,
+    elapsed: 42,
+    mirrorFlipped: true,
   };
+  const tracks = [
+    { title: "A walk in the pines", artist: "Northbound", duration: 218, app: "Apple Music" },
+    { title: "After the rain", artist: "Sunday People", duration: 196, app: "Spotify" },
+  ];
+  const clockTime = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
+  let playbackTimer;
   let drag = null;
   let suppressClick = false;
   let returnFocus = null;
@@ -158,7 +176,39 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
           : `<span>${svg("request", 12)}</span> Probar otra solicitud <span class="ad-terminal-enter">${svg("enter", 12)}</span>`;
     localize(element.querySelector('.ad-terminal'));
   }
+  function renderDrawer() {
+    return `<div class="ad-module-surface ad-drawer-surface"><div class="ad-drawer-intro"><span>${svg("drawer", 24)}</span><div><strong>Una barra más tranquila.</strong><p>Guarda juntos los iconos que no necesitas ver.</p></div></div><div class="ad-drawer-bar"><span class="ad-drawer-bar-label">Menú</span><div class="ad-drawer-icons" ${state.drawerExpanded ? "" : "hidden"}><span aria-label="Bluetooth">${svg("bluetooth")}</span><button type="button" data-action="drawer-menu" aria-label="Abrir menú de Drive" aria-expanded="${state.drawerMenu}">${svg("cloud")}</button><span aria-label="Notificaciones">${svg("bell")}</span></div><span class="ad-drawer-divider" aria-hidden="true"></span><span aria-hidden="true">${svg("wifi")}</span><span aria-hidden="true">${svg("battery")}</span><button type="button" data-action="drawer-toggle" aria-expanded="${state.drawerExpanded}">${svg(state.drawerExpanded ? "chevron" : "more")}<span>${state.drawerExpanded ? "Ocultar grupo" : "Mostrar grupo"}</span></button></div>${state.drawerMenu ? `<div class="ad-drawer-menu"><span>${svg("cloud")}</span><div><strong>Drive</strong><small>Actualizado ahora</small></div>${svg("check")}</div>` : ""}</div><div class="ad-panel-footer"><span>Menú de ejemplo · los iconos se guardan en grupo</span></div>`;
+  }
+  function renderCalendar() {
+    const events = [
+      { time: "10:30", until: "11:00", name: "Revisión de diseño", provider: "Google Meet", soon: "En 6 minutos" },
+      { time: "12:00", until: "12:30", name: "Café con el equipo", provider: "Zoom", soon: "Más tarde" },
+    ];
+    return `<div class="ad-module-surface ad-calendar-surface"><div class="ad-calendar-date"><span>Martes</span><strong>20</strong><small>Octubre</small></div><div class="ad-agenda"><div class="ad-agenda-heading"><strong>Tu agenda</strong><span>Hoy</span></div>${events.map((event, index) => `<div class="ad-event"><time>${event.time}<small>${event.until}</small></time><div class="ad-event-copy"><strong>${event.name}</strong><span>${event.provider} · ${event.soon}</span></div><button type="button" data-action="join" data-event="${index}" aria-label="${index === 0 ? "Unirse a Revisión de diseño" : "Unirse a Café con el equipo"}">${svg(state.joinedEvent === index ? "check" : "video", 15)}<span>${state.joinedEvent === index ? "Listo" : "Unirse"}</span></button></div>`).join("")}</div></div>${state.joinedEvent !== null ? '<p class="ad-meeting-status" role="status">Enlace preparado · videollamada simulada</p>' : ""}<div class="ad-panel-footer"><span>Eventos de ejemplo · Google Meet y Zoom</span></div>`;
+  }
+  function renderMusic() {
+    const track = tracks[state.track];
+    return `<div class="ad-module-surface ad-music-surface"><div class="ad-album-art ad-album-${state.track}" aria-hidden="true"><i></i><span>${state.track === 0 ? "NORTH<br>BOUND" : "SUNDAY<br>PEOPLE"}</span></div><div class="ad-music-body"><div class="ad-music-source">${svg("music", 13)}<span>${track.app}</span><small>Ahora suena</small></div><strong class="ad-track-title">${track.title}</strong><span class="ad-track-artist">${track.artist}</span><div class="ad-music-controls"><button type="button" data-action="music-previous" aria-label="Canción anterior">${svg("previous", 18)}</button><button type="button" class="ad-music-play" data-action="music-play" aria-label="${state.playing ? "Pausar" : "Reproducir"}" aria-pressed="${state.playing}">${svg(state.playing ? "pause" : "play", 20)}</button><button type="button" data-action="music-next" aria-label="Siguiente canción">${svg("next", 18)}</button></div><div class="ad-track-progress" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="${track.duration}" aria-valuenow="${state.elapsed}"><i style="transform:scaleX(${state.elapsed / track.duration})"></i></div><div class="ad-track-time"><span>${clockTime(state.elapsed)}</span><span>${clockTime(track.duration)}</span></div></div></div><div class="ad-panel-footer"><span>Controles de ejemplo · sin reproducción de audio</span><span>Apple Music + Spotify</span></div>`;
+  }
+  function renderMirror() {
+    return `<div class="ad-module-surface ad-mirror-surface"><div class="ad-mirror-art" data-flipped="${state.mirrorFlipped}" role="img" aria-label="Retrato ilustrado de ejemplo"><span class="ad-mirror-window"></span><span class="ad-mirror-plant"><i></i><i></i></span><span class="ad-mirror-person"><i class="ad-mirror-head"></i><i class="ad-mirror-hair"></i><i class="ad-mirror-shirt"></i></span></div><div class="ad-mirror-controls"><span>${svg("mirror", 14)}<span>Un vistazo antes de entrar.</span></span><button type="button" data-action="mirror-flip" aria-label="Invertir espejo" aria-pressed="${state.mirrorFlipped}">${svg("flip", 17)}<span>Invertir</span></button></div></div><div class="ad-panel-footer"><span>Vista de ejemplo · cámara apagada</span></div>`;
+  }
+  function updatePlayback() {
+    clearInterval(playbackTimer);
+    if (!state.playing || state.open !== "music") return;
+    playbackTimer = setInterval(() => {
+      if (document.hidden) return;
+      state.elapsed = (state.elapsed + 1) % tracks[state.track].duration;
+      if (state.open !== "music") return;
+      const progress = panel.querySelector(".ad-track-progress");
+      progress?.setAttribute("aria-valuenow", String(state.elapsed));
+      if (progress) progress.firstElementChild.style.transform = `scaleX(${state.elapsed / tracks[state.track].duration})`;
+      const time = panel.querySelector(".ad-track-time > span");
+      if (time) time.textContent = clockTime(state.elapsed);
+    }, 1000);
+  }
   function renderPanel() {
+    updatePlayback();
     notch.dataset.open = String(Boolean(state.open));
     notch.dataset.view = state.open || "idle";
     element.querySelector(".ad-notch-cue").hidden = Boolean(state.open);
@@ -179,6 +229,14 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     let content = "";
     if (state.open === "shelf") {
       content = `<div class="ad-shelf-wood" data-dropzone="shelf">${state.shelf.length ? state.shelf.map((id) => `<div class="ad-shelf-tile">${fileButton(getDoc(id), "shelf")}<button type="button" class="ad-remove" data-remove="${id}" aria-label="Retirar ${getDoc(id).name}">${svg("close")}</button></div>`).join("") : `<div class="ad-empty-shelf">${svg("shelf")}<span>Deja aquí lo que vas a usar después.</span><small>Arrastra un archivo desde Documentos</small></div>`}<div class="ad-plank" aria-hidden="true"></div></div><div class="ad-panel-footer"><span>${state.shelf.length ? "Arrástralo a Entregas cuando lo necesites." : "Tus archivos, a un gesto de distancia."}</span>${state.shelf.length ? `<button type="button" data-action="deliver">Llevar a Entregas ${svg("external")}</button>` : ""}</div>`;
+    } else if (state.open === "drawer") {
+      content = renderDrawer();
+    } else if (state.open === "calendar") {
+      content = renderCalendar();
+    } else if (state.open === "music") {
+      content = renderMusic();
+    } else if (state.open === "mirror") {
+      content = renderMirror();
     } else if (state.open === "usage") {
       content = `<div class="ad-usage-cards">${[
         {
@@ -211,19 +269,26 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       const resolved = ["allowed", "denied"].includes(state.agent);
       content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}"><div class="ad-agent-heading"><i class="ad-provider">${svg("star")}</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">${svg("terminal")}</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
     }
-    panel.innerHTML = `<div class="ad-panel-heading"><strong>${state.open === "shelf" ? `${svg("shelf")} Altillo` : state.open === "usage" ? "Tu consumo" : "Agentes"}</strong><button type="button" data-action="close" aria-label="Cerrar Altillo">${svg("close")}</button></div>${content}`;
+    const moduleTitles = { shelf: "Altillo", drawer: "Cajón", calendar: "Calendario", music: "Sonando", mirror: "Espejo", usage: "Tu consumo", agents: "Agentes" };
+    panel.innerHTML = `<div class="ad-panel-heading"><strong>${["shelf", "drawer", "calendar", "music", "mirror"].includes(state.open) ? svg(state.open) : ""}${moduleTitles[state.open]}</strong><button type="button" data-action="close" aria-label="Cerrar Altillo">${svg("close")}</button></div>${content}`;
     localize(panel);
     updateInstruction();
   }
   function updateInstruction() {
+    const moduleInstructions = {
+      drawer: "Muestra el grupo de iconos y abre el menú de Drive. Después, vuelve a guardarlo.",
+      calendar: "Consulta tus próximas citas. Prueba «Unirse» sin abrir una videollamada real.",
+      music: "Pausa o cambia de canción desde el notch. Esta demo no reproduce audio.",
+      mirror: "Invierte la vista de ejemplo. Tu cámara sigue apagada.",
+    };
     const message =
-      state.open === "usage"
+      moduleInstructions[state.open] || (state.open === "usage"
         ? "Claude y Codex, de un vistazo. Pulsa fuera para seguir."
         : state.open === "agents"
           ? "Decide aquí. El agente recibe tu respuesta sin cambiar de ventana."
           : state.shelf.length
             ? "Ahora llévalo a la carpeta Entregas. O déjalo arriba para luego."
-            : "Arrastra un documento al notch. También puedes seleccionarlo y pulsar «Subir al estante».";
+            : "Arrastra un documento al notch. También puedes seleccionarlo y pulsar «Subir al estante».");
     element.querySelector(".ad-instruction").textContent = t(!state.open && !state.shelf.length ? (canHover.matches ? "Acerca el cursor al notch para abrir Altillo. Después, arrastra un documento." : "Toca arriba para abrir Altillo. Después, selecciona un documento y súbelo al estante.") : message);
   }
   function open(view, focus = false) {
@@ -278,7 +343,15 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       delivered: [],
       selected: "ideas",
       agent: "idle",
+      drawerExpanded: false,
+      drawerMenu: false,
+      joinedEvent: null,
+      track: 0,
+      playing: false,
+      elapsed: 42,
+      mirrorFlipped: true,
     });
+    updatePlayback();
     renderFiles();
     renderTerminal();
     renderPanel();
@@ -321,6 +394,42 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     }
     interaction("click");
     switch (button.dataset.action) {
+      case "drawer-toggle":
+        state.drawerExpanded = !state.drawerExpanded;
+        if (!state.drawerExpanded) state.drawerMenu = false;
+        renderPanel();
+        panel.querySelector('[data-action="drawer-toggle"]')?.focus({ preventScroll: true });
+        break;
+      case "drawer-menu":
+        state.drawerMenu = !state.drawerMenu;
+        renderPanel();
+        panel.querySelector('[data-action="drawer-menu"]')?.focus({ preventScroll: true });
+        break;
+      case "join":
+        state.joinedEvent = Number(button.dataset.event);
+        renderPanel();
+        announce("Enlace preparado · videollamada simulada");
+        panel.querySelector(`[data-action="join"][data-event="${state.joinedEvent}"]`)?.focus({ preventScroll: true });
+        break;
+      case "music-play":
+        state.playing = !state.playing;
+        updatePlayback();
+        renderPanel();
+        panel.querySelector('[data-action="music-play"]')?.focus({ preventScroll: true });
+        break;
+      case "music-previous":
+      case "music-next":
+        state.track = (state.track + (button.dataset.action === "music-next" ? 1 : tracks.length - 1)) % tracks.length;
+        state.elapsed = 0;
+        renderPanel();
+        announce(tracks[state.track].title);
+        panel.querySelector(`[data-action="${button.dataset.action}"]`)?.focus({ preventScroll: true });
+        break;
+      case "mirror-flip":
+        state.mirrorFlipped = !state.mirrorFlipped;
+        renderPanel();
+        panel.querySelector('[data-action="mirror-flip"]')?.focus({ preventScroll: true });
+        break;
       case "usage":
         clearTimeout(hoverOpenTimer);
         clearTimeout(hoverCloseTimer);
@@ -483,17 +592,38 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   renderTerminal();
   renderPanel();
   return {
-    setChapter(chapter) {
-      if (!["shelf", "usage", "agents"].includes(chapter) || drag) return;
-      pinned = false; hoverOpened = false;
+    setModule(module) {
+      if (!["shelf", "drawer", "calendar", "music", "mirror", "usage", "agents"].includes(module) || drag) return;
+      pinned = true; hoverOpened = false;
       clearTimeout(hoverOpenTimer); clearTimeout(hoverCloseTimer);
-      if (chapter === "agents" && state.agent === "idle") {
+      if (module === "agents" && state.agent === "idle") {
         state.agent = "waiting";
         renderTerminal();
       }
-      if (chapter === "shelf" && !state.shelf.length) close();
-      else open(chapter);
+      open(module);
+      announce(element.querySelector(".ad-instruction").textContent);
+      interaction("module");
+    },
+    setChapter(chapter) {
+      const module = { shelf: "shelf", day: "calendar", ai: "usage", usage: "usage", agents: "agents" }[chapter];
+      if (!module || drag) return;
+      pinned = false; hoverOpened = false;
+      clearTimeout(hoverOpenTimer); clearTimeout(hoverCloseTimer);
+      if (module === "agents" && state.agent === "idle") {
+        state.agent = "waiting";
+        renderTerminal();
+      }
+      if (module === "shelf" && !state.shelf.length) close();
+      else open(module);
     },
     reset,
+    destroy() {
+      clearInterval(playbackTimer);
+      clearTimeout(hoverOpenTimer);
+      clearTimeout(hoverCloseTimer);
+      cueObserver.disconnect();
+      canHover.removeEventListener("change", updateCue);
+      cancelDrag();
+    },
   };
 }

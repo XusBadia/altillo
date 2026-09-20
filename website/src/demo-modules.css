@@ -1,0 +1,129 @@
+/* The daily tools share the shelf's material and stay inside the same notch. */
+.ad-module-surface {
+  border: 1px solid #c6aa7930;
+  border-radius: 10px;
+  background: repeating-linear-gradient(2deg, transparent 0 3px, #a28c6112 3.4px, transparent 4px 9px), linear-gradient(105deg, #29241c, #1e1d18 65%, #27231a);
+  box-shadow: inset 0 1px 0 #ead4a10c;
+  color: #e8dfcd;
+}
+.ad-module-surface button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 1px solid #b7a27540;
+  border-radius: 7px;
+  background: #a28d6115;
+  font-size: 10px;
+}
+.ad-module-surface button:hover { background: #e4c38b20; border-color: #b7a27580; }
+.ad-drawer-surface { padding: 16px; }
+.ad-drawer-intro { display: flex; align-items: center; gap: 13px; }
+.ad-drawer-intro > span { color: #d7bc88; }
+.ad-drawer-intro strong { font-size: 12px; font-weight: 550; }
+.ad-drawer-intro p { font-size: 10px; color: #b6ac99; margin: 4px 0 0; }
+.ad-drawer-bar { display: flex; align-items: center; gap: 11px; min-height: 48px; border-top: 1px solid #dcc3911a; margin-top: 14px; padding-top: 9px; }
+.ad-drawer-bar-label { color: #9e9583; font-size: 9px; margin-right: auto; }
+.ad-drawer-icons { display: flex; align-items: center; gap: 10px; }
+.ad-drawer-icons[hidden] { display: none; }
+.ad-drawer-icons button { padding: 6px; min-width: 34px; }
+.ad-drawer-divider { height: 18px; width: 1px; background: #b7a27535; }
+.ad-drawer-bar > button { margin-left: auto; white-space: nowrap; }
+.ad-drawer-menu { display: flex; align-items: center; gap: 10px; border-top: 1px solid #dcc3911a; padding: 12px 2px 0; }
+.ad-drawer-menu > svg:first-child { color: #c5cfbd; }
+.ad-drawer-menu > svg:last-child { margin-left: auto; color: #b7cb9b; }
+.ad-drawer-menu strong, .ad-drawer-menu small { display: block; }
+.ad-drawer-menu strong { font-size: 11px; }
+.ad-drawer-menu small { color: #a6a08f; font-size: 9px; margin-top: 3px; }
+.ad-calendar-surface { display: flex; padding: 14px; gap: 19px; }
+.ad-calendar-date { width: 59px; flex-shrink: 0; border-right: 1px solid #c6aa792a; text-align: center; padding-right: 14px; padding-top: 8px; }
+.ad-calendar-date > span, .ad-calendar-date > small { display: block; font-size: 9px; color: #c1ad8b; }
+.ad-calendar-date > strong { display: block; font-size: 35px; font-weight: 350; letter-spacing: -2px; line-height: 1.2; margin: 4px 0; }
+.ad-agenda { flex: 1; min-width: 0; }
+.ad-agenda-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 3px; }
+.ad-agenda-heading strong { font-size: 10px; font-weight: 500; color: #c7b797; }
+.ad-agenda-heading > span { font-size: 9px; color: #9e9583; }
+.ad-event { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
+.ad-event + .ad-event { border-top: 1px solid #c6aa791b; }
+.ad-event time { font-size: 11px; font-variant-numeric: tabular-nums; }
+.ad-event time small { display: block; margin-top: 4px; font-size: 8px; color: #918a7c; }
+.ad-event-copy { flex: 1; min-width: 0; border-left: 2px solid #bba573; padding-left: 10px; }
+.ad-event:nth-child(3) .ad-event-copy { border-color: #88a39b; }
+.ad-event-copy > strong, .ad-event-copy > span { display: block; }
+.ad-event-copy > strong { font-size: 11px; font-weight: 500; line-height: 1.3; }
+.ad-event-copy > span { font-size: 8px; color: #aea48f; margin-top: 4px; }
+.ad-event > button { color: #efcd8b; }
+.ad-meeting-status { font-size: 9px; color: #bacc9d; margin: 8px 4px 0; }
+.ad-music-surface { display: flex; gap: 21px; align-items: center; padding: 15px 19px; }
+.ad-album-art { position: relative; width: 131px; aspect-ratio: 1; flex-shrink: 0; overflow: hidden; border-radius: 5px; isolation: isolate; box-shadow: 0 4px 10px #0005; }
+.ad-album-0 { background: linear-gradient(#aaa788 0%, #727863 53%, #3d5447 54%, #213f35); }
+.ad-album-art::before, .ad-album-art::after { content: ''; position: absolute; z-index: -1; }
+.ad-album-0::before { width: 160%; height: 75%; left: -35%; top: 32%; border-radius: 50%; transform: rotate(35deg); background: #53684b; }
+.ad-album-0::after { width: 130%; height: 85%; right: -37%; bottom: -23%; border-radius: 45%; transform: rotate(-25deg); background: #1c382e; }
+.ad-album-1 { background: linear-gradient(140deg, #73575a, #bd9485 52%, #dcc6a7); }
+.ad-album-1::before { width: 100%; height: 130%; left: -55%; bottom: -60%; border-radius: 50%; border: 16px solid #583b4238; box-shadow: 0 0 0 13px #583b4220, 0 0 0 28px #583b4218; }
+.ad-album-art > span { position: absolute; left: 12px; top: 11px; font-size: 10px; letter-spacing: .11em; font-weight: 600; line-height: 1.2; color: #f2e7c9; }
+.ad-music-body { flex: 1; min-width: 0; }
+.ad-music-source { display: flex; align-items: center; gap: 5px; font-size: 8px; color: #c7bda7; margin-bottom: 9px; }
+.ad-music-source > small { margin-left: auto; font-size: 8px; color: #8f887b; }
+.ad-track-title { display: block; font-size: 15px; font-weight: 550; letter-spacing: -.2px; }
+.ad-track-artist { display: block; color: #b4aa98; font-size: 10px; margin-top: 4px; }
+.ad-music-controls { display: flex; justify-content: center; gap: 9px; margin: 7px 0; }
+.ad-music-controls > button { border: 0; background: transparent; min-width: 38px; }
+.ad-music-controls > .ad-music-play { background: #e8d5ad16; border-radius: 50%; width: 38px; height: 38px; padding: 0; }
+.ad-track-progress { width: 100%; height: 3px; border-radius: 3px; background: #d0b88528; overflow: hidden; }
+.ad-track-progress > i { display: block; width: 100%; height: 100%; background: #e5c18c; transform-origin: left; }
+.ad-track-time { display: flex; justify-content: space-between; font-size: 8px; font-variant-numeric: tabular-nums; color: #9e9583; margin-top: 5px; }
+.ad-mirror-surface { overflow: hidden; padding: 9px; }
+.ad-mirror-art { position: relative; width: 100%; height: 134px; overflow: hidden; border-radius: 5px; background: linear-gradient(105deg,#8d9687,#bbc0aa 57%,#c9c3ae); }
+.ad-mirror-art[data-flipped=true] { transform: scaleX(-1); }
+.ad-mirror-window { position: absolute; right: 12%; top: -25px; width: 105px; height: 140px; background: #e1e0cb; border: 7px solid #a89d86; transform: skewY(-7deg); box-shadow: 0 5px 40px #e8e8c867; }
+.ad-mirror-window::before { content: ''; position: absolute; width: 4px; height: 100%; left: 45%; background: #a89d86; }
+.ad-mirror-person { position: absolute; bottom: 0; left: 43%; width: 104px; height: 128px; transform: translateX(-50%); }
+.ad-mirror-head { position: absolute; z-index: 2; top: 17px; left: 31px; width: 46px; height: 62px; border-radius: 45% 43% 48% 48%; background: linear-gradient(105deg,#bd8e70,#dcac87); transform: rotate(-8deg); box-shadow: inset 3px -3px 8px #85544021; }
+.ad-mirror-hair { position: absolute; top: 7px; left: 27px; width: 55px; height: 43px; border-radius: 49% 40% 30% 20%; background: #4e3e31; transform: rotate(-12deg); z-index: 3; clip-path: polygon(0 0,100% 0,100% 95%,84% 70%,75% 35%,35% 62%,15% 100%,0 100%); }
+.ad-mirror-shirt { position: absolute; left: 4px; bottom: -31px; width: 108px; height: 86px; background: #435a58; border-radius: 44% 38% 0 0; transform: rotate(-5deg); }
+.ad-mirror-plant { position: absolute; left: 13%; bottom: -7px; width: 31px; height: 39px; background: #8c735a; border-radius: 2px 2px 6px 6px; }
+.ad-mirror-plant > i { position: absolute; bottom: 32px; left: 10px; height: 46px; width: 17px; background: #5b704d; border-radius: 100% 0 80% 0; transform: rotate(-35deg); transform-origin: bottom; }
+.ad-mirror-plant > i + i { transform: rotate(25deg); background: #71845c; }
+.ad-mirror-controls { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding-top: 7px; }
+.ad-mirror-controls > span { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #bfb39b; }
+.ad-mirror-controls > button { padding: 4px 9px; min-height: 34px; }
+.ad-mirror-controls > button[aria-pressed=true] { color: #edca8d; background: #bda47520; }
+@media (max-width: 700px) {
+  .ad-calendar-surface { gap: 9px; padding: 10px; }
+  .ad-calendar-date { width: 37px; padding-right: 9px; }
+  .ad-calendar-date strong { font-size: 28px; }
+  .ad-calendar-date > span, .ad-calendar-date > small { font-size: 7px; }
+  .ad-event { gap: 7px; }
+  .ad-event time { font-size: 9px; }
+  .ad-event-copy { padding-left: 7px; }
+  .ad-event-copy > strong { font-size: 9px; }
+  .ad-event-copy > span { font-size: 7px; line-height: 1.35; }
+  .ad-event > button { padding: 6px; min-width: 36px; font-size: 9px; }
+  .ad-event > button > svg { display: none; }
+  .ad-agenda-heading strong { font-size: 9px; }
+  .ad-drawer-surface { padding: 12px; }
+  .ad-drawer-intro { gap: 9px; }
+  .ad-drawer-intro strong { font-size: 11px; }
+  .ad-drawer-intro p { font-size: 9px; line-height: 1.4; }
+  .ad-drawer-bar { gap: 8px; }
+  .ad-drawer-icons { gap: 5px; }
+  .ad-drawer-bar-label { display: none; }
+  .ad-drawer-bar > button { font-size: 9px; padding: 6px; }
+  .ad-drawer-bar > svg { width: 15px; }
+  .ad-music-surface { gap: 13px; padding: 12px; }
+  .ad-album-art { width: 90px; }
+  .ad-album-art > span { font-size: 8px; left: 9px; top: 9px; }
+  .ad-music-source { font-size: 7px; margin-bottom: 6px; }
+  .ad-music-source > small { display: none; }
+  .ad-track-title { font-size: 12px; }
+  .ad-track-artist { font-size: 9px; }
+  .ad-music-controls { gap: 2px; margin: 5px 0; }
+  .ad-music-controls > button { min-width: 34px; min-height: 34px; padding: 6px; }
+  .ad-music-controls > .ad-music-play { width: 34px; height: 34px; }
+  .ad-mirror-art { height: 119px; }
+  .ad-mirror-controls > span { font-size: 8px; }
+}

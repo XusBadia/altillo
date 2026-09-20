@@ -18,10 +18,12 @@ test('explains the product, labels development and links to Aurio without overfl
   await expect(page.locator('#proyecto')).toContainText('Todavía no hay una versión pública para descargar');
   await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toHaveAttribute('href', 'https://www.aurioapp.com');
   await expect(page.getByRole('tab')).toHaveCount(0);
-  for (const name of ['shelf', 'usage', 'agents']) {
+  await expect(page.locator('.story-step')).toHaveCount(3);
+  for (const [name, view] of [['shelf', 'idle'], ['day', 'calendar'], ['ai', 'usage']]) {
     await chapter(page, name);
-    await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', name === 'shelf' ? 'idle' : name);
-    if (name !== 'shelf') await expect(page.locator(`.story-step[data-chapter="${name}"]`)).toContainText('EN DESARROLLO');
+    await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', view);
+    if (name === 'ai') await expect(page.locator(`.story-step[data-chapter="${name}"]`)).toContainText('EN DESARROLLO');
+    else await expect(page.locator(`.story-step[data-chapter="${name}"]`)).not.toContainText('EN DESARROLLO');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   expect(errors).toEqual([]);
@@ -31,16 +33,16 @@ test('scroll chapters preserve manual choice until the next chapter', async ({ p
   await page.goto('/');
   await chapter(page, 'shelf');
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'idle');
-  await page.getByRole('button', { name: 'Ver consumo de Claude y Codex' }).click();
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await page.locator('.story-step [data-module="drawer"]').click();
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'drawer');
   await page.evaluate(() => window.scrollBy({ top: 12, behavior: 'instant' }));
   await expect(page.locator('.story-step[data-chapter="shelf"]')).toHaveClass(/is-active/);
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'drawer');
+  await chapter(page, 'ai');
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
-  await chapter(page, 'agents');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'agents');
   await expect(page.locator('.chapter-current')).toHaveText('03');
-  await chapter(page, 'usage');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await chapter(page, 'day');
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'calendar');
   await expect(page.locator('.chapter-current')).toHaveText('02');
 });
 
@@ -48,8 +50,8 @@ test('reduced motion disables parallax while chapters remain usable', async ({ p
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await chapter(page, 'usage');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
+  await chapter(page, 'day');
+  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'calendar');
   await expect(page.locator('.hero-media')).toHaveCSS('transform', 'none');
   await expect(page.locator('.hero-copy')).toHaveCSS('transform', 'none');
   await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');

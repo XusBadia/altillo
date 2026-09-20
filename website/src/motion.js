@@ -1,7 +1,7 @@
 import "./motion.css";
 
 const clamp = (value) => Math.min(1, Math.max(0, value));
-const chapters = new Set(["shelf", "usage", "agents"]);
+const chapters = new Set(["shelf", "day", "ai"]);
 
 /** Scroll enhances the page; native scrolling and the demo remain independent. */
 export function mountMotion({ demo } = {}) {
