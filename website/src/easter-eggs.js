@@ -31,6 +31,7 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
   let keyBuffer = "";
   let doorTaps = [];
   let logoTaps = [];
+  let aurioTaps = [];
 
   if (!heroStage && !attic) return { destroy() {} };
 
@@ -200,15 +201,28 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
   );
 
   const aurio = document.querySelector(".aurio-sign");
-  if (aurio) {
-    const aurioHandler = (event) => {
-      if (event.detail !== 2) return;
-      reveal("aurio", message("El dragón también conoce la puerta.", "The dragon knows the door too."), { mood: "night" });
-      aurio.classList.add("is-winking");
-      schedule(() => aurio.classList.remove("is-winking"), 1500);
+  const aurioTrigger = document.querySelector(".support-top .eyebrow");
+  function revealAurio() {
+    if (!aurio) return;
+    reveal("aurio", message("El dragón también conoce la puerta.", "The dragon knows the door too."), { mood: "night" });
+    aurio.classList.add("is-winking");
+    schedule(() => aurio.classList.remove("is-winking"), 1500);
+  }
+  if (aurio && aurioTrigger) {
+    aurioTrigger.classList.add("egg-aurio-trigger");
+    const aurioTriggerHandler = () => {
+      const now = performance.now();
+      aurioTaps = aurioTaps.filter((time) => now - time < 1100);
+      aurioTaps.push(now);
+      if (aurioTaps.length < 3) return;
+      aurioTaps = [];
+      revealAurio();
     };
-    aurio.addEventListener("click", aurioHandler);
-    cleanups.push(() => aurio.removeEventListener("click", aurioHandler));
+    aurioTrigger.addEventListener("click", aurioTriggerHandler);
+    cleanups.push(() => {
+      aurioTrigger.removeEventListener("click", aurioTriggerHandler);
+      aurioTrigger.classList.remove("egg-aurio-trigger");
+    });
   }
 
   function toggleNight() {
@@ -232,6 +246,10 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
     }
     if (value.endsWith("DESVAN") || value.endsWith("NIGHT")) {
       toggleNight();
+      return true;
+    }
+    if (value.endsWith("AURIO")) {
+      revealAurio();
       return true;
     }
     return false;

@@ -37,6 +37,19 @@ test('double-clicking the Aurio mascot follows its external link', async ({ page
   expect((await aurioRequest).url()).toBe('https://www.aurioapp.com/');
 });
 
+test('three taps on the support label make Aurio wink without following the link', async ({ page }) => {
+  await page.goto('/');
+  const trigger = page.locator('.support-top .eyebrow');
+  const aurio = page.locator('.aurio-sign');
+  const urlBefore = page.url();
+  await trigger.click();
+  await trigger.click();
+  await trigger.click();
+  await expect(page.locator('body')).toHaveClass(/egg-aurio/);
+  await expect(aurio).toHaveClass(/is-winking/);
+  await expect(page).toHaveURL(urlBefore);
+});
+
 test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
   await page.goto('/');
   await chapter(page, 'shelf');

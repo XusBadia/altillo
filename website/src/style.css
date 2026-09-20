@@ -1326,6 +1326,10 @@ body.egg-night .status-light {
   transform: translateY(-5px) rotate(-2deg);
   filter: saturate(1.15) brightness(1.08);
 }
+.egg-aurio-trigger {
+  user-select: none;
+  touch-action: manipulation;
+}
 .aurio-mascot {
   transition: transform 260ms cubic-bezier(.2,.75,.25,1), filter 260ms ease;
 }
