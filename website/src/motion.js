@@ -8,6 +8,9 @@ export function mountMotion({ demo } = {}) {
   const hero = document.querySelector(".hero");
   const media = hero?.querySelector(".hero-media");
   const copy = hero?.querySelector(".hero-copy");
+  const heroBottom = hero?.querySelector(".hero-bottom");
+  const heroShade = hero?.querySelector(".hero-shade");
+  const heroCaption = hero?.querySelector(".image-caption");
   const experience = document.querySelector("#experience");
   const steps = [
     ...document.querySelectorAll(".story-step[data-chapter]"),
@@ -17,10 +20,16 @@ export function mountMotion({ demo } = {}) {
   const currentElements = [...document.querySelectorAll(".chapter-current")];
   const revealElements = [...document.querySelectorAll("[data-reveal]")];
   const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  const originalTransforms = new Map(
-    [media, copy]
+  const originalStyles = new Map(
+    [media, copy, heroBottom, heroShade, heroCaption]
       .filter(Boolean)
-      .map((element) => [element, element.style.transform]),
+      .map((element) => [
+        element,
+        {
+          transform: element.style.transform,
+          opacity: element.style.opacity,
+        },
+      ]),
   );
 
   let frame = 0;
@@ -63,19 +72,42 @@ export function mountMotion({ demo } = {}) {
     const heroRect = hero?.getBoundingClientRect();
     const experienceRect = experience?.getBoundingClientRect();
     const { bounds, closest, center } = measureSteps();
-    const heroProgress = heroRect
-      ? clamp(-heroRect.top / Math.max(heroRect.height, 1))
-      : 0;
+    const usesStickyHero = window.innerWidth > 700 && window.innerHeight >= 650;
+    const heroTravel = heroRect
+      ? usesStickyHero
+        ? Math.max(heroRect.height - window.innerHeight, 1)
+        : Math.max(heroRect.height, 1)
+      : 1;
+    const heroProgress = heroRect ? clamp(-heroRect.top / heroTravel) : 0;
 
     if (reducedMotion.matches) {
-      originalTransforms.forEach((transform, element) => {
-        element.style.transform = transform;
+      originalStyles.forEach((styles, element) => {
+        element.style.transform = styles.transform;
+        element.style.opacity = styles.opacity;
       });
     } else {
-      if (media)
-        media.style.transform = `translateY(${(heroProgress * 80).toFixed(2)}px) scale(${(1 + heroProgress * 0.08).toFixed(4)})`;
-      if (copy)
-        copy.style.transform = `translateY(${(heroProgress * 20).toFixed(2)}px)`;
+      const mediaScale = 1 + heroProgress * (usesStickyHero ? 0.2 : 0.07);
+      const mediaShift = heroProgress * (usesStickyHero ? 34 : 18);
+      const mediaFade = usesStickyHero
+        ? 1 - clamp((heroProgress - 0.42) / 0.58) * 0.88
+        : 1 - heroProgress * 0.36;
+      const copyFade = 1 - clamp(heroProgress / 0.68);
+      const detailFade = 1 - clamp(heroProgress / 0.52);
+      if (media) {
+        media.style.transform = `translate3d(0, ${mediaShift.toFixed(2)}px, 0) scale(${mediaScale.toFixed(4)})`;
+        media.style.opacity = mediaFade.toFixed(3);
+      }
+      if (copy) {
+        copy.style.transform = `translate3d(0, ${(-heroProgress * 72).toFixed(2)}px, 0) scale(${(1 - heroProgress * 0.025).toFixed(4)})`;
+        copy.style.opacity = copyFade.toFixed(3);
+      }
+      if (heroBottom) {
+        heroBottom.style.transform = `translate3d(0, ${(-heroProgress * 28).toFixed(2)}px, 0)`;
+        heroBottom.style.opacity = detailFade.toFixed(3);
+      }
+      if (heroShade)
+        heroShade.style.opacity = (1 - heroProgress * 0.22).toFixed(3);
+      if (heroCaption) heroCaption.style.opacity = detailFade.toFixed(3);
     }
 
     if (closest < 0) return;
@@ -191,8 +223,9 @@ export function mountMotion({ demo } = {}) {
       demoElement?.removeEventListener("keydown", preserveInteraction);
       demoElement?.removeEventListener("demo:interaction", preserveInteraction);
       reducedMotion.removeEventListener("change", motionPreferenceChanged);
-      originalTransforms.forEach((transform, element) => {
-        element.style.transform = transform;
+      originalStyles.forEach((styles, element) => {
+        element.style.transform = styles.transform;
+        element.style.opacity = styles.opacity;
       });
       revealElements.forEach((element) =>
         element.classList.remove("motion-reveal"),

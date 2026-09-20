@@ -36,8 +36,10 @@
   }
 
   .hero-media,
-  .hero-copy {
+  .hero-copy,
+  .hero-bottom {
     transform: none !important;
+    opacity: 1 !important;
   }
 
   .story-step {

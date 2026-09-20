@@ -10,6 +10,7 @@ const paths = {
   close: '<path d="m6 6 12 12M6 18 18 6"/>',
   reset: '<path d="M3 10a9 9 0 1 1 1 8M3 4v6h6"/>',
   up: '<path d="M12 20V4m-6 6 6-6 6 6"/>',
+  external: '<path d="M7 17 17 7M7 7h10v10"/>',
   search: '<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',
 };
 const svg = (name) =>
@@ -122,7 +123,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   };
   const getDoc = (id) => docs.find((doc) => doc.id === id);
   function fileButton(doc, source) {
-    return `<button type="button" class="ad-file ${source === "finder" && state.selected === doc.id ? "is-selected" : ""}" data-doc="${doc.id}" data-source="${source}" aria-label="${doc.name}${source === "shelf" ? ", en el estante" : ", documento de ejemplo"}" aria-pressed="${source === "finder" && state.selected === doc.id}">${art(doc)}<span class="ad-filename">${doc.name}</span>${source === "finder" && state.shelf.includes(doc.id) ? '<span class="ad-file-shelved" aria-label="En el estante">↗</span>' : ""}</button>`;
+    return `<button type="button" class="ad-file ${source === "finder" && state.selected === doc.id ? "is-selected" : ""}" data-doc="${doc.id}" data-source="${source}" aria-label="${doc.name}${source === "shelf" ? ", en el estante" : ", documento de ejemplo"}" aria-pressed="${source === "finder" && state.selected === doc.id}">${art(doc)}<span class="ad-filename">${doc.name}</span>${source === "finder" && state.shelf.includes(doc.id) ? `<span class="ad-file-shelved" aria-label="En el estante">${svg("external")}</span>` : ""}</button>`;
   }
   function renderFiles() {
     element.querySelector(".ad-finder-files").innerHTML = docs
@@ -180,7 +181,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     }
     let content = "";
     if (state.open === "shelf") {
-      content = `<div class="ad-shelf-wood" data-dropzone="shelf">${state.shelf.length ? state.shelf.map((id) => `<div class="ad-shelf-tile">${fileButton(getDoc(id), "shelf")}<button type="button" class="ad-remove" data-remove="${id}" aria-label="Retirar ${getDoc(id).name}">${svg("close")}</button></div>`).join("") : `<div class="ad-empty-shelf">${svg("shelf")}<span>Deja aquí lo que vas a usar después.</span><small>Arrastra un archivo desde Documentos</small></div>`}<div class="ad-plank" aria-hidden="true"></div></div><div class="ad-panel-footer"><span>${state.shelf.length ? "Arrástralo a Entregas cuando lo necesites." : "Tus archivos, a un gesto de distancia."}</span>${state.shelf.length ? '<button type="button" data-action="deliver">Llevar a Entregas ↗</button>' : ""}</div>`;
+      content = `<div class="ad-shelf-wood" data-dropzone="shelf">${state.shelf.length ? state.shelf.map((id) => `<div class="ad-shelf-tile">${fileButton(getDoc(id), "shelf")}<button type="button" class="ad-remove" data-remove="${id}" aria-label="Retirar ${getDoc(id).name}">${svg("close")}</button></div>`).join("") : `<div class="ad-empty-shelf">${svg("shelf")}<span>Deja aquí lo que vas a usar después.</span><small>Arrastra un archivo desde Documentos</small></div>`}<div class="ad-plank" aria-hidden="true"></div></div><div class="ad-panel-footer"><span>${state.shelf.length ? "Arrástralo a Entregas cuando lo necesites." : "Tus archivos, a un gesto de distancia."}</span>${state.shelf.length ? `<button type="button" data-action="deliver">Llevar a Entregas ${svg("external")}</button>` : ""}</div>`;
     } else if (state.open === "usage") {
       content = `<div class="ad-usage-cards">${[
         {

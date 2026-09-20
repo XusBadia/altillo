@@ -33,6 +33,7 @@ const english = {
   'Arrástralo a Entregas cuando lo necesites.': 'Drag it to Deliveries when you need it.',
   'Tus archivos, a un gesto de distancia.': 'Your files, one gesture away.',
   'Llevar a Entregas ↗': 'Move to Deliveries ↗',
+  'Llevar a Entregas': 'Move to Deliveries',
   '9 puntos por delante del ritmo': '9 points ahead of pace',
   'Vas a buen ritmo': 'You’re on track', 'Semana': 'Week',
   'Consumo de ejemplo · función en desarrollo': 'Sample usage · feature in development',
