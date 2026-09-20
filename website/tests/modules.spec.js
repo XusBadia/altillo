@@ -70,6 +70,13 @@ test('mirror flips its sample without requesting camera access', async ({ page }
   await demo.locator('[data-action="mirror-flip"]').click();
   await expect(demo.locator('[data-action="mirror-flip"]')).toHaveAttribute('aria-pressed', 'false');
   await expect(demo.locator('.ad-mirror-art')).toHaveAttribute('data-flipped', 'false');
+  await demo.locator('[data-action="mirror-flip"]').click();
+  await demo.locator('[data-action="mirror-flip"]').click();
+  await expect(demo.locator('.ad-mirror-art')).toHaveClass(/is-haunted/);
+  await expect(demo.locator('.ad-mirror-guest')).toBeVisible();
+  await demo.getByRole('button', { name: 'Reiniciar demo', exact: true }).click();
+  await expect(demo.locator('.ad-mirror-guest')).toHaveCount(0);
+  await expect(page.locator('body')).not.toHaveClass(/egg-demo-mirror-guest/);
   expect(await page.evaluate(() => window.cameraRequests)).toBe(0);
 });
 

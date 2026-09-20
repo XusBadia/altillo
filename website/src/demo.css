@@ -1773,26 +1773,187 @@
 
 /* Some discoveries leave a trace inside the simulated desktop. */
 .ad-mirror-art.is-haunted {
+  background: linear-gradient(105deg, #68716b, #959d8f 57%, #817d75);
+  box-shadow: inset 0 0 0 1px #f0b87842, 0 0 25px #17110c80;
   filter: saturate(.72) brightness(.78);
 }
 .ad-mirror-art.is-haunted::after {
-  content: "·";
+  content: "";
   position: absolute;
-  top: 31%;
-  left: 53%;
+  top: 13%;
+  right: 25%;
   z-index: 4;
-  color: #f0b878;
-  font-size: 25px;
-  line-height: 1;
-  text-shadow: 0 0 12px #f0b878;
+  width: 2px;
+  height: 61%;
+  border-radius: 99px;
+  background: linear-gradient(transparent, #f0b878c9, transparent);
+  box-shadow: 0 0 11px #f0b878;
   animation: ad-egg-glint 1.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.ad-mirror-art.is-haunted .ad-mirror-guest {
+  opacity: .98;
+  transform: translateY(0) scale(1);
+  animation: ad-mirror-guest-rise 500ms cubic-bezier(.2,.75,.25,1) both;
+}
+@keyframes ad-mirror-guest-rise {
+  from { opacity: 0; transform: translateY(10px) scale(.96); }
+  to { opacity: .98; transform: translateY(0) scale(1); }
 }
 @keyframes ad-egg-glint {
-  0%, 100% { opacity: .25; transform: scale(.8); }
-  50% { opacity: 1; transform: scale(1.15); }
+  0%, 100% { opacity: .25; transform: scaleY(.8); }
+  50% { opacity: 1; transform: scaleY(1.15); }
 }
 @media (prefers-reduced-motion: reduce) {
   .ad-mirror-art.is-haunted::after { animation: none; opacity: .75; }
+  .ad-mirror-art.is-haunted .ad-mirror-guest { animation: none; }
+}
+
+/* Every discovery leaves a visible trace, even when its message fades. */
+body.egg-door .egg-door-hotspot,
+body.egg-key .egg-door-hotspot {
+  background: radial-gradient(circle, #f0b87855 0, #f0b87818 35%, transparent 72%);
+  animation: egg-hotspot-pulse 1.1s ease-in-out 2;
+}
+body.egg-door .hero .status-light,
+body.egg-key .hero .status-light {
+  background: #f0b878;
+  box-shadow: 0 0 22px #f0b878;
+}
+body.egg-lamp .egg-attic-lamp {
+  background: radial-gradient(circle, #f0b87855 0, #f0b87818 34%, transparent 72%);
+  animation: egg-hotspot-pulse 1.1s ease-in-out 2;
+}
+body.egg-lamp .attic-scene::after,
+body.egg-chest .attic-scene::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  animation: egg-scene-flicker 1.8s ease-in-out 2;
+}
+body.egg-lamp .attic-scene::after {
+  background: radial-gradient(circle at 64% 27%, #f0b87870, transparent 22%);
+}
+body.egg-chest .attic-scene::after {
+  background: radial-gradient(circle at 82% 72%, #a783c855, transparent 20%);
+}
+body.egg-chest .egg-attic-chest {
+  background: radial-gradient(circle, #a783c855 0, #a783c518 36%, transparent 74%);
+  animation: egg-hotspot-pulse 1.1s ease-in-out 2;
+}
+body.egg-aurio .aurio-sign {
+  position: relative;
+}
+body.egg-aurio .aurio-sign::after {
+  content: "✦";
+  position: absolute;
+  top: 13%;
+  right: 9%;
+  color: #f0b878;
+  font-size: 18px;
+  text-shadow: 0 0 12px #f0b878;
+  animation: egg-sparkle 900ms ease-in-out 2;
+  pointer-events: none;
+}
+body.egg-demo-full-shelf #interactive-demo .ad-shelf-wood {
+  border-color: #f0b87880;
+  box-shadow: inset 0 0 24px #f0b87818, 0 0 24px #f0b87825;
+  animation: egg-shelf-glow 1.4s ease-in-out 2;
+}
+body.egg-demo-empty-house #interactive-demo .ad-desktop {
+  filter: saturate(.5) brightness(.78);
+  transition: filter 500ms ease;
+}
+body.egg-demo-empty-house #interactive-demo .ad-destination {
+  border-color: #a783c880;
+  box-shadow: 0 0 26px #a783c840;
+}
+body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface {
+  position: relative;
+  border-color: #a783c880;
+  box-shadow: inset 0 0 22px #a783c51f, 0 0 24px #a783c530;
+}
+body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface::after {
+  content: "";
+  position: absolute;
+  right: 17px;
+  bottom: 8px;
+  width: 42px;
+  height: 31px;
+  background: repeating-linear-gradient(0deg, #a783c870 0 3px, transparent 3px 8px);
+  clip-path: polygon(0 100%, 0 82%, 24% 82%, 24% 62%, 48% 62%, 48% 40%, 72% 40%, 72% 18%, 100% 18%, 100% 100%);
+  opacity: .9;
+  animation: egg-stair-reveal 600ms cubic-bezier(.2,.75,.25,1) both;
+}
+body.egg-demo-calendar-door #interactive-demo .ad-calendar-surface {
+  border-color: #a783c880;
+  box-shadow: inset 0 0 26px #a783c51f, 0 0 24px #a783c530;
+}
+body.egg-demo-calendar-door #interactive-demo .ad-event-copy {
+  border-color: #a783c8;
+  box-shadow: 0 0 12px #a783c855;
+}
+body.egg-demo-fourth-track #interactive-demo .ad-music-surface {
+  border-color: #f0b87880;
+  box-shadow: inset 0 0 25px #f0b87819, 0 0 24px #f0b8782f;
+}
+body.egg-demo-fourth-track #interactive-demo .ad-album-art {
+  filter: saturate(.7) brightness(.8);
+  box-shadow: 0 0 0 1px #f0b87880, 0 0 20px #f0b87855;
+}
+body.egg-demo-usage-shadow #interactive-demo .ad-usage-card {
+  border-color: #a783c880;
+  box-shadow: inset 0 0 24px #a783c51f, 0 0 24px #a783c530;
+}
+body.egg-demo-usage-shadow #interactive-demo .ad-ring {
+  filter: drop-shadow(0 0 8px #a783c8);
+  animation: egg-ring-pulse 1.2s ease-in-out 2;
+}
+body.egg-demo-agent-house-rules #interactive-demo .ad-agent-request {
+  border-color: #a783c880;
+  box-shadow: inset 0 0 22px #a783c51f, 0 0 24px #a783c530;
+}
+@keyframes egg-hotspot-pulse {
+  0%, 100% { opacity: .35; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.08); }
+}
+@keyframes egg-scene-flicker {
+  0%, 100% { opacity: .25; }
+  50% { opacity: .9; }
+}
+@keyframes egg-sparkle {
+  0%, 100% { opacity: .2; transform: scale(.7) rotate(-12deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(12deg); }
+}
+@keyframes egg-shelf-glow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+@keyframes egg-stair-reveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: .9; transform: translateY(0); }
+}
+@keyframes egg-ring-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.egg-door .egg-door-hotspot,
+  body.egg-key .egg-door-hotspot,
+  body.egg-lamp .egg-attic-lamp,
+  body.egg-chest .egg-attic-chest,
+  body.egg-lamp .attic-scene::after,
+  body.egg-chest .attic-scene::after,
+  body.egg-aurio .aurio-sign::after,
+  body.egg-demo-full-shelf #interactive-demo .ad-shelf-wood,
+  body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface::after,
+  body.egg-demo-usage-shadow #interactive-demo .ad-ring {
+    animation: none;
+  }
+  body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface::after { opacity: .9; }
+  body.egg-demo-empty-house #interactive-demo .ad-desktop { transition: none; }
 }
 .ad-notch {
   transition:

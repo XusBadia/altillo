@@ -103,6 +103,11 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
   }
 
   function reveal(id, text, options = {}) {
+    if (id.startsWith("demo-")) {
+      for (const className of [...document.body.classList]) {
+        if (className.startsWith("egg-demo-")) document.body.classList.remove(className);
+      }
+    }
     announce(text, options);
     document.body.dataset.lastEgg = id;
     document.body.classList.add(`egg-${id}`);
@@ -198,7 +203,6 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
   if (aurio) {
     const aurioHandler = (event) => {
       if (event.detail !== 2) return;
-      event.preventDefault();
       reveal("aurio", message("El dragón también conoce la puerta.", "The dragon knows the door too."), { mood: "night" });
       aurio.classList.add("is-winking");
       schedule(() => aurio.classList.remove("is-winking"), 1500);
@@ -262,8 +266,16 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
     if (!detail.message) return;
     reveal(`demo-${detail.id || "secret"}`, detail.message, { mood: detail.mood || "door" });
   };
+  const demoResetHandler = () => {
+    for (const className of [...document.body.classList]) {
+      if (className.startsWith("egg-demo-")) document.body.classList.remove(className);
+    }
+    if (document.body.dataset.lastEgg?.startsWith("demo-")) delete document.body.dataset.lastEgg;
+  };
   demoElement?.addEventListener("demo:egg", demoEggHandler);
   cleanups.push(() => demoElement?.removeEventListener("demo:egg", demoEggHandler));
+  demoElement?.addEventListener("demo:reset", demoResetHandler);
+  cleanups.push(() => demoElement?.removeEventListener("demo:reset", demoResetHandler));
 
   // A small reward for inspecting the page. It contains no sensitive information.
   console.info(`%c${english ? "The attic is open." : "El altillo está abierto."} %c${english ? "Try the door." : "Prueba la puerta."}`, "color:#f0b878;font-weight:600", "color:#9d968d");

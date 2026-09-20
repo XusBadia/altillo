@@ -29,6 +29,14 @@ test('explains the product, labels development and links to Aurio without overfl
   expect(errors).toEqual([]);
 });
 
+test('double-clicking the Aurio mascot follows its external link', async ({ page }) => {
+  await page.route('https://www.aurioapp.com/**', (route) => route.abort());
+  await page.goto('/');
+  const aurioRequest = page.waitForRequest((request) => request.url().startsWith('https://www.aurioapp.com'));
+  await page.locator('.aurio-sign').dblclick();
+  expect((await aurioRequest).url()).toBe('https://www.aurioapp.com/');
+});
+
 test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
   await page.goto('/');
   await chapter(page, 'shelf');
