@@ -2,6 +2,7 @@ import "./demo.css";
 import "./demo-modules.css";
 import { providerLogo } from "./brand-logos.js";
 import { createDemoCopy } from "./demo-copy.js";
+import { iconPaths } from "./icons.generated.js";
 
 const icons = {
   shelf: "house", folder: "folder", chevron: "chevron-left",
@@ -17,7 +18,7 @@ const icons = {
   video: "video", speaker: "speaker-high", bell: "bell",
 };
 const svg = (name, size = 18) =>
-  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="/icons.svg#${icons[name] || icons.folder}"></use></svg>`;
+  `<svg data-icon="${name}" width="${size}" height="${size}" viewBox="0 0 24 24" aria-hidden="true" focusable="false">${iconPaths[icons[name] || icons.folder]}</svg>`;
 const sampleDocs = [
   { id: "ideas", name: "Ideas.pdf", kind: "paper", meta: "PDF · 240 KB" },
   { id: "photo", name: "Escapada.jpg", kind: "photo", meta: "JPEG · 2,4 MB" },
@@ -219,7 +220,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     if (times[0]) times[0].textContent = clockTime(state.elapsed);
     if (times[1]) times[1].textContent = clockTime(track.duration);
     const button = panel.querySelector('[data-action="music-play"]');
-    if (button) {
+    // timeupdate fires repeatedly while playing. Keep the SVG node intact
+    // unless playback actually changes, avoiding repaint flashes in WebKit.
+    if (button && button.getAttribute("aria-pressed") !== String(state.playing)) {
       button.setAttribute("aria-label", t(state.playing ? "Pausar" : "Reproducir"));
       button.setAttribute("aria-pressed", String(state.playing));
       button.innerHTML = svg(state.playing ? "pause" : "play", 20);
