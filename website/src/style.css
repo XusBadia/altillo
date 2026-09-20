@@ -1034,11 +1034,22 @@ h2 {
   flex-direction: column;
   min-width: 0;
 }
-.aurio-mascot {
+.aurio-mascot-stage {
+  position: relative;
   display: block;
   width: 330px;
   max-width: 100%;
+  transition: transform 260ms cubic-bezier(.2,.75,.25,1), filter 260ms ease;
+}
+.aurio-mascot {
+  display: block;
+  width: 100%;
   height: auto;
+}
+.aurio-mascot-wink {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
 }
 .aurio-label {
   display: flex;
@@ -1084,7 +1095,7 @@ h2 {
   .support-copy > p {
     font-size: 13px;
   }
-  .aurio-mascot {
+  .aurio-mascot-stage {
     width: 300px;
   }
   .language-switch {
@@ -1112,7 +1123,7 @@ h2 {
     margin: 15px 0;
     max-width: 340px;
   }
-  .aurio-mascot {
+  .aurio-mascot-stage {
     width: 235px;
   }
   .aurio-label {
@@ -1185,19 +1196,45 @@ h2 {
   min-width: 72px;
   min-height: 72px;
   transform: translate(-50%, -50%);
+  perspective: 260px;
 }
 .egg-attic-lamp {
-  top: 27%;
-  left: 64%;
+  top: 10%;
+  left: 49%;
+  width: 84px;
+  height: 110px;
 }
 .egg-attic-paper {
-  top: 57%;
-  left: 20%;
+  top: 47%;
+  left: 46%;
+  width: 90px;
+  height: 90px;
 }
 .egg-attic-chest {
-  top: 63%;
-  right: 15%;
+  top: 76%;
+  right: 8%;
+  width: 112px;
+  height: 96px;
 }
+.egg-door-hotspot::before,.egg-door-hotspot::after,.egg-attic-lamp::before,.egg-attic-lamp::after,.egg-attic-chest::before,.egg-attic-chest::after { content:""; position:absolute; pointer-events:none; opacity:0; }
+.egg-door-hotspot::before { inset:11% 22% 8%; border:1px solid #b9865980; border-radius:3px 3px 1px 1px; background:linear-gradient(90deg,#35251b,#795035); box-shadow:inset 0 0 0 5px #21171080; transform-origin:right center; }
+.egg-door-hotspot::after { right:20%; top:13%; bottom:10%; width:5px; background:#f5bd6c; box-shadow:0 0 17px 7px #f0a84a9c; }
+body.egg-door .egg-door-hotspot::before,body.egg-key .egg-door-hotspot::before { animation:egg-door-ajar 900ms cubic-bezier(.2,.75,.25,1) both; }
+body.egg-door .egg-door-hotspot::after,body.egg-key .egg-door-hotspot::after { animation:egg-door-light 900ms ease both; }
+.egg-attic-lamp::before { left:22px; top:10px; width:40px; height:43px; border-radius:50% 50% 42% 42%; background:radial-gradient(circle at 50% 70%,#ffe4a8,#e5a04a 55%,#4c321f 60%); filter:drop-shadow(0 0 14px #f0b878); }
+.egg-attic-lamp::after { left:7px; top:45px; width:70px; height:132px; background:radial-gradient(circle at 50% 15%,#080706 0 12%,transparent 13%),radial-gradient(ellipse at 50% 105%,#080706 0 49%,transparent 50%); filter:blur(1px); transform:translateY(10px) scale(.86); }
+body.egg-lamp .egg-attic-lamp::before { animation:egg-lamp-flicker 1.45s steps(1,end) both; }
+body.egg-lamp .egg-attic-lamp::after { animation:egg-shadow-arrive 1.6s ease 350ms both; }
+.egg-attic-chest::before { left:10px; right:10px; bottom:9px; height:46px; border:2px solid #7d5337; border-radius:4px 4px 8px 8px; background:radial-gradient(circle at 50% 0,#c19ae5,#25172e 42%,#17110d 66%); box-shadow:inset 0 0 17px #a783c8,0 8px 15px #0008; }
+.egg-attic-chest::after { left:8px; right:8px; top:33px; height:22px; border:2px solid #7d5337; border-radius:26px 26px 3px 3px; background:linear-gradient(#6d482f,#2c1c14); transform-origin:center bottom; }
+body.egg-chest .egg-attic-chest::before { animation:egg-chest-light 1.2s ease both; }
+body.egg-chest .egg-attic-chest::after { animation:egg-chest-open 900ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes egg-door-ajar { from { opacity:.2;transform:rotateY(0); } to { opacity:1;transform:rotateY(48deg); } }
+@keyframes egg-door-light { 0%,35% { opacity:0; } 100% { opacity:1; } }
+@keyframes egg-lamp-flicker { 0% { opacity:0; } 12% { opacity:1; } 22% { opacity:.15; } 31% { opacity:1; } 43% { opacity:.28; } 55%,100% { opacity:1; } }
+@keyframes egg-shadow-arrive { from { opacity:0;transform:translateY(8px) scale(.86); } to { opacity:.78;transform:none; } }
+@keyframes egg-chest-open { from { opacity:.2;transform:rotateX(0); } to { opacity:1;transform:translateY(-17px) rotateX(112deg); } }
+@keyframes egg-chest-light { from { opacity:0; } to { opacity:1; } }
 .egg-toast {
   position: fixed;
   z-index: 1200;
@@ -1244,6 +1281,13 @@ h2 {
   box-shadow: 0 30px 100px #000b;
   color: #f5eadc;
 }
+.egg-overlay-paper .egg-overlay-card { width:min(430px,100%); border-color:#8d7048; border-radius:2px; color:#342a20; background:linear-gradient(93deg,#d7c39b,#eee0bd 47%,#c9ad7e); box-shadow:0 30px 100px #000c,inset 0 0 35px #76512420; transform-origin:center top; animation:egg-paper-unfold 600ms cubic-bezier(.2,.75,.25,1) both; }
+.egg-overlay-paper .egg-overlay-card::before { inset:0 50% 0 auto; width:1px; height:auto; background:#71563830; box-shadow:16px 0 24px #5b402420; }
+.egg-overlay-paper .egg-overlay-card::after { display:none; }
+.egg-overlay-paper .egg-overlay-mark,.egg-overlay-paper .egg-overlay-card .eyebrow { color:#765235; }
+.egg-overlay-paper .egg-overlay-card > p:last-child { color:#5b4938; }
+.egg-overlay-paper .egg-overlay-close { color:#5b4938;border-color:#71563840; }
+@keyframes egg-paper-unfold { from { opacity:0;transform:perspective(500px) rotateX(-72deg) scaleY(.5); } to { opacity:1;transform:none; } }
 .egg-overlay-card::before,
 .egg-overlay-card::after {
   content: "";
@@ -1322,17 +1366,16 @@ body.egg-night .status-light {
   box-shadow: 0 0 18px #a783c8;
   background: #c0a2e0;
 }
-.aurio-sign.is-winking .aurio-mascot {
-  transform: translateY(-5px) rotate(-2deg);
-  filter: saturate(1.15) brightness(1.08);
-}
+.aurio-sign.is-winking .aurio-mascot-stage { animation:aurio-wink-pop 1.35s cubic-bezier(.2,.75,.25,1) both; }
+.aurio-sign.is-winking .aurio-mascot-base { animation:aurio-base-frame 1.35s steps(1,end) both; }
+.aurio-sign.is-winking .aurio-mascot-wink { animation:aurio-wink-frame 1.35s steps(1,end) both; }
 .egg-aurio-trigger {
   user-select: none;
   touch-action: manipulation;
 }
-.aurio-mascot {
-  transition: transform 260ms cubic-bezier(.2,.75,.25,1), filter 260ms ease;
-}
+@keyframes aurio-wink-pop { 0%,100% { transform:none;filter:none; } 18% { transform:translateY(-3px) rotate(-.7deg);filter:saturate(1.08); } }
+@keyframes aurio-base-frame { 0%,13%,43%,55%,79%,100% { opacity:1; } 14%,42%,56%,78% { opacity:0; } }
+@keyframes aurio-wink-frame { 0%,13%,43%,55%,79%,100% { opacity:0; } 14%,42%,56%,78% { opacity:1; } }
 @media (max-width: 600px) {
   .egg-toast {
     bottom: 14px;
@@ -1342,24 +1385,29 @@ body.egg-night .status-light {
     padding: 36px 25px 31px;
   }
   .egg-attic-lamp {
-    top: 23%;
-    left: 61%;
+    top: 8%;
+    left: 47%;
   }
   .egg-attic-paper {
-    top: 53%;
-    left: 12%;
+    top: 44%;
+    left: 43%;
   }
   .egg-attic-chest {
-    top: 61%;
-    right: 8%;
+    top: 75%;
+    right: 3%;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .egg-toast,
-  .aurio-mascot,
+  .aurio-mascot-stage,
   body.egg-night .hero-media,
   body.egg-night .hero-canvas,
   body.egg-night .attic-scene img {
     transition: none;
   }
+  body.egg-door .egg-door-hotspot::before,body.egg-key .egg-door-hotspot::before { animation:none;opacity:1;transform:rotateY(48deg); }
+  body.egg-door .egg-door-hotspot::after,body.egg-key .egg-door-hotspot::after,body.egg-lamp .egg-attic-lamp::before,body.egg-lamp .egg-attic-lamp::after,body.egg-chest .egg-attic-chest::before { animation:none;opacity:1; }
+  body.egg-chest .egg-attic-chest::after { animation:none;opacity:1;transform:translateY(-17px) rotateX(112deg); }
+  .aurio-sign.is-winking .aurio-mascot-base { opacity:0; }
+  .aurio-sign.is-winking .aurio-mascot-wink { opacity:1; }
 }

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="overflow-x: clip">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -26,7 +26,7 @@
     <link rel="preload" as="image" href="/media/mac-door.webp" />
     <title>Altillo — Your Mac already had an attic</title>
   </head>
-  <body>
+  <body style="margin: 0; overflow-x: clip">
     <a class="skip-link" href="#contenido">Skip to content</a>
     <header class="site-header">
       <a class="brand" href="#" aria-label="Altillo, home"
@@ -256,14 +256,24 @@
               class="aurio-sign"
               href="https://www.aurioapp.com"
               aria-label="Meet Aurio, our personal finance app"
-              ><img
-                class="aurio-mascot"
-                src="/media/aurio-mascot.webp"
-                width="640"
-                height="480"
-                alt="Aurio, our orange dragon mascot, waves from a wooden chest beside a sheet of paper and two books"
-                loading="lazy"
-              /><span class="aurio-label"
+              ><span class="aurio-mascot-stage"
+                ><img
+                  class="aurio-mascot aurio-mascot-base"
+                  src="/media/aurio-mascot.webp"
+                  width="640"
+                  height="480"
+                  alt="Aurio, our orange dragon mascot, waves from a wooden chest beside a sheet of paper and two books"
+                  loading="lazy"
+                /><img
+                  class="aurio-mascot aurio-mascot-wink"
+                  src="/media/aurio-mascot-wink.webp"
+                  width="640"
+                  height="480"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                /></span
+              ><span class="aurio-label"
                 ><img
                   src="/aurio-symbol.svg"
                   width="24"

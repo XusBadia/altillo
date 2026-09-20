@@ -73,9 +73,10 @@ test('mirror flips its sample without requesting camera access', async ({ page }
   await demo.locator('[data-action="mirror-flip"]').click();
   await demo.locator('[data-action="mirror-flip"]').click();
   await expect(demo.locator('.ad-mirror-art')).toHaveClass(/is-haunted/);
-  await expect(demo.locator('.ad-mirror-guest')).toBeVisible();
+  await expect(demo.locator('.ad-mirror-presence')).toHaveCount(1);
+  await expect.poll(() => demo.locator('.ad-mirror-presence').evaluate((node) => Number(getComputedStyle(node).opacity))).toBeGreaterThan(0.8);
   await demo.getByRole('button', { name: 'Reiniciar demo', exact: true }).click();
-  await expect(demo.locator('.ad-mirror-guest')).toHaveCount(0);
+  await expect(demo.locator('.ad-mirror-presence')).toHaveCount(0);
   await expect(page.locator('body')).not.toHaveClass(/egg-demo-mirror-guest/);
   expect(await page.evaluate(() => window.cameraRequests)).toBe(0);
 });
@@ -92,6 +93,40 @@ test('drawer reveals its group and opens an example menu', async ({ page }) => {
   await demo.locator('[data-action="drawer-toggle"]').click();
   await expect(demo.locator('.ad-drawer-icons')).toBeHidden();
   await expect(demo.locator('.ad-drawer-menu')).toBeHidden();
+});
+
+test('secret module gestures reveal object-specific visual changes', async ({ page }) => {
+  await page.goto('/');
+  const demo = await choose(page, 'drawer');
+  for (let index = 0; index < 3; index += 1) await demo.locator('[data-action="drawer-toggle"]').click();
+  await expect(demo.locator('.ad-drawer-surface')).toHaveClass(/is-secret/);
+  await expect(demo.locator('.ad-drawer-staircase i')).toHaveCount(7);
+
+  await choose(page, 'calendar');
+  await demo.locator('[data-action="join"][data-event="0"]').click();
+  await demo.locator('[data-action="join"][data-event="1"]').click();
+  await expect(demo.locator('.ad-calendar-surface')).toHaveClass(/is-secret/);
+  await expect(demo.locator('.ad-calendar-convergence')).toContainText('La misma sala');
+
+  await choose(page, 'music');
+  for (let index = 0; index < 3; index += 1) await demo.locator('[data-action="music-next"]').click();
+  await expect(demo.locator('.ad-music-surface')).toHaveClass(/is-secret/);
+  await expect(demo.locator('.ad-album-hidden')).toContainText(/PISTA\s*04/);
+
+  await choose(page, 'usage');
+  const usage = demo.locator('[data-action="usage"]');
+  await usage.click();
+  await usage.click();
+  await usage.click();
+  await expect(demo.locator('.ad-usage-cards')).toHaveClass(/is-secret/);
+  await expect(demo.locator('.ad-impossible-value')).toHaveCount(2);
+
+  await choose(page, 'agents');
+  await demo.locator('[data-action="deny"]').click();
+  await demo.locator('.ad-agent-request [data-action="agent"]').click();
+  await demo.locator('[data-action="allow"]').click();
+  await expect(demo.locator('.ad-agent-request')).toHaveClass(/is-remembering/);
+  await expect(demo.locator('.ad-agent-memory')).toContainText('LA CASA RECUERDA');
 });
 
 test('reset clears the state of every daily module', async ({ page }) => {

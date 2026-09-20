@@ -80,10 +80,10 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
     document.body.classList.remove("has-egg-overlay");
   }
 
-  function openOverlay({ title, body, label = message("Cerrar", "Close") }) {
+  function openOverlay({ title, body, variant = "note", label = message("Cerrar", "Close") }) {
     closeOverlay();
     overlay = document.createElement("div");
-    overlay.className = "egg-overlay";
+    overlay.className = `egg-overlay egg-overlay-${variant}`;
     overlay.setAttribute("role", "dialog");
     overlay.setAttribute("aria-modal", "true");
     overlay.setAttribute("aria-labelledby", "egg-overlay-title");
@@ -191,6 +191,7 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
     () => openOverlay({
       title: message("Todavía no", "Not yet"),
       body: message("Hay cosas que conviene dejar arriba un poco más.", "Some things are better left upstairs a little longer."),
+      variant: "paper",
     }),
   );
   hotspot(

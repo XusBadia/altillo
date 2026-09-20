@@ -47,6 +47,8 @@ test('three taps on the support label make Aurio wink without following the link
   await trigger.click();
   await expect(page.locator('body')).toHaveClass(/egg-aurio/);
   await expect(aurio).toHaveClass(/is-winking/);
+  await expect(aurio.locator('.aurio-mascot-wink')).toHaveAttribute('src', '/media/aurio-mascot-wink.webp');
+  await expect(aurio.locator('.aurio-mascot-wink')).toHaveCSS('animation-name', 'aurio-wink-frame');
   await expect(page).toHaveURL(urlBefore);
 });
 

@@ -37,6 +37,11 @@
 .ad-drawer-menu strong, .ad-drawer-menu small { display: block; }
 .ad-drawer-menu strong { font-size: 11px; }
 .ad-drawer-menu small { color: #a6a08f; font-size: 9px; margin-top: 3px; }
+.ad-drawer-staircase { position: absolute; right: 18px; bottom: 8px; width: 82px; height: 46px; perspective: 120px; pointer-events: none; opacity: 0; }
+.ad-drawer-staircase i { position: absolute; right: calc(var(--step) * 8px); bottom: calc(var(--step) * 5px); width: 28px; height: 9px; border: 1px solid #c9a86f80; background: linear-gradient(90deg,#35291f,#b78b51); transform: rotateX(62deg); box-shadow: 0 2px 5px #0009; }
+.ad-drawer-surface.is-secret { position: relative; overflow: hidden; }
+.ad-drawer-surface.is-secret .ad-drawer-staircase { animation: ad-stairs-unfold 700ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes ad-stairs-unfold { from { opacity: 0; transform: translate(16px,12px) scale(.72); } to { opacity: 1; transform: none; } }
 .ad-calendar-surface { display: flex; padding: 14px; gap: 19px; }
 .ad-calendar-date { width: 59px; flex-shrink: 0; border-right: 1px solid #c6aa792a; text-align: center; padding-right: 14px; padding-top: 8px; }
 .ad-calendar-date > span, .ad-calendar-date > small { display: block; font-size: 9px; color: #c1ad8b; }
@@ -56,8 +61,23 @@
 .ad-event-copy > span { font-size: 8px; color: #aea48f; margin-top: 4px; }
 .ad-event > button { color: #efcd8b; }
 .ad-meeting-status { font-size: 9px; color: #bacc9d; margin: 8px 4px 0; }
+.ad-calendar-convergence { position: absolute; inset: 34px 14px 14px 87px; z-index: 3; display: flex; align-items: center; gap: 13px; padding: 10px 13px; border: 1px solid #9f82b780; border-radius: 8px; background: linear-gradient(100deg,#211a26f2,#35283bf2); box-shadow: 0 0 28px #9f82b744, inset 0 1px #fff1; opacity: 0; transform: scale(.84); pointer-events: none; }
+.ad-calendar-convergence time { font: 12px ui-monospace,monospace; color: #d9bded; }
+.ad-calendar-convergence strong,.ad-calendar-convergence span { display: block; }
+.ad-calendar-convergence strong { font-size: 11px; color: #e4d8eb; }
+.ad-calendar-convergence span { margin-top: 3px; font-size: 8px; color: #b5a5bd; }
+.ad-calendar-surface { position: relative; overflow: hidden; }
+.ad-calendar-surface.is-secret .ad-event { animation: ad-calendar-collapse 700ms ease both; }
+.ad-calendar-surface.is-secret .ad-calendar-convergence { animation: ad-calendar-arrive 750ms cubic-bezier(.2,.75,.25,1) 240ms both; }
+@keyframes ad-calendar-collapse { to { opacity: .13; transform: translateX(28px) scale(.9); filter: blur(2px); } }
+@keyframes ad-calendar-arrive { to { opacity: 1; transform: none; } }
 .ad-music-surface { display: flex; gap: 21px; align-items: center; padding: 15px 19px; }
-.ad-album-art { position: relative; width: 131px; aspect-ratio: 1; flex-shrink: 0; overflow: hidden; border-radius: 5px; isolation: isolate; box-shadow: 0 4px 10px #0005; }
+.ad-album-stack { position: relative; z-index:1; width: 131px; aspect-ratio: 1; flex-shrink: 0; }
+.ad-album-art { position: relative; z-index:2; width: 131px; aspect-ratio: 1; flex-shrink: 0; overflow: hidden; border-radius: 5px; isolation: isolate; box-shadow: 0 4px 10px #0005; }
+.ad-album-hidden { position: absolute; inset: 5px; display: grid; place-items: center; overflow: hidden; border-radius: 5px; background: radial-gradient(circle at 65% 25%,#c9b0dc44,transparent 22%),linear-gradient(145deg,#15121c,#513a5f); box-shadow: 0 5px 18px #0008,0 0 0 1px #b995ce55; transform: translate(0,0) rotate(0); transition: transform 600ms cubic-bezier(.2,.75,.25,1); }
+.ad-album-hidden::before { content:""; position:absolute; inset:15%; border:1px solid #c7a7da55; border-radius:50%; box-shadow:0 0 0 9px #c7a7da10,0 0 0 20px #c7a7da0b; }
+.ad-album-hidden span { position:absolute; z-index:1; right:6px; top:8px; color:#d9c1e5; font-size:8px; line-height:1.1; letter-spacing:.12em; text-align:center; writing-mode:vertical-rl; }
+.ad-music-surface.is-secret .ad-album-hidden { transform: translate(34px,-18px) rotate(7deg); }
 .ad-album-0 { background: linear-gradient(#aaa788 0%, #727863 53%, #3d5447 54%, #213f35); }
 .ad-album-art::before, .ad-album-art::after { content: ''; position: absolute; z-index: -1; }
 .ad-album-0::before { width: 160%; height: 75%; left: -35%; top: 32%; border-radius: 50%; transform: rotate(35deg); background: #53684b; }
@@ -80,21 +100,16 @@
 .ad-track-progress > i { display: block; width: 100%; height: 100%; background: #e5c18c; transform-origin: left; }
 .ad-track-time { display: flex; justify-content: space-between; font-size: 8px; font-variant-numeric: tabular-nums; color: #9e9583; margin-top: 5px; }
 .ad-mirror-surface { overflow: hidden; padding: 9px; }
-.ad-mirror-art { position: relative; width: 100%; height: 134px; overflow: hidden; border-radius: 5px; background: linear-gradient(105deg,#8d9687,#bbc0aa 57%,#c9c3ae); }
-.ad-mirror-art[data-flipped=true] { transform: scaleX(-1); }
-.ad-mirror-window { position: absolute; right: 12%; top: -25px; width: 105px; height: 140px; background: #e1e0cb; border: 7px solid #a89d86; transform: skewY(-7deg); box-shadow: 0 5px 40px #e8e8c867; }
-.ad-mirror-window::before { content: ''; position: absolute; width: 4px; height: 100%; left: 45%; background: #a89d86; }
-.ad-mirror-person { position: absolute; bottom: 0; left: 43%; width: 104px; height: 128px; transform: translateX(-50%); }
-.ad-mirror-head { position: absolute; z-index: 2; top: 17px; left: 31px; width: 46px; height: 62px; border-radius: 45% 43% 48% 48%; background: linear-gradient(105deg,#bd8e70,#dcac87); transform: rotate(-8deg); box-shadow: inset 3px -3px 8px #85544021; }
-.ad-mirror-hair { position: absolute; top: 7px; left: 27px; width: 55px; height: 43px; border-radius: 49% 40% 30% 20%; background: #4e3e31; transform: rotate(-12deg); z-index: 3; clip-path: polygon(0 0,100% 0,100% 95%,84% 70%,75% 35%,35% 62%,15% 100%,0 100%); }
-.ad-mirror-shirt { position: absolute; left: 4px; bottom: -31px; width: 108px; height: 86px; background: #435a58; border-radius: 44% 38% 0 0; transform: rotate(-5deg); }
-.ad-mirror-guest { position: absolute; z-index: 1; right: 15%; bottom: -8px; width: 75px; height: 118px; opacity: 0; transform: translateY(12px) scale(.92); transform-origin: bottom; filter: blur(.35px); pointer-events: none; }
-.ad-mirror-guest-head { position: absolute; top: 17px; left: 18px; width: 39px; height: 51px; border-radius: 47% 47% 45% 45%; background: linear-gradient(105deg,#3d4941,#1c2421 75%); box-shadow: 0 0 18px #f0b8783d; }
-.ad-mirror-guest-body { position: absolute; left: 0; right: 0; bottom: -2px; height: 72px; border-radius: 50% 50% 0 0; background: linear-gradient(90deg,#18211e,#405348 50%,#17201d); clip-path: polygon(18% 100%,22% 51%,35% 37%,50% 28%,65% 37%,78% 51%,84% 100%); }
-.ad-mirror-guest-eyes { position: absolute; z-index: 2; top: 39px; left: 27px; width: 5px; height: 4px; border-radius: 50%; background: #f0b878; box-shadow: 13px 0 0 #f0b878, 0 0 10px 2px #f0b878; }
-.ad-mirror-plant { position: absolute; left: 13%; bottom: -7px; width: 31px; height: 39px; background: #8c735a; border-radius: 2px 2px 6px 6px; }
-.ad-mirror-plant > i { position: absolute; bottom: 32px; left: 10px; height: 46px; width: 17px; background: #5b704d; border-radius: 100% 0 80% 0; transform: rotate(-35deg); transform-origin: bottom; }
-.ad-mirror-plant > i + i { transform: rotate(25deg); background: #71845c; }
+.ad-mirror-art { position: relative; width: 100%; height: 154px; overflow: hidden; border-radius: 7px; background: #5b554b; box-shadow: inset 0 0 0 1px #fff2; transition: filter 360ms ease,box-shadow 360ms ease; }
+.ad-mirror-scene { display:block; width:100%; height:100%; object-fit:cover; }
+.ad-mirror-room { transform-origin:center; transition:transform 420ms cubic-bezier(.2,.75,.25,1); }
+.ad-mirror-art[data-flipped=true] .ad-mirror-room { transform:scaleX(-1); transform-box:fill-box; }
+.ad-mirror-presence { opacity:0; transform:translateY(8px); transform-origin:center bottom; }
+.ad-mirror-art.is-haunted { filter:saturate(.68) brightness(.69); box-shadow:inset 0 0 0 1px #b998c466,0 0 26px #130f1788; }
+.ad-mirror-art.is-haunted .ad-mirror-presence { animation:ad-presence-arrive 900ms cubic-bezier(.2,.75,.25,1) 420ms both; }
+.ad-mirror-art.is-haunted .ad-mirror-self { animation:ad-reflection-lag 900ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes ad-presence-arrive { to { opacity:.92; transform:none; } }
+@keyframes ad-reflection-lag { 0%,28% { transform:translateX(0); } 48% { transform:translateX(11px); } 72% { transform:translateX(-3px); } 100% { transform:none; } }
 .ad-mirror-controls { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding-top: 7px; }
 .ad-mirror-controls > span { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #bfb39b; }
 .ad-mirror-controls > button { padding: 4px 9px; min-height: 34px; }
@@ -122,7 +137,7 @@
   .ad-drawer-bar > button { font-size: 9px; padding: 6px; }
   .ad-drawer-bar > svg { width: 15px; }
   .ad-music-surface { gap: 13px; padding: 12px; }
-  .ad-album-art { width: 90px; }
+  .ad-album-stack,.ad-album-art { width: 90px; }
   .ad-album-art > span { font-size: 8px; left: 9px; top: 9px; }
   .ad-music-source { font-size: 7px; margin-bottom: 6px; }
   .ad-music-source > small { display: none; }
@@ -131,6 +146,11 @@
   .ad-music-controls { gap: 2px; margin: 5px 0; }
   .ad-music-controls > button { min-width: 34px; min-height: 34px; padding: 6px; }
   .ad-music-controls > .ad-music-play { width: 34px; height: 34px; }
-  .ad-mirror-art { height: 119px; }
+  .ad-mirror-art { height: 129px; }
   .ad-mirror-controls > span { font-size: 8px; }
+}
+@media (prefers-reduced-motion:reduce) {
+  .ad-drawer-surface.is-secret .ad-drawer-staircase,.ad-calendar-surface.is-secret .ad-event,.ad-calendar-surface.is-secret .ad-calendar-convergence,.ad-mirror-art.is-haunted .ad-mirror-presence,.ad-mirror-art.is-haunted .ad-mirror-self { animation:none; }
+  .ad-drawer-surface.is-secret .ad-drawer-staircase,.ad-calendar-surface.is-secret .ad-calendar-convergence,.ad-mirror-art.is-haunted .ad-mirror-presence { opacity:1;transform:none; }
+  .ad-calendar-surface.is-secret .ad-event { opacity:.13; }
 }

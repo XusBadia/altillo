@@ -309,6 +309,20 @@
   background: linear-gradient(#9c876147, #1b181177 40%, #080807);
   box-shadow: 0 4px 6px #0005;
 }
+.ad-shelf-key {
+  position: absolute;
+  left: 50%;
+  top: 3px;
+  width: 28px;
+  height: 11px;
+  color: #e8bd70;
+  font: 18px/11px ui-monospace, monospace;
+  text-shadow: 0 0 9px #e8bd70;
+  opacity: 0;
+  transform: translate(-50%,-13px) rotate(90deg);
+}
+.ad-shelf-wood.has-secret .ad-shelf-key { animation: ad-key-slide 650ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes ad-key-slide { to { opacity:1; transform:translate(-50%,1px) rotate(90deg); } }
 .ad-shelf-tile {
   position: relative;
   z-index: 1;
@@ -816,6 +830,11 @@
   border-radius: 3px 6px 0 0;
   z-index: -1;
 }
+.ad-folder-secret { position:absolute; left:12px; top:11px; width:28px; height:23px; border-radius:2px 2px 8px 8px; background:linear-gradient(#1d1724,#08070a); box-shadow:inset 0 0 0 1px #c29add55,0 0 12px #a783c8; opacity:0; transform:scale(.45); }
+.ad-folder-secret::before { content:""; position:absolute; left:10px; bottom:4px; width:8px; height:13px; border-radius:8px 8px 1px 1px; background:#8d6ca0; box-shadow:0 0 8px #c3a1d7; }
+.ad-destination.is-secret-empty .ad-folder-art { background:#26323a; transform:perspective(80px) rotateX(-12deg); box-shadow:0 8px 14px #0006,inset 0 2px #d4e4e455; }
+.ad-destination.is-secret-empty .ad-folder-secret { animation:ad-folder-door 700ms cubic-bezier(.2,.75,.25,1) both; }
+@keyframes ad-folder-door { to { opacity:1; transform:scale(1); } }
 .ad-destination > span:nth-child(2) {
   font-size: 10px;
   font-weight: 550;
@@ -991,6 +1010,13 @@
 .ad-ring small {
   font-size: 8px;
 }
+.ad-impossible-value { position:absolute; z-index:2; color:#d6b8e9; font:700 24px/1 Georgia,serif; text-shadow:0 0 11px #a783c8; opacity:0; transform:scale(.45) rotate(-30deg); }
+.ad-usage-cards.is-secret .ad-ring { animation:ad-ring-reverse 950ms cubic-bezier(.2,.75,.25,1) both; }
+.ad-usage-cards.is-secret .ad-ring > span { animation:ad-value-vanish 500ms ease both; }
+.ad-usage-cards.is-secret .ad-impossible-value { animation:ad-value-arrive 550ms cubic-bezier(.2,.75,.25,1) 420ms both; }
+@keyframes ad-ring-reverse { 45% { transform:rotate(-300deg) scale(1.08); } 100% { transform:rotate(-360deg); } }
+@keyframes ad-value-vanish { to { opacity:0; transform:scale(.5); } }
+@keyframes ad-value-arrive { to { opacity:1; transform:none; } }
 .ad-usage-card:nth-child(2) .ad-ring {
   background: conic-gradient(#ded7c7 var(--used), #514634 0);
 }
@@ -1073,10 +1099,17 @@
   color: #e0d7c5;
 }
 .ad-agent-request {
+  position: relative;
+  overflow: hidden;
   border-radius: 9px;
   padding: 9px 11px;
   border-color: #b18a405c;
 }
+.ad-agent-memory { position:absolute; inset:0; z-index:4; display:grid; place-content:center; gap:5px; text-align:center; background:linear-gradient(100deg,#251b2be8,#171318ed); color:#d6b6e8; opacity:0; transform:scale(1.25) rotate(-4deg); pointer-events:none; }
+.ad-agent-memory span { padding:5px 9px; border:2px solid #b68aca; font:700 11px/1 ui-monospace,monospace; letter-spacing:.12em; }
+.ad-agent-memory small { font:9px ui-monospace,monospace; color:#b9a5c2; }
+.ad-agent-request.is-remembering .ad-agent-memory { animation:ad-memory-stamp 1800ms ease both; }
+@keyframes ad-memory-stamp { 0% { opacity:0;transform:scale(1.4) rotate(-5deg); } 12%,70% { opacity:1;transform:scale(1) rotate(-2deg); } 100% { opacity:0;transform:scale(.96) rotate(-1deg); } }
 .ad-agent-heading {
   display: flex;
   align-items: center;
@@ -1771,44 +1804,6 @@
   }
 }
 
-/* Some discoveries leave a trace inside the simulated desktop. */
-.ad-mirror-art.is-haunted {
-  background: linear-gradient(105deg, #68716b, #959d8f 57%, #817d75);
-  box-shadow: inset 0 0 0 1px #f0b87842, 0 0 25px #17110c80;
-  filter: saturate(.72) brightness(.78);
-}
-.ad-mirror-art.is-haunted::after {
-  content: "";
-  position: absolute;
-  top: 13%;
-  right: 25%;
-  z-index: 4;
-  width: 2px;
-  height: 61%;
-  border-radius: 99px;
-  background: linear-gradient(transparent, #f0b878c9, transparent);
-  box-shadow: 0 0 11px #f0b878;
-  animation: ad-egg-glint 1.4s ease-in-out infinite;
-  pointer-events: none;
-}
-.ad-mirror-art.is-haunted .ad-mirror-guest {
-  opacity: .98;
-  transform: translateY(0) scale(1);
-  animation: ad-mirror-guest-rise 500ms cubic-bezier(.2,.75,.25,1) both;
-}
-@keyframes ad-mirror-guest-rise {
-  from { opacity: 0; transform: translateY(10px) scale(.96); }
-  to { opacity: .98; transform: translateY(0) scale(1); }
-}
-@keyframes ad-egg-glint {
-  0%, 100% { opacity: .25; transform: scaleY(.8); }
-  50% { opacity: 1; transform: scaleY(1.15); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ad-mirror-art.is-haunted::after { animation: none; opacity: .75; }
-  .ad-mirror-art.is-haunted .ad-mirror-guest { animation: none; }
-}
-
 /* Every discovery leaves a visible trace, even when its message fades. */
 body.egg-door .egg-door-hotspot,
 body.egg-key .egg-door-hotspot {
@@ -1859,57 +1854,27 @@ body.egg-aurio .aurio-sign::after {
 }
 body.egg-demo-full-shelf #interactive-demo .ad-shelf-wood {
   border-color: #f0b87880;
-  box-shadow: inset 0 0 24px #f0b87818, 0 0 24px #f0b87825;
-  animation: egg-shelf-glow 1.4s ease-in-out 2;
-}
-body.egg-demo-empty-house #interactive-demo .ad-desktop {
-  filter: saturate(.5) brightness(.78);
-  transition: filter 500ms ease;
+  box-shadow: inset 0 -10px 24px #f0b87818, 0 8px 24px #0005;
 }
 body.egg-demo-empty-house #interactive-demo .ad-destination {
   border-color: #a783c880;
   box-shadow: 0 0 26px #a783c840;
 }
 body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface {
-  position: relative;
   border-color: #a783c880;
   box-shadow: inset 0 0 22px #a783c51f, 0 0 24px #a783c530;
-}
-body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface::after {
-  content: "";
-  position: absolute;
-  right: 17px;
-  bottom: 8px;
-  width: 42px;
-  height: 31px;
-  background: repeating-linear-gradient(0deg, #a783c870 0 3px, transparent 3px 8px);
-  clip-path: polygon(0 100%, 0 82%, 24% 82%, 24% 62%, 48% 62%, 48% 40%, 72% 40%, 72% 18%, 100% 18%, 100% 100%);
-  opacity: .9;
-  animation: egg-stair-reveal 600ms cubic-bezier(.2,.75,.25,1) both;
 }
 body.egg-demo-calendar-door #interactive-demo .ad-calendar-surface {
   border-color: #a783c880;
   box-shadow: inset 0 0 26px #a783c51f, 0 0 24px #a783c530;
 }
-body.egg-demo-calendar-door #interactive-demo .ad-event-copy {
-  border-color: #a783c8;
-  box-shadow: 0 0 12px #a783c855;
-}
 body.egg-demo-fourth-track #interactive-demo .ad-music-surface {
   border-color: #f0b87880;
   box-shadow: inset 0 0 25px #f0b87819, 0 0 24px #f0b8782f;
 }
-body.egg-demo-fourth-track #interactive-demo .ad-album-art {
-  filter: saturate(.7) brightness(.8);
-  box-shadow: 0 0 0 1px #f0b87880, 0 0 20px #f0b87855;
-}
 body.egg-demo-usage-shadow #interactive-demo .ad-usage-card {
   border-color: #a783c880;
   box-shadow: inset 0 0 24px #a783c51f, 0 0 24px #a783c530;
-}
-body.egg-demo-usage-shadow #interactive-demo .ad-ring {
-  filter: drop-shadow(0 0 8px #a783c8);
-  animation: egg-ring-pulse 1.2s ease-in-out 2;
 }
 body.egg-demo-agent-house-rules #interactive-demo .ad-agent-request {
   border-color: #a783c880;
@@ -1927,18 +1892,6 @@ body.egg-demo-agent-house-rules #interactive-demo .ad-agent-request {
   0%, 100% { opacity: .2; transform: scale(.7) rotate(-12deg); }
   50% { opacity: 1; transform: scale(1.2) rotate(12deg); }
 }
-@keyframes egg-shelf-glow {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
-}
-@keyframes egg-stair-reveal {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: .9; transform: translateY(0); }
-}
-@keyframes egg-ring-pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-}
 @media (prefers-reduced-motion: reduce) {
   body.egg-door .egg-door-hotspot,
   body.egg-key .egg-door-hotspot,
@@ -1947,13 +1900,12 @@ body.egg-demo-agent-house-rules #interactive-demo .ad-agent-request {
   body.egg-lamp .attic-scene::after,
   body.egg-chest .attic-scene::after,
   body.egg-aurio .aurio-sign::after,
-  body.egg-demo-full-shelf #interactive-demo .ad-shelf-wood,
-  body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface::after,
-  body.egg-demo-usage-shadow #interactive-demo .ad-ring {
+  body.egg-demo-full-shelf #interactive-demo .ad-shelf-wood {
     animation: none;
   }
-  body.egg-demo-drawer-stairs #interactive-demo .ad-drawer-surface::after { opacity: .9; }
-  body.egg-demo-empty-house #interactive-demo .ad-desktop { transition: none; }
+  .ad-shelf-wood.has-secret .ad-shelf-key,.ad-destination.is-secret-empty .ad-folder-secret,.ad-usage-cards.is-secret .ad-ring,.ad-usage-cards.is-secret .ad-ring > span,.ad-usage-cards.is-secret .ad-impossible-value,.ad-agent-request.is-remembering .ad-agent-memory { animation:none; }
+  .ad-shelf-wood.has-secret .ad-shelf-key,.ad-destination.is-secret-empty .ad-folder-secret,.ad-usage-cards.is-secret .ad-impossible-value { opacity:1;transform:none; }
+  .ad-usage-cards.is-secret .ad-ring > span { opacity:0; }
 }
 .ad-notch {
   transition:

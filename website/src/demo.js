@@ -28,6 +28,52 @@ const art = (doc) =>
   `<span class="ad-file-art ad-file-${doc.kind}" aria-hidden="true">${doc.kind === "photo" ? "<i></i>" : `<span>${doc.kind === "paper" ? "Ideas para<br>el próximo<br>proyecto." : "Pendiente\n—\nRevisar portada\nEnviar propuesta"}</span><i></i><i></i><i></i>`}</span>`;
 const traffic =
   '<span class="ad-traffic" aria-hidden="true"><i></i><i></i><i></i></span>';
+const mirrorIllustration = () => `
+  <svg class="ad-mirror-scene" viewBox="0 0 640 240" aria-hidden="true" focusable="false">
+    <defs>
+      <linearGradient id="mirror-wall" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#efe3d1"/><stop offset="1" stop-color="#cbb79e"/></linearGradient>
+      <linearGradient id="mirror-glass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#91a2a2"/><stop offset=".55" stop-color="#687878"/><stop offset="1" stop-color="#435052"/></linearGradient>
+      <linearGradient id="mirror-shirt" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#b75a3d"/><stop offset="1" stop-color="#713728"/></linearGradient>
+      <filter id="mirror-soft"><feGaussianBlur stdDeviation="3"/></filter>
+    </defs>
+    <rect width="640" height="240" rx="20" fill="url(#mirror-wall)"/>
+    <path d="M0 198h640v42H0z" fill="#6f5947"/><path d="M0 198h640" stroke="#4f3d31" stroke-width="4"/>
+    <g class="ad-mirror-room">
+      <rect x="35" y="27" width="126" height="145" rx="3" fill="#ddd0bc" stroke="#8e755e" stroke-width="7"/>
+      <rect x="48" y="40" width="100" height="119" fill="#78929a"/>
+      <path d="M98 40v119M48 97h100" stroke="#d9e0d8" stroke-width="5" opacity=".85"/>
+      <circle cx="70" cy="64" r="13" fill="#f3d49a" opacity=".72"/>
+      <rect x="503" y="48" width="91" height="150" rx="4" fill="#4c4238" stroke="#2f2924" stroke-width="7"/>
+      <rect x="516" y="61" width="65" height="137" fill="#312f2b"/>
+      <circle cx="568" cy="129" r="4" fill="#ba9a6d"/>
+      <g class="ad-mirror-presence">
+        <ellipse cx="548" cy="97" rx="15" ry="19" fill="#171817"/>
+        <path d="M519 184c2-45 9-70 29-70s27 25 30 70z" fill="#171817"/>
+        <path d="M535 92c5-9 21-10 27 0" fill="none" stroke="#242523" stroke-width="9" stroke-linecap="round"/>
+      </g>
+      <g class="ad-mirror-plant" transform="translate(445 115)">
+        <path d="M30 83 27 15M28 48 8 31M29 59l22-29" stroke="#49624b" stroke-width="5" fill="none"/>
+        <ellipse cx="7" cy="29" rx="17" ry="8" transform="rotate(34 7 29)" fill="#667d5c"/>
+        <ellipse cx="53" cy="28" rx="19" ry="9" transform="rotate(-38 53 28)" fill="#566f50"/>
+        <ellipse cx="24" cy="14" rx="9" ry="17" transform="rotate(-12 24 14)" fill="#728968"/>
+        <path d="M8 75h44l-7 31H15z" fill="#a86f4e"/>
+      </g>
+      <g class="ad-mirror-self">
+        <ellipse cx="324" cy="209" rx="88" ry="11" fill="#2c2520" opacity=".24" filter="url(#mirror-soft)"/>
+        <path d="M246 218c6-66 25-94 78-94s72 28 78 94z" fill="url(#mirror-shirt)"/>
+        <path d="M299 130q25 27 50 0l-5 31h-40z" fill="#c48365"/>
+        <ellipse cx="324" cy="91" rx="42" ry="49" fill="#d89a78"/>
+        <path d="M280 91c0-40 17-61 49-58 31 3 44 27 37 61-8-7-13-21-13-34-17 11-37 15-64 12z" fill="#3d2b27"/>
+        <path d="M287 81c-8 29 2 54 16 66-25-6-35-26-29-50zM360 72c18 26 11 58-10 76 29-5 40-35 27-65z" fill="#3d2b27"/>
+        <circle cx="308" cy="94" r="3" fill="#382722"/><circle cx="340" cy="94" r="3" fill="#382722"/>
+        <path d="M314 111q10 7 20 0" fill="none" stroke="#9c5e4f" stroke-width="3" stroke-linecap="round"/>
+        <path d="M274 172q50 31 100 0" fill="none" stroke="#d87957" stroke-width="3" opacity=".5"/>
+      </g>
+      <path d="M178 20h277v204H178z" fill="none" stroke="#6d503c" stroke-width="15"/>
+      <path d="M190 32h253v180H190z" fill="none" stroke="#b38a61" stroke-width="5"/>
+      <path d="M205 42 421 198" stroke="#fff" stroke-width="12" opacity=".08"/>
+    </g>
+  </svg>`;
 
 export function mountDemo(element, { locale = document.documentElement.lang || "es" } = {}) {
   if (!element) return { setChapter() {}, setModule() {}, reset() {}, destroy() {} };
@@ -72,6 +118,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   audio.className = "ad-demo-audio";
   let destroyed = false;
   let playRequest = 0;
+  let panelRenderFrame = 0;
   let drag = null;
   let suppressClick = false;
   let returnFocus = null;
@@ -89,7 +136,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         <div class="ad-finder-main"><div class="ad-window-title"><span class="ad-mobile-traffic">${traffic}</span><span class="ad-finder-arrows" aria-hidden="true">${svg("chevron")}${svg("chevron")}</span><strong>Documentos</strong><span class="ad-finder-tools" aria-hidden="true">${svg("grid")}${svg("search")}</span></div><div class="ad-finder-files"></div><div class="ad-finder-bottom"><span class="ad-selection-meta"></span><button type="button" data-action="add">${svg("up")} Subir al estante</button></div></div>
       </section>
       <section class="ad-terminal ad-window" aria-label="Terminal de ejemplo"><div class="ad-terminal-title">${traffic}<span>mi-web — claude</span><span aria-hidden="true">${svg("command", 12)}</span></div><div class="ad-terminal-body"><p><span class="ad-terminal-star">${providerLogo("claude")}</span><b>Claude Code</b><span class="ad-terminal-version">v2.1</span></p><p class="ad-terminal-path">~/proyectos/mi-web</p><p class="ad-terminal-line"><span>❯</span> Publica los cambios de la web</p><div class="ad-terminal-result"></div><button type="button" data-action="agent"><span>${svg("request", 12)}</span> Pedir permiso para continuar <span class="ad-terminal-enter">${svg("enter", 12)}</span></button></div></section>
-      <button type="button" class="ad-destination" data-action="deliver" aria-label="Llevar el archivo del estante a Entregas"><span class="ad-folder-art" aria-hidden="true"></span><span>Entregas</span><small>Carpeta vacía</small></button>
+      <button type="button" class="ad-destination" data-action="deliver" aria-label="Llevar el archivo del estante a Entregas"><span class="ad-folder-art" aria-hidden="true"><i class="ad-folder-secret"></i></span><span>Entregas</span><small>Carpeta vacía</small></button>
       <div class="ad-dock" aria-hidden="true"><span class="ad-dock-finder"><i>⌣</i></span><span class="ad-dock-safari">${svg("safari")}</span><span class="ad-dock-notes"><i></i></span><span class="ad-dock-terminal">${svg("terminal")}</span><span class="ad-dock-divider"></span><span class="ad-dock-folder">${svg("folder")}</span><span class="ad-dock-trash">${svg("trash")}</span></div>
       <div class="ad-screen-label">DEMO · DATOS DE EJEMPLO</div>
     </div>
@@ -174,7 +221,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     const add = element.querySelector("[data-action=add]");
     add.disabled = state.shelf.includes(state.selected);
     add.innerHTML = `${svg(state.shelf.includes(state.selected) ? "check" : "up")} ${state.shelf.includes(state.selected) ? "En el estante" : "Subir al estante"}`;
-    element.querySelector(".ad-destination small").textContent = state.delivered
+    const destination = element.querySelector(".ad-destination");
+    destination.classList.toggle("is-secret-empty", state.delivered.length === docs.length);
+    destination.querySelector("small").textContent = state.delivered
       .length
       ? `${state.delivered.length} ${state.delivered.length === 1 ? "archivo recibido" : "archivos recibidos"}`
       : "Carpeta vacía";
@@ -201,22 +250,25 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     localize(element.querySelector('.ad-terminal'));
   }
   function renderDrawer() {
-    return `<div class="ad-module-surface ad-drawer-surface"><div class="ad-drawer-intro"><span>${svg("drawer", 24)}</span><div><strong>Una barra más tranquila.</strong><p>Guarda juntos los iconos que no necesitas ver.</p></div></div><div class="ad-drawer-bar"><span class="ad-drawer-bar-label">Menú</span><div class="ad-drawer-icons" ${state.drawerExpanded ? "" : "hidden"}><span aria-label="Bluetooth">${svg("bluetooth")}</span><button type="button" data-action="drawer-menu" aria-label="Abrir menú de Drive" aria-expanded="${state.drawerMenu}">${svg("cloud")}</button><span aria-label="Notificaciones">${svg("bell")}</span></div><span class="ad-drawer-divider" aria-hidden="true"></span><span aria-hidden="true">${svg("wifi")}</span><span aria-hidden="true">${svg("battery")}</span><button type="button" data-action="drawer-toggle" aria-expanded="${state.drawerExpanded}">${svg(state.drawerExpanded ? "chevron" : "more")}<span>${state.drawerExpanded ? "Ocultar grupo" : "Mostrar grupo"}</span></button></div>${state.drawerMenu ? `<div class="ad-drawer-menu"><span>${svg("cloud")}</span><div><strong>Drive</strong><small>Actualizado ahora</small></div>${svg("check")}</div>` : ""}</div><div class="ad-panel-footer"><span>Menú de ejemplo · los iconos se guardan en grupo</span></div>`;
+    const secret = state.drawerToggles >= 3;
+    return `<div class="ad-module-surface ad-drawer-surface${secret ? " is-secret" : ""}"><div class="ad-drawer-intro"><span>${svg("drawer", 24)}</span><div><strong>Una barra más tranquila.</strong><p>Guarda juntos los iconos que no necesitas ver.</p></div></div><div class="ad-drawer-bar"><span class="ad-drawer-bar-label">Menú</span><div class="ad-drawer-icons" ${state.drawerExpanded ? "" : "hidden"}><span aria-label="Bluetooth">${svg("bluetooth")}</span><button type="button" data-action="drawer-menu" aria-label="Abrir menú de Drive" aria-expanded="${state.drawerMenu}">${svg("cloud")}</button><span aria-label="Notificaciones">${svg("bell")}</span></div><span class="ad-drawer-divider" aria-hidden="true"></span><span aria-hidden="true">${svg("wifi")}</span><span aria-hidden="true">${svg("battery")}</span><button type="button" data-action="drawer-toggle" aria-expanded="${state.drawerExpanded}">${svg(state.drawerExpanded ? "chevron" : "more")}<span>${state.drawerExpanded ? "Ocultar grupo" : "Mostrar grupo"}</span></button></div><div class="ad-drawer-staircase" aria-hidden="true">${Array.from({ length: 7 }, (_, index) => `<i style="--step:${index}"></i>`).join("")}</div>${state.drawerMenu ? `<div class="ad-drawer-menu"><span>${svg("cloud")}</span><div><strong>Drive</strong><small>Actualizado ahora</small></div>${svg("check")}</div>` : ""}</div><div class="ad-panel-footer"><span>Menú de ejemplo · los iconos se guardan en grupo</span></div>`;
   }
   function renderCalendar() {
+    const secret = state.joinedEvents.length === 2;
     const events = [
       { time: "10:30", until: "11:00", name: "Revisión de diseño", provider: "Google Meet", soon: "En 6 minutos" },
       { time: "12:00", until: "12:30", name: "Café con el equipo", provider: "Zoom", soon: "Más tarde" },
     ];
-    return `<div class="ad-module-surface ad-calendar-surface"><div class="ad-calendar-date"><span>Martes</span><strong>20</strong><small>Octubre</small></div><div class="ad-agenda"><div class="ad-agenda-heading"><strong>Tu agenda</strong><span>Hoy</span></div>${events.map((event, index) => `<div class="ad-event"><time>${event.time}<small>${event.until}</small></time><div class="ad-event-copy"><strong>${event.name}</strong><span>${event.provider} · ${event.soon}</span></div><button type="button" data-action="join" data-event="${index}" aria-label="${index === 0 ? "Unirse a Revisión de diseño" : "Unirse a Café con el equipo"}">${svg(state.joinedEvent === index ? "check" : "video", 15)}<span>${state.joinedEvent === index ? "Listo" : "Unirse"}</span></button></div>`).join("")}</div></div>${state.joinedEvent !== null ? '<p class="ad-meeting-status" role="status">Enlace preparado · videollamada simulada</p>' : ""}<div class="ad-panel-footer"><span>Eventos de ejemplo · Google Meet y Zoom</span></div>`;
+    return `<div class="ad-module-surface ad-calendar-surface${secret ? " is-secret" : ""}"><div class="ad-calendar-date"><span>Martes</span><strong>20</strong><small>Octubre</small></div><div class="ad-agenda"><div class="ad-agenda-heading"><strong>Tu agenda</strong><span>Hoy</span></div>${events.map((event, index) => `<div class="ad-event"><time>${event.time}<small>${event.until}</small></time><div class="ad-event-copy"><strong>${event.name}</strong><span>${event.provider} · ${event.soon}</span></div><button type="button" data-action="join" data-event="${index}" aria-label="${index === 0 ? "Unirse a Revisión de diseño" : "Unirse a Café con el equipo"}">${svg(state.joinedEvent === index ? "check" : "video", 15)}<span>${state.joinedEvent === index ? "Listo" : "Unirse"}</span></button></div>`).join("")}<div class="ad-calendar-convergence" aria-hidden="true"><time>00:00</time><div><strong>La misma sala</strong><span>Sin enlace · sin final</span></div></div></div></div>${state.joinedEvent !== null ? '<p class="ad-meeting-status" role="status">Enlace preparado · videollamada simulada</p>' : ""}<div class="ad-panel-footer"><span>Eventos de ejemplo · Google Meet y Zoom</span></div>`;
   }
   function renderMusic() {
     const track = tracks[state.track];
-    return `<div class="ad-module-surface ad-music-surface"><div class="ad-album-art ad-album-${state.track}" aria-hidden="true"><i></i><span>${["AZOTEA", "LUZ DE<br>TARDE", "ÚLTIMO<br>TRANVÍA"][state.track]}</span></div><div class="ad-music-body"><div class="ad-music-source">${svg("music", 13)}<span>Estudio Altillo</span><small>Ahora suena</small></div><strong class="ad-track-title">${track.title}</strong><span class="ad-track-artist">${track.artist}</span><div class="ad-music-controls"><button type="button" data-action="music-previous" aria-label="Canción anterior">${svg("previous", 18)}</button><button type="button" class="ad-music-play" data-action="music-play" aria-label="${state.playing ? "Pausar" : "Reproducir"}" aria-pressed="${state.playing}">${svg(state.playing ? "pause" : "play", 20)}</button><button type="button" data-action="music-next" aria-label="Siguiente canción">${svg("next", 18)}</button></div><div class="ad-track-progress" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="${track.duration}" aria-valuenow="${state.elapsed}"><i style="transform:scaleX(${track.duration ? state.elapsed / track.duration : 0})"></i></div><div class="ad-track-time"><span>${clockTime(state.elapsed)}</span><span>${clockTime(track.duration)}</span></div></div></div><div class="ad-panel-footer"><span>${state.audioError ? "No se pudo reproducir. Pulsa para reintentar." : "Tres canciones originales · audio real"}</span><span>${state.track + 1} / ${tracks.length}</span></div>`;
+    const secret = state.musicMoves >= 3;
+    return `<div class="ad-module-surface ad-music-surface${secret ? " is-secret" : ""}"><div class="ad-album-stack" aria-hidden="true"><div class="ad-album-hidden"><i></i><span>PISTA<br>04</span></div><div class="ad-album-art ad-album-${state.track}"><i></i><span>${["AZOTEA", "LUZ DE<br>TARDE", "ÚLTIMO<br>TRANVÍA"][state.track]}</span></div></div><div class="ad-music-body"><div class="ad-music-source">${svg("music", 13)}<span>Estudio Altillo</span><small>Ahora suena</small></div><strong class="ad-track-title">${track.title}</strong><span class="ad-track-artist">${track.artist}</span><div class="ad-music-controls"><button type="button" data-action="music-previous" aria-label="Canción anterior">${svg("previous", 18)}</button><button type="button" class="ad-music-play" data-action="music-play" aria-label="${state.playing ? "Pausar" : "Reproducir"}" aria-pressed="${state.playing}">${svg(state.playing ? "pause" : "play", 20)}</button><button type="button" data-action="music-next" aria-label="Siguiente canción">${svg("next", 18)}</button></div><div class="ad-track-progress" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="${track.duration}" aria-valuenow="${state.elapsed}"><i style="transform:scaleX(${track.duration ? state.elapsed / track.duration : 0})"></i></div><div class="ad-track-time"><span>${clockTime(state.elapsed)}</span><span>${clockTime(track.duration)}</span></div></div></div><div class="ad-panel-footer"><span>${state.audioError ? "No se pudo reproducir. Pulsa para reintentar." : "Tres canciones originales · audio real"}</span><span>${state.track + 1} / ${tracks.length}</span></div>`;
   }
   function renderMirror() {
     const haunted = state.mirrorFlips >= 3;
-    return `<div class="ad-module-surface ad-mirror-surface"><div class="ad-mirror-art${haunted ? " is-haunted" : ""}" data-flipped="${state.mirrorFlipped}" role="img" aria-label="Retrato ilustrado de ejemplo"><span class="ad-mirror-window"></span>${haunted ? '<span class="ad-mirror-guest" aria-hidden="true"><i class="ad-mirror-guest-head"></i><i class="ad-mirror-guest-body"></i><i class="ad-mirror-guest-eyes"></i></span>' : ""}<span class="ad-mirror-plant"><i></i><i></i></span><span class="ad-mirror-person"><i class="ad-mirror-head"></i><i class="ad-mirror-hair"></i><i class="ad-mirror-shirt"></i></span></div><div class="ad-mirror-controls"><span>${svg("mirror", 14)}<span>Un vistazo antes de entrar.</span></span><button type="button" data-action="mirror-flip" aria-label="Invertir espejo" aria-pressed="${state.mirrorFlipped}">${svg("flip", 17)}<span>Invertir</span></button></div></div><div class="ad-panel-footer"><span>Vista de ejemplo · cámara apagada</span></div>`;
+    return `<div class="ad-module-surface ad-mirror-surface"><div class="ad-mirror-art${haunted ? " is-haunted" : ""}" data-flipped="${state.mirrorFlipped}" role="img" aria-label="Retrato ilustrado de ejemplo">${mirrorIllustration()}</div><div class="ad-mirror-controls"><span>${svg("mirror", 14)}<span>Un vistazo antes de entrar.</span></span><button type="button" data-action="mirror-flip" aria-label="Invertir espejo" aria-pressed="${state.mirrorFlipped}">${svg("flip", 17)}<span>Invertir</span></button></div></div><div class="ad-panel-footer"><span>Vista de ejemplo · cámara apagada</span></div>`;
   }
   function syncPlayback() {
     if (destroyed) return;
@@ -271,7 +323,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     state.elapsed = 0;
     state.audioError = false;
     ensureTrack();
-    if (state.open === "music") renderPanel();
+    if (state.open === "music") schedulePanelRender("music");
     if (continuePlaying) void playAudio();
   }
   function updateAudioNotice() {
@@ -312,7 +364,8 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     }
     let content = "";
     if (state.open === "shelf") {
-      content = `<div class="ad-shelf-wood" data-dropzone="shelf">${state.shelf.length ? state.shelf.map((id) => `<div class="ad-shelf-tile">${fileButton(getDoc(id), "shelf")}<button type="button" class="ad-remove" data-remove="${id}" aria-label="Retirar ${getDoc(id).name}">${svg("close")}</button></div>`).join("") : `<div class="ad-empty-shelf">${svg("shelf")}<span>Deja aquí lo que vas a usar después.</span><small>Arrastra un archivo desde Documentos</small></div>`}<div class="ad-plank" aria-hidden="true"></div></div><div class="ad-panel-footer"><span>${state.shelf.length ? "Arrástralo a Entregas cuando lo necesites." : "Tus archivos, a un gesto de distancia."}</span>${state.shelf.length ? `<button type="button" data-action="deliver">Llevar a Entregas ${svg("external")}</button>` : ""}</div>`;
+      const secret = state.shelf.length === docs.length;
+      content = `<div class="ad-shelf-wood${secret ? " has-secret" : ""}" data-dropzone="shelf">${state.shelf.length ? state.shelf.map((id) => `<div class="ad-shelf-tile">${fileButton(getDoc(id), "shelf")}<button type="button" class="ad-remove" data-remove="${id}" aria-label="Retirar ${getDoc(id).name}">${svg("close")}</button></div>`).join("") : `<div class="ad-empty-shelf">${svg("shelf")}<span>Deja aquí lo que vas a usar después.</span><small>Arrastra un archivo desde Documentos</small></div>`}<div class="ad-plank" aria-hidden="true"><span class="ad-shelf-key">⌑</span></div></div><div class="ad-panel-footer"><span>${state.shelf.length ? "Arrástralo a Entregas cuando lo necesites." : "Tus archivos, a un gesto de distancia."}</span>${state.shelf.length ? `<button type="button" data-action="deliver">Llevar a Entregas ${svg("external")}</button>` : ""}</div>`;
     } else if (state.open === "drawer") {
       content = renderDrawer();
     } else if (state.open === "calendar") {
@@ -322,7 +375,8 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     } else if (state.open === "mirror") {
       content = renderMirror();
     } else if (state.open === "usage") {
-      content = `<div class="ad-usage-cards">${[
+      const secret = state.usageTaps >= 3;
+      content = `<div class="ad-usage-cards${secret ? " is-secret" : ""}">${[
         {
           name: "Claude",
           mark: providerLogo("claude"),
@@ -344,19 +398,29 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       ]
         .map(
           (p) =>
-            `<div class="ad-usage-card"><div class="ad-usage-main"><div class="ad-ring" style="--used:${p.value}%" role="img" aria-label="${p.name}: ${p.value}% consumido"><span>${p.value}<small>%</small></span></div><div><strong><i class="ad-provider ${p.name === "Codex" ? "ad-provider-codex" : ""}">${p.mark}</i>${p.name}<small>${p.plan}</small></strong><p>Se repone en ${p.reset}</p><em>${p.note}</em></div></div><div class="ad-week"><span>Semana</span><div role="meter" aria-label="Consumo semanal de ${p.name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${p.weekly}"><i style="width:${p.weekly}%"></i></div><b>${p.weekly}%</b></div></div>`,
+            `<div class="ad-usage-card"><div class="ad-usage-main"><div class="ad-ring" style="--used:${p.value}%" role="img" aria-label="${p.name}: ${p.value}% consumido"><span>${p.value}<small>%</small></span><b class="ad-impossible-value">∞</b></div><div><strong><i class="ad-provider ${p.name === "Codex" ? "ad-provider-codex" : ""}">${p.mark}</i>${p.name}<small>${p.plan}</small></strong><p>Se repone en ${p.reset}</p><em>${p.note}</em></div></div><div class="ad-week"><span>Semana</span><div role="meter" aria-label="Consumo semanal de ${p.name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${p.weekly}"><i style="width:${p.weekly}%"></i></div><b>${p.weekly}%</b></div></div>`,
         )
         .join(
           "",
         )}</div><div class="ad-panel-footer"><span>Consumo de ejemplo · función en desarrollo</span><span>Actualizado ahora</span></div>`;
     } else {
       const resolved = ["allowed", "denied"].includes(state.agent);
-      content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}"><div class="ad-agent-heading"><i class="ad-provider">${providerLogo("claude")}</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">${providerLogo("codex")}</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
+      const remembering = state.agentPath.at(-2) === "denied" && state.agent === "allowed";
+      content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}${remembering ? " is-remembering" : ""}"><div class="ad-agent-memory" aria-hidden="true"><span>LA CASA RECUERDA</span><small>NO · SÍ</small></div><div class="ad-agent-heading"><i class="ad-provider">${providerLogo("claude")}</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">${providerLogo("codex")}</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
     }
     const moduleTitles = { shelf: "Altillo", drawer: "Cajón", calendar: "Calendario", music: "Sonando", mirror: "Espejo", usage: "Tu consumo", agents: "Agentes" };
     panel.innerHTML = `<div class="ad-panel-heading"><strong>${["shelf", "drawer", "calendar", "music", "mirror"].includes(state.open) ? svg(state.open) : ""}${moduleTitles[state.open]}</strong><button type="button" data-action="close" aria-label="Cerrar Altillo">${svg("close")}</button></div>${content}`;
     localize(panel);
     updateInstruction();
+  }
+  function schedulePanelRender(expectedView, focusSelector) {
+    cancelAnimationFrame(panelRenderFrame);
+    panelRenderFrame = requestAnimationFrame(() => {
+      panelRenderFrame = 0;
+      if (destroyed || state.open !== expectedView) return;
+      renderPanel();
+      if (focusSelector) panel.querySelector(focusSelector)?.focus({ preventScroll: true });
+    });
   }
   function updateInstruction() {
     const moduleInstructions = {
@@ -500,23 +564,20 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         state.drawerExpanded = !state.drawerExpanded;
         state.drawerToggles += 1;
         if (!state.drawerExpanded) state.drawerMenu = false;
-        renderPanel();
-        panel.querySelector('[data-action="drawer-toggle"]')?.focus({ preventScroll: true });
+        schedulePanelRender("drawer", '[data-action="drawer-toggle"]');
         if (state.drawerToggles === 3) {
           revealDemoEgg("drawer-stairs", "El cajón tiene una escalera que no sale en el plano.", "night");
         }
         break;
       case "drawer-menu":
         state.drawerMenu = !state.drawerMenu;
-        renderPanel();
-        panel.querySelector('[data-action="drawer-menu"]')?.focus({ preventScroll: true });
+        schedulePanelRender("drawer", '[data-action="drawer-menu"]');
         break;
       case "join":
         state.joinedEvent = Number(button.dataset.event);
         if (!state.joinedEvents.includes(state.joinedEvent)) state.joinedEvents.push(state.joinedEvent);
-        renderPanel();
+        schedulePanelRender("calendar", `[data-action="join"][data-event="${state.joinedEvent}"]`);
         announce("Enlace preparado · videollamada simulada");
-        panel.querySelector(`[data-action="join"][data-event="${state.joinedEvent}"]`)?.focus({ preventScroll: true });
         if (state.joinedEvents.length === 2) {
           revealDemoEgg("calendar-door", "Las dos reuniones llevan al mismo sitio.", "night");
         }
@@ -527,8 +588,8 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         break;
       case "music-previous":
       case "music-next":
-        changeTrack(button.dataset.action === "music-next" ? 1 : -1);
         state.musicMoves += 1;
+        changeTrack(button.dataset.action === "music-next" ? 1 : -1);
         announce(tracks[state.track].title);
         panel.querySelector(`[data-action="${button.dataset.action}"]`)?.focus({ preventScroll: true });
         if (state.musicMoves === 3) {
@@ -538,9 +599,10 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       case "mirror-flip":
         state.mirrorFlipped = !state.mirrorFlipped;
         state.mirrorFlips += 1;
-        renderPanel();
-        panel.querySelector('[data-action="mirror-flip"]')?.focus({ preventScroll: true });
+        panel.querySelector('.ad-mirror-art')?.setAttribute('data-flipped', String(state.mirrorFlipped));
+        button.setAttribute('aria-pressed', String(state.mirrorFlipped));
         if (state.mirrorFlips === 3) {
+          panel.querySelector('.ad-mirror-art')?.classList.add('is-haunted');
           revealDemoEgg("mirror-guest", "No estás solo frente al espejo.", "night");
         }
         break;
@@ -548,7 +610,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         clearTimeout(hoverOpenTimer);
         clearTimeout(hoverCloseTimer);
         state.usageTaps += 1;
-        if (state.open === "usage" && pinned) close();
+        if (state.usageTaps === 3) {
+          pinned = true; hoverOpened = false; open("usage");
+        } else if (state.open === "usage" && pinned) close();
         else { pinned = true; hoverOpened = false; open("usage"); }
         if (state.usageTaps === 3) {
           revealDemoEgg("usage-shadow", "Las cifras esconden una habitación más.", "night");
@@ -576,26 +640,24 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         pinned = true; hoverOpened = false;
         state.agent = "waiting";
         renderTerminal();
-        open("agents");
+        if (state.open === "agents") schedulePanelRender("agents", '[data-action="allow"]');
+        else open("agents");
         announce("Claude necesita permiso para continuar.");
-        panel
-          .querySelector("[data-action=allow]")
-          ?.focus({ preventScroll: true });
+        if (state.open === "agents" && !button.closest(".ad-notch-panel")) {
+          panel.querySelector("[data-action=allow]")?.focus({ preventScroll: true });
+        }
         break;
       case "allow":
       case "deny":
         state.agent = button.dataset.action === "allow" ? "allowed" : "denied";
         state.agentPath.push(state.agent);
         renderTerminal();
-        renderPanel();
+        schedulePanelRender("agents", '[data-action="agent"]');
         announce(
           state.agent === "allowed"
             ? "Permiso concedido en la demo."
             : "Acción denegada en la demo.",
         );
-        panel
-          .querySelector("[data-action=agent]")
-          ?.focus({ preventScroll: true });
         if (state.agentPath.at(-2) === "denied" && state.agent === "allowed") {
           revealDemoEgg("agent-house-rules", "La casa recuerda quién dijo que no.", "night");
         }
@@ -752,6 +814,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       document.removeEventListener("pointerdown", outsidePointerDown);
       clearTimeout(hoverOpenTimer);
       clearTimeout(hoverCloseTimer);
+      cancelAnimationFrame(panelRenderFrame);
       cueObserver.disconnect();
       canHover.removeEventListener("change", updateCue);
       cancelDrag();

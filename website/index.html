@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" style="overflow-x: clip">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -23,7 +23,7 @@
     <link rel="preload" as="image" href="/media/mac-door.webp" />
     <title>Altillo — Tu Mac ya tenía un altillo</title>
   </head>
-  <body>
+  <body style="margin: 0; overflow-x: clip">
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <header class="site-header">
       <a class="brand" href="#" aria-label="Altillo, inicio"
@@ -260,14 +260,25 @@
               href="https://www.aurioapp.com"
               aria-label="Conocer Aurio, nuestra app de finanzas"
             >
-              <img
-                class="aurio-mascot"
-                src="/media/aurio-mascot.webp"
-                width="640"
-                height="480"
-                alt="Aurio, nuestra mascota dragón, saluda sentado en un baúl, junto a una hoja y dos libros"
-                loading="lazy"
-              />
+              <span class="aurio-mascot-stage">
+                <img
+                  class="aurio-mascot aurio-mascot-base"
+                  src="/media/aurio-mascot.webp"
+                  width="640"
+                  height="480"
+                  alt="Aurio, nuestra mascota dragón, saluda sentado en un baúl, junto a una hoja y dos libros"
+                  loading="lazy"
+                />
+                <img
+                  class="aurio-mascot aurio-mascot-wink"
+                  src="/media/aurio-mascot-wink.webp"
+                  width="640"
+                  height="480"
+                  alt=""
+                  aria-hidden="true"
+                  loading="lazy"
+                />
+              </span>
               <span class="aurio-label"
                 ><img
                   src="/aurio-symbol.svg"
