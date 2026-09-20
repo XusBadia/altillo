@@ -27,6 +27,14 @@ final class NotchModel {
 
     var shelf: [ShelfItem] = []
     var selection: Set<ShelfItem.ID> = []
+    /// True while dropped data or file promises are still being copied into the Inbox.
+    var isReceivingDrop = false
+    /// Recoverable shelf problem shown in the shelf instead of existing only in the debug log.
+    var shelfProblem: String?
+    var canUndoShelfChange = false
+    var canRedoShelfChange = false
+    var undoShelfTitle = "Deshacer"
+    var redoShelfTitle = "Rehacer"
     /// The drop zone under the pointer during a drag, if any. Zones only light up while the pointer is over them.
     var dropZone: DropZone?
     /// Frames of the drop zones, in the hosting view's coordinates (top-left origin), reported by the views.
@@ -53,7 +61,11 @@ final class NotchModel {
 struct NotchActions {
     var send: (NotchEvent) -> Void = { _ in }
     var remove: (Set<ShelfItem.ID>) -> Void = { _ in }
+    /// Items that physically left during drag-out are not undoable: their destination now owns the move.
+    var removeDeparted: (Set<ShelfItem.ID>) -> Void = { _ in }
     var clearShelf: () -> Void = {}
+    var undo: () -> Void = {}
+    var redo: () -> Void = {}
     var open: (ShelfItem) -> Void = { _ in }
     var revealInFinder: ([ShelfItem]) -> Void = { _ in }
     var quickLook: ([ShelfItem]) -> Void = { _ in }

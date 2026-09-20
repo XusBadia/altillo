@@ -7,9 +7,17 @@ import Testing
 /// Dragging out must never lose the user's files: only the files themselves decide what left the shelf.
 @MainActor
 struct DragOutSafetyTests {
-    private func departed(_ items: [ShelfItem], after operation: NSDragOperation) async -> [ShelfItem] {
+    private func departed(
+        _ items: [ShelfItem],
+        initiallyExisting: Set<ShelfItem.ID>? = nil,
+        after operation: NSDragOperation
+    ) async -> [ShelfItem] {
         await withCheckedContinuation { continuation in
-            ShelfDragSourceView.resolveDeparted(items, after: operation) { _, departed in
+            ShelfDragSourceView.resolveDeparted(
+                items,
+                initiallyExistingFileIDs: initiallyExisting,
+                after: operation
+            ) { _, departed in
                 continuation.resume(returning: departed)
             }
         }
@@ -56,5 +64,30 @@ struct DragOutSafetyTests {
         let url = try makeFile()
         let item = ShelfItem(kind: .file(url, isOwnedCopy: false), displayName: "original.txt")
         #expect(await departed([item], after: []).isEmpty)
+    }
+
+    @Test func referenceThatWasAlreadyOfflineDoesNotDisappearAfterDrag() async {
+        let item = ShelfItem(
+            kind: .file(URL(filePath: "/Volumes/Desconectado/documento.txt"), isOwnedCopy: false),
+            displayName: "documento.txt"
+        )
+
+        #expect(await departed([item], initiallyExisting: [], after: .move).isEmpty)
+    }
+
+    @Test func multiItemMoveRemovesOnlyTheFileThatActuallyMoved() async throws {
+        let movedURL = try makeFile()
+        let keptURL = try makeFile()
+        let moved = ShelfItem(kind: .file(movedURL, isOwnedCopy: false), displayName: "movido.txt")
+        let kept = ShelfItem(kind: .file(keptURL, isOwnedCopy: false), displayName: "conservado.txt")
+        try FileManager.default.moveItem(
+            at: movedURL,
+            to: movedURL.deletingLastPathComponent().appending(path: "destino.txt")
+        )
+
+        let result = await departed([moved, kept], initiallyExisting: [moved.id, kept.id], after: .move)
+
+        #expect(result.map(\.id) == [moved.id])
+        #expect(FileManager.default.fileExists(atPath: keptURL.path))
     }
 }

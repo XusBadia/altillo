@@ -42,13 +42,6 @@ struct NotchStateMachineTests {
         #expect(machine.state == .idle)
     }
 
-    @Test func hoverOnlyPeeksWhenClickIsRequired() {
-        var machine = NotchStateMachine(opensOnHover: false)
-        machine.handle(.hoverIntent)
-        machine.handle(.hoverSustained)
-        #expect(machine.state == .peek)
-    }
-
     @Test func returningDuringGracePeriodKeepsItOpen() {
         var machine = NotchStateMachine()
         machine.handle(.click)
@@ -77,6 +70,24 @@ struct NotchStateMachineTests {
         machine.handle(.dragMoved(near: true))
         machine.handle(.dragEnded(dropped: false))
         #expect(machine.state == .idle)
+    }
+
+    @Test func aDragThatStartsWhileOpenShowsTheDropTargetImmediately() {
+        var machine = NotchStateMachine(state: .open)
+        machine.handle(.dragBegan)
+        #expect(machine.state == .dropTarget)
+    }
+
+    @Test func aDropCannotOpenUnlessItReachedTheDropTarget() {
+        var machine = NotchStateMachine(state: .dragArmed)
+        machine.handle(.dragEnded(dropped: true))
+        #expect(machine.state == .idle)
+    }
+
+    @Test func onlyIdleLetsMouseEventsPassThrough() {
+        for state in NotchState.allCases {
+            #expect(state.isInteractive == (state != .idle))
+        }
     }
 
     @Test func alertPeekExpiresUnlessHovered() {

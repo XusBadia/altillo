@@ -107,15 +107,21 @@ esto:
 |---|---|
 | `idle` | Reposo |
 | `idleWithEars` | Reposo con orejas |
+| `peekHint` | Peek: pista cuando el altillo está vacío |
 | `peekShelf` | Peek: altillo |
 | `peekUsageAlert` | Peek: alerta de uso |
 | `peekAgentWaiting` | Peek: agente esperando |
 | `dragArmed` | Arrastre en curso |
 | `dropTarget` | Zona de soltar |
 | `openShelfEmpty` | Abierto: altillo vacío |
+| `openShelfLoading` | Abierto: guardando una promesa de archivo |
+| `openShelfError` | Abierto: error recuperable al guardar |
 | `openShelf` | Abierto: altillo con archivos |
 | `openUsage` | Abierto: uso de IA |
 | `openAgents` | Abierto: agentes |
+| `openCalendar` | Abierto: agenda |
+| `openMirror` | Abierto: espejo |
+| `openNowPlaying` | Abierto: sonando |
 
 También se puede llegar a los mismos escenarios desde el menú de la barra de
 menú: **Revisión de diseño** lista todos los casos de `DesignScenario` y los

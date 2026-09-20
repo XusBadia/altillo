@@ -370,10 +370,21 @@ private struct DesvanHeaderAccessory: View {
     @ViewBuilder
     private func shelfRow(status: ShelfStatus, clear: ClearButton) -> some View {
         HStack(spacing: 6) {
-            switch status {
-            case .long: shelfStatusLong
-            case .short: shelfStatusShort
-            case .none: EmptyView()
+            if model.isReceivingDrop {
+                Label(status == .long ? "Guardando…" : "…", systemImage: "arrow.down.circle")
+                    .font(Self.caption)
+                    .foregroundStyle(Desvan.Palette.bulb)
+            } else if model.shelfProblem != nil {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Desvan.Palette.warning)
+                    .help(model.shelfProblem ?? "")
+                    .accessibilityLabel(model.shelfProblem ?? "Problema con el altillo")
+            } else {
+                switch status {
+                case .long: shelfStatusLong
+                case .short: shelfStatusShort
+                case .none: EmptyView()
+                }
             }
             switch clear {
             case .word:

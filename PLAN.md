@@ -228,6 +228,13 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - 19 tests en el paquete y 33 en macOS.
   - Revisión independiente del código aplicada.
   - **Pendiente, que haces tú:** la matriz manual de `docs/pruebas-drag-drop.md` en el Mac mini y en el MacBook, y dar el visto bueno a la estética.
+- **Fase 1 (20-09-2026):** implementación terminada y validación automática en verde.
+  - Shelf funcional de extremo a extremo: máquina de estados, recepción de archivos y promesas, drag out seguro, selección, Quick Look, menú y arranque al iniciar sesión.
+  - Persistencia robusta con bookmarks, copias propias recuperables, caducidad, restauración tras wake/cambio de reloj y cuarentena de snapshots corruptos o incompatibles.
+  - Deshacer/rehacer al quitar o vaciar (⌘Z/⇧⌘Z), estados visibles de carga y error, y protección frente a promesas tardías y movimientos parciales.
+  - 23 tests en `AltilloKit` y 98 tests de macOS; ambos conjuntos pasan con Xcode 26.
+  - Rendimiento en reposo medido en Release en el Mac mini: CPU media estable 0,000 % (17 muestras de 1 s) y `phys_footprint` de 20 MB.
+  - **Aceptación manual pendiente:** completar la matriz de `docs/pruebas-drag-drop.md` en el Mac mini y el MacBook y usar Altillo 2-3 días sin NotchNook. No se marca la fase como aceptada hasta completar ambas comprobaciones.
 
 ### Criterios de aceptación clave
 - **0:** los spikes de drag & drop pasan la matriz §8 y el mock visual te convence.

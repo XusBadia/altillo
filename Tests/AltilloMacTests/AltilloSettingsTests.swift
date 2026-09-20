@@ -132,6 +132,30 @@ struct AltilloSettingsTests {
         #expect(settings.launchAtLoginProblem == nil)
     }
 
+    @Test func refreshingLoginStatusMirrorsBothDirectionsWithoutWritingBack() {
+        final class State: @unchecked Sendable {
+            var registered = false
+            var writes: [Bool] = []
+        }
+        let state = State()
+        let settings = AltilloSettings(
+            defaults: Self.makeDefaults(),
+            loginItem: LoginItem(
+                isManaged: true,
+                isRegistered: { state.registered },
+                setRegistered: { state.writes.append($0) }
+            )
+        )
+
+        state.registered = true
+        settings.refreshLaunchAtLogin()
+        #expect(settings.launchAtLogin)
+        state.registered = false
+        settings.refreshLaunchAtLogin()
+        #expect(!settings.launchAtLogin)
+        #expect(state.writes.isEmpty)
+    }
+
     @Test func shelfExpiryKnowsHowLongThingsLast() {
         let day: TimeInterval = 24 * 60 * 60
         #expect(ShelfExpiry.never.duration == nil)

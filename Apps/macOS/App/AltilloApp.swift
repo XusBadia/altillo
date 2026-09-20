@@ -26,6 +26,13 @@ struct AppMenu: View {
         Button("Ajustes…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",", modifiers: .command)
         Divider()
+        Button(coordinator.model.undoShelfTitle) { coordinator.model.actions.undo() }
+            .keyboardShortcut("z", modifiers: .command)
+            .disabled(!coordinator.model.canUndoShelfChange)
+        Button(coordinator.model.redoShelfTitle) { coordinator.model.actions.redo() }
+            .keyboardShortcut("z", modifiers: [.command, .shift])
+            .disabled(!coordinator.model.canRedoShelfChange)
+        Divider()
         Menu("Revisión de diseño") {
             ForEach(DesignScenario.allCases) { scenario in
                 Button(scenario.title) { coordinator.show(scenario) }
@@ -39,6 +46,7 @@ struct AppMenu: View {
         }
         Divider()
         Button("Vaciar el altillo") { coordinator.model.actions.clearShelf() }
+            .disabled(coordinator.model.shelf.isEmpty)
         Divider()
         Button("Salir de Altillo") { NSApp.terminate(nil) }
             .keyboardShortcut("q")

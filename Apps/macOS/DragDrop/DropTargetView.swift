@@ -174,7 +174,12 @@ final class DropTargetView: NSView {
         do {
             let directory = try ingest.makeSlotDirectory()
             receiver.receivePromisedFiles(atDestination: directory, options: [:], operationQueue: Self.promiseQueue,
-                                          reader: Self.reader(continuation, start: .now))
+                                          reader: Self.reader(
+                                              continuation,
+                                              start: .now,
+                                              recoveryRoot: ingest.inboxRoot.deletingLastPathComponent()
+                                                  .appending(path: "Recovery", directoryHint: .isDirectory)
+                                          ))
         } catch {
             SpikeLog.shared.record(SpikeLog.Category.promise, "FALLO creando la carpeta del inbox: \(error.localizedDescription)")
             continuation.finish()
@@ -185,13 +190,31 @@ final class DropTargetView: NSView {
     /// Built outside the main actor: AppKit calls it on `promiseQueue`.
     private nonisolated static func reader(
         _ continuation: AsyncStream<PromiseOutcome>.Continuation,
-        start: ContinuousClock.Instant
+        start: ContinuousClock.Instant,
+        recoveryRoot: URL
     ) -> @Sendable (URL, (any Error)?) -> Void {
         { url, error in
             let elapsed = ContinuousClock.now - start
-            continuation.yield(PromiseOutcome(url: url, error: error?.localizedDescription, elapsed: elapsed))
-            let result = error.map { "FALLO \($0.localizedDescription)" } ?? "ok"
-            SpikeLog.post(SpikeLog.Category.promise, "\(url.lastPathComponent): \(result) en \(milliseconds(elapsed))")
+            let result = continuation.yield(PromiseOutcome(url: url, error: error?.localizedDescription, elapsed: elapsed))
+            if case .terminated = result, error == nil {
+                recoverLatePromise(at: url, under: recoveryRoot)
+            }
+            let logResult = error.map { "FALLO \($0.localizedDescription)" } ?? "ok"
+            SpikeLog.post(SpikeLog.Category.promise, "\(url.lastPathComponent): \(logResult) en \(milliseconds(elapsed))")
+        }
+    }
+
+    /// A provider may finish after the 120 s timeout. Keep that copy recoverable instead of leaking it in Inbox or
+    /// deleting what might be the only exported representation.
+    nonisolated static func recoverLatePromise(at url: URL, under recoveryRoot: URL) {
+        guard FileManager.default.fileExists(atPath: url.path) else { return }
+        do {
+            let slot = recoveryRoot.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+            try FileManager.default.createDirectory(at: slot, withIntermediateDirectories: true)
+            try FileManager.default.moveItem(at: url, to: slot.appending(path: url.lastPathComponent))
+            SpikeLog.post(SpikeLog.Category.promise, "promesa tardía apartada en Recuperación: \(url.lastPathComponent)")
+        } catch {
+            SpikeLog.post(SpikeLog.Category.promise, "FALLO apartando promesa tardía: \(error.localizedDescription)")
         }
     }
 
@@ -201,7 +224,10 @@ final class DropTargetView: NSView {
             guard !Task.isCancelled else { return }
             stream.finish()
         }
-        defer { timer.cancel() }
+        defer {
+            timer.cancel()
+            stream.finish()
+        }
 
         var items: [ShelfItem] = []
         var received = 0

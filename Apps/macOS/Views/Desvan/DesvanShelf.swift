@@ -32,7 +32,7 @@ struct DesvanShelfView: View {
     var body: some View {
         Group {
             if model.shelf.isEmpty {
-                DesvanShelfEmptyState()
+                DesvanShelfEmptyState(isReceiving: model.isReceivingDrop, problem: model.shelfProblem)
                     .transition(.contentSwap(reduceMotion: reduceMotion))
             } else {
                 shelf
@@ -280,7 +280,7 @@ private struct DesvanShelfTile: View {
         .onTapGesture(perform: onClick)
         .shelfDraggable(items: menuItems) { _, departed in
             // Moved to a folder or dropped on the Trash → it's gone from here too. Copied elsewhere → it stays.
-            if !departed.isEmpty { model.actions.remove(Set(departed.map(\.id))) }
+            if !departed.isEmpty { model.actions.removeDeparted(Set(departed.map(\.id))) }
         }
         .contextMenu { contextMenu }
         .onAppear {
@@ -548,6 +548,9 @@ private struct DesvanPostcard: View {
 
 /// «El altillo está vacío.» The bare plank with the house standing on it, and one warm sentence.
 struct DesvanShelfEmptyState: View {
+    var isReceiving = false
+    var problem: String?
+
     var body: some View {
         ZStack(alignment: .top) {
             // The bare board, running wall to wall like the full shelf's.
@@ -556,12 +559,13 @@ struct DesvanShelfEmptyState: View {
             HStack(alignment: .center, spacing: 12) {
                 DesvanHouseMark(size: 26)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("El altillo está vacío.")
+                    Text(title)
                         .font(Desvan.Typeface.display(16, weight: 600))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    Text("Sube aquí lo que quieras tener a mano un rato.")
+                        .foregroundStyle(problem == nil ? Desvan.Palette.paper : Desvan.Palette.warning)
+                    Text(detail)
                         .font(.system(size: 11.5))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .lineLimit(2)
                 }
             }
             .frame(height: DesvanShelfView.plankY)
@@ -569,6 +573,18 @@ struct DesvanShelfEmptyState: View {
         }
         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var title: String {
+        if isReceiving { return "Guardándolo arriba…" }
+        if problem != nil { return "Algo se ha quedado a medias." }
+        return "El altillo está vacío."
+    }
+
+    private var detail: String {
+        if isReceiving { return "Algunas cosas tardan un poco en llegar." }
+        return problem ?? "Sube aquí lo que quieras tener a mano un rato."
     }
 }
 

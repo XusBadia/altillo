@@ -11,6 +11,8 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     case dragArmed
     case dropTarget
     case openShelfEmpty
+    case openShelfLoading
+    case openShelfError
     case openShelf
     case openUsage
     case openAgents
@@ -31,6 +33,8 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .dragArmed: "Arrastre en curso"
         case .dropTarget: "Zona de soltar"
         case .openShelfEmpty: "Abierto: altillo vacío"
+        case .openShelfLoading: "Abierto: guardando una promesa"
+        case .openShelfError: "Abierto: error al guardar"
         case .openShelf: "Abierto: altillo con archivos"
         case .openUsage: "Abierto: uso de IA"
         case .openAgents: "Abierto: agentes"
@@ -46,7 +50,8 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting: .peek
         case .dragArmed: .dragArmed
         case .dropTarget: .dropTarget
-        case .openShelfEmpty, .openShelf, .openUsage, .openAgents, .openCalendar, .openMirror, .openNowPlaying: .open
+        case .openShelfEmpty, .openShelfLoading, .openShelfError, .openShelf, .openUsage, .openAgents,
+             .openCalendar, .openMirror, .openNowPlaying: .open
         }
     }
 

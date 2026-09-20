@@ -126,6 +126,24 @@ struct DropTargetTests {
         let items = try #require(await drop(FakeDraggingInfo(pasteboard: pasteboard, mask: .every), on: makeView()))
         #expect(items.map(\.kind) == [.text("sobrevive")])
     }
+
+    @Test func latePromiseFileIsMovedToRecovery() throws {
+        defer {
+            try? FileManager.default.removeItem(at: root)
+        }
+        let inbox = root.appending(path: "Inbox", directoryHint: .isDirectory)
+        let slot = inbox.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: slot, withIntermediateDirectories: true)
+        let late = slot.appending(path: "prometido-tarde.txt")
+        try Data("tarde".utf8).write(to: late)
+        let recovery = root.appending(path: "Recovery", directoryHint: .isDirectory)
+
+        DropTargetView.recoverLatePromise(at: late, under: recovery)
+
+        #expect(!FileManager.default.fileExists(atPath: late.path))
+        let recovered = try FileManager.default.subpathsOfDirectory(atPath: recovery.path)
+        #expect(recovered.contains { $0.hasSuffix("prometido-tarde.txt") })
+    }
 }
 
 final class FakeDraggingInfo: NSObject, NSDraggingInfo {

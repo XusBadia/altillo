@@ -8,7 +8,7 @@ import Quartz
 @MainActor
 enum QuickLookPresenter {
     static func show(_ urls: [URL]) {
-        let urls = urls.filter { FileManager.default.fileExists(atPath: $0.path) }
+        let urls = existingURLs(in: urls)
         guard !urls.isEmpty, let panel = QLPreviewPanel.shared() else {
             SpikeLog.shared.record(SpikeLog.Category.quickLook, "nada que previsualizar")
             return
@@ -34,7 +34,11 @@ enum QuickLookPresenter {
     private static let source = Source()
     private static var closeObserver: NSObjectProtocol?
 
-    private final class Source: NSObject, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
+    static func existingURLs(in urls: [URL]) -> [URL] {
+        urls.filter { FileManager.default.fileExists(atPath: $0.path) }
+    }
+
+    final class Source: NSObject, QLPreviewPanelDataSource, QLPreviewPanelDelegate {
         var urls: [URL] = []
 
         func numberOfPreviewItems(in panel: QLPreviewPanel!) -> Int {

@@ -14,6 +14,8 @@ extension NotchModel {
         model.scenario = scenario
         model.module = scenario.module
         model.shelf = scenario.showsDemoShelf ? model.demo.shelfItems : []
+        model.isReceivingDrop = scenario == .openShelfLoading
+        model.shelfProblem = scenario == .openShelfError ? "No he podido guardar lo que has soltado. Puedes volver a intentarlo." : nil
         model.state = scenario.state
         return model
     }
@@ -82,6 +84,8 @@ private struct PreviewMenuBar: View {
     return NotchPreviewStage(model: model)
 }
 #Preview("Abierto: altillo vacío") { NotchPreviewStage(model: .preview(.openShelfEmpty)) }
+#Preview("Abierto: guardando") { NotchPreviewStage(model: .preview(.openShelfLoading)) }
+#Preview("Abierto: error") { NotchPreviewStage(model: .preview(.openShelfError)) }
 #Preview("Abierto: altillo con archivos") { NotchPreviewStage(model: .preview(.openShelf)) }
 #Preview("Abierto: uso de IA") { NotchPreviewStage(model: .preview(.openUsage)) }
 #Preview("Abierto: agentes") { NotchPreviewStage(model: .preview(.openAgents)) }

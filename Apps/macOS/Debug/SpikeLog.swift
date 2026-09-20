@@ -21,6 +21,7 @@ final class SpikeLog {
         static let promise = "promise"
         static let dragOut = "drag-out"
         static let quickLook = "quicklook"
+        static let shelf = "shelf"
     }
 
     struct Entry: Identifiable {
@@ -159,6 +160,7 @@ struct SpikeLogView: View {
             case SpikeLog.Category.ingest: .orange
             case SpikeLog.Category.promise: .purple
             case SpikeLog.Category.dragOut: .pink
+            case SpikeLog.Category.shelf: .yellow
             default: .secondary
             }
         }

@@ -100,6 +100,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
     var onEnded: (NSDragOperation, [ShelfItem]) -> Void = { _, _ in }
 
     private var draggedItems: [ShelfItem] = []
+    private var initiallyExistingFileIDs: Set<ShelfItem.ID> = []
 
     /// Never the target of clicks: SwiftUI keeps handling taps, selection and context menus on the tile.
     override func hitTest(_ point: NSPoint) -> NSView? { nil }
@@ -124,6 +125,10 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         let draggingItems = Self.draggingItems(for: items, at: convert(event.locationInWindow, from: nil))
         guard !draggingItems.isEmpty else { return false }
         draggedItems = items
+        initiallyExistingFileIDs = Set(items.compactMap { item in
+            guard let url = item.fileURL, FileManager.default.fileExists(atPath: url.path) else { return nil }
+            return item.id
+        })
         // Before the session writes the drag pasteboard, so DragDetector never reports our own drag as incoming.
         DragDetector.isOwnDragInProgress = true
         let session = beginDraggingSession(with: draggingItems, event: event, source: self)
@@ -160,11 +165,13 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
     func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
         DragDetector.isOwnDragInProgress = false
         let items = draggedItems
+        let initiallyExisting = initiallyExistingFileIDs
         draggedItems = []
+        initiallyExistingFileIDs = []
         SpikeLog.shared.record(SpikeLog.Category.dragOut,
                                "fin: operación \(operation.logDescription) en (\(Int(screenPoint.x)), \(Int(screenPoint.y))) · \(items.count) ítem(s)")
         releaseSwiftUIPress()
-        Self.resolveDeparted(items, after: operation, then: onEnded)
+        Self.resolveDeparted(items, initiallyExistingFileIDs: initiallyExisting, after: operation, then: onEnded)
     }
 
     // MARK: - Helpers
@@ -189,6 +196,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
     /// - Text and links never leave: dragging them out always copies.
     static func resolveDeparted(
         _ items: [ShelfItem],
+        initiallyExistingFileIDs: Set<ShelfItem.ID>? = nil,
         after operation: NSDragOperation,
         then onEnded: @escaping (NSDragOperation, [ShelfItem]) -> Void
     ) {
@@ -200,11 +208,12 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
             try? await Task.sleep(for: .milliseconds(500))
             var departed: [ShelfItem] = []
             var toRecycle: [URL] = []
+            let initiallyExisting = initiallyExistingFileIDs ?? Set(items.compactMap { $0.fileURL == nil ? nil : $0.id })
             for item in items {
-                guard let url = item.fileURL else { continue }
+                guard let url = item.fileURL, initiallyExisting.contains(item.id) else { continue }
                 let exists = FileManager.default.fileExists(atPath: url.path)
                 SpikeLog.shared.record(SpikeLog.Category.dragOut, "\(url.lastPathComponent): existe después: \(exists ? "sí" : "no") · \(url.path)")
-                if !exists {
+                if !exists, operation == .move || operation == .delete {
                     departed.append(item)
                 } else if operation == .delete {
                     toRecycle.append(url)
