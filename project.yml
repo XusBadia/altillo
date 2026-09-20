@@ -33,6 +33,7 @@ targets:
     sources:
       - Apps/macOS
       - Apps/Shared/Assets.xcassets
+      - Apps/Shared/AppIcon.icon
     dependencies:
       - package: AltilloKit
         product: AltilloCore
@@ -100,6 +101,7 @@ targets:
     sources:
       - Apps/iOS
       - Apps/Shared/Assets.xcassets
+      - Apps/Shared/AppIcon.icon
     dependencies:
       - package: AltilloKit
         product: AltilloCore
