@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
+  <title id="title">Altillo</title>
+  <desc id="description">Marca de Altillo formada por dos piezas: un ático naranja sobre una base marfil.</desc>
+  <rect width="1024" height="1024" fill="#171411"/>
   <path
-    fill="#000"
+    id="attic"
+    fill="#FFB547"
     d="M218 521 377 252c24-41 70-59 110-48 15 4 25 17 25 32v28c0 17 10 29 25 29s25-12 25-29v-28c0-15 10-28 25-32 40-11 86 7 110 48l159 269H667L558 342c-21-36-71-36-92 0L357 521Z"
   />
   <path
-    fill="#000"
+    id="loft"
+    fill="#F6EFE3"
     d="M211 537h133l-66 105c-18 29 2 54 40 54h388c38 0 58-25 40-54l-66-105h133l44 71c59 95-9 196-108 196H275c-99 0-167-101-108-196Z"
   />
 </svg>
