@@ -152,3 +152,10 @@ A few GPL-licensed notch apps (boring.notch, Ice, Thaw, MewNotch, Atoll) were
 read for research and are cited in [PLAN.md](PLAN.md) and
 [docs/investigacion.md](docs/investigacion.md) — their code is **not** reused,
 since Altillo is MIT-licensed.
+
+## Security
+
+Altillo needs no API keys, and this repository never contains secrets: signing
+material and local config are git-ignored, a pre-commit hook and CI scan every
+commit with gitleaks, and provider credentials are read from your own Keychain
+at runtime and never leave your Mac. See [CONTRIBUTING.md](CONTRIBUTING.md#secrets).

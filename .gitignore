@@ -9,9 +9,21 @@ build/
 .swiftpm/
 *.xcresult
 
-# Local config (team, bundle ids, containers)
-Config/Local.xcconfig
 
 # macOS
 .DS_Store
 .claude/worktrees/
+
+# Secrets and signing material — never commit these
+Config/Local.xcconfig
+*.p8
+*.p12
+*.pem
+*.key
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+.env
+.env.*
+secrets/

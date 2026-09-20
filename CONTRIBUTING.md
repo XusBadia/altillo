@@ -88,3 +88,15 @@ every pull request.
   to `project.yml`.
 - Don't commit `Config/Local.xcconfig`, `Altillo.xcodeproj`, `build/`, or
   other generated/local files — they're git-ignored on purpose.
+
+## Secrets
+
+Altillo never needs an API key to run, and the repository must never contain one.
+
+- `Config/Local.xcconfig` (team ID, bundle prefix, signing identity) is git-ignored. Copy `Config/Local.xcconfig.example` and fill in your own values.
+- Signing material (`.p8`, `.p12`, `.pem`, `.cer`, `.mobileprovision`, `.provisionprofile`) and `.env` files are git-ignored too.
+- The APNs key used for Live Activities (phase 6) is read from the user's Keychain at runtime. It is never bundled, printed or committed.
+- Provider credentials (Claude, Codex…) are read from the user's own Keychain/config files and never leave the Mac.
+- Run `script/install-git-hooks.sh` once (needs `brew install gitleaks`): it installs a pre-commit hook that refuses to commit a secret. CI runs the same scan over the full history on every push and pull request.
+
+If a secret ever does land in the history, treat it as leaked: rotate it first, then rewrite the history.
