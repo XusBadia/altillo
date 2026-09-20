@@ -1,20 +1,17 @@
 import "./demo.css";
 import { createDemoCopy } from "./demo-copy.js";
 
-const paths = {
-  shelf: '<path d="m3 10 9-7 9 7v10H3Z"/><path d="M8 20v-8h8v8"/>',
-  folder: '<path d="M3 6h7l2 3h9v11H3Z"/>',
-  chevron: '<path d="m14 5-7 7 7 7"/>',
-  grid: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
-  check: '<path d="m5 12 4 4L19 6"/>',
-  close: '<path d="m6 6 12 12M6 18 18 6"/>',
-  reset: '<path d="M3 10a9 9 0 1 1 1 8M3 4v6h6"/>',
-  up: '<path d="M12 20V4m-6 6 6-6 6 6"/>',
-  external: '<path d="M7 17 17 7M7 7h10v10"/>',
-  search: '<circle cx="10" cy="10" r="6"/><path d="m15 15 5 5"/>',
+const icons = {
+  shelf: "house", folder: "folder", chevron: "chevron-left",
+  grid: "layout-grid", check: "check", close: "x", reset: "rotate-ccw",
+  up: "arrow-up", external: "arrow-up-right", search: "search",
+  recent: "clock", desktop: "monitor", downloads: "download", laptop: "laptop",
+  safari: "compass", terminal: "terminal", trash: "trash-2",
+  wifi: "wifi", battery: "battery-medium", command: "command", star: "asterisk",
+  request: "corner-down-right", enter: "corner-down-left",
 };
-const svg = (name) =>
-  `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths[name] || paths.folder}</svg>`;
+const svg = (name, size = 18) =>
+  `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><use href="/icons.svg#${icons[name] || icons.folder}"></use></svg>`;
 const sampleDocs = [
   { id: "ideas", name: "Ideas.pdf", kind: "paper", meta: "PDF · 240 KB" },
   { id: "photo", name: "Escapada.jpg", kind: "photo", meta: "JPEG · 2,4 MB" },
@@ -49,19 +46,19 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   element.innerHTML = `
     <div class="ad-desktop" aria-label="Escritorio Mac de demostración">
       <div class="ad-wallpaper" aria-hidden="true"></div>
-      <div class="ad-menubar" aria-hidden="true"><div><span class="ad-apple">●</span><b>Finder</b><span>Archivo</span><span>Edición</span><span>Visualización</span></div><div><span>⌁</span><span>◧</span><span>Mar 10:24</span></div></div>
+      <div class="ad-menubar" aria-hidden="true"><div><span class="ad-apple">●</span><b>Finder</b><span>Archivo</span><span>Edición</span><span>Visualización</span></div><div><span>${svg("wifi", 14)}</span><span>${svg("battery", 16)}</span><span>Mar 10:24</span></div></div>
       <div class="ad-notch" data-open="false">
         <div class="ad-notch-bar"><button type="button" data-action="usage" class="ad-usage-trigger" aria-label="Ver consumo de Claude y Codex" aria-expanded="false"><span class="ad-tiny-ring"></span><span>85</span></button><span class="ad-camera" aria-hidden="true"></span><button type="button" data-action="shelf" class="ad-shelf-trigger" aria-label="Abrir estante" aria-expanded="false">${svg("shelf")}<span>0</span></button></div>
         <div class="ad-notch-panel" hidden></div>
       </div>
-      <button type="button" class="ad-notch-cue" data-action="shelf" aria-label="Abrir Altillo"><span aria-hidden="true">↑</span><span class="ad-cue-label">${canHover.matches ? "Acerca el cursor aquí" : "Toca para abrir"}</span></button>
+      <button type="button" class="ad-notch-cue" data-action="shelf" aria-label="Abrir Altillo">${svg("up")}<span class="ad-cue-label">${canHover.matches ? "Acerca el cursor aquí" : "Toca para abrir"}</span></button>
       <section class="ad-finder ad-window" aria-label="Finder: documentos de ejemplo">
-        <div class="ad-finder-sidebar"><div class="ad-sidebar-traffic">${traffic}</div><small>Favoritos</small><span>◷ &nbsp; Recientes</span><span>▣ &nbsp; Escritorio</span><span class="is-current">${svg("folder")} Documentos</span><span>↓ &nbsp; Descargas</span><small>Ubicaciones</small><span>▱ &nbsp; Mi Mac</span></div>
+        <div class="ad-finder-sidebar"><div class="ad-sidebar-traffic">${traffic}</div><small>Favoritos</small><span>${svg("recent")} Recientes</span><span>${svg("desktop")} Escritorio</span><span class="is-current">${svg("folder")} Documentos</span><span>${svg("downloads")} Descargas</span><small>Ubicaciones</small><span>${svg("laptop")} Mi Mac</span></div>
         <div class="ad-finder-main"><div class="ad-window-title"><span class="ad-mobile-traffic">${traffic}</span><span class="ad-finder-arrows" aria-hidden="true">${svg("chevron")}${svg("chevron")}</span><strong>Documentos</strong><span class="ad-finder-tools" aria-hidden="true">${svg("grid")}${svg("search")}</span></div><div class="ad-finder-files"></div><div class="ad-finder-bottom"><span class="ad-selection-meta"></span><button type="button" data-action="add">${svg("up")} Subir al estante</button></div></div>
       </section>
-      <section class="ad-terminal ad-window" aria-label="Terminal de ejemplo"><div class="ad-terminal-title">${traffic}<span>mi-web — claude</span><span aria-hidden="true">⌘</span></div><div class="ad-terminal-body"><p><span class="ad-terminal-star">✳</span><b>Claude Code</b><span class="ad-terminal-version">v2.1</span></p><p class="ad-terminal-path">~/proyectos/mi-web</p><p class="ad-terminal-line"><span>❯</span> Publica los cambios de la web</p><div class="ad-terminal-result"></div><button type="button" data-action="agent"><span>↳</span> Pedir permiso para continuar <span class="ad-terminal-enter">↵</span></button></div></section>
+      <section class="ad-terminal ad-window" aria-label="Terminal de ejemplo"><div class="ad-terminal-title">${traffic}<span>mi-web — claude</span><span aria-hidden="true">${svg("command", 12)}</span></div><div class="ad-terminal-body"><p><span class="ad-terminal-star">${svg("star")}</span><b>Claude Code</b><span class="ad-terminal-version">v2.1</span></p><p class="ad-terminal-path">~/proyectos/mi-web</p><p class="ad-terminal-line"><span>❯</span> Publica los cambios de la web</p><div class="ad-terminal-result"></div><button type="button" data-action="agent"><span>${svg("request", 12)}</span> Pedir permiso para continuar <span class="ad-terminal-enter">${svg("enter", 12)}</span></button></div></section>
       <button type="button" class="ad-destination" data-action="deliver" aria-label="Llevar el archivo del estante a Entregas"><span class="ad-folder-art" aria-hidden="true"></span><span>Entregas</span><small>Carpeta vacía</small></button>
-      <div class="ad-dock" aria-hidden="true"><span class="ad-dock-finder"><i>⌣</i></span><span class="ad-dock-safari">◈</span><span class="ad-dock-notes"><i></i></span><span class="ad-dock-terminal">&gt;_</span><span class="ad-dock-divider"></span><span class="ad-dock-folder">${svg("folder")}</span><span class="ad-dock-trash">▤</span></div>
+      <div class="ad-dock" aria-hidden="true"><span class="ad-dock-finder"><i>⌣</i></span><span class="ad-dock-safari">${svg("safari")}</span><span class="ad-dock-notes"><i></i></span><span class="ad-dock-terminal">${svg("terminal")}</span><span class="ad-dock-divider"></span><span class="ad-dock-folder">${svg("folder")}</span><span class="ad-dock-trash">${svg("trash")}</span></div>
       <div class="ad-screen-label">DEMO · DATOS DE EJEMPLO</div>
     </div>
     <div class="ad-demo-caption"><p class="ad-instruction"></p><button type="button" data-action="reset" aria-label="Reiniciar demo">${svg("reset")}<span>Reiniciar</span></button></div>
@@ -155,10 +152,10 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
             : "<p>✓ Cambios preparados</p><p>· Necesito permiso para ejecutar git push.</p>";
     button.innerHTML =
       state.agent === "waiting"
-        ? '<span>↳</span> Ver solicitud en Altillo <span class="ad-terminal-enter">↵</span>'
+        ? `<span>${svg("request", 12)}</span> Ver solicitud en Altillo <span class="ad-terminal-enter">${svg("enter", 12)}</span>`
         : state.agent === "idle"
-          ? '<span>↳</span> Pedir permiso para continuar <span class="ad-terminal-enter">↵</span>'
-          : '<span>↳</span> Probar otra solicitud <span class="ad-terminal-enter">↵</span>';
+          ? `<span>${svg("request", 12)}</span> Pedir permiso para continuar <span class="ad-terminal-enter">${svg("enter", 12)}</span>`
+          : `<span>${svg("request", 12)}</span> Probar otra solicitud <span class="ad-terminal-enter">${svg("enter", 12)}</span>`;
     localize(element.querySelector('.ad-terminal'));
   }
   function renderPanel() {
@@ -186,7 +183,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       content = `<div class="ad-usage-cards">${[
         {
           name: "Claude",
-          mark: "✳",
+          mark: svg("star"),
           value: 85,
           weekly: 41,
           reset: "1 h 11 min",
@@ -195,7 +192,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         },
         {
           name: "Codex",
-          mark: "&gt;_",
+          mark: svg("terminal"),
           value: 34,
           weekly: 58,
           reset: "3 h 4 min",
@@ -212,7 +209,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         )}</div><div class="ad-panel-footer"><span>Consumo de ejemplo · función en desarrollo</span><span>Actualizado ahora</span></div>`;
     } else {
       const resolved = ["allowed", "denied"].includes(state.agent);
-      content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}"><div class="ad-agent-heading"><i class="ad-provider">✳</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">&gt;_</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
+      content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}"><div class="ad-agent-heading"><i class="ad-provider">${svg("star")}</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">${svg("terminal")}</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
     }
     panel.innerHTML = `<div class="ad-panel-heading"><strong>${state.open === "shelf" ? `${svg("shelf")} Altillo` : state.open === "usage" ? "Tu consumo" : "Agentes"}</strong><button type="button" data-action="close" aria-label="Cerrar Altillo">${svg("close")}</button></div>${content}`;
     localize(panel);

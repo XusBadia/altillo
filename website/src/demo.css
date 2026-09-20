@@ -206,11 +206,19 @@
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
-.ad-notch-cue span {
+.ad-notch-cue > svg {
   display: block;
-  margin-bottom: 5px;
+  width: 18px;
+  height: 18px;
+  margin: 0 auto 5px;
   opacity: 0.6;
-  font-size: 18px;
+}
+.ad-menubar svg,
+.ad-terminal-title svg,
+.ad-terminal-body > button svg,
+.ad-terminal-star svg {
+  display: block;
+  flex-shrink: 0;
 }
 .ad-notch-cue[hidden],
 .ad-notch-panel[hidden] {
@@ -1783,11 +1791,12 @@
   cursor: pointer;
 }
 .ad-notch-cue .ad-cue-label {
+  display: block;
   margin: 0;
   font: inherit;
   opacity: 1;
 }
-.ad-cue-introduced > span:first-child {
+.ad-cue-introduced > svg:first-child {
   animation: ad-cue-point 650ms cubic-bezier(.2,.75,.25,1) 180ms 1 both;
 }
 @keyframes ad-cue-point {
@@ -1795,7 +1804,7 @@
   50% { transform: translateY(-5px); opacity: 1; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ad-cue-introduced > span:first-child { animation: none; }
+  .ad-cue-introduced > svg:first-child { animation: none; }
 }
 .ad-file-notes > span { white-space: pre; }
 @media (max-width: 600px) {

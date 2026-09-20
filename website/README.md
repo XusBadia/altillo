@@ -63,7 +63,9 @@ El indicador del notch abre el consumo ficticio de Claude y Codex. La terminal p
 
 Todo sucede con archivos y datos ficticios en memoria. La demo no abre ni sube archivos personales, no conecta cuentas y no envía solicitudes a servicios para realizar las acciones simuladas. La carga de la página solo necesita sus recursos estáticos. Los enlaces externos conducen a GitHub y Aurio.
 
-El scroll es nativo. La película se dibuja en un canvas a partir de fotogramas del vídeo de Grok, sin autoplay ni saltos de búsqueda de vídeo en Safari. Solo se conservan 20 fotogramas decodificados y se descargan hasta cuatro en paralelo. Con `prefers-reduced-motion: reduce` o ahorro de datos, se mantiene la imagen estática y no se descargan los fotogramas. Si falla la carga inicial, la explicación conserva su posición normal. El contenido permanece visible sin JavaScript, aunque la demo requiere activarlo.
+El scroll es nativo. La película conserva los 24 fps de Grok, con 240 fotogramas en canvas y una suavización breve del avance visual, sin alterar el desplazamiento de la página. Se precargan imágenes comprimidas y se conservan solo 24 fotogramas decodificados, con hasta cuatro cargas simultáneas. Las descargas en curso no se cancelan al mover el scroll y las imágenes se reutilizan al retroceder. Con `prefers-reduced-motion: reduce` o ahorro de datos, se mantiene la imagen estática y no se descargan los fotogramas. Si falla la carga inicial, la explicación conserva su posición normal. El contenido permanece visible sin JavaScript, aunque la demo requiere activarlo.
+
+Los iconos utilizan Lucide. `scripts/build-icons.mjs` genera un sprite SVG con los símbolos usados, durante `predev` y `prebuild`. Los iconos de la página funcionan también sin JavaScript. La licencia se sirve en `public/lucide-LICENSE.txt`.
 
 El consumo de IA y los agentes son prototipos en desarrollo, no integraciones disponibles. La app requiere macOS 26 o posterior; la web no requiere macOS. GitHub permite consultar el proyecto mientras no haya una descarga publicada.
 
@@ -74,7 +76,7 @@ Se reutilizaron imágenes de marca de Altillo y se creó una ilustración de la 
 | Recurso servido | Origen |
 | --- | --- |
 | `public/media/mac-door.webp` | `../promo/public/film/01-door.png`, convertido a WebP |
-| `public/media/hero-sequence/` | 120 fotogramas de un vídeo nuevo de Grok; original y prompts documentados en `../docs/hero-film-production.md` |
+| `public/media/hero-sequence/` | 240 fotogramas a 24 fps de un vídeo de Grok; original y prompts documentados en `../docs/hero-film-production.md` |
 | `public/media/attic.webp` | `../promo/public/film/02-attic.png`, convertido a WebP |
 | `public/altillo-icon.png` | Versión de 128 px del máster canónico: `../Apps/Shared/Assets.xcassets/AppIcon.appiconset/AppIcon-128.png` |
 | `public/aurio-symbol.svg` | Símbolo oficial del repositorio vecino `aurio/apps/web/public/logo.svg` |

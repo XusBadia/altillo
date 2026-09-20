@@ -103,3 +103,41 @@ test("a missing film leaves the poster and the following content usable", async 
   await expect(page.getByRole("heading", { name: "Un Mac. Tu turno." })).toBeInViewport();
   expect(errors).toEqual([]);
 });
+
+test("delayed frames never reverse a forward swipe and are reused on the way back", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "no-preference" });
+  const requests = new Map();
+  await page.route("**/hero-sequence/frame-*.webp", async (route) => {
+    const url = route.request().url();
+    requests.set(url, (requests.get(url) || 0) + 1);
+    // Out-of-order arrivals reproduce a variable mobile connection.
+    const index = Number(url.match(/frame-(\d+)/)[1]);
+    await new Promise((resolve) => setTimeout(resolve, index % 5 === 0 ? 65 : 15));
+    await route.continue();
+  });
+  await page.goto("/");
+  const canvas = page.locator(".hero-canvas");
+  await expect(canvas).toHaveAttribute("data-frame", "0");
+  const seen = await page.evaluate(() => new Promise((resolve) => {
+    const canvas = document.querySelector(".hero-canvas");
+    const hero = document.querySelector(".hero");
+    const travel = hero.offsetHeight - hero.querySelector(".hero-stage").offsetHeight;
+    const start = performance.now();
+    const seen = [];
+    function step(now) {
+      const progress = Math.min(1, (now - start) / 1400);
+      scrollTo({ top: travel * progress * 0.7, behavior: "instant" });
+      seen.push(Number(canvas.dataset.frame));
+      if (progress < 1) requestAnimationFrame(step);
+      else resolve(seen);
+    }
+    requestAnimationFrame(step);
+  }));
+  expect(seen.at(-1)).toBeGreaterThan(120);
+  expect(seen.every((value, index) => index === 0 || value >= seen[index - 1])).toBe(true);
+  await scrollThroughHero(page, 0.94);
+  await expect(canvas).toHaveAttribute("data-frame", "239");
+  await scrollThroughHero(page, 0);
+  await expect(canvas).toHaveAttribute("data-frame", "0");
+  expect(Math.max(...requests.values())).toBe(1);
+});

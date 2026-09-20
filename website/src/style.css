@@ -53,43 +53,12 @@ p {
 button {
   cursor: pointer;
 }
-.icon-arrow {
-  position: relative;
+.site-icon {
   display: inline-block;
   width: 1em;
   height: 1em;
   flex: 0 0 auto;
-  color: currentColor;
-}
-.icon-arrow::before,
-.icon-arrow::after {
-  content: "";
-  position: absolute;
-  display: block;
-}
-.icon-arrow::before {
-  left: 15%;
-  right: 15%;
-  top: calc(50% - 0.75px);
-  border-top: 1.5px solid currentColor;
-}
-.icon-arrow::after {
-  width: 0.38em;
-  height: 0.38em;
-  right: 15%;
-  top: calc(50% - 0.19em);
-  border-top: 1.5px solid currentColor;
-  border-right: 1.5px solid currentColor;
-  transform: rotate(45deg);
-}
-.icon-arrow-ne {
-  transform: rotate(-45deg);
-}
-.icon-arrow-se {
-  transform: rotate(45deg);
-}
-.icon-arrow-s {
-  transform: rotate(90deg);
+  vertical-align: -0.125em;
 }
 .section-shell {
   width: min(1440px, calc(100% - 112px));
@@ -245,6 +214,10 @@ button {
     transform 220ms var(--ease),
     background 220ms;
 }
+.round-arrow .site-icon {
+  width: 20px;
+  height: 20px;
+}
 .round-link:hover .round-arrow {
   transform: rotate(-10deg);
   background: #efbb7e;
@@ -269,7 +242,7 @@ button {
   letter-spacing: 1.8px;
   color: #d4c8ba;
 }
-.hero-index > span {
+.hero-index > .site-icon {
   display: inline-block;
   margin-left: 40px;
   font-size: 19px;
@@ -322,15 +295,15 @@ h2 {
   padding: 16px 0 10px;
   min-height: 44px;
 }
-.text-link > span {
+.text-link > .site-icon {
   font-size: 17px;
   transition: transform 160ms;
 }
-.text-link:hover > span {
+.text-link:hover > .site-icon {
   transform: translate(2px, -2px);
 }
 .experience {
-  padding-top: 40px;
+  padding-top: 72px;
   scroll-margin-top: 30px;
 }
 .experience-header {
@@ -338,8 +311,8 @@ h2 {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 26px;
-  margin-bottom: 30px;
+  padding-bottom: 28px;
+  margin-bottom: 36px;
 }
 .experience-header h2 {
   font-size: 20px;
@@ -402,13 +375,13 @@ h2 {
   color: #797b71;
   margin-top: 25px;
 }
-.step-tip > span {
+.step-tip > .site-icon {
   color: #d8b081;
   margin-right: 7px;
 }
 .demo-sticky {
   position: sticky;
-  top: calc((100vh - 590px) / 2);
+  top: max(24px, calc((100svh - 590px) / 2));
   margin-top: 20px;
   min-width: 0;
   align-self: start;
@@ -417,8 +390,9 @@ h2 {
   display: flex;
   align-items: center;
   gap: 15px;
-  padding: 18px 4px;
+  padding: 20px 4px;
   font-size: 8px;
+  line-height: 1.5;
   letter-spacing: 1.6px;
   color: #999b90;
 }
@@ -570,7 +544,7 @@ h2 {
     grid-template-columns: minmax(190px, 0.75fr) minmax(0, 2fr);
   }
   .demo-sticky {
-    top: 15vh;
+    top: max(24px, calc((100svh - 590px) / 2));
   }
   .story-step {
     min-height: 70vh;
@@ -724,7 +698,7 @@ h2 {
     max-width: 115px;
     line-height: 1.7;
   }
-  .hero-index > span {
+  .hero-index > .site-icon {
     margin-left: 10px;
     font-size: 13px;
   }
@@ -755,14 +729,14 @@ h2 {
     font-size: 14px;
   }
   .experience {
-    padding-top: 0;
+    padding-top: 56px;
   }
   .experience-header {
     align-items: flex-start;
     flex-direction: column;
-    gap: 15px;
-    margin-bottom: 18px;
-    padding-bottom: 20px;
+    gap: 18px;
+    margin-bottom: 28px;
+    padding-bottom: 24px;
   }
   .experience-header h2 {
     font-size: 24px;
@@ -775,7 +749,7 @@ h2 {
     padding-top: 8px;
   }
   .demo-footer {
-    padding: 12px 2px;
+    padding: 16px 2px;
     font-size: 7px;
     gap: 10px;
   }

@@ -1,4 +1,4 @@
-const FRAME_LIMIT = 20;
+const FRAME_LIMIT = 24;
 const LOAD_CONCURRENCY = 4;
 const SEQUENCE_ROOT = "/media/hero-sequence";
 
@@ -10,6 +10,9 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
   const motion = reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)");
   const connection = navigator.connection;
   const frames = new Map();
+  // Compressed images cost a few MB; decoded images cost tens of MB. Keep the
+  // former for reversals, but only decode a small window around the playhead.
+  const sources = new Map();
   const pending = new Map();
   const failed = new Set();
   let manifest;
@@ -25,6 +28,10 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
   let generation = 0;
   let width = 0;
   let height = 0;
+  let lastDrawn = -1;
+  let lastPosition = -1;
+  let needsResizeDraw = true;
+  let backgroundOrder = [];
 
   canvas.hidden = true;
 
@@ -38,7 +45,9 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     if (!firstFrameReady && !failed.has(0)) wanted.push(0);
     if (!wanted.includes(target)) wanted.push(target);
     for (let distance = 1; wanted.length < Math.min(FRAME_LIMIT, manifest.count); distance++) {
-      for (const index of [target + distance * direction, target - distance * direction]) {
+      const candidates = [target + distance * direction];
+      if (distance % 2 === 0) candidates.push(target - distance / 2 * direction);
+      for (const index of candidates) {
         if (index >= 0 && index < manifest.count && !wanted.includes(index)) wanted.push(index);
         if (wanted.length >= Math.min(FRAME_LIMIT, manifest.count)) break;
       }
@@ -52,8 +61,12 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     const target = targetFrame();
     let closest;
     for (const index of frames.keys()) {
+      // Late downloads must never make a forward gesture play backwards.
+      if (lastDrawn >= 0 && target >= lastDrawn && (index < lastDrawn || index > target)) continue;
+      if (lastDrawn >= 0 && target < lastDrawn && (index > lastDrawn || index < target)) continue;
       if (closest === undefined || Math.abs(index - target) < Math.abs(closest - target)) closest = index;
     }
+    if (closest === undefined) return;
     const bitmap = frames.get(closest);
     // Touch the frame so the cache evicts its least recently used bitmap.
     frames.delete(closest);
@@ -62,6 +75,7 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     const drawnWidth = bitmap.width * scale;
     const drawnHeight = bitmap.height * scale;
     const positionX = width < height ? 0.62 - Math.min(progress / 0.4, 1) * 0.12 : 0.5;
+    if (closest === lastDrawn && positionX === lastPosition && !needsResizeDraw) return;
     context.drawImage(
       bitmap,
       (canvas.width - drawnWidth) * positionX,
@@ -70,6 +84,9 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
       drawnHeight,
     );
     canvas.dataset.frame = String(closest);
+    lastDrawn = closest;
+    lastPosition = positionX;
+    needsResizeDraw = false;
     canvas.hidden = false;
     if (firstFrameReady && !announced) {
       announced = true;
@@ -95,6 +112,7 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     if (canvas.width !== nextWidth || canvas.height !== nextHeight) {
       canvas.width = nextWidth;
       canvas.height = nextHeight;
+      needsResizeDraw = true;
     }
     requestDraw();
   }
@@ -102,21 +120,27 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
   async function loadFrame(index, controller, version) {
     try {
       const name = String(index).padStart(3, "0");
-      const response = await fetch(`${SEQUENCE_ROOT}/frame-${name}.webp`, { signal: controller.signal });
-      if (!response.ok) throw new Error(`Sequence frame ${response.status}`);
-      const blob = await response.blob();
-      if (controller.signal.aborted) return;
+      let blob = sources.get(index);
+      if (!blob) {
+        const response = await fetch(`${SEQUENCE_ROOT}/frame-${name}.webp`, { signal: controller.signal });
+        if (!response.ok) throw new Error(`Sequence frame ${response.status}`);
+        blob = await response.blob();
+        if (controller.signal.aborted || version !== generation) return;
+        sources.set(index, blob);
+      }
+      if (!priorities().includes(index)) return;
       const bitmap = await createImageBitmap(blob);
-      if (version !== generation || controller.signal.aborted || !enabled()) {
+      if (version !== generation || controller.signal.aborted || !enabled() || !priorities().includes(index)) {
         bitmap.close();
         return;
       }
       frames.set(index, bitmap);
       if (index === 0) firstFrameReady = true;
       while (frames.size > FRAME_LIMIT) {
-        const oldest = frames.keys().next().value;
-        frames.get(oldest).close();
-        frames.delete(oldest);
+        const unwanted = [...frames.keys()].find((candidate) => !priorities().includes(candidate));
+        const evicted = unwanted ?? frames.keys().next().value;
+        frames.get(evicted).close();
+        frames.delete(evicted);
       }
       requestDraw();
     } catch (error) {
@@ -130,15 +154,20 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
   function pump() {
     if (!enabled() || !near || !manifest) return;
     const wanted = priorities();
-    for (const [index, controller] of pending) {
-      if (!wanted.includes(index)) {
-        controller.abort();
-        pending.delete(index);
-      }
-    }
+    // Let in-flight requests finish; cancelling on every scroll event starves
+    // the playhead on mobile networks. Their compressed results remain useful.
     for (const index of wanted) {
       if (pending.size >= LOAD_CONCURRENCY) break;
       if (frames.has(index) || pending.has(index) || failed.has(index)) continue;
+      const controller = new AbortController();
+      pending.set(index, controller);
+      void loadFrame(index, controller, generation);
+    }
+    // Warm compressed frames while the scene is near. Sparse coverage first
+    // means a fast swipe can show a nearby frame before the whole film arrives.
+    for (const index of backgroundOrder) {
+      if (pending.size >= LOAD_CONCURRENCY) break;
+      if (sources.has(index) || pending.has(index) || failed.has(index)) continue;
       const controller = new AbortController();
       pending.set(index, controller);
       void loadFrame(index, controller, generation);
@@ -164,6 +193,11 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
       }
       if (version !== generation || !enabled()) return;
       manifest = data;
+      backgroundOrder = [];
+      for (let index = 0; index < manifest.count; index += 8) backgroundOrder.push(index);
+      for (let index = 0; index < manifest.count; index++) {
+        if (index % 8 !== 0) backgroundOrder.push(index);
+      }
       resize();
       pump();
     } catch (error) {
@@ -181,6 +215,10 @@ export function mountHeroSequence({ canvas, poster, reducedMotion, onReady } = {
     pending.clear();
     for (const bitmap of frames.values()) bitmap.close();
     frames.clear();
+    sources.clear();
+    lastDrawn = -1;
+    lastPosition = -1;
+    needsResizeDraw = true;
     firstFrameReady = false;
     if (frameRequest) cancelAnimationFrame(frameRequest);
     frameRequest = 0;

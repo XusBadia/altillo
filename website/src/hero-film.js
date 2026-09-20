@@ -32,27 +32,49 @@ export function mountHeroFilm() {
   let frame = 0;
   let disposed = false;
   let sequence;
+  let progress = 0;
+  let targetProgress = 0;
+  let measure = true;
+  let lastTime = 0;
+  const styleValues = new Map();
 
-  function update() {
+  function setStyle(name, value) {
+    if (styleValues.get(name) === value) return;
+    styleValues.set(name, value);
+    hero.style.setProperty(name, value);
+  }
+
+  function update(now) {
     frame = 0;
     if (!active || disposed) return;
-    const bounds = hero.getBoundingClientRect();
-    const travel = Math.max(1, bounds.height - stage.offsetHeight);
-    const progress = clamp(-bounds.top / travel);
+    if (measure) {
+      const bounds = hero.getBoundingClientRect();
+      const travel = Math.max(1, bounds.height - stage.offsetHeight);
+      targetProgress = clamp(-bounds.top / travel);
+      measure = false;
+    }
+    // Smooth only the film's playhead, never the page's native touch scrolling.
+    const elapsed = lastTime ? Math.min(now - lastTime, 64) : 16;
+    lastTime = now;
+    progress += (targetProgress - progress) * (1 - Math.exp(-elapsed / 65));
+    if (Math.abs(targetProgress - progress) < 0.0003) progress = targetProgress;
     // Leave the final room on screen while the explanation arrives over it.
     sequence?.setProgress(ramp(progress, 0.015, 0.78));
     const introProgress = ramp(progress, 0.72, 0.88);
-    hero.style.setProperty("--film-copy", String(1 - ramp(progress, 0.015, 0.15)));
-    hero.style.setProperty("--film-intro", String(introProgress));
-    hero.style.setProperty("--film-intro-y", `${(1 - introProgress) * 32}px`);
-    hero.style.setProperty("--film-shade", String(ramp(progress, 0.65, 0.9)));
-    hero.style.setProperty("--film-opening", String(1 - ramp(progress, 0.05, 0.24)));
+    setStyle("--film-copy", String(1 - ramp(progress, 0.015, 0.15)));
+    setStyle("--film-intro", String(introProgress));
+    setStyle("--film-intro-y", `${(1 - introProgress) * 32}px`);
+    setStyle("--film-shade", String(ramp(progress, 0.65, 0.9)));
+    setStyle("--film-opening", String(1 - ramp(progress, 0.05, 0.24)));
     track.firstElementChild.style.transform = `scaleX(${progress})`;
     copy.inert = progress > 0.17;
     intro.inert = introProgress < 0.7;
+    if (progress !== targetProgress) frame = requestAnimationFrame(update);
+    else lastTime = 0;
   }
 
   function schedule() {
+    measure = true;
     if (!frame && !disposed) frame = requestAnimationFrame(update);
   }
 

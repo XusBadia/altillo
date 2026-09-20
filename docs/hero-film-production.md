@@ -14,9 +14,9 @@ Original seleccionado: `docs/assets/hero-scroll-source.mp4`, H.264, 1264 × 720,
 
 ### Recursos publicados
 
-`website/public/media/hero-sequence/` contiene 120 fotogramas WebP a 12 fps, 1264 × 720, calidad 76 y compresión 6, unos 3 MB en total. FFmpeg extrajo PNG a 12 fps y `cwebp` realizó la conversión; `manifest.json` define dimensiones, frecuencia y número de imágenes.
+`website/public/media/hero-sequence/` contiene 240 fotogramas WebP a 24 fps, 1024 × 584, calidad 76 y compresión 6, unos 4,4 MB en disco. Se conserva la frecuencia original del vídeo: la primera versión reducida a 12 fps producía saltos visibles durante el scroll. FFmpeg extrajo PNG con `fps=24,scale=1024:-2` y `cwebp` realizó la conversión; `manifest.json` define dimensiones, frecuencia y número de imágenes.
 
-El scroll selecciona el fotograma en ambas direcciones. El último plano permanece visible mientras aparece la explicación del estante. En móvil se recentra progresivamente la puerta. Movimiento reducido, ahorro de datos o un fallo inicial de carga conservan la presentación estática.
+El scroll selecciona el fotograma en ambas direcciones, con suavización exponencial de 65 ms únicamente en el avance visual. Se precarga la secuencia comprimida y se decodifica una ventana de 24 imágenes, priorizando la dirección del gesto. Las cargas tardías no pueden invertir un avance. El último plano permanece visible mientras aparece la explicación del estante. En móvil se recentra progresivamente la puerta. Movimiento reducido, ahorro de datos o un fallo inicial de carga conservan la presentación estática.
 
 ### Comprobación de la toma seleccionada
 
