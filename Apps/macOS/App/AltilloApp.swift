@@ -5,7 +5,7 @@ struct AltilloApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("Altillo", systemImage: "square.stack.3d.up") {
+        MenuBarExtra("Altillo", image: "MenuBarIcon") {
             AppMenu(coordinator: appDelegate.coordinator)
         }
         Window("Registro de pruebas", id: SpikeLogView.windowID) {

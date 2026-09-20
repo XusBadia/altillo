@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 /// Who made this, which version you have, and where to find the code.
@@ -17,19 +18,11 @@ struct SettingsAboutPane: View {
             Spacer(minLength: 0)
 
             VStack(spacing: 10) {
-                ZStack {
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
-                        .fill(Desvan.Palette.plank)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 16, style: .continuous)
-                                .strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 1)
-                        }
-                        .frame(width: 66, height: 66)
-                    Image(systemName: "square.stack.3d.up.fill")
-                        .font(.system(size: 30, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.bulb)
-                        .shadow(color: Desvan.Palette.bulb.opacity(0.45), radius: 12)
-                }
+                Image(nsImage: NSApp.applicationIconImage)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 72, height: 72)
+                    .accessibilityHidden(true)
 
                 VStack(spacing: 3) {
                     Text("Altillo")

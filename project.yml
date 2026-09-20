@@ -32,6 +32,7 @@ targets:
     platform: macOS
     sources:
       - Apps/macOS
+      - Apps/Shared/Assets.xcassets
     dependencies:
       - package: AltilloKit
         product: AltilloCore
@@ -46,6 +47,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX)
         PRODUCT_NAME: Altillo
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Altillo
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
@@ -97,6 +99,7 @@ targets:
     platform: iOS
     sources:
       - Apps/iOS
+      - Apps/Shared/Assets.xcassets
     dependencies:
       - package: AltilloKit
         product: AltilloCore
@@ -107,6 +110,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).ios
         PRODUCT_NAME: Altillo
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_KEY_CFBundleDisplayName: Altillo
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
