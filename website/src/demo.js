@@ -1,5 +1,6 @@
 import "./demo.css";
 import "./demo-modules.css";
+import { providerLogo } from "./brand-logos.js";
 import { createDemoCopy } from "./demo-copy.js";
 
 const icons = {
@@ -49,15 +50,21 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     joinedEvent: null,
     track: 0,
     playing: false,
-    elapsed: 42,
+    elapsed: 0,
+    audioError: false,
     mirrorFlipped: true,
   };
   const tracks = [
-    { title: "A walk in the pines", artist: "Northbound", duration: 218, app: "Apple Music" },
-    { title: "After the rain", artist: "Sunday People", duration: 196, app: "Spotify" },
+    { title: "Azotea", artist: "Estudio Altillo", src: "/media/music/azotea.mp3", duration: 0 },
+    { title: "Luz de tarde", artist: "Estudio Altillo", src: "/media/music/luz-de-tarde.mp3", duration: 0 },
+    { title: "Último tranvía", artist: "Estudio Altillo", src: "/media/music/ultimo-tranvia.mp3", duration: 0 },
   ];
-  const clockTime = (seconds) => `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
-  let playbackTimer;
+  const clockTime = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  const audio = new Audio();
+  audio.preload = "metadata";
+  audio.className = "ad-demo-audio";
+  let destroyed = false;
+  let playRequest = 0;
   let drag = null;
   let suppressClick = false;
   let returnFocus = null;
@@ -74,7 +81,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         <div class="ad-finder-sidebar"><div class="ad-sidebar-traffic">${traffic}</div><small>Favoritos</small><span>${svg("recent")} Recientes</span><span>${svg("desktop")} Escritorio</span><span class="is-current">${svg("folder")} Documentos</span><span>${svg("downloads")} Descargas</span><small>Ubicaciones</small><span>${svg("laptop")} Mi Mac</span></div>
         <div class="ad-finder-main"><div class="ad-window-title"><span class="ad-mobile-traffic">${traffic}</span><span class="ad-finder-arrows" aria-hidden="true">${svg("chevron")}${svg("chevron")}</span><strong>Documentos</strong><span class="ad-finder-tools" aria-hidden="true">${svg("grid")}${svg("search")}</span></div><div class="ad-finder-files"></div><div class="ad-finder-bottom"><span class="ad-selection-meta"></span><button type="button" data-action="add">${svg("up")} Subir al estante</button></div></div>
       </section>
-      <section class="ad-terminal ad-window" aria-label="Terminal de ejemplo"><div class="ad-terminal-title">${traffic}<span>mi-web — claude</span><span aria-hidden="true">${svg("command", 12)}</span></div><div class="ad-terminal-body"><p><span class="ad-terminal-star">${svg("star")}</span><b>Claude Code</b><span class="ad-terminal-version">v2.1</span></p><p class="ad-terminal-path">~/proyectos/mi-web</p><p class="ad-terminal-line"><span>❯</span> Publica los cambios de la web</p><div class="ad-terminal-result"></div><button type="button" data-action="agent"><span>${svg("request", 12)}</span> Pedir permiso para continuar <span class="ad-terminal-enter">${svg("enter", 12)}</span></button></div></section>
+      <section class="ad-terminal ad-window" aria-label="Terminal de ejemplo"><div class="ad-terminal-title">${traffic}<span>mi-web — claude</span><span aria-hidden="true">${svg("command", 12)}</span></div><div class="ad-terminal-body"><p><span class="ad-terminal-star">${providerLogo("claude")}</span><b>Claude Code</b><span class="ad-terminal-version">v2.1</span></p><p class="ad-terminal-path">~/proyectos/mi-web</p><p class="ad-terminal-line"><span>❯</span> Publica los cambios de la web</p><div class="ad-terminal-result"></div><button type="button" data-action="agent"><span>${svg("request", 12)}</span> Pedir permiso para continuar <span class="ad-terminal-enter">${svg("enter", 12)}</span></button></div></section>
       <button type="button" class="ad-destination" data-action="deliver" aria-label="Llevar el archivo del estante a Entregas"><span class="ad-folder-art" aria-hidden="true"></span><span>Entregas</span><small>Carpeta vacía</small></button>
       <div class="ad-dock" aria-hidden="true"><span class="ad-dock-finder"><i>⌣</i></span><span class="ad-dock-safari">${svg("safari")}</span><span class="ad-dock-notes"><i></i></span><span class="ad-dock-terminal">${svg("terminal")}</span><span class="ad-dock-divider"></span><span class="ad-dock-folder">${svg("folder")}</span><span class="ad-dock-trash">${svg("trash")}</span></div>
       <div class="ad-screen-label">DEMO · DATOS DE EJEMPLO</div>
@@ -82,6 +89,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     <div class="ad-demo-caption"><p class="ad-instruction"></p><button type="button" data-action="reset" aria-label="Reiniciar demo">${svg("reset")}<span>Reiniciar</span></button></div>
     <p class="ad-sr" role="status" aria-live="polite" aria-atomic="true"></p>
   `;
+  element.append(audio);
   const notch = element.querySelector(".ad-notch");
   const panel = element.querySelector(".ad-notch-panel");
   const status = element.querySelector("[role=status]");
@@ -118,9 +126,12 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   });
   notch.addEventListener("focusin", () => clearTimeout(hoverCloseTimer));
   notch.addEventListener("focusout", scheduleHoverClose);
-  document.addEventListener("pointerdown", (event) => {
+  const outsidePointerDown = (event) => {
+    // Closing here changes the sticky demo height before the module's click.
+    if (event.target.closest("[data-module]")) return;
     if (state.open && !notch.contains(event.target) && !cue.contains(event.target)) close();
-  });
+  };
+  document.addEventListener("pointerdown", outsidePointerDown);
   const updateCue = () => {
     cue.querySelector(".ad-cue-label").textContent = t(canHover.matches ? "Acerca el cursor aquí" : "Toca para abrir");
     updateInstruction();
@@ -188,27 +199,84 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   }
   function renderMusic() {
     const track = tracks[state.track];
-    return `<div class="ad-module-surface ad-music-surface"><div class="ad-album-art ad-album-${state.track}" aria-hidden="true"><i></i><span>${state.track === 0 ? "NORTH<br>BOUND" : "SUNDAY<br>PEOPLE"}</span></div><div class="ad-music-body"><div class="ad-music-source">${svg("music", 13)}<span>${track.app}</span><small>Ahora suena</small></div><strong class="ad-track-title">${track.title}</strong><span class="ad-track-artist">${track.artist}</span><div class="ad-music-controls"><button type="button" data-action="music-previous" aria-label="Canción anterior">${svg("previous", 18)}</button><button type="button" class="ad-music-play" data-action="music-play" aria-label="${state.playing ? "Pausar" : "Reproducir"}" aria-pressed="${state.playing}">${svg(state.playing ? "pause" : "play", 20)}</button><button type="button" data-action="music-next" aria-label="Siguiente canción">${svg("next", 18)}</button></div><div class="ad-track-progress" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="${track.duration}" aria-valuenow="${state.elapsed}"><i style="transform:scaleX(${state.elapsed / track.duration})"></i></div><div class="ad-track-time"><span>${clockTime(state.elapsed)}</span><span>${clockTime(track.duration)}</span></div></div></div><div class="ad-panel-footer"><span>Controles de ejemplo · sin reproducción de audio</span><span>Apple Music + Spotify</span></div>`;
+    return `<div class="ad-module-surface ad-music-surface"><div class="ad-album-art ad-album-${state.track}" aria-hidden="true"><i></i><span>${["AZOTEA", "LUZ DE<br>TARDE", "ÚLTIMO<br>TRANVÍA"][state.track]}</span></div><div class="ad-music-body"><div class="ad-music-source">${svg("music", 13)}<span>Estudio Altillo</span><small>Ahora suena</small></div><strong class="ad-track-title">${track.title}</strong><span class="ad-track-artist">${track.artist}</span><div class="ad-music-controls"><button type="button" data-action="music-previous" aria-label="Canción anterior">${svg("previous", 18)}</button><button type="button" class="ad-music-play" data-action="music-play" aria-label="${state.playing ? "Pausar" : "Reproducir"}" aria-pressed="${state.playing}">${svg(state.playing ? "pause" : "play", 20)}</button><button type="button" data-action="music-next" aria-label="Siguiente canción">${svg("next", 18)}</button></div><div class="ad-track-progress" role="progressbar" aria-label="Progreso de la canción" aria-valuemin="0" aria-valuemax="${track.duration}" aria-valuenow="${state.elapsed}"><i style="transform:scaleX(${track.duration ? state.elapsed / track.duration : 0})"></i></div><div class="ad-track-time"><span>${clockTime(state.elapsed)}</span><span>${clockTime(track.duration)}</span></div></div></div><div class="ad-panel-footer"><span>${state.audioError ? "No se pudo reproducir. Pulsa para reintentar." : "Tres canciones originales · audio real"}</span><span>${state.track + 1} / ${tracks.length}</span></div>`;
   }
   function renderMirror() {
     return `<div class="ad-module-surface ad-mirror-surface"><div class="ad-mirror-art" data-flipped="${state.mirrorFlipped}" role="img" aria-label="Retrato ilustrado de ejemplo"><span class="ad-mirror-window"></span><span class="ad-mirror-plant"><i></i><i></i></span><span class="ad-mirror-person"><i class="ad-mirror-head"></i><i class="ad-mirror-hair"></i><i class="ad-mirror-shirt"></i></span></div><div class="ad-mirror-controls"><span>${svg("mirror", 14)}<span>Un vistazo antes de entrar.</span></span><button type="button" data-action="mirror-flip" aria-label="Invertir espejo" aria-pressed="${state.mirrorFlipped}">${svg("flip", 17)}<span>Invertir</span></button></div></div><div class="ad-panel-footer"><span>Vista de ejemplo · cámara apagada</span></div>`;
   }
-  function updatePlayback() {
-    clearInterval(playbackTimer);
-    if (!state.playing || state.open !== "music") return;
-    playbackTimer = setInterval(() => {
-      if (document.hidden) return;
-      state.elapsed = (state.elapsed + 1) % tracks[state.track].duration;
-      if (state.open !== "music") return;
-      const progress = panel.querySelector(".ad-track-progress");
-      progress?.setAttribute("aria-valuenow", String(state.elapsed));
-      if (progress) progress.firstElementChild.style.transform = `scaleX(${state.elapsed / tracks[state.track].duration})`;
-      const time = panel.querySelector(".ad-track-time > span");
-      if (time) time.textContent = clockTime(state.elapsed);
-    }, 1000);
+  function syncPlayback() {
+    if (destroyed) return;
+    state.playing = !audio.paused && !audio.ended && !state.audioError;
+    state.elapsed = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    if (Number.isFinite(audio.duration)) tracks[state.track].duration = audio.duration;
+    if (state.open !== "music") return;
+    const track = tracks[state.track];
+    const progress = panel.querySelector(".ad-track-progress");
+    progress?.setAttribute("aria-valuenow", String(Math.floor(state.elapsed)));
+    progress?.setAttribute("aria-valuemax", String(track.duration));
+    if (progress) progress.firstElementChild.style.transform = `scaleX(${track.duration ? state.elapsed / track.duration : 0})`;
+    const times = panel.querySelectorAll(".ad-track-time > span");
+    if (times[0]) times[0].textContent = clockTime(state.elapsed);
+    if (times[1]) times[1].textContent = clockTime(track.duration);
+    const button = panel.querySelector('[data-action="music-play"]');
+    if (button) {
+      button.setAttribute("aria-label", t(state.playing ? "Pausar" : "Reproducir"));
+      button.setAttribute("aria-pressed", String(state.playing));
+      button.innerHTML = svg(state.playing ? "pause" : "play", 20);
+    }
   }
+  function ensureTrack() {
+    if (audio.getAttribute("src")?.split("?")[0] !== tracks[state.track].src) audio.src = tracks[state.track].src;
+  }
+  async function playAudio() {
+    const request = ++playRequest;
+    const wasError = state.audioError;
+    state.audioError = false;
+    ensureTrack();
+    if (wasError || audio.error) {
+      audio.load();
+      updateAudioNotice();
+    }
+    try {
+      await audio.play();
+    } catch (error) {
+      if (destroyed || request !== playRequest || error.name === "AbortError") return;
+      state.audioError = true;
+      state.playing = false;
+      syncPlayback();
+      updateAudioNotice();
+      announce("No se pudo reproducir. Pulsa para reintentar.");
+    }
+  }
+  function changeTrack(direction, continuePlaying = !audio.paused) {
+    ++playRequest;
+    audio.pause();
+    state.track = (state.track + direction + tracks.length) % tracks.length;
+    state.elapsed = 0;
+    state.audioError = false;
+    ensureTrack();
+    if (state.open === "music") renderPanel();
+    if (continuePlaying) void playAudio();
+  }
+  function updateAudioNotice() {
+    if (state.open !== "music") return;
+    const notice = panel.querySelector(".ad-panel-footer > span");
+    if (notice) notice.textContent = t(state.audioError ? "No se pudo reproducir. Pulsa para reintentar." : "Tres canciones originales · audio real");
+  }
+  const audioEvents = ["timeupdate", "loadedmetadata", "durationchange", "play", "pause"];
+  audioEvents.forEach((type) => audio.addEventListener(type, syncPlayback));
+  const trackEnded = () => changeTrack(1, true);
+  const audioFailed = () => {
+    if (destroyed) return;
+    state.audioError = true;
+    state.playing = false;
+    syncPlayback();
+    updateAudioNotice();
+    announce("No se pudo reproducir. Pulsa para reintentar.");
+  };
+  audio.addEventListener("ended", trackEnded);
+  audio.addEventListener("error", audioFailed);
   function renderPanel() {
-    updatePlayback();
     notch.dataset.open = String(Boolean(state.open));
     notch.dataset.view = state.open || "idle";
     element.querySelector(".ad-notch-cue").hidden = Boolean(state.open);
@@ -241,7 +309,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       content = `<div class="ad-usage-cards">${[
         {
           name: "Claude",
-          mark: svg("star"),
+          mark: providerLogo("claude"),
           value: 85,
           weekly: 41,
           reset: "1 h 11 min",
@@ -250,7 +318,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         },
         {
           name: "Codex",
-          mark: svg("terminal"),
+          mark: providerLogo("codex"),
           value: 34,
           weekly: 58,
           reset: "3 h 4 min",
@@ -267,7 +335,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         )}</div><div class="ad-panel-footer"><span>Consumo de ejemplo · función en desarrollo</span><span>Actualizado ahora</span></div>`;
     } else {
       const resolved = ["allowed", "denied"].includes(state.agent);
-      content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}"><div class="ad-agent-heading"><i class="ad-provider">${svg("star")}</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">${svg("terminal")}</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
+      content = `<div class="ad-agent-request ${resolved ? "is-resolved" : ""}"><div class="ad-agent-heading"><i class="ad-provider">${providerLogo("claude")}</i><strong>${resolved ? (state.agent === "allowed" ? "Permiso concedido" : "Acción denegada") : "Claude quiere hacer algo en mi-web"}</strong><small>ahora</small></div><div class="ad-agent-command"><span>Bash</span><code>git push origin feat/nueva-web</code></div><div class="ad-agent-controls"><span>${resolved ? (state.agent === "allowed" ? "El agente puede continuar." : "El comando no se ejecutará.") : "Publicar los cambios en el repositorio"}</span>${resolved ? '<button type="button" data-action="agent">Otra solicitud</button>' : '<button type="button" data-action="deny">Denegar</button><button type="button" data-action="allow">Permitir</button>'}</div></div><div class="ad-agent-task"><i class="ad-provider ad-provider-codex">${providerLogo("codex")}</i><strong>api</strong><span>Ejecutando tests · 42 de 118</span><small>••• Trabajando</small></div><div class="ad-panel-footer"><span>Solicitud simulada · función en desarrollo</span></div>`;
     }
     const moduleTitles = { shelf: "Altillo", drawer: "Cajón", calendar: "Calendario", music: "Sonando", mirror: "Espejo", usage: "Tu consumo", agents: "Agentes" };
     panel.innerHTML = `<div class="ad-panel-heading"><strong>${["shelf", "drawer", "calendar", "music", "mirror"].includes(state.open) ? svg(state.open) : ""}${moduleTitles[state.open]}</strong><button type="button" data-action="close" aria-label="Cerrar Altillo">${svg("close")}</button></div>${content}`;
@@ -278,7 +346,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     const moduleInstructions = {
       drawer: "Muestra el grupo de iconos y abre el menú de Drive. Después, vuelve a guardarlo.",
       calendar: "Consulta tus próximas citas. Prueba «Unirse» sin abrir una videollamada real.",
-      music: "Pausa o cambia de canción desde el notch. Esta demo no reproduce audio.",
+      music: "Pulsa reproducir y escucha. Cambia entre tres canciones desde el notch.",
       mirror: "Invierte la vista de ejemplo. Tu cámara sigue apagada.",
     };
     const message =
@@ -297,6 +365,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         ? document.activeElement
         : null;
     state.open = view;
+    if (view === "music") ensureTrack();
     renderPanel();
     if (focus) panel.querySelector("button")?.focus({ preventScroll: true });
   }
@@ -335,6 +404,10 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     setTimeout(() => folder.classList.remove("is-received"), 550);
   }
   function reset() {
+    ++playRequest;
+    audio.pause();
+    audio.removeAttribute("src");
+    audio.load();
     cancelDrag();
     close();
     Object.assign(state, {
@@ -348,10 +421,10 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       joinedEvent: null,
       track: 0,
       playing: false,
-      elapsed: 42,
+      elapsed: 0,
+      audioError: false,
       mirrorFlipped: true,
     });
-    updatePlayback();
     renderFiles();
     renderTerminal();
     renderPanel();
@@ -412,16 +485,12 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         panel.querySelector(`[data-action="join"][data-event="${state.joinedEvent}"]`)?.focus({ preventScroll: true });
         break;
       case "music-play":
-        state.playing = !state.playing;
-        updatePlayback();
-        renderPanel();
-        panel.querySelector('[data-action="music-play"]')?.focus({ preventScroll: true });
+        if (audio.paused || state.audioError || audio.error) void playAudio();
+        else { ++playRequest; audio.pause(); }
         break;
       case "music-previous":
       case "music-next":
-        state.track = (state.track + (button.dataset.action === "music-next" ? 1 : tracks.length - 1)) % tracks.length;
-        state.elapsed = 0;
-        renderPanel();
+        changeTrack(button.dataset.action === "music-next" ? 1 : -1);
         announce(tracks[state.track].title);
         panel.querySelector(`[data-action="${button.dataset.action}"]`)?.focus({ preventScroll: true });
         break;
@@ -618,7 +687,16 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     },
     reset,
     destroy() {
-      clearInterval(playbackTimer);
+      destroyed = true;
+      ++playRequest;
+      audioEvents.forEach((type) => audio.removeEventListener(type, syncPlayback));
+      audio.removeEventListener("ended", trackEnded);
+      audio.removeEventListener("error", audioFailed);
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
+      audio.remove();
+      document.removeEventListener("pointerdown", outsidePointerDown);
       clearTimeout(hoverOpenTimer);
       clearTimeout(hoverCloseTimer);
       cueObserver.disconnect();

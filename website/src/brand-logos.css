@@ -1,0 +1,15 @@
+.alt-demo .ad-provider {
+  width: 17px;
+  height: 17px;
+  background: transparent;
+  color: #df9774;
+  border-radius: 0;
+}
+.alt-demo .ad-provider-codex { color: #ede9df; }
+.ad-provider .ad-brand-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+  stroke: none;
+}

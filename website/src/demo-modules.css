@@ -63,6 +63,9 @@
 .ad-album-0::before { width: 160%; height: 75%; left: -35%; top: 32%; border-radius: 50%; transform: rotate(35deg); background: #53684b; }
 .ad-album-0::after { width: 130%; height: 85%; right: -37%; bottom: -23%; border-radius: 45%; transform: rotate(-25deg); background: #1c382e; }
 .ad-album-1 { background: linear-gradient(140deg, #73575a, #bd9485 52%, #dcc6a7); }
+.ad-album-2 { background: linear-gradient(160deg, #151f36, #425778 65%, #d18b55); }
+.ad-album-2::before { width: 170%; height: 2px; background: #eacaa0; left: -25%; bottom: 28%; transform: rotate(-28deg); box-shadow: 0 8px #eacaa030, 0 22px #eacaa012; }
+.ad-album-2::after { width: 27%; height: 27%; right: 15%; top: 28%; border-radius: 50%; background: #f0d8b3; }
 .ad-album-1::before { width: 100%; height: 130%; left: -55%; bottom: -60%; border-radius: 50%; border: 16px solid #583b4238; box-shadow: 0 0 0 13px #583b4220, 0 0 0 28px #583b4218; }
 .ad-album-art > span { position: absolute; left: 12px; top: 11px; font-size: 10px; letter-spacing: .11em; font-weight: 600; line-height: 1.2; color: #f2e7c9; }
 .ad-music-body { flex: 1; min-width: 0; }

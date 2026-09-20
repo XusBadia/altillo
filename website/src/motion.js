@@ -10,6 +10,8 @@ export function mountMotion({ demo } = {}) {
     ...document.querySelectorAll(".story-step[data-chapter]"),
   ].filter((step) => chapters.has(step.dataset.chapter));
   const demoElement = document.querySelector("#interactive-demo");
+  const moduleControls = [...document.querySelectorAll('[data-module]')];
+  const header = document.querySelector('.site-header');
   const progressElements = [...document.querySelectorAll(".chapter-progress")];
   const currentElements = [...document.querySelectorAll(".chapter-current")];
   const revealElements = [...document.querySelectorAll("[data-reveal]")];
@@ -53,7 +55,14 @@ export function mountMotion({ demo } = {}) {
 
     // Finish geometry reads before changing styles or the demo's DOM.
     const experienceRect = experience?.getBoundingClientRect();
+    const headerHeight = header?.offsetHeight || 0;
     const { bounds, closest, center } = measureSteps();
+    const demoInFocus = experienceRect && experienceRect.top <= headerHeight && experienceRect.bottom > headerHeight;
+    if (header) {
+      header.classList.toggle('is-demo-hidden', Boolean(demoInFocus));
+      header.classList.toggle('is-scrolled', window.scrollY > 24);
+      header.inert = Boolean(demoInFocus);
+    }
 
     if (closest < 0) return;
     const chapter = steps[closest].dataset.chapter;
@@ -150,6 +159,10 @@ export function mountMotion({ demo } = {}) {
   });
   demoElement?.addEventListener("keydown", preserveInteraction);
   demoElement?.addEventListener("demo:interaction", preserveInteraction);
+  moduleControls.forEach(control => {
+    control.addEventListener('pointerdown', preserveInteraction, { passive: true });
+    control.addEventListener('keydown', preserveInteraction);
+  });
   reducedMotion.addEventListener("change", motionPreferenceChanged);
   schedule();
 
@@ -167,6 +180,12 @@ export function mountMotion({ demo } = {}) {
       demoElement?.removeEventListener("pointerdown", preserveInteraction);
       demoElement?.removeEventListener("keydown", preserveInteraction);
       demoElement?.removeEventListener("demo:interaction", preserveInteraction);
+      moduleControls.forEach(control => {
+        control.removeEventListener('pointerdown', preserveInteraction);
+        control.removeEventListener('keydown', preserveInteraction);
+      });
+      header?.classList.remove('is-demo-hidden', 'is-scrolled');
+      if (header) header.inert = false;
       reducedMotion.removeEventListener("change", motionPreferenceChanged);
       revealElements.forEach((element) =>
         element.classList.remove("motion-reveal"),

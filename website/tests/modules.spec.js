@@ -41,14 +41,14 @@ test('calendar joins remain a clearly labelled simulation', async ({ page, conte
 test('music responds to playback and next while preserving its state', async ({ page }) => {
   await page.goto('/');
   const demo = await choose(page, 'music');
-  await expect(demo.locator('.ad-track-title')).toHaveText('A walk in the pines');
+  await expect(demo.locator('.ad-track-title')).toHaveText('Azotea');
   await demo.getByRole('button', { name: 'Reproducir', exact: true }).click();
   await expect(demo.getByRole('button', { name: 'Pausar', exact: true })).toBeVisible();
   await demo.getByRole('button', { name: 'Siguiente canción', exact: true }).click();
-  await expect(demo.locator('.ad-track-title')).toHaveText('After the rain');
+  await expect(demo.locator('.ad-track-title')).toHaveText('Luz de tarde');
   await choose(page, 'calendar');
   await choose(page, 'music');
-  await expect(demo.locator('.ad-track-title')).toHaveText('After the rain');
+  await expect(demo.locator('.ad-track-title')).toHaveText('Luz de tarde');
   await demo.getByRole('button', { name: 'Pausar', exact: true }).click();
   await expect(demo.getByRole('button', { name: 'Reproducir', exact: true })).toBeVisible();
 });
@@ -104,7 +104,7 @@ test('reset clears the state of every daily module', async ({ page }) => {
   await choose(page, 'calendar');
   await expect(demo.locator('.ad-meeting-status')).toHaveCount(0);
   await choose(page, 'music');
-  await expect(demo.locator('.ad-track-title')).toHaveText('A walk in the pines');
+  await expect(demo.locator('.ad-track-title')).toHaveText('Azotea');
   await expect(demo.getByRole('button', { name: 'Reproducir', exact: true })).toBeVisible();
   await choose(page, 'mirror');
   await expect(demo.locator('[data-action="mirror-flip"]')).toHaveAttribute('aria-pressed', 'true');
