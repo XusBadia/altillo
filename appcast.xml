@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Altillo</title>
+        <item>
+            <title>0.2.0</title>
+            <pubDate>Wed, 23 Sep 2026 12:43:12 +0200</pubDate>
+            <sparkle:version>51</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.2.0/Altillo-0.2.0.dmg" length="5076275" type="application/octet-stream" sparkle:edSignature="hJSZX03NOAC+XgNbdBFwnWR48MiKKIZGFtn0vye0l95DwKqV3sEAkkuYQ2KU0Q25vrMzvEQvQWKgnizkpAWnAQ=="/>
+        </item>
+    </channel>
+</rss>
