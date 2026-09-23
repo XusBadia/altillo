@@ -17,4 +17,19 @@ struct SmokeTests {
         #expect(!error.isReceivingDrop)
         #expect(error.shelfProblem?.isEmpty == false)
     }
+
+    @Test func drawerStaysAboveEveryModuleAndFitsThePanel() {
+        let model = NotchModel.preview(.openDrawer)
+        #expect(model.module == .shelf)
+        for hasNotch in [true, false] {
+            model.hasNotch = hasNotch
+            for module in NotchModule.allCases {
+                model.module = module
+                let chrome = NotchChrome(model: model)
+                #expect(chrome.showsDrawer)
+                #expect(chrome.size.height <= NotchLayout.panelSize.height)
+                #expect(chrome.size.height > chrome.contentHeight + chrome.bandHeight + NotchChrome.drawerHeight)
+            }
+        }
+    }
 }

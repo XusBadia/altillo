@@ -39,7 +39,7 @@ struct DesvanCalendarView: View {
         VStack(spacing: 5) {
             DesvanNextEventCard(event: next, isTomorrow: store.isTomorrow)
             if rest.isEmpty {
-                Text(store.isTomorrow ? "Y nada más mañana." : "Y ya está por hoy.")
+                Text(store.isTomorrow ? "And nothing else tomorrow." : "And that's it for today.")
                     .font(.system(size: 11.5))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
@@ -64,18 +64,18 @@ struct DesvanCalendarView: View {
         case .denied:
             DesvanModuleNotice(
                 symbol: "calendar.badge.exclamationmark",
-                title: "La agenda está cerrada",
-                message: "Altillo no puede ver tu calendario. Dale acceso en Ajustes del Sistema y vuelve a abrir el notch.",
-                actionTitle: "Abrir Ajustes"
+                title: "The calendar is closed",
+                message: "Altillo can't see your calendar. Give it access in System Settings and open the notch again.",
+                actionTitle: "Open Settings"
             ) {
                 PrivacySettings.calendars.open()
             }
         case .unknown:
             DesvanModuleNotice(
                 symbol: "calendar",
-                title: "¿Miramos tu agenda?",
-                message: "Altillo enseña aquí tu próximo evento. Los eventos no salen de tu Mac.",
-                actionTitle: "Dar acceso"
+                title: "Shall we look at your calendar?",
+                message: "Altillo shows your next event up here. Events never leave your Mac.",
+                actionTitle: "Give access"
             ) {
                 Task { await store.requestAccess() }
             }
@@ -83,11 +83,11 @@ struct DesvanCalendarView: View {
             if store.hasLoaded {
                 DesvanModuleNotice(
                     symbol: "checkmark.circle",
-                    title: "Nada más por hoy",
-                    message: "Tu agenda está limpia. Baja la persiana cuando quieras."
+                    title: "Nothing else today",
+                    message: "Your day is clear. Pull the shutter down whenever you like."
                 )
             } else {
-                DesvanModuleNotice(symbol: "calendar", title: "Mirando la agenda…")
+                DesvanModuleNotice(symbol: "calendar", title: "Checking your calendar…")
             }
         }
     }
@@ -121,7 +121,7 @@ private struct DesvanNextEventCard: View {
                         .font(Desvan.Typeface.figure(11.5, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                     if isTomorrow {
-                        DesvanKraftChip(text: "mañana")
+                        DesvanKraftChip(text: "tomorrow")
                     }
                     if let location = event.location {
                         Text("·")
@@ -137,7 +137,7 @@ private struct DesvanNextEventCard: View {
             Spacer(minLength: 8)
             DesvanCountdownBadge(event: event, isTomorrow: isTomorrow)
             if let url = event.conferenceURL {
-                Button("Unirse") { openURL(url) }
+                Button("Join") { openURL(url) }
                     .buttonStyle(DesvanButtonStyle(kind: .primary, height: 24))
                     .help(joinHelp(for: url))
             }
@@ -159,8 +159,8 @@ private struct DesvanNextEventCard: View {
     }
 
     private func joinHelp(for url: URL) -> String {
-        guard let provider = MeetingLink.provider(for: url) else { return "Unirse a la llamada" }
-        return "Unirse por \(provider.rawValue)"
+        guard let provider = MeetingLink.provider(for: url) else { return String(localized: "Join the call") }
+        return String(localized: "Join with \(provider.rawValue)")
     }
 }
 
@@ -201,7 +201,7 @@ private struct DesvanEventRow: View {
                         .font(.system(size: 10.5, weight: .medium))
                 }
                 .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 20))
-                .help("Unirse a la llamada")
+                .help("Join the call")
                 .opacity(isHovering ? 1 : 0.55)
             }
         }
@@ -258,9 +258,9 @@ private struct DesvanCountdownBadge: View {
     }
 }
 
-/// A small kraft label, for "mañana".
+/// A small kraft label, for "tomorrow".
 struct DesvanKraftChip: View {
-    let text: String
+    let text: LocalizedStringKey
 
     var body: some View {
         Text(text)
@@ -275,38 +275,38 @@ struct DesvanKraftChip: View {
 
 // MARK: - Words
 
-/// Spanish, compact, and the same wording VoiceOver reads.
+/// Compact, and the same wording VoiceOver reads.
 enum DesvanEventFormat {
-    /// "10:30 – 11:15", or "todo el día".
+    /// "10:30 – 11:15", or "all day".
     static func time(_ event: CalendarStore.Event) -> String {
-        guard !event.isAllDay else { return "todo el día" }
+        guard !event.isAllDay else { return String(localized: "all day") }
         let start = event.start.formatted(date: .omitted, time: .shortened)
         let end = event.end.formatted(date: .omitted, time: .shortened)
-        return "\(start) – \(end)"
+        return String(localized: "\(start) – \(end)")
     }
 
     /// Just the start, for the slim rows.
     static func shortTime(_ event: CalendarStore.Event) -> String {
-        event.isAllDay ? "todo el día" : event.start.formatted(date: .omitted, time: .shortened)
+        event.isAllDay ? String(localized: "all day") : event.start.formatted(date: .omitted, time: .shortened)
     }
 
-    /// "ahora", "en 12 min", "mañana".
+    /// "now", "in 12 min", "tomorrow".
     static func countdown(_ event: CalendarStore.Event, isTomorrow: Bool, now: Date = .now) -> String {
-        if event.isAllDay { return isTomorrow ? "mañana" : "hoy" }
-        if event.isRunning(at: now) { return "ahora" }
-        if isTomorrow { return "mañana" }
-        return "en \(NotchFormat.countdown(to: event.start, now: now))"
+        if event.isAllDay { return isTomorrow ? String(localized: "tomorrow") : String(localized: "today") }
+        if event.isRunning(at: now) { return String(localized: "now") }
+        if isTomorrow { return String(localized: "tomorrow") }
+        return String(localized: "in \(NotchFormat.countdown(to: event.start, now: now))")
     }
 
     /// One sentence for VoiceOver: no colour, no layout, just what is happening and when.
     static func spoken(_ event: CalendarStore.Event, isTomorrow: Bool, isNext: Bool, now: Date = .now) -> String {
         var parts: [String] = []
-        if isNext { parts.append("Lo siguiente:") }
+        if isNext { parts.append(String(localized: "Up next:")) }
         parts.append(event.title)
         parts.append(time(event))
         parts.append(countdown(event, isTomorrow: isTomorrow, now: now))
-        if let location = event.location { parts.append("en \(location)") }
-        if event.conferenceURL != nil { parts.append("con enlace para unirse") }
+        if let location = event.location { parts.append(String(localized: "at \(location)")) }
+        if event.conferenceURL != nil { parts.append(String(localized: "with a link to join")) }
         return parts.joined(separator: ", ")
     }
 }

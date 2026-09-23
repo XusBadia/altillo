@@ -59,6 +59,38 @@ are in [docs/desarrollo.md](docs/desarrollo.md) (Spanish).
   (boring.notch, Ice, Thaw, MewNotch, Atoll) are reference-only — read them
   for ideas, never copy code from them. See that file for the full policy.
 
+## Localization
+
+Altillo ships in **English** (source language) and **Spanish**. Translations live
+in String Catalogs, not in the code:
+
+- `Apps/macOS/Resources/Localizable.xcstrings` — the Mac app
+- `Apps/iOS/Localizable.xcstrings` — the iOS app
+- `Packages/AltilloKit/Sources/AltilloDesign/Resources/Localizable.xcstrings` — AltilloDesign
+
+Write every user-facing string in English, at the call site:
+
+- SwiftUI APIs that take a `LocalizedStringKey` (`Text`, `Button`, `Label`,
+  `Toggle`, `.help`, `.accessibilityLabel`, …) localize a string literal on their
+  own — leave the literal alone, don't wrap it.
+- Anything that produces a `String` for the UI (a computed `title`, a formatter, an
+  AppKit window title, an undo action name) needs `String(localized: "…")`. Inside
+  AltilloKit, pass the bundle: `String(localized: "…", bundle: .module)`.
+- A custom view that renders a `String` with `Text(…)` does **not** localize.
+  Give the parameter type `LocalizedStringKey`, or keep `String` and render it
+  with `Text(verbatim:)` when the value is already localized upstream.
+- Don't invent plural branches in code. Write one interpolated key
+  (`String(localized: "\(count) things")`) and add the plural variations to the
+  catalog.
+- Never localize logs (`SpikeLog`, `os_log`), file paths, keys, bundle IDs,
+  AppleScript, SF Symbol names, or the product name "Altillo" on its own.
+
+Building updates the catalogs with newly discovered keys; open them in Xcode to
+fill in the Spanish column. To see the app in Spanish without changing your Mac's
+language, run it with `-AppleLanguages "(es)"`. The test action is pinned to
+English (`project.yml`), so tests assert English output on any machine; to check a
+suite in Spanish, run `xcodebuild … -testLanguage es -testRegion ES`.
+
 ## Running tests
 
 ```sh
@@ -93,8 +125,14 @@ every pull request.
 
 Altillo never needs an API key to run, and the repository must never contain one.
 
-- `Config/Local.xcconfig` (team ID, bundle prefix, signing identity) is git-ignored. Copy `Config/Local.xcconfig.example` and fill in your own values.
+- `Config/Local.xcconfig` (team ID, bundle prefix, signing identity, and — only for a maintainer cutting
+  a release — the Sparkle public key) is git-ignored. Copy `Config/Local.xcconfig.example` and fill in
+  your own values.
 - Signing material (`.p8`, `.p12`, `.pem`, `.cer`, `.mobileprovision`, `.provisionprofile`) and `.env` files are git-ignored too.
+- The Sparkle EdDSA **private** signing key lives in the login keychain (`generate_keys --account altillo`),
+  never on disk or in git; notarization credentials live in a notarytool keychain profile
+  (`altillo-notary`). Neither is needed to build or contribute — only to cut a release. See
+  [docs/release.md](docs/release.md) (Spanish) for the full release setup and CI secret names.
 - The APNs key used for Live Activities (phase 6) is read from the user's Keychain at runtime. It is never bundled, printed or committed.
 - Provider credentials (Claude, Codex…) are read from the user's own Keychain/config files and never leave the Mac.
 - Run `script/install-git-hooks.sh` once (needs `brew install gitleaks`): it installs a pre-commit hook that refuses to commit a secret. CI runs the same scan over the full history on every push and pull request.

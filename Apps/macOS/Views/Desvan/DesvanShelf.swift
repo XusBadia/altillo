@@ -146,8 +146,8 @@ struct DesvanShelfView: View {
             startPoint: .leading,
             endPoint: .trailing
         )
-        .animation(.easeOut(duration: 0.2), value: leading)
-        .animation(.easeOut(duration: 0.2), value: trailing)
+        .animation(Desvan.Motion.pick(.easeOut(duration: 0.2), reduceMotion: reduceMotion), value: leading)
+        .animation(Desvan.Motion.pick(.easeOut(duration: 0.2), reduceMotion: reduceMotion), value: trailing)
     }
 
     /// Moves the row by `delta` points, if there is anywhere to go. Returns false so the wheel event goes on its way.
@@ -310,7 +310,7 @@ private struct DesvanShelfTile: View {
                 .rotationEffect(.degrees(tilt), anchor: .bottom)
                 .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.4) : .clear, radius: 8, y: -1)
                 .offset(y: -lift)
-                .animation(Desvan.Motion.pick(.spring(duration: 0.25, bounce: 0.2), reduceMotion: reduceMotion), value: lift)
+                .animation(Desvan.Motion.pick(Desvan.Motion.lift, reduceMotion: reduceMotion), value: lift)
                 .keyframeAnimator(initialValue: LandingPose(), trigger: landing) { content, pose in
                     content
                         .scaleEffect(x: pose.scaleX, y: pose.scaleY, anchor: .bottom)
@@ -367,7 +367,7 @@ private struct DesvanShelfTile: View {
                 .blur(radius: 1 + 0.6 * lift)
         }
         .offset(y: 2.5)
-        .animation(Desvan.Motion.pick(.spring(duration: 0.25, bounce: 0), reduceMotion: reduceMotion), value: lift)
+        .animation(Desvan.Motion.pick(.spring(duration: 0.2, bounce: 0), reduceMotion: reduceMotion), value: lift)
         .keyframeAnimator(initialValue: 1.0, trigger: landing) { content, presence in
             content.opacity(presence).scaleEffect(x: 0.5 + 0.5 * presence, y: 1)
         } keyframes: { _ in
@@ -388,13 +388,13 @@ private struct DesvanShelfTile: View {
     @ViewBuilder
     private var contextMenu: some View {
         let items = menuItems()
-        Button("Abrir") { items.forEach(model.actions.open) }
+        Button("Open") { items.forEach(model.actions.open) }
         if items.contains(where: { $0.fileURL != nil }) {
-            Button("Mostrar en Finder") { model.actions.revealInFinder(items) }
-            Button("Vista rápida") { model.actions.quickLook(items) }
+            Button("Show in Finder") { model.actions.revealInFinder(items) }
+            Button("Quick Look") { model.actions.quickLook(items) }
         }
         Divider()
-        Button(items.count > 1 ? "Bajar \(items.count) cosas del altillo" : "Bajar del altillo", role: .destructive) {
+        Button(items.count > 1 ? "Take \(items.count) things down" : "Take it down", role: .destructive) {
             model.actions.remove(Set(items.map(\.id)))
         }
     }
@@ -546,7 +546,7 @@ private struct DesvanPostcard: View {
 
 // MARK: - Empty state
 
-/// «El altillo está vacío.» The bare plank with the house standing on it, and one warm sentence.
+/// «The shelf is empty.» The bare plank with the house standing on it, and one warm sentence.
 struct DesvanShelfEmptyState: View {
     var isReceiving = false
     var problem: String?
@@ -559,10 +559,10 @@ struct DesvanShelfEmptyState: View {
             HStack(alignment: .center, spacing: 12) {
                 DesvanHouseMark(size: 26)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
+                    Text(verbatim: title)
                         .font(Desvan.Typeface.display(16, weight: 600))
                         .foregroundStyle(problem == nil ? Desvan.Palette.paper : Desvan.Palette.warning)
-                    Text(detail)
+                    Text(verbatim: detail)
                         .font(.system(size: 11.5))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                         .lineLimit(2)
@@ -577,14 +577,14 @@ struct DesvanShelfEmptyState: View {
     }
 
     private var title: String {
-        if isReceiving { return "Guardándolo arriba…" }
-        if problem != nil { return "Algo se ha quedado a medias." }
-        return "El altillo está vacío."
+        if isReceiving { return String(localized: "Putting it up…") }
+        if problem != nil { return String(localized: "Something got left half done.") }
+        return String(localized: "The shelf is empty.")
     }
 
     private var detail: String {
-        if isReceiving { return "Algunas cosas tardan un poco en llegar." }
-        return problem ?? "Sube aquí lo que quieras tener a mano un rato."
+        if isReceiving { return String(localized: "Some things take a moment to arrive.") }
+        return problem ?? String(localized: "Put anything up here you want within reach for a while.")
     }
 }
 

@@ -2,3 +2,11 @@
 ALTILLO_TEAM = ABCDE12345
 ALTILLO_BUNDLE_PREFIX = com.example.altillo
 ALTILLO_MAC_SIGN_IDENTITY = Apple Development
+
+// Optional: only needed to test Sparkle auto-updates locally (see docs/release.md). Leave both empty
+// (or omit them) to build with the updater compiled in but inert — that's the normal dev setup.
+// NOTE: xcconfig treats "//" anywhere on a line as a comment, so a feed URL can't contain a literal
+// "//" — build it with $(ALTILLO_XC_SLASH) (defined in Shared.xcconfig) instead, as below.
+// ALTILLO_SPARKLE_FEED_URL = https:$(ALTILLO_XC_SLASH)$(ALTILLO_XC_SLASH)example.github.io/altillo/appcast.xml
+// ALTILLO_SPARKLE_PUBLIC_KEY = <EdDSA public key from `generate_keys --account altillo`>
+

@@ -1,6 +1,6 @@
 # Iconos de la barra de menú: investigación (septiembre 2026)
 
-> **Implementación actual:** [Cajón / Drawer](cajon.md). Ocultación mediante separador solo en macOS 26; catálogo AX en otras versiones. Las notas históricas sobre otras versiones y proyectos no constituyen una garantía de compatibilidad comprobada en Altillo.
+> **Implementación actual:** [Cajón / Drawer](cajon.md). La estantería compacta se muestra encima de la navegación de Altillo cuando está activa. La ocultación mediante separador solo está implementada y verificada en macOS 26; el catálogo AX en otras versiones no constituye una garantía de compatibilidad completa.
 
 **Contexto:** macOS 27 "Golden Gate" salió el 14-09-2026. En 27 toda la barra de menú es **una sola ventana**, y Apple ha añadido un **chevrón de desbordamiento nativo** para los iconos que tapa el notch.
 
@@ -26,14 +26,14 @@ Un icono está oculto si su marco corta el notch o queda fuera de pantalla. Se c
   - Con **Grabación de Pantalla**, en 26 se puede capturar con ScreenCaptureKit (`SCScreenshotManager`). En 27 no hay captura por icono.
 - **Pulsar:** `AXPress` (y `AXShowMenu` para el clic derecho). La llamada puede ejecutarse con el icono fuera de pantalla, pero eso **no garantiza un menú visible**: se ha reproducido un menú abierto miles de puntos fuera de pantalla con una app de prueba.
   - **Hay que mostrar el grupo, actualizar los marcos y recoger el panel del notch antes de pulsar.**
-  - Si el icono sigue fuera por saturación física de la barra, Drawer no pulsa: explica que falta espacio. No reubica menús ajenos ni simula arrastres.
-- **Moverlos temporalmente** (el "Ice Bar"): ⌘+arrastre simulado con CGEvent. Tarda 1-1,5 s por icono, secuestra el cursor, requiere más de 10k líneas para ser fiable y **no funciona en 27**. Descartado.
+  - Si el icono sigue fuera por saturación física de la barra, Drawer no pulsa: explica que falta espacio y mantiene el grupo visible.
+- **Moverlos desde ajustes:** la configuración de Drawer usa ⌘+arrastre con eventos públicos de `CGEvent` y después vuelve a enumerar `AXExtrasMenuBar` para confirmar la nueva zona. El catálogo marca los elementos que no aceptan el gesto como inamovibles. El movimiento es una acción explícita del usuario, reversible desde las dos zonas y no se confirma por el gesto hasta que AX verifica el resultado.
 
 ## Ocultar y reordenar
 
 - **26:** el separador (un `NSStatusItem` con length de 10.000) funciona con API pública.
 - **27:** el sistema expulsa el separador. Hidden Bar usa el framework privado `MenuBarClientCore`, que solo oculta por app. La alternativa nativa es Ajustes › Barra de menús › "Permitir en la barra de menús".
-- **Reordenar:** en 26 exige CGEvent + AX; en 27, escribir en un fichero protegido del sistema. **Descartado.**
+- **Reordenar:** la colocación entre la estantería y la barra usa CGEvent + AX en la versión de macOS soportada. No se escribe en ficheros protegidos del sistema ni se usan APIs privadas; en versiones no verificadas la ocultación se mantiene desactivada.
 
 ## Licencias
 
@@ -47,8 +47,8 @@ Un icono está oculto si su marco corta el notch o queda fuera de pantalla. Se c
 
 | Función | Viabilidad | Permisos | Decisión |
 |---|---|---|---|
-| (a) Ver y pulsar los iconos tapados desde el notch | Alta | Accesibilidad (+ Grabación de Pantalla opcional) | ✅ Fase 7. En 27: lista y búsqueda |
+| (a) Ver y pulsar los iconos tapados desde el notch | Alta | Accesibilidad (+ Grabación de Pantalla opcional) | ✅ Fase 7. En versiones no verificadas: catálogo según AX |
 | (b) Ocultar secciones | Media en 26, baja en 27 | Ninguno en 26 | ✅ Solo en 26; en 27, enlace a Ajustes |
-| (c) Reordenar | Baja | Accesibilidad + eventos | ❌ |
+| (c) Colocar iconos entre Altillo y la barra | Media | Accesibilidad + eventos públicos | ✅ En la configuración; los inamovibles se conservan |
 
 **Fuentes:** [Thaw](https://github.com/thaw-app/Thaw), [Hidden Bar](https://github.com/dwarvesf/hidden), [HiddenBarIcons](https://github.com/mekedron/HiddenBarIcons), [Ice #954](https://github.com/jordanbaird/Ice/issues/954), [BTT sobre macOS 27](https://community.folivora.ai/t/macos-27-golden-gate-menu-bar-management-broken-solutions-ice-thaw-bartender-barbee-etc/47232), [heise sobre Bartender 6](https://www.heise.de/en/news/macOS-26-Lag-and-other-issues-with-menu-bar-tool-Bartender-6-11167978.html).

@@ -101,11 +101,12 @@ struct AltilloSettingsTests {
 
     @Test func rubbishOnDiskFallsBackToTheDefaults() {
         let defaults = Self.makeDefaults()
-        defaults.set(["shelf", "unicornio", "usage", "usage"], forKey: "modules")
+        defaults.set(["shelf", "unicornio", "drawer", "usage", "usage"], forKey: "modules")
         defaults.set("cada martes", forKey: "shelfExpiry")
 
         let settings = AltilloSettings(defaults: defaults)
-        #expect(settings.modules == [.shelf, .usage])
+        // A list from before `knownModules` existed: Ask is new to this user, so it arrives switched on.
+        #expect(settings.modules == [.shelf, .assistant, .usage])
         #expect(settings.shelfExpiry == .never)
     }
 

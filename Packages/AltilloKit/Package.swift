@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "AltilloKit",
-    defaultLocalization: "es",
+    defaultLocalization: "en",
     platforms: [.macOS(.v26), .iOS(.v26)],
     products: [
         .library(name: "AltilloCore", targets: ["AltilloCore"]),
@@ -11,7 +11,7 @@ let package = Package(
     ],
     targets: [
         .target(name: "AltilloCore"),
-        .target(name: "AltilloDesign", dependencies: ["AltilloCore"]),
+        .target(name: "AltilloDesign", dependencies: ["AltilloCore"], resources: [.process("Resources")]),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),
         .testTarget(name: "AltilloDesignTests", dependencies: ["AltilloDesign"]),
     ]

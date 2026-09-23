@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	Altillo ships with hardened runtime ON and no App Sandbox (see PLAN.md §0 "Distribución"). Hardened
+	runtime alone — with no entitlements at all — blocks the camera (Mirror module), Apple Events to
+	Music/Spotify (Now Playing module), and Calendar access (Calendar module). These three entitlements
+	restore exactly what those modules need; nothing here implies sandboxing.
+	-->
+	<key>com.apple.security.device.camera</key>
+	<true/>
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+</dict>
+</plist>

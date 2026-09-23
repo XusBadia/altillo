@@ -73,7 +73,7 @@ enum AppleScriptRunner {
             do {
                 try process.run()
             } catch {
-                return .failure(Failure.failed("no se ha podido ejecutar osascript: \(error.localizedDescription)"))
+                return .failure(Failure.failed("couldn't run osascript: \(error.localizedDescription)"))
             }
             try? input.fileHandleForWriting.write(contentsOf: Data(source.utf8))
             try? input.fileHandleForWriting.close()

@@ -18,6 +18,7 @@ struct DesvanRootView: View {
 
     var body: some View {
         let chrome = Desvan.chrome(for: model)
+        let from = motion.advance(to: chrome)
         let shape = NotchShape(topCornerRadius: chrome.topRadius, bottomCornerRadius: chrome.bottomRadius)
 
         ZStack(alignment: .top) {
@@ -27,31 +28,34 @@ struct DesvanRootView: View {
                 .shadow(color: .black.opacity(chrome.showsShadow ? 0.55 : 0), radius: 18, y: 10)
                 .shadow(color: .black.opacity(chrome.showsShadow ? 0.25 : 0), radius: 3, y: 1)
 
-            ZStack(alignment: .top) {
-                DesvanFaceView(model: model, chrome: chrome, flicker: flicker)
-                    .frame(width: chrome.size.width, height: chrome.size.height, alignment: .top)
-                    .id(chrome.face)
-                    .transition(.contentSwap(shift: max(4, chrome.size.height * 0.02), reduceMotion: reduceMotion))
-            }
-            .frame(width: chrome.size.width, height: chrome.size.height, alignment: .top)
-            .clipShape(shape)
+            // Each face is laid out at its final size, pinned to the top centre, and the growing (or shrinking)
+            // silhouette clips it: the shape reveals the face instead of squeezing it.
+            Color.clear
+                .overlay(alignment: .top) {
+                    ZStack(alignment: .top) {
+                        DesvanFaceView(model: model, chrome: chrome, flicker: flicker)
+                            .frame(width: chrome.size.width, height: chrome.size.height, alignment: .top)
+                            .id(chrome.face)
+                            .transition(Desvan.Motion.face(chrome.face, reduceMotion: reduceMotion))
+                    }
+                }
+                .clipShape(shape)
         }
-        .frame(width: chrome.size.width, height: chrome.size.height)
+        // The silhouette's size is animated here, one axis at a time, so each picks its own spring (the grown one
+        // overshoots, the shrunk one never does) and a peek can grow sideways before it drops. The size is
+        // interpolated frame by frame, so the shadow, the clip and the pinned face always agree mid-flight.
+        .modifier(SilhouetteLength(axis: .vertical, length: chrome.size.height))
+        .transaction(value: chrome.size.height) { transaction in
+            animate(&transaction, axis: .vertical, from: from, to: chrome)
+        }
+        .modifier(SilhouetteLength(axis: .horizontal, length: chrome.size.width))
+        .transaction(value: chrome.size.width) { transaction in
+            animate(&transaction, axis: .horizontal, from: from, to: chrome)
+        }
         .contentShape(shape)
-        .onGeometryChange(for: CGSize.self, of: \.size) { size in
+        .onChange(of: chrome.size, initial: true) { _, size in
+            // Hit-testing follows the shape the notch is heading for.
             model.visibleShapeSize = size
-            motion.lastArea = size.width * size.height
-        }
-        .transaction { transaction in
-            // Desván's own springs: opening settles with a little weight, closing never bounces.
-            // With Reduce Motion the shape still changes size, but as a short fade-like ease.
-            guard transaction.animation != nil else { return }
-            if reduceMotion {
-                transaction.animation = Desvan.Motion.fade
-            } else {
-                let grows = chrome.size.width * chrome.size.height >= motion.lastArea
-                transaction.animation = grows ? Desvan.Motion.open : Desvan.Motion.close
-            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .environment(\.colorScheme, .dark)
@@ -65,6 +69,15 @@ struct DesvanRootView: View {
             applyScenarioDemoState()
             await DesvanDebug.clock.run(for: model.scenario)
         }
+        .task {
+            // `-customizeOnLaunch YES` opens the notch in edit mode once, to review it without a right-click.
+            guard DesvanEdit.customizeOnLaunch, !DesvanEdit.didCustomizeOnLaunch else { return }
+            DesvanEdit.didCustomizeOnLaunch = true
+            try? await Task.sleep(for: .milliseconds(1200))
+            // Rebuilt before it fired (the screens settling at launch): let the next root view do it.
+            guard !Task.isCancelled else { DesvanEdit.didCustomizeOnLaunch = false; return }
+            model.actions.beginEditing()
+        }
         .onChange(of: model.shelf.count) { old, new in
             guard new > old else { return }
             Task { await flickerBulb() }
@@ -72,6 +85,21 @@ struct DesvanRootView: View {
         .onChange(of: DesvanDebug.clock.tick) {
             if DesvanDebug.demoMotion == .landing { Task { await flickerBulb() } }
         }
+    }
+
+    /// Desván's own springs for the silhouette, replacing whatever animation the state change came with. Only the
+    /// transaction that resizes an axis is touched: hovers and presses inside keep their own quick animations.
+    private func animate(_ transaction: inout Transaction, axis: Axis, from: NotchChrome, to: NotchChrome) {
+        guard transaction.animation != nil else { return }
+        let length = { (chrome: NotchChrome) in axis == .horizontal ? chrome.size.width : chrome.size.height }
+        let panel = axis == .horizontal ? NotchLayout.panelSize.width : NotchLayout.panelSize.height - 30
+        transaction.animation = Desvan.Motion.silhouette(
+            axis,
+            from: (from.face, length(from)),
+            to: (to.face, length(to)),
+            limit: panel,
+            reduceMotion: reduceMotion
+        )
     }
 
     /// The bulb flickers when something is saved: as the thing hits the plank, the light jumps (+4 %), dips and
@@ -109,9 +137,40 @@ struct DesvanRootView: View {
         model.selection = [model.shelf[1].id]
     }
 
-    /// Remembers the last drawn area to pick the opening or closing spring (not observed: no re-render).
+    /// Remembers the chrome the silhouette is coming from, to pick each axis's spring (not observed: no re-render).
     private final class MotionMemory {
-        var lastArea: CGFloat = 0
+        private var previous: NotchChrome?
+        private var current: NotchChrome?
+
+        /// Records `chrome` as the one being drawn and returns the one drawn before it. Evaluating the same chrome
+        /// again (the body runs for other reasons too) keeps returning the same predecessor.
+        func advance(to chrome: NotchChrome) -> NotchChrome {
+            if chrome != current {
+                previous = current
+                current = chrome
+            }
+            return previous ?? chrome
+        }
+    }
+}
+
+/// Animates one side of the silhouette's frame. The length itself is interpolated (not the laid-out result), so the
+/// shape, its shadow, its clip and the face pinned inside are re-laid out together on every frame of the spring.
+/// Nothing runs at rest.
+private struct SilhouetteLength: ViewModifier, Animatable {
+    let axis: Axis
+    var length: CGFloat
+
+    nonisolated var animatableData: CGFloat {
+        get { length }
+        set { length = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        switch axis {
+        case .horizontal: content.frame(width: max(0, length))
+        case .vertical: content.frame(height: max(0, length))
+        }
     }
 }
 
@@ -145,6 +204,8 @@ private struct DesvanFaceView: View {
 
 // MARK: - Ears
 
+/// The resting notch with ears: whatever the user put in each one (Settings › Sections or edit mode). While ears
+/// only show with activity, a quiet one stays empty; when they always show, a quiet one keeps its glyph, unlit.
 private struct DesvanEarsFace: View {
     let model: NotchModel
     let chrome: NotchChrome
@@ -153,12 +214,164 @@ private struct DesvanEarsFace: View {
         EarBand(chrome: chrome, earWidth: NotchChrome.earWidth) {
             if model.scenario == .idleWithEars {
                 DesvanUsageEar(usage: model.demo.primaryUsage)
+            } else if model.scenario == nil {
+                DesvanEarContent(content: model.settings.leftEar, model: model, style: restingStyle)
             }
         } trailing: {
-            // Real data only: the knocking hand arrives with live agents (phase 4).
-            if !model.shelf.isEmpty {
-                DesvanShelfCount(count: model.shelf.count)
+            if model.scenario != nil {
+                // Design review: real data only; the knocking hand arrives with live agents (phase 4).
+                if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
+            } else {
+                DesvanEarContent(content: model.settings.rightEar, model: model, style: restingStyle)
             }
+        }
+    }
+
+    private var restingStyle: DesvanEarContent.Style {
+        model.settings.earsVisibility == .always ? .resting : .live
+    }
+}
+
+/// What one ear shows. `.live` renders only what has something to say; `.resting` (ears always visible) keeps a
+/// dim stand-in for a quiet ear; `.preview` (edit mode's slots) also draws the ears that aren't available yet.
+struct DesvanEarContent: View {
+    enum Style { case live, resting, preview }
+
+    let content: EarContent
+    let model: NotchModel
+    var style: Style = .live
+
+    var body: some View {
+        let ears = model.ears
+        let active = ears.hasActivity(content, shelfCount: model.shelf.count)
+        Group {
+            switch content {
+            case .none:
+                EmptyView()
+            case .shelf:
+                if active {
+                    DesvanShelfCount(count: model.shelf.count)
+                } else if style != .live {
+                    // Nobody home: the house with its light off.
+                    DesvanHouseMark(size: 11, lit: 0, outline: Desvan.Palette.paperTertiary)
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel("The shelf is empty")
+                }
+            case .nextEvent:
+                if let label = ears.nextEventLabel {
+                    DesvanNextEventEar(label: label, title: ears.nextEvent?.title ?? "")
+                } else if style != .live {
+                    DesvanEarGlyph(symbol: "calendar")
+                        .accessibilityLabel("No more events today")
+                }
+            case .nowPlaying:
+                if active || style != .live {
+                    DesvanEqualiser(isPlaying: active)
+                        .opacity(active ? 1 : 0.4)
+                }
+            case .usage, .agents:
+                // Their modules arrive in phases 3 and 4: nothing real to show yet.
+                if style == .preview { DesvanEarGlyph(symbol: content.symbol) }
+            }
+        }
+        .transition(.opacity)
+    }
+}
+
+/// A quiet ear's stand-in: its glyph, unlit.
+struct DesvanEarGlyph: View {
+    let symbol: String
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 10.5, weight: .semibold))
+            .foregroundStyle(Desvan.Palette.paperTertiary)
+    }
+}
+
+/// The next event: a calendar glyph and its time ("10:30"), or a countdown under the hour ("in 12 min").
+/// `EarsStore` wakes up exactly when the text changes; nothing ticks in between.
+struct DesvanNextEventEar: View {
+    let label: EarsLogic.EventLabel
+    let title: String
+
+    var body: some View {
+        // Under the hour it lights up: time to get ready.
+        let soon: Bool = if case .at = label { false } else { true }
+        ViewThatFits(in: .horizontal) {
+            row(EarsLogic.text(for: label), glyph: true)
+            row(EarsLogic.compactText(for: label), glyph: true)
+            row(EarsLogic.compactText(for: label), glyph: false)
+        }
+        .foregroundStyle(soon ? Desvan.Palette.bulb : Desvan.Palette.paper)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityText)
+    }
+
+    private func row(_ text: String, glyph: Bool) -> some View {
+        HStack(spacing: 3) {
+            if glyph {
+                Image(systemName: "calendar")
+                    .font(.system(size: 9.5, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+            }
+            Text(verbatim: text)
+                .font(Desvan.Typeface.figure(12, weight: .medium))
+                .lineLimit(1)
+                .fixedSize()
+        }
+    }
+
+    private var accessibilityText: String {
+        let name = title.isEmpty ? String(localized: "Next event") : title
+        switch label {
+        case let .at(date): return String(localized: "\(name) at \(date.formatted(date: .omitted, time: .shortened))")
+        case let .countdown(minutes): return String(localized: "\(name) in \(minutes) minutes")
+        case .now: return String(localized: "\(name) is starting now")
+        }
+    }
+}
+
+/// Four little bars dancing while music plays. Still (and low) when paused, and still with Reduce Motion.
+struct DesvanEqualiser: View {
+    var isPlaying: Bool
+    var height: CGFloat = 11
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Each bar's resting height and its own rhythm, so they never march in step.
+    private static let bars: [(rest: CGFloat, period: Double)] = [(0.45, 0.62), (0.9, 0.48), (0.6, 0.7), (0.75, 0.54)]
+
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 1.8) {
+            ForEach(Self.bars.indices, id: \.self) { index in
+                bar(index)
+            }
+        }
+        .frame(height: height, alignment: .bottom)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(isPlaying ? "Music playing" : "Music paused")
+    }
+
+    @ViewBuilder
+    private func bar(_ index: Int) -> some View {
+        let spec = Self.bars[index]
+        let capsule = Capsule().fill(Desvan.Palette.bulb)
+        if isPlaying, !reduceMotion {
+            capsule
+                .frame(width: 2.4)
+                .keyframeAnimator(initialValue: spec.rest, repeating: true) { content, level in
+                    content.frame(height: max(2.4, height * level))
+                } keyframes: { _ in
+                    KeyframeTrack {
+                        CubicKeyframe(1, duration: spec.period * 0.5)
+                        CubicKeyframe(0.25, duration: spec.period * 0.5)
+                        CubicKeyframe(spec.rest, duration: spec.period * 0.4)
+                    }
+                }
+        } else {
+            // Paused: the bars stand at rest, a little lower, so it still reads as music.
+            capsule.frame(width: 2.4, height: max(2.4, height * spec.rest * (isPlaying ? 1 : 0.7)))
         }
     }
 }
@@ -177,7 +390,7 @@ struct DesvanUsageEar: View {
                 .foregroundStyle(Desvan.Palette.paper)
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(usage.agent.name): \(NotchFormat.percent(used)) de la sesión")
+        .accessibilityLabel("\(usage.agent.name): \(NotchFormat.percent(used)) of the session")
     }
 }
 
@@ -194,7 +407,7 @@ struct DesvanShelfCount: View {
                 .contentTransition(.numericText(value: Double(count)))
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(NotchFormat.things(count)) en el altillo")
+        .accessibilityLabel("\(NotchFormat.things(count)) on the shelf")
     }
 }
 
@@ -217,7 +430,8 @@ struct DesvanRing<Label: View>: View {
                 .stroke(tint, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round))
                 .rotationEffect(.degrees(-90))
                 .shadow(color: tint.opacity(UsageLevel(fraction: clamped) == .normal ? 0 : 0.35), radius: lineWidth)
-                .animation(.easeInOut(duration: 0.4), value: UsageLevel(fraction: clamped))
+                .animation(Desvan.Motion.pick(.easeInOut(duration: 0.4), reduceMotion: reduceMotion),
+                           value: UsageLevel(fraction: clamped))
             if let pace {
                 GeometryReader { proxy in
                     let radius = min(proxy.size.width, proxy.size.height) / 2
@@ -291,10 +505,16 @@ struct DesvanKnockingHand: View {
 
 // MARK: - Peek
 
+/// A peek arrives in two beats: the shape grows sideways out of the notch with the ears, then drops and its line
+/// comes into focus under the notch. A newer alert replacing the current one crossfades its line and figure.
 private struct DesvanPeekFace: View {
     let model: NotchModel
     let chrome: NotchChrome
     let kind: PeekKind
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// False for the first instant of the peek, until the silhouette has dropped far enough to show the line.
+    @State private var lineInFocus = false
 
     var body: some View {
         if kind == .hint {
@@ -302,19 +522,37 @@ private struct DesvanPeekFace: View {
         } else if chrome.hasNotch {
             VStack(spacing: 0) {
                 EarBand(chrome: chrome, earWidth: NotchChrome.peekEarWidth) { leadingEar } trailing: { trailingEar }
-                line
-                    .frame(height: NotchChrome.peekLineHeight - 6)
-                    .padding(.horizontal, chrome.topRadius + 16)
+                ZStack {
+                    line
+                        .id(model.alert?.id)
+                        .transition(.contentSwap(shift: 3, reduceMotion: reduceMotion))
+                }
+                .frame(height: NotchChrome.peekLineHeight - 6)
+                .padding(.horizontal, chrome.topRadius + 16)
+                .modifier(DesvanLineArrival(inFocus: lineInFocus))
                 Spacer(minLength: 0)
             }
+            .onAppear(perform: bringLineIntoFocus)
         } else {
             // The island has no camera to dodge: one centred row.
-            HStack(spacing: 9) {
-                leadingEar
-                line
+            ZStack {
+                HStack(spacing: 9) {
+                    leadingEar
+                    line
+                }
+                .padding(.horizontal, chrome.topRadius + 14)
+                .id(model.alert?.id)
+                .transition(.contentSwap(shift: 3, reduceMotion: reduceMotion))
             }
-            .padding(.horizontal, chrome.topRadius + 14)
+            .modifier(DesvanLineArrival(inFocus: lineInFocus))
             .frame(maxHeight: .infinity)
+            .onAppear(perform: bringLineIntoFocus)
+        }
+    }
+
+    private func bringLineIntoFocus() {
+        withAnimation(Desvan.Motion.pick(Desvan.Motion.focusIn.delay(0.1), reduceMotion: reduceMotion)) {
+            lineInFocus = true
         }
     }
 
@@ -325,6 +563,7 @@ private struct DesvanPeekFace: View {
         case .shelf: DesvanHouseMark(size: 13)
         case .usageAlert: AgentGlyph(agent: model.demo.primaryUsage.agent, size: 15)
         case .agentWaiting: DesvanKnockingHand(size: 12)
+        case .alert: if let alert = model.alert { DesvanAlertSymbol(alert: alert) }
         }
     }
 
@@ -338,11 +577,19 @@ private struct DesvanPeekFace: View {
             // The alert itself: burning faster than the window allows.
             HStack(spacing: 3) {
                 Image(systemName: "arrow.up.right").font(.system(size: 9, weight: .bold))
-                Text("rápido").font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                Text("fast").font(Desvan.Typeface.rounded(11.5, weight: .semibold))
             }
             .foregroundStyle(Desvan.Palette.warning)
         case .agentWaiting:
             if let agent = model.demo.waitingAgent { AgentGlyph(agent: agent.agent, size: 15) }
+        case .alert:
+            ZStack {
+                if let trailing = model.alert?.trailing {
+                    DesvanAlertFigure(text: trailing)
+                        .id(model.alert?.id)
+                        .transition(.contentSwap(shift: 3, reduceMotion: reduceMotion))
+                }
+            }
         }
     }
 
@@ -353,6 +600,7 @@ private struct DesvanPeekFace: View {
         case .shelf: shelfLine
         case .usageAlert: usageLine
         case .agentWaiting: agentLine
+        case .alert: if let alert = model.alert { DesvanAlertLine(alert: alert, showsTrailing: !chrome.hasNotch) }
         }
     }
 
@@ -362,18 +610,18 @@ private struct DesvanPeekFace: View {
     @ViewBuilder
     private var shelfLine: some View {
         if model.shelf.isEmpty {
-            Text("El altillo está vacío")
+            Text("The shelf is empty")
                 .font(Self.sentence)
                 .foregroundStyle(Desvan.Palette.paperSecondary)
         } else {
             HStack(spacing: 9) {
                 ThumbnailStack(items: Array(model.shelf.suffix(3)))
-                Text("\(Text(NotchFormat.things(model.shelf.count)).font(Self.datum.italic())) esperando arriba")
+                Text("\(Text(NotchFormat.things(model.shelf.count)).font(Self.datum.italic())) waiting up there")
                     .font(Self.sentence)
                     .foregroundStyle(Desvan.Palette.paper)
                 Spacer(minLength: 8)
                 if let last = model.shelf.map(\.addedAt).max() {
-                    Text("la última, \(NotchFormat.ago(last))")
+                    Text("last one, \(NotchFormat.ago(last))")
                         .font(Desvan.Typeface.rounded(11, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperTertiary)
                         .monospacedDigit()
@@ -389,11 +637,11 @@ private struct DesvanPeekFace: View {
             .font(Self.datum.italic())
             .foregroundStyle(Desvan.usageTint(used))
         return HStack(spacing: 0) {
-            Text("\(usage.agent.name) va por el \(figure) de la sesión")
+            Text("\(usage.agent.name) is at \(figure) of the session")
                 .font(Self.sentence)
                 .foregroundStyle(Desvan.Palette.paper)
             Spacer(minLength: 10)
-            Text("se repone en \(NotchFormat.countdown(to: usage.session.resetsAt))")
+            Text("refills in \(NotchFormat.countdown(to: usage.session.resetsAt))")
                 .font(Desvan.Typeface.rounded(11, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .monospacedDigit()
@@ -405,10 +653,10 @@ private struct DesvanPeekFace: View {
     private var agentLine: some View {
         if let agent = model.demo.waitingAgent {
             HStack(spacing: 5) {
-                Text("Toc, toc:")
+                Text("Knock, knock:")
                     .font(.system(size: 12.5, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.bulb)
-                Text("\(agent.agent.name) quiere hacer")
+                Text("\(agent.agent.name) wants to run")
                     .font(Self.sentence)
                     .foregroundStyle(Desvan.Palette.paper)
                 if let request = agent.request {
@@ -420,7 +668,7 @@ private struct DesvanPeekFace: View {
                         .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Desvan.Palette.woodRaised))
                         .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
                 }
-                Text("en \(Text(agent.project).font(Self.datum.italic()))")
+                Text("in \(Text(agent.project).font(Self.datum.italic()))")
                     .font(Self.sentence)
                     .foregroundStyle(Desvan.Palette.paper)
                 Spacer(minLength: 8)
@@ -430,6 +678,23 @@ private struct DesvanPeekFace: View {
                     .monospacedDigit()
             }
             .lineLimit(1)
+        }
+    }
+}
+
+/// The peek's line sharpening in once the silhouette has dropped: out of focus and a touch high until then.
+private struct DesvanLineArrival: ViewModifier {
+    let inFocus: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        if reduceMotion {
+            content.opacity(inFocus ? 1 : 0)
+        } else {
+            content
+                .opacity(inFocus ? 1 : 0)
+                .blur(radius: inFocus ? 0 : 5)
+                .offset(y: inFocus ? 0 : -3)
         }
     }
 }
@@ -455,18 +720,18 @@ private struct DesvanHintFace: View {
     }
 
     private var wordmark: some View {
-        Text("altillo")
+        Text(verbatim: "altillo")
             .font(Desvan.Typeface.display(13.5, weight: 600))
             .foregroundStyle(Desvan.Palette.paper.opacity(0.9))
             .fixedSize()
-            .accessibilityLabel("Altillo")
+            .accessibilityLabel(Text(verbatim: "Altillo"))
     }
 }
 
 // MARK: - Drag armed
 
 /// A drag is in progress: the bulb hanging under the notch lights up as the pointer comes closer
-/// (`model.dragProximity`), and a warm "Súbelo ↑".
+/// (`model.dragProximity`), and a warm "Put it up ↑".
 private struct DesvanDragArmedFace: View {
     let model: NotchModel
     let chrome: NotchChrome
@@ -515,7 +780,7 @@ private struct DesvanDragArmedFace: View {
 
     private func label(near: Double) -> some View {
         HStack(spacing: 3) {
-            Text("Súbelo")
+            Text("Put it up")
             Image(systemName: "arrow.up")
                 .font(.system(size: 10.5, weight: .bold))
                 .symbolEffect(.bounce.up.byLayer, options: .repeat(.periodic(delay: 1.4)), isActive: !reduceMotion)

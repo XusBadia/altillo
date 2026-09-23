@@ -8,9 +8,9 @@ struct QuickLookPresenterTests {
         let root = FileManager.default.temporaryDirectory.appending(path: "AltilloQuickLookTests-\(UUID().uuidString)")
         defer { try? FileManager.default.removeItem(at: root) }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        let first = root.appending(path: "primero.txt")
-        let missing = root.appending(path: "ausente.txt")
-        let second = root.appending(path: "segundo.txt")
+        let first = root.appending(path: "first.txt")
+        let missing = root.appending(path: "missing.txt")
+        let second = root.appending(path: "second.txt")
         try Data().write(to: first)
         try Data().write(to: second)
 

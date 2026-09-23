@@ -50,8 +50,8 @@ private struct DesvanBoxZone: View {
             VStack(alignment: .leading, spacing: 3) {
                 // Narrow notches get the short sentences instead of a truncated long one.
                 ViewThatFits(in: .horizontal) {
-                    title(isHovering ? "Suéltalo, ya lo guardo arriba" : "Guárdalo en el altillo")
-                    title(isHovering ? "Suéltalo, ya lo guardo" : "Guárdalo arriba")
+                    title(isHovering ? "Drop it, I'll put it up" : "Put it on the shelf")
+                    title(isHovering ? "Drop it, I've got it" : "Put it up there")
                 }
                 ViewThatFits(in: .horizontal) {
                     subtitle(long, showsStack: true)
@@ -79,7 +79,7 @@ private struct DesvanBoxZone: View {
         .accessibilityElement(children: .combine)
     }
 
-    private func title(_ text: String) -> some View {
+    private func title(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(Desvan.Typeface.display(16, weight: 600))
             .foregroundStyle(Desvan.Palette.paper)
@@ -88,7 +88,7 @@ private struct DesvanBoxZone: View {
             .fixedSize()
     }
 
-    private func subtitle(_ text: String, showsStack: Bool) -> some View {
+    private func subtitle(_ text: LocalizedStringKey, showsStack: Bool) -> some View {
         HStack(spacing: 8) {
             Text(text)
                 .font(.system(size: 11.5))
@@ -101,14 +101,14 @@ private struct DesvanBoxZone: View {
         }
     }
 
-    private var long: String {
+    private var long: LocalizedStringKey {
         model.shelf.isEmpty
-            ? "Se queda arriba hasta que lo bajes a otro sitio."
-            : "Ya hay \(NotchFormat.things(model.shelf.count)) esperando."
+            ? "It stays up there until you take it down somewhere else."
+            : "\(NotchFormat.things(model.shelf.count)) already waiting."
     }
 
-    private var short: String {
-        model.shelf.isEmpty ? "Hasta que lo bajes." : "Ya hay \(model.shelf.count) esperando."
+    private var short: LocalizedStringKey {
+        model.shelf.isEmpty ? "Until you take it down." : "\(model.shelf.count) already waiting."
     }
 }
 
@@ -129,7 +129,7 @@ private struct DesvanAirDropZone: View {
                 Text("AirDrop")
                     .font(Desvan.Typeface.rounded(12, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
-                Text("a otro dispositivo")
+                Text("to another device")
                     .font(.system(size: 10.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .multilineTextAlignment(.center)
@@ -177,7 +177,7 @@ private struct DesvanAirDropZone: View {
                     .blur(radius: isHovering ? 2.5 : 1.5)
                     .offset(y: 7)
             }
-            .animation(.spring(duration: 0.35, bounce: 0.2), value: lean)
+            .animation(Desvan.Motion.pick(.spring(duration: 0.35, bounce: 0.2), reduceMotion: reduceMotion), value: lean)
             .accessibilityHidden(true)
     }
 

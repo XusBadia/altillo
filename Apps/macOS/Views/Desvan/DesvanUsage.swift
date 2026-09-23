@@ -82,19 +82,19 @@ private struct DesvanUsageCard: View {
                         Text("5 h")
                             .font(Desvan.Typeface.rounded(10, weight: .semibold))
                             .foregroundStyle(Desvan.Palette.paperTertiary)
-                            .help("Sesión de 5 h")
+                            .help("5-hour session")
                     } else {
                         Spacer(minLength: 0)
                     }
                 }
                 Text(density == .compact
-                     ? "en \(NotchFormat.countdown(to: window.resetsAt))"
-                     : "se repone en \(NotchFormat.countdown(to: window.resetsAt))")
+                     ? "in \(NotchFormat.countdown(to: window.resetsAt))"
+                     : "refills in \(NotchFormat.countdown(to: window.resetsAt))")
                     .font(Desvan.Typeface.rounded(11.5, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paper.opacity(0.85))
                     .monospacedDigit()
                     .lineLimit(1)
-                    .help("\(usage.plan) · se repone en \(NotchFormat.countdown(to: window.resetsAt))")
+                    .help("\(usage.plan) · refills in \(NotchFormat.countdown(to: window.resetsAt))")
                 DesvanPace(delta: window.paceDelta(), long: density == .full)
             }
         }
@@ -106,7 +106,7 @@ private struct DesvanUsageCard: View {
         let window = usage.weekly
         return HStack(spacing: 8) {
             if density != .compact {
-                Text("Semana")
+                Text("Week")
                     .font(Desvan.Typeface.rounded(10, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .fixedSize()
@@ -127,12 +127,12 @@ private struct DesvanUsageCard: View {
         }
         .lineLimit(1)
         .fixedSize(horizontal: false, vertical: true)
-        .help("Semana: se repone en \(NotchFormat.countdown(to: window.resetsAt)) · \(DesvanPace.shortText(delta: window.paceDelta()))")
+        .help("Week: refills in \(NotchFormat.countdown(to: window.resetsAt)) · \(DesvanPace.shortText(delta: window.paceDelta()))")
         .accessibilityElement(children: .combine)
     }
 }
 
-/// The pace, in SF Pro Rounded italic: "vas 9 puntos por delante del ritmo" / "vas con 12 de margen" / "vas a buen ritmo".
+/// The pace, in SF Pro Rounded italic: "9 points ahead of pace" / "12 points of room to spare" / "right on pace".
 private struct DesvanPace: View {
     let delta: Double
     /// The whole sentence, or the short form when the card is narrow.
@@ -140,7 +140,7 @@ private struct DesvanPace: View {
 
     var body: some View {
         let points = Int((abs(delta) * 100).rounded())
-        Text(long ? longText(points) : Self.shortText(delta: delta))
+        Text(verbatim: long ? longText(points) : Self.shortText(delta: delta))
             .font(.system(size: 11.5, weight: .medium, design: .rounded).italic())
             .foregroundStyle(color)
             .monospacedDigit()
@@ -155,16 +155,16 @@ private struct DesvanPace: View {
     }
 
     private func longText(_ points: Int) -> String {
-        if delta > 0.05 { return "vas \(points) puntos por delante del ritmo" }
-        if delta < -0.05 { return "vas con \(points) puntos de margen" }
-        return "vas a buen ritmo"
+        if delta > 0.05 { return String(localized: "\(points) points ahead of pace") }
+        if delta < -0.05 { return String(localized: "\(points) points of room to spare") }
+        return String(localized: "right on pace")
     }
 
     static func shortText(delta: Double) -> String {
         let points = Int((abs(delta) * 100).rounded())
-        if delta > 0.05 { return "\(points) por delante" }
-        if delta < -0.05 { return "con margen" }
-        return "a buen ritmo"
+        if delta > 0.05 { return String(localized: "\(points) ahead") }
+        if delta < -0.05 { return String(localized: "room to spare") }
+        return String(localized: "on pace")
     }
 }
 

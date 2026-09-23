@@ -24,7 +24,7 @@ struct DropReaderTests {
         let payload = DropReader.read(from: pasteboard)
         #expect(payload.items == [.file(a), .file(b)])
         #expect(payload.promises.isEmpty)
-        #expect(payload.summary == "2 archivos")
+        #expect(payload.summary == "2 files")
     }
 
     @Test func resolvesFileReferenceURLs() throws {
@@ -44,42 +44,43 @@ struct DropReaderTests {
         defer { pasteboard.releaseGlobally() }
         pasteboard.clearContents()
         pasteboard.writeObjects([item([
-            .URL: "https://example.com/articulo",
-            DragPasteboard.urlName: "Un artículo",
-            .string: "https://example.com/articulo",
+            .URL: "https://example.com/article",
+            DragPasteboard.urlName: "An article",
+            .string: "https://example.com/article",
         ])])
 
         let payload = DropReader.read(from: pasteboard)
-        #expect(payload.items == [.link(URL(string: "https://example.com/articulo")!, title: "Un artículo")])
+        #expect(payload.items == [.link(URL(string: "https://example.com/article")!, title: "An article")])
     }
 
     @Test func readsPlainTextAndURLLikeText() {
         defer { pasteboard.releaseGlobally() }
         pasteboard.clearContents()
         pasteboard.writeObjects([
-            "Hola, esto es texto seleccionado" as NSString,
-            item([.string: "https://apple.com/es/"]),
-            item([.string: "no es una url: https://apple.com"]),
+            "Hello, this is selected text" as NSString,
+            item([.string: "https://apple.com/en/"]),
+            item([.string: "not a url: https://apple.com"]),
         ])
 
         let payload = DropReader.read(from: pasteboard)
         #expect(payload.items == [
-            .text("Hola, esto es texto seleccionado"),
-            .link(URL(string: "https://apple.com/es/")!, title: nil),
-            .text("no es una url: https://apple.com"),
+            .text("Hello, this is selected text"),
+            .link(URL(string: "https://apple.com/en/")!, title: nil),
+            .text("not a url: https://apple.com"),
         ])
     }
 
     @Test func readsRTFOnlyText() throws {
         defer { pasteboard.releaseGlobally() }
-        let rtf = try NSAttributedString(string: "Texto enriquecido")
-            .data(from: NSRange(location: 0, length: 17), documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
+        let attributed = NSAttributedString(string: "Rich text")
+        let rtf = try attributed.data(from: NSRange(location: 0, length: attributed.length),
+                                      documentAttributes: [.documentType: NSAttributedString.DocumentType.rtf])
         let item = NSPasteboardItem()
         item.setData(rtf, forType: .rtf)
         pasteboard.clearContents()
         pasteboard.writeObjects([item])
 
-        #expect(DropReader.read(from: pasteboard).items == [.text("Texto enriquecido")])
+        #expect(DropReader.read(from: pasteboard).items == [.text("Rich text")])
     }
 
     @Test func imageDataWinsOverItsWebURL() throws {
@@ -112,7 +113,7 @@ struct DropReaderTests {
             return
         }
         #expect(type == NSPasteboard.PasteboardType.tiff.rawValue)
-        #expect(name.hasPrefix("Imagen "))
+        #expect(name.hasPrefix("Image "))
         #expect(name.hasSuffix(".png"))
     }
 
@@ -121,13 +122,13 @@ struct DropReaderTests {
         let file = URL(filePath: "/Users/tester/Desktop/x.txt")
         pasteboard.clearContents()
         pasteboard.writeObjects([
-            "primero" as NSString,
+            "first" as NSString,
             file as NSURL,
             item([.URL: "https://example.com"]),
         ])
 
         #expect(DropReader.read(from: pasteboard).items == [
-            .text("primero"), .file(file), .link(URL(string: "https://example.com")!, title: nil),
+            .text("first"), .file(file), .link(URL(string: "https://example.com")!, title: nil),
         ])
     }
 
@@ -136,7 +137,7 @@ struct DropReaderTests {
         let delegate = PromiseDelegate()
         let provider = NSFilePromiseProvider(fileType: "public.plain-text", delegate: delegate)
         pasteboard.clearContents()
-        pasteboard.writeObjects([provider, "y un texto" as NSString])
+        pasteboard.writeObjects([provider, "and some text" as NSString])
 
         let types = pasteboard.types ?? []
         #expect(DragPasteboard.isDroppable(types))
@@ -144,7 +145,7 @@ struct DropReaderTests {
         #expect(payload.promiseItemCount == 1)
         #expect(payload.promises.count == 1)
         #expect(payload.promiseInsertionIndex == 0)
-        #expect(payload.items == [.text("y un texto")])
+        #expect(payload.items == [.text("and some text")])
     }
 
     @Test func droppableTypes() {
@@ -175,6 +176,6 @@ final class PromiseDelegate: NSObject, NSFilePromiseProviderDelegate {
     }
 
     func filePromiseProvider(_ provider: NSFilePromiseProvider, writePromiseTo url: URL) async throws {
-        try Data("promesa".utf8).write(to: url)
+        try Data("promise".utf8).write(to: url)
     }
 }

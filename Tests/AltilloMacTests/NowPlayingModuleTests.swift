@@ -37,7 +37,7 @@ struct NowPlayingModuleTests {
 
     @Test func aStoppedPlayerSaysNothing() {
         #expect(MusicPlayerScripts.parse("") == nil)
-        #expect(MusicPlayerScripts.parse("algo raro") == nil)
+        #expect(MusicPlayerScripts.parse("something odd") == nil)
     }
 
     @Test func aTracklessAnswerIsIgnored() {
@@ -81,7 +81,7 @@ struct NowPlayingModuleTests {
                 // `set eof theFile to 0` sets a property, not a variable.
                 guard words.first == "set", words.count > 1, words[1] != "eof" else { continue }
                 let name = String(words[1])
-                #expect(name.hasPrefix("the"), "la variable \(name) es demasiado corta para un bloque tell")
+                #expect(name.hasPrefix("the"), "variable \(name) is too short for a tell block")
             }
         }
     }
@@ -92,8 +92,8 @@ struct NowPlayingModuleTests {
     }
 
     @Test func theArtworkScriptEscapesThePath() {
-        let script = MusicPlayerScripts.musicArtwork(writingTo: "/tmp/con \"comillas\"/a.dat")
-        #expect(script.contains("\\\"comillas\\\""))
+        let script = MusicPlayerScripts.musicArtwork(writingTo: "/tmp/with \"quotes\"/a.dat")
+        #expect(script.contains("\\\"quotes\\\""))
     }
 
     @Test func osascriptFailuresAreRecognisedByTheirAppleEventCode() {
@@ -114,7 +114,7 @@ struct NowPlayingModuleTests {
         #expect(DesvanTrackFormat.spoken(62) == "1 min 2 s")
         #expect(DesvanTrackFormat.spoken(120) == "2 min")
         #expect(DesvanTrackFormat.spoken(9) == "9 s")
-        #expect(DesvanTrackFormat.spokenPosition(elapsed: nil, duration: 200) == "el principio")
+        #expect(DesvanTrackFormat.spokenPosition(elapsed: nil, duration: 200) == "the start")
     }
 
     @MainActor

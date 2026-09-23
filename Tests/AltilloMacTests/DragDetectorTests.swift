@@ -59,7 +59,7 @@ final class DragDetectorTests {
         defer { pasteboard.releaseGlobally() }
         DragDetector.isOwnDragInProgress = true
         defer { DragDetector.isOwnDragInProgress = false }
-        startDrag(writing: ["texto" as NSString])
+        startDrag(writing: ["text" as NSString])
         detector.handle(.leftMouseDragged)
         detector.handle(.leftMouseUp)
         #expect(began == 0 && ended == 0)
@@ -67,7 +67,7 @@ final class DragDetectorTests {
 
     @Test func aNewPressEndsAStuckDrag() {
         defer { pasteboard.releaseGlobally() }
-        startDrag(writing: ["texto" as NSString])
+        startDrag(writing: ["text" as NSString])
         detector.handle(.leftMouseDragged)
         detector.handle(.leftMouseDown) // mouse-up was never seen
         #expect(began == 1 && ended == 1)

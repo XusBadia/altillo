@@ -12,7 +12,7 @@ struct AltilloWidgets: WidgetBundle {
 struct PlaceholderWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "placeholder", provider: PlaceholderProvider()) { _ in
-            Text("Altillo").containerBackground(.black, for: .widget)
+            Text(verbatim: "Altillo").containerBackground(.black, for: .widget)
         }
         .configurationDisplayName("Altillo")
         .supportedFamilies([.systemSmall])

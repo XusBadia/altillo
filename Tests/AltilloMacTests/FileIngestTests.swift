@@ -15,12 +15,12 @@ struct FileIngestClassificationTests {
     }
 
     @Test(arguments: [
-        "/Users/tester/Documents/Informe.pdf",
-        "/Users/tester/Desktop/captura.png",
-        "/Users/tester/Downloads/instalador.dmg",
-        "/Users/tester/Library/Mobile Documents/com~apple~CloudDocs/nota.txt",
+        "/Users/tester/Documents/Report.pdf",
+        "/Users/tester/Desktop/screenshot.png",
+        "/Users/tester/Downloads/installer.dmg",
+        "/Users/tester/Library/Mobile Documents/com~apple~CloudDocs/note.txt",
         "/Users/tester/Library/Containers/com.example.app/Data/Documents/doc.txt",
-        "/Volumes/Externo/Fotos/IMG_0001.HEIC",
+        "/Volumes/External/Photos/IMG_0001.HEIC",
         "/Applications/Safari.app",
         "/Users/tester/Library/Application Support/Altillo/InboxOld/x.txt",
     ])
@@ -29,19 +29,19 @@ struct FileIngestClassificationTests {
     }
 
     @Test(arguments: [
-        ("/private/var/folders/ab/cd1234/T/TemporaryItems/NSIRD_screencaptureui_x/Captura.png", "temporal"),
-        ("/var/folders/zz/other/T/foo.txt", "temporal"),
-        ("/tmp/foo.txt", "temporal"),
-        ("/private/tmp/foo.txt", "temporal"),
-        ("/Users/tester/.Trash/viejo.txt", "papelera"),
-        ("/Volumes/Externo/.Trashes/501/viejo.txt", "papelera"),
-        ("/Users/tester/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/ABC/adjunto.pdf", "Mail"),
-        ("/Users/tester/Library/Mail/V10/cuenta/INBOX.mbox/Attachments/1/2/adjunto.pdf", "Mail"),
+        ("/private/var/folders/ab/cd1234/T/TemporaryItems/NSIRD_screencaptureui_x/Screenshot.png", "temporary"),
+        ("/var/folders/zz/other/T/foo.txt", "temporary"),
+        ("/tmp/foo.txt", "temporary"),
+        ("/private/tmp/foo.txt", "temporary"),
+        ("/Users/tester/.Trash/old.txt", "trash"),
+        ("/Volumes/External/.Trashes/501/old.txt", "trash"),
+        ("/Users/tester/Library/Containers/com.apple.mail/Data/Library/Mail Downloads/ABC/attachment.pdf", "Mail"),
+        ("/Users/tester/Library/Mail/V10/account/INBOX.mbox/Attachments/1/2/attachment.pdf", "Mail"),
         ("/Users/tester/Library/Containers/com.apple.Safari/Data/Library/Caches/img.jpg", "Safari"),
-        ("/Users/tester/Library/Caches/com.google.Chrome/img.webp", "cachés"),
-        ("/Users/tester/Library/Containers/com.tinyspeck.slackmacgap/Data/tmp/archivo.zip", "temporal de com.tinyspeck.slackmacgap"),
-        ("/Users/tester/Library/Containers/com.example.app/Data/Library/Caches/x.png", "temporal de com.example.app"),
-        ("/Users/tester/Library/Application Support/Altillo/Inbox/UUID/foto.jpg", "inbox propio"),
+        ("/Users/tester/Library/Caches/com.google.Chrome/img.webp", "caches"),
+        ("/Users/tester/Library/Containers/com.tinyspeck.slackmacgap/Data/tmp/file.zip", "temporary file of com.tinyspeck.slackmacgap"),
+        ("/Users/tester/Library/Containers/com.example.app/Data/Library/Caches/x.png", "temporary file of com.example.app"),
+        ("/Users/tester/Library/Application Support/Altillo/Inbox/UUID/photo.jpg", "own inbox"),
     ])
     func volatileLocationsAreCopied(path: String, reason: String) {
         #expect(decision(path) == .copy(reason: reason))
@@ -49,8 +49,8 @@ struct FileIngestClassificationTests {
 
     @Test func sanitizesFileNames() {
         #expect(FileIngest.sanitizedFileName("a/b:c.txt") == "a-b-c.txt")
-        #expect(FileIngest.sanitizedFileName("  ") == "Sin título")
-        #expect(FileIngest.sanitizedFileName(".oculto") == "oculto")
+        #expect(FileIngest.sanitizedFileName("  ") == "Untitled")
+        #expect(FileIngest.sanitizedFileName(".hidden") == "hidden")
     }
 }
 
@@ -76,7 +76,7 @@ struct FileIngestDiskTests {
         defer { try? FileManager.default.removeItem(at: source) }
 
         let (item, decision) = try ingest.ingest(fileAt: source)
-        #expect(decision == .copy(reason: "temporal"))
+        #expect(decision == .copy(reason: "temporary"))
         guard case let .file(copy, isOwnedCopy) = item.kind else {
             Issue.record("expected a file item")
             return
@@ -116,19 +116,19 @@ struct FileIngestDiskTests {
     @Test func missingFileThrows() {
         defer { cleanUp() }
         #expect(throws: FileIngest.IngestError.self) {
-            try ingest.ingest(fileAt: root.appending(path: "no-existe.txt"))
+            try ingest.ingest(fileAt: root.appending(path: "does-not-exist.txt"))
         }
     }
 
     @Test func rawDataGetsUniqueSlots() throws {
         defer { cleanUp() }
-        let first = try ingest.ingest(data: Data([1, 2, 3]), suggestedName: "Imagen.png")
-        let second = try ingest.ingest(data: Data([4, 5]), suggestedName: "Imagen.png")
+        let first = try ingest.ingest(data: Data([1, 2, 3]), suggestedName: "Image.png")
+        let second = try ingest.ingest(data: Data([4, 5]), suggestedName: "Image.png")
         let a = try #require(first.fileURL)
         let b = try #require(second.fileURL)
         #expect(a != b)
-        #expect(a.lastPathComponent == "Imagen.png")
-        #expect(b.lastPathComponent == "Imagen.png")
+        #expect(a.lastPathComponent == "Image.png")
+        #expect(b.lastPathComponent == "Image.png")
         #expect(try Data(contentsOf: b) == Data([4, 5]))
     }
 }

@@ -326,10 +326,10 @@ struct DesvanBulbGlyph: View {
 
 // MARK: - Rubber stamp
 
-/// "Hecho": a sage rubber stamp in SF Pro Rounded italic, tilted −8°. It drops from 1.3× with a small shake when fresh,
+/// "Done": a sage rubber stamp in SF Pro Rounded italic, tilted −8°. It drops from 1.3× with a small shake when fresh,
 /// and shrinks to a plain label after 4 s.
 struct DesvanRubberStamp: View {
-    var text = "Hecho"
+    var text: LocalizedStringKey = "Done"
     var isFresh: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var landed = false

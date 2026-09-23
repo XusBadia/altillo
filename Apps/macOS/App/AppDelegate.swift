@@ -14,6 +14,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if SettingsWindowController.shouldOpenOnLaunch {
             SettingsWindowController.shared.show()
         }
+        // Opens the live panel for integration reviews, without demo content.
+        if UserDefaults.standard.bool(forKey: "openAltillo") {
+            coordinator.model.actions.send(.click)
+        }
     }
 
     func applicationWillTerminate(_ notification: Notification) {

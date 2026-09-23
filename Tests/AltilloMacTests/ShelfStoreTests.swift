@@ -22,7 +22,7 @@ struct ShelfStoreTests {
 
         func remove() { try? FileManager.default.removeItem(at: root) }
 
-        func file(_ name: String = "documento.txt", under directory: URL? = nil) throws -> URL {
+        func file(_ name: String = "document.txt", under directory: URL? = nil) throws -> URL {
             let directory = directory ?? root.appending(path: "Originales", directoryHint: .isDirectory)
             try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
             let url = directory.appending(path: name)
@@ -30,7 +30,7 @@ struct ShelfStoreTests {
             return url
         }
 
-        func ownedFile(_ name: String = "copia.txt") throws -> URL {
+        func ownedFile(_ name: String = "copy.txt") throws -> URL {
             let slot = inbox.appending(path: UUID().uuidString, directoryHint: .isDirectory)
             return try file(name, under: slot)
         }
@@ -42,9 +42,9 @@ struct ShelfStoreTests {
         let original = try fixture.file()
         let date = Date(timeIntervalSince1970: 1_700_000_000)
         let items = [
-            ShelfItem(kind: .file(original, isOwnedCopy: false), displayName: "Documento", addedAt: date),
-            ShelfItem(kind: .text("una nota"), displayName: "una nota", addedAt: date),
-            ShelfItem(kind: .link(URL(string: "https://example.com/ruta")!), displayName: "Ejemplo", addedAt: date),
+            ShelfItem(kind: .file(original, isOwnedCopy: false), displayName: "Document", addedAt: date),
+            ShelfItem(kind: .text("a note"), displayName: "a note", addedAt: date),
+            ShelfItem(kind: .link(URL(string: "https://example.com/path")!), displayName: "Example", addedAt: date),
         ]
 
         try fixture.store.save(items)
@@ -54,8 +54,8 @@ struct ShelfStoreTests {
         #expect(restored.map(\.displayName) == items.map(\.displayName))
         #expect(restored.map(\.addedAt) == items.map(\.addedAt))
         #expect(restored[0].fileURL?.standardizedFileURL == original.standardizedFileURL)
-        #expect(restored[1].kind == .text("una nota"))
-        #expect(restored[2].kind == .link(URL(string: "https://example.com/ruta")!))
+        #expect(restored[1].kind == .text("a note"))
+        #expect(restored[2].kind == .link(URL(string: "https://example.com/path")!))
     }
 
     @Test func expiryRemovesOwnedCopyOnlyAfterDroppingItsRecord() throws {
@@ -64,7 +64,7 @@ struct ShelfStoreTests {
         let copy = try fixture.ownedFile()
         let old = ShelfItem(
             kind: .file(copy, isOwnedCopy: true),
-            displayName: "copia.txt",
+            displayName: "copy.txt",
             addedAt: Date(timeIntervalSince1970: 100)
         )
         try fixture.store.save([old])
@@ -82,7 +82,7 @@ struct ShelfStoreTests {
         let fixture = try Fixture()
         defer { fixture.remove() }
         let unavailable = fixture.root.appending(path: "Volumen desmontado/documento.txt")
-        let item = ShelfItem(kind: .file(unavailable, isOwnedCopy: false), displayName: "documento.txt")
+        let item = ShelfItem(kind: .file(unavailable, isOwnedCopy: false), displayName: "document.txt")
         try fixture.store.save([item])
 
         let restored = fixture.store.restore(expiry: .never).items
@@ -94,12 +94,12 @@ struct ShelfStoreTests {
     @Test func missingOwnedCopyIsPrunedButNoUnrelatedFileIsDeleted() throws {
         let fixture = try Fixture()
         defer { fixture.remove() }
-        let unrelated = try fixture.file("no-tocar.txt")
-        let missing = try fixture.ownedFile("ya-no-esta.txt")
-        let forged = try fixture.ownedFile("forjada.txt")
+        let unrelated = try fixture.file("do-not-touch.txt")
+        let missing = try fixture.ownedFile("gone.txt")
+        let forged = try fixture.ownedFile("forged.txt")
         let items = [
-            ShelfItem(kind: .file(missing, isOwnedCopy: true), displayName: "ya-no-esta.txt"),
-            ShelfItem(kind: .file(forged, isOwnedCopy: true), displayName: "marca-corrupta.txt"),
+            ShelfItem(kind: .file(missing, isOwnedCopy: true), displayName: "gone.txt"),
+            ShelfItem(kind: .file(forged, isOwnedCopy: true), displayName: "corrupt-mark.txt"),
         ]
         try fixture.store.save(items)
         try FileManager.default.removeItem(at: missing)
@@ -119,8 +119,8 @@ struct ShelfStoreTests {
         let fixture = try Fixture()
         defer { fixture.remove() }
         let copy = try fixture.ownedFile()
-        let removed = ShelfItem(kind: .file(copy, isOwnedCopy: true), displayName: "copia.txt")
-        let kept = ShelfItem(kind: .file(copy, isOwnedCopy: true), displayName: "copia.txt")
+        let removed = ShelfItem(kind: .file(copy, isOwnedCopy: true), displayName: "copy.txt")
+        let kept = ShelfItem(kind: .file(copy, isOwnedCopy: true), displayName: "copy.txt")
 
         fixture.store.removeOwnedFiles(for: [removed], preserving: [kept])
 
@@ -131,8 +131,8 @@ struct ShelfStoreTests {
         let fixture = try Fixture()
         defer { fixture.remove() }
         let copy = try fixture.ownedFile()
-        let owned = ShelfItem(kind: .file(copy, isOwnedCopy: true), displayName: "copia.txt")
-        let note = ShelfItem(kind: .text("nota"), displayName: "nota")
+        let owned = ShelfItem(kind: .file(copy, isOwnedCopy: true), displayName: "copy.txt")
+        let note = ShelfItem(kind: .text("a note"), displayName: "a note")
         try fixture.store.save([owned, note])
         let coordinator = NotchCoordinator(shelfStore: fixture.store)
         coordinator.model.shelf = [owned, note]
@@ -159,11 +159,11 @@ struct ShelfStoreTests {
     @Test func oneMalformedRecordDoesNotEmptyItsHealthyNeighbours() throws {
         let fixture = try Fixture()
         defer { fixture.remove() }
-        let note = ShelfItem(kind: .text("sigue aquí"), displayName: "sigue aquí")
+        let note = ShelfItem(kind: .text("still here"), displayName: "still here")
         try fixture.store.save([note])
         var json = try #require(JSONSerialization.jsonObject(with: Data(contentsOf: fixture.snapshot)) as? [String: Any])
         var records = try #require(json["items"] as? [[String: Any]])
-        records.append(["kind": "file", "esto": "está truncado"])
+        records.append(["kind": "file", "this": "is truncated"])
         json["items"] = records
         try JSONSerialization.data(withJSONObject: json).write(to: fixture.snapshot, options: .atomic)
 
@@ -176,14 +176,14 @@ struct ShelfStoreTests {
         let fixture = try Fixture()
         defer { fixture.remove() }
         let original = try fixture.file()
-        let reference = ShelfItem(kind: .file(original, isOwnedCopy: false), displayName: "documento.txt")
+        let reference = ShelfItem(kind: .file(original, isOwnedCopy: false), displayName: "document.txt")
         try fixture.store.save([reference])
         let initialBookmark = try bookmark(in: fixture.snapshot, itemID: reference.id)
         let bookmarkBefore = try #require(initialBookmark)
         try FileManager.default.removeItem(at: original)
 
         let offline = fixture.store.restore(expiry: .never).items
-        try fixture.store.save(offline + [ShelfItem(kind: .text("nuevo"), displayName: "nuevo")])
+        try fixture.store.save(offline + [ShelfItem(kind: .text("new"), displayName: "new")])
 
         let bookmarkAfter = try bookmark(in: fixture.snapshot, itemID: reference.id)
         #expect(bookmarkAfter == bookmarkBefore)
@@ -202,7 +202,7 @@ struct ShelfStoreTests {
             Issue.record("expected unsupported-version failure")
         }
         #expect(throws: ShelfStore.StoreError.self) {
-            try fixture.store.save([ShelfItem(kind: .text("no sobrescribir"), displayName: "no sobrescribir")])
+            try fixture.store.save([ShelfItem(kind: .text("do not overwrite"), displayName: "do not overwrite")])
         }
         #expect(try Data(contentsOf: fixture.snapshot) == originalData)
     }
@@ -211,7 +211,7 @@ struct ShelfStoreTests {
         let fixture = try Fixture()
         defer { fixture.remove() }
         try FileManager.default.createDirectory(at: fixture.snapshot.deletingLastPathComponent(), withIntermediateDirectories: true)
-        try Data("esto no es JSON".utf8).write(to: fixture.snapshot)
+        try Data("this is not JSON".utf8).write(to: fixture.snapshot)
 
         if case .recoveredFromCorruptSnapshot = fixture.store.restore(expiry: .never) {
             // Expected: the damaged bytes are kept under a quarantine name and normal writes can resume.

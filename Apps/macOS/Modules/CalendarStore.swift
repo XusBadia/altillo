@@ -161,12 +161,12 @@ private actor CalendarSource {
     static func event(from ek: EKEvent) -> CalendarStore.Event {
         let start = ek.startDate ?? .now
         // Recurring events share one identifier, so the start time makes the id unique.
-        let identifier = "\(ek.eventIdentifier ?? ek.title ?? "evento")@\(start.timeIntervalSinceReferenceDate)"
+        let identifier = "\(ek.eventIdentifier ?? ek.title ?? "event")@\(start.timeIntervalSinceReferenceDate)"
         let title = (ek.title ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         let location = ek.location?.trimmingCharacters(in: .whitespacesAndNewlines)
         return CalendarStore.Event(
             id: identifier,
-            title: title.isEmpty ? "Sin título" : title,
+            title: title.isEmpty ? String(localized: "Untitled") : title,
             start: start,
             end: ek.endDate ?? start,
             calendarColorHex: CalendarMapping.hex(of: ek.calendar?.cgColor),
@@ -220,7 +220,7 @@ extension CalendarStore.Event {
         return [
             CalendarStore.Event(
                 id: "sample-1",
-                title: "Diseño del notch con Marta",
+                title: String(localized: "Notch design with Marta"),
                 start: first,
                 end: first.addingTimeInterval(45 * 60),
                 calendarColorHex: 0xF267_4A,
@@ -230,21 +230,21 @@ extension CalendarStore.Event {
             ),
             CalendarStore.Event(
                 id: "sample-2",
-                title: "Repaso semanal",
+                title: String(localized: "Weekly review"),
                 start: at(17, 0),
                 end: at(17, 30),
                 calendarColorHex: 0x86B6_D9,
-                location: "Sala grande",
+                location: String(localized: "Big room"),
                 conferenceURL: nil,
                 isAllDay: false
             ),
             CalendarStore.Event(
                 id: "sample-3",
-                title: "Cena con Álex",
+                title: String(localized: "Dinner with Alex"),
                 start: at(21, 0),
                 end: at(22, 30),
                 calendarColorHex: 0x9DB8_8A,
-                location: "Casa",
+                location: String(localized: "Home"),
                 conferenceURL: nil,
                 isAllDay: false
             ),

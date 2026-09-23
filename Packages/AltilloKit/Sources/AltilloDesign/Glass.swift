@@ -74,7 +74,7 @@ public struct GlassChip: View {
 }
 
 /// Capsule glass button. `.prominent` is tinted with the accent (primary action), `.regular` is neutral glass,
-/// `.plain` has no background until hovered (tertiary actions like "Vaciar").
+/// `.plain` has no background until hovered (tertiary actions like "Empty").
 public struct GlassButtonStyle: ButtonStyle {
     public enum Prominence: Sendable { case plain, regular, prominent }
 
@@ -205,11 +205,11 @@ extension View {
             GlassChip("3", systemImage: "circle.fill", tint: Tokens.Palette.amber.opacity(0.4))
         }
         HStack(spacing: 8) {
-            Button("Permitir") {}.buttonStyle(.altilloProminent)
-            Button("Denegar") {}.buttonStyle(.altilloGlass)
-            Button("Vaciar") {}.buttonStyle(.altilloPlain)
+            Button("Allow") {}.buttonStyle(.altilloProminent)
+            Button("Deny") {}.buttonStyle(.altilloGlass)
+            Button("Empty") {}.buttonStyle(.altilloPlain)
         }
-        Text("Tarjeta")
+        Text("Card")
             .foregroundStyle(Tokens.Palette.text)
             .frame(width: 220, height: 80)
             .altilloCard()

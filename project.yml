@@ -4,7 +4,8 @@ options:
     macOS: "26.0"
     iOS: "26.0"
   createIntermediateGroups: true
-  developmentLanguage: es
+  developmentLanguage: en
+  knownRegions: [en, es, Base]
 
 configFiles:
   Debug: Config/Shared.xcconfig
@@ -21,10 +22,14 @@ settings:
     INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     LOCALIZATION_PREFERS_STRING_CATALOGS: YES
+    SWIFT_EMIT_LOC_STRINGS: YES
 
 packages:
   AltilloKit:
     path: Packages/AltilloKit
+  Sparkle:
+    url: https://github.com/sparkle-project/Sparkle
+    exactVersion: 2.10.0
 
 targets:
   Altillo:
@@ -39,11 +44,24 @@ targets:
         product: AltilloCore
       - package: AltilloKit
         product: AltilloDesign
+      - package: Sparkle
+        product: Sparkle
       - target: altillo-hook
         embed: true
         codeSign: true
         copy:
           destination: executables
+    info:
+      # Sparkle's feed/key/check-interval keys aren't in Xcode's known INFOPLIST_KEY_ list, so they're
+      # merged in from this partial (Xcode merges GENERATE_INFOPLIST_FILE's output with INFOPLIST_FILE
+      # when both are set). The xcconfig variables are empty by default (Shared.xcconfig); Updater.swift
+      # treats an empty feed URL or public key as "Sparkle not configured" and stays inert.
+      path: Apps/macOS/App/Info.plist
+      properties:
+        SUFeedURL: $(ALTILLO_SPARKLE_FEED_URL)
+        SUPublicEDKey: $(ALTILLO_SPARKLE_PUBLIC_KEY)
+        SUEnableAutomaticChecks: YES
+        SUScheduledCheckInterval: 86400
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX)
@@ -53,18 +71,22 @@ targets:
         INFOPLIST_KEY_LSUIElement: YES
         INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
         INFOPLIST_KEY_NSHumanReadableCopyright: © 2026 Xus Badia. MIT License.
-        INFOPLIST_KEY_NSCameraUsageDescription: El espejo muestra la cámara del Mac dentro del notch. La imagen no sale de tu Mac.
-        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: La agenda muestra tu próximo evento en el notch. Los eventos no salen de tu Mac.
-        INFOPLIST_KEY_NSAppleEventsUsageDescription: Altillo pregunta a Música y Spotify qué está sonando para mostrarlo en el notch.
+        INFOPLIST_KEY_NSCameraUsageDescription: The mirror shows the Mac's camera inside the notch. The image never leaves your Mac.
+        INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: The calendar shows your next event in the notch. Events never leave your Mac.
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: Altillo asks Music and Spotify what is playing so it can show it in the notch and tell you when you ask.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
+        CODE_SIGN_ENTITLEMENTS: Apps/macOS/App/Altillo.entitlements
         PROVISIONING_PROFILE_SPECIFIER: ""
         COMBINE_HIDPI_IMAGES: YES
     scheme:
       testTargets:
         - AltilloMacTests
+      test:
+        language: en
+        region: US
 
   AltilloMacTests:
     type: bundle.unit-test

@@ -50,7 +50,7 @@ private struct DesvanWaitingCard: View {
         HStack(spacing: 6) {
             Group {
                 if long {
-                    Text("\(session.agent.name) quiere hacer algo en \(project)")
+                    Text("\(session.agent.name) wants to do something in \(project)")
                 } else {
                     Text("\(session.agent.name) · \(project)")
                 }
@@ -78,7 +78,7 @@ private struct DesvanWaitingCard: View {
                     sentence(long: false, showsAgo: true)
                     sentence(long: false, showsAgo: false)
                 }
-                .help("\(session.agent.name) quiere hacer algo en \(session.project) · \(NotchFormat.ago(session.lastActivity))")
+                .help("\(session.agent.name) wants to do something in \(session.project) · \(NotchFormat.ago(session.lastActivity))")
                 if let request = session.request {
                     HStack(spacing: 6) {
                         Text(request.tool)
@@ -96,17 +96,17 @@ private struct DesvanWaitingCard: View {
             Spacer(minLength: 6)
             if !isCompact {
                 DesvanKnockingHand(size: 11)
-                    .help("Toc, toc: espera tu permiso")
+                    .help("Knock, knock: waiting for your OK")
                 Button {} label: {
                     Image(systemName: "arrow.up.forward.app")
                         .font(.system(size: 11, weight: .medium))
                 }
                 .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
-                .help("Ir a la terminal")
+                .help("Go to the terminal")
             }
-            Button("Denegar") {}
+            Button("Deny") {}
                 .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 24))
-            Button("Permitir") {}
+            Button("Allow") {}
                 .buttonStyle(DesvanButtonStyle(kind: .primary, height: 24))
         }
         .padding(.leading, 10)
@@ -132,6 +132,7 @@ private struct DesvanAgentRow: View {
     @State private var freshStamp = false
     /// Bumped to stamp again (`-demoMotion stamp`).
     @State private var stampTake = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 9) {
@@ -139,7 +140,7 @@ private struct DesvanAgentRow: View {
             Text(session.project)
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paper)
-            Text(activity)
+            Text(verbatim: activity)
                 .font(.system(size: 11.5))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .monospacedDigit()
@@ -156,7 +157,7 @@ private struct DesvanAgentRow: View {
                     .font(.system(size: 10.5, weight: .medium))
             }
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
-            .help("Ir a la terminal")
+            .help("Go to the terminal")
             .opacity(isHovering ? 1 : 0)
         }
         .padding(.leading, 10)
@@ -172,7 +173,9 @@ private struct DesvanAgentRow: View {
             Task {
                 try? await Task.sleep(for: .seconds(4))
                 guard DesvanDebug.demoMotion != .stamp else { return }
-                withAnimation(.spring(duration: 0.35, bounce: 0)) { freshStamp = false }
+                withAnimation(Desvan.Motion.pick(.spring(duration: 0.35, bounce: 0), reduceMotion: reduceMotion)) {
+                    freshStamp = false
+                }
             }
         }
         .onChange(of: DesvanDebug.clock.tick) {
@@ -184,7 +187,7 @@ private struct DesvanAgentRow: View {
 
     private var activity: String {
         switch session.phase {
-        case .finished: "Listo. " + session.activity.replacingOccurrences(of: "Terminado", with: "Terminó")
+        case .finished: String(localized: "All done. \(session.activity)")
         default: session.activity
         }
     }
@@ -199,13 +202,13 @@ private struct DesvanAgentRow: View {
             HStack(spacing: 6) {
                 DesvanWorkingDots()
                 if !isCompact {
-                    Text("Trabajando")
+                    Text("Working")
                         .font(Desvan.Typeface.rounded(11, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                         .fixedSize()
                 }
             }
-            .help("Trabajando")
+            .help("Working")
         case .error:
             Label("Error", systemImage: "exclamationmark.triangle.fill")
                 .font(Desvan.Typeface.rounded(11, weight: .semibold))
@@ -237,7 +240,7 @@ private struct DesvanWorkingDots: View {
                 Circle()
                     .fill(Desvan.Palette.bulb.opacity(index == phase ? 1 : 0.35))
                     .frame(width: 4, height: 4)
-                    .animation(.easeOut(duration: 0.2), value: phase)
+                    .animation(Desvan.Motion.pick(.easeOut(duration: 0.2), reduceMotion: reduceMotion), value: phase)
             }
         }
         .accessibilityHidden(true)

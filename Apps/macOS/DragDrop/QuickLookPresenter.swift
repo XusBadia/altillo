@@ -10,7 +10,7 @@ enum QuickLookPresenter {
     static func show(_ urls: [URL]) {
         let urls = existingURLs(in: urls)
         guard !urls.isEmpty, let panel = QLPreviewPanel.shared() else {
-            SpikeLog.shared.record(SpikeLog.Category.quickLook, "nada que previsualizar")
+            SpikeLog.shared.record(SpikeLog.Category.quickLook, "nothing to preview")
             return
         }
         source.urls = urls
@@ -28,7 +28,7 @@ enum QuickLookPresenter {
             }
         }
         SpikeLog.shared.record(SpikeLog.Category.quickLook,
-                               "\(urls.count) archivo(s) · visible: \(panel.isVisible ? "sí" : "no") · key: \(panel.isKeyWindow ? "sí" : "no")")
+                               "\(urls.count) file(s) · visible: \(panel.isVisible ? "yes" : "no") · key: \(panel.isKeyWindow ? "yes" : "no")")
     }
 
     private static let source = Source()

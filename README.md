@@ -11,12 +11,18 @@ screen:
 
 - **Shelf** — drop files there for a moment, then drag them out wherever you
   need them (reference, not a permanent home — like Yoink).
+- **Ask** — an assistant that runs entirely on your Mac with Apple
+  Intelligence and can read what Altillo knows: the files on your shelf, your
+  calendar, what's playing and what you copied. Summon it from any app with
+  ⌃⌥A; put an answer on the shelf and drag it wherever you need it.
+- **Glances** — the notch grows for a few seconds when something matters (a
+  meeting in five minutes, a new song if you want it) and goes back on its own.
 - **AI usage** — how much of your Claude / Codex / … quota you have left, at a
   glance.
 - **Live agents** — see your AI coding agents (Claude Code, Codex, …) working,
   waiting for a permission, or done, and approve or deny requests right from
   the notch.
-- **Drawer** — put away the menu bar icons you choose and open their menus from Altillo. Hiding is available on macOS 26; Accessibility access is required. [Setup and limitations](docs/cajon.md).
+- **Drawer** — keep the menu bar icons you choose in a compact shelf above Altillo's navigation and open their menus from there. Configure it by dragging icons between the Altillo and Menu Bar zones; hiding is available on macOS 26 and requires Accessibility access. [Setup and limitations](docs/cajon.md).
 - **iPhone/iPad companion** — the same modules, adapted to iOS/iPadOS, with
   Live Activities in the Dynamic Island for your agents.
 
@@ -29,6 +35,17 @@ the full plan: principles, module design, phases, and open decisions.
 _Coming soon — Altillo is still in phase 0 (foundations). See
 [PLAN.md §4](PLAN.md#4-ux-y-personalización) for the UX process, including the
 GIF/recording convention used for each interaction._
+
+## Installing
+
+Altillo isn't on the App Store — download the notarized `.dmg` from the
+[latest release](https://github.com/XusBadia/altillo/releases/latest), open
+it, and drag Altillo to Applications. The app is signed with a Developer ID
+certificate and notarized by Apple, so Gatekeeper opens it with no extra
+steps. Once installed, Altillo checks for new versions on its own (or via
+"Check for Updates…" in the menu bar menu or Settings › About) using
+[Sparkle](https://sparkle-project.org/) — see
+[docs/release.md](docs/release.md) for how releases are built and signed.
 
 ## Requirements
 
@@ -72,6 +89,13 @@ cp Config/Local.xcconfig.example Config/Local.xcconfig
 See [docs/desarrollo.md](docs/desarrollo.md) for day-to-day development notes
 (Spanish): selecting the right `xcode-select` toolchain, running design
 review scenarios, where logs go, and testing on a physical Mac.
+
+### Releasing
+
+Cutting a notarized, Sparkle-signed release (`script/release.sh`, plus the
+one-time notarization/Sparkle-key/GitHub Pages setup) is documented in
+[docs/release.md](docs/release.md) (Spanish). Not needed for day-to-day
+development — only for publishing an actual build.
 
 ### Command line
 

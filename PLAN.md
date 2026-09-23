@@ -7,7 +7,7 @@
 >
 > En iPhone y iPad, Altillo es la misma app adaptada: uso de IA, agentes en vivo en la Dynamic Island y widgets.
 >
-> Soporte: [investigación](docs/investigacion.md) · [uso de IA](docs/uso-ia.md) · [agentes en vivo](docs/agentes-en-vivo.md) · [barra de menú](docs/barra-de-menu.md)
+> Soporte: [investigación](docs/investigacion.md) · [uso de IA](docs/uso-ia.md) · [agentes en vivo](docs/agentes-en-vivo.md) · [barra de menú](docs/barra-de-menu.md) · [OmniNotch](docs/omninotch.md)
 
 ## 0. Decisiones tomadas
 
@@ -19,9 +19,10 @@
 | Distribución | Open source MIT. En Mac: Developer ID + notarización + Sparkle, **sin sandbox**, hardened runtime. En iOS: TestFlight / App Store. Team `9L2TD7KVV9` |
 | Versiones | **macOS 26 mínimo, probado en 26 y 27** (macOS 27 salió el 14-09-2026). iOS/iPadOS 26 mínimo |
 | Shelf | Referencia + mover al sacar (estilo Yoink). Lo temporal se copia |
-| Módulos | Shelf · Uso de IA · **Agentes en vivo** · Iconos de la barra de menú · AirDrop/compartir · Now Playing · Calendario |
+| Módulos | Shelf · **Pregunta** (asistente on-device) · Uso de IA · **Agentes en vivo** · Iconos de la barra de menú · AirDrop/compartir · Now Playing · Calendario · Espejo |
 | UX | **Prioridad máxima.** Personalizable, con edición directa del notch y buenos defaults. Estética **«Desván»: cálida y skeuomórfica** (§3) |
-| Fuera de alcance por ahora | Asistente o agente propio dentro de Altillo, portapapeles, HUDs, batería |
+| Asistente | **Sí, desde el 22-09-2026**: «Pregunta», con Apple Intelligence (Foundation Models) en el propio Mac y tools sobre el contexto de Altillo. Nunca sale nada del Mac y nunca actúa por su cuenta: lee y responde (§5.7) |
+| Fuera de alcance por ahora | Agente que actúa por ti, HUDs de volumen/brillo, batería, tiempo, bolsa. El portapapeles pasa a la fase 12 como opción |
 
 ## 1. Principios
 
@@ -88,7 +89,7 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 |---|---|
 | Módulos | Activar o desactivar cada uno y ordenar las pestañas del notch abierto |
 | Orejas | Qué va en la izquierda y en la derecha: uso de IA, agentes, música, próximo evento, nº de ítems del shelf o nada. También si se ven siempre o solo con actividad |
-| Comportamiento | Abrir con hover o con clic; retardo del hover; distancia a la que se activa el arrastre; cierre automático; atajo global |
+| Comportamiento | Abrir con hover o con clic; retardo del hover; distancia a la que se activa el arrastre; cierre automático; atajo global de Pregunta; hápticos; qué avisos asoman (reunión en 5 min, canción nueva) |
 | Apariencia | Color de acento (presets más uno libre), superficie cálida o neutra, densidad compacta o cómoda, tamaño del notch abierto (S/M/L) |
 | Pantallas | Dónde aparece (notch / principal / todas / la del cursor); isla visible siempre o solo al usarla; comportamiento a pantalla completa |
 | Por módulo | Shelf: caducidad, cuadrícula o lista, tamaño de las miniaturas. IA: proveedores, métricas, umbrales de alerta. Agentes: qué agentes, qué eventos avisan, sonido. Barra de menú: qué iconos se muestran |
@@ -159,11 +160,11 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **Limitación conocida:** los hooks no se disparan de forma fiable en la app Claude Desktop. Funcionan en la CLI y en VS Code/JetBrains.
 
 ### 5.4 Cajón / Drawer ([implementación y pruebas](docs/cajon.md))
-- **Qué hace:** el usuario elige un grupo de iconos con ⌘-arrastre a la izquierda de un separador. Drawer los oculta y ofrece búsqueda y apertura desde el notch, con `AXExtrasMenuBar`, `AXPress` y `AXShowMenu`. El panel se recoge antes de abrir un menú.
+- **Qué hace:** cuando está activo, una estantería compacta permanece encima de los modos y las opciones de Altillo. En Ajustes, el usuario mueve los iconos entre las zonas **Altillo** y **Menu Bar**; Drawer los oculta y ofrece búsqueda y apertura desde la estantería, con `AXExtrasMenuBar`, `AXPress` y `AXShowMenu`. El panel se recoge antes de abrir un menú.
 - **Permisos:** Accesibilidad. Se muestran iconos de aplicación; no se solicita Grabación de Pantalla ni Monitorización de Entrada.
 - **Ocultación en macOS 26:** separador de longitud adaptable y control visible para recuperar el grupo. Opt-in; posiciones conservadas por macOS. Cambios de pantalla, apps nuevas y fallos de acceso muestran el grupo.
 - **Otras versiones:** ocultación deshabilitada; catálogo AX disponible según las apps. Sin APIs privadas ni garantía de compatibilidad no comprobada.
-- **Reordenación:** solo el gesto nativo del usuario; sin arrastres simulados. La aceptación en MacBook con notch y monitores externos sigue la matriz manual del documento enlazado.
+- **Colocación:** el gesto ⌘-arrastre usa eventos públicos de `CGEvent` y se verifica mediante Accesibilidad. Los elementos que no aceptan el gesto se marcan como inamovibles. La aceptación en MacBook con notch y monitores externos sigue la matriz manual del documento enlazado.
 
 ### 5.5 Sincronización Mac ⇄ iPhone/iPad
 - **CloudKit, base privada, con `CKSyncEngine`**, en el contenedor `iCloud.me.badia.altillo`.
@@ -178,6 +179,31 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **AirDrop y compartir:** `NSSharingService`, con una zona AirDrop durante el arrastre.
 - **Now Playing:** `mediaremote-adapter` detrás de `NowPlayingProvider`, con fallback AppleScript para Spotify y Música. Si se rompe, se desactiva solo.
 - **Calendario:** EventKit, con el próximo evento, el botón "Unirse" y un aviso 5 min antes.
+
+### 5.7 Pregunta: el asistente on-device ([análisis de OmniNotch](docs/omninotch.md))
+- **Modelo:** `FoundationModels` (`SystemLanguageModel.default`), en el Mac, sin red ni cuentas. Si el Mac no es compatible, Apple Intelligence está apagado o el modelo se descarga, lo dice y lleva a Ajustes del Sistema.
+- **La diferencia es el contexto:** OmniNotch responde «no puedo ver tu calendario». Pregunta usa tools sobre lo que Altillo ya tiene:
+  - **shelf:** lista lo que hay arriba y lee texto, Markdown, código, RTF y PDF;
+  - **calendario:** solo si ya hay permiso, nunca lo pide;
+  - **música:** solo si Música o Spotify ya están abiertos;
+  - **portapapeles:** solo el texto actual; ignora lo marcado como contraseña o transitorio.
+  - Más adelante: uso de IA (fase 3) y agentes (fase 4).
+- **Integración:** «Súbelo» convierte la respuesta en un texto del shelf que puedes arrastrar a cualquier app. Las sugerencias salen de lo que hay (por ejemplo, «Resume *informe.pdf*» si hay un PDF arriba).
+- **Invocación:** pestaña propia y atajo global ⌃⌥A (configurable: ⌥Espacio, ⌃⌥Espacio o ninguno), que abre el notch con el cursor en el campo. Mientras escribes o esperas respuesta, el notch no se cierra al apartar el puntero.
+- **Privacidad:** la conversación vive solo en memoria y no se guarda. Si la respuesta termina con el notch cerrado, asoma un aviso.
+
+### 5.8 Avisos en vivo (peeks)
+- `NotchAlert`: el notch crece a una línea unos segundos y vuelve solo. Si pasas el puntero se queda; con clic (o descansando encima) abre la sección del aviso.
+- **Nunca interrumpe:** no aparece con el notch abierto, durante un arrastre ni en escenarios de diseño. Un aviso nuevo sustituye al anterior.
+- **Fuentes, todas por eventos y sin sondeo:**
+  - calendario, 5 min antes, con un temporizador hasta el siguiente evento;
+  - canción nueva, por notificaciones distribuidas de Música y Spotify. Desactivado por defecto.
+  - Después: agente que espera (fase 4) y umbral de uso (fase 3).
+
+### 5.9 Movimiento e interacción
+- **Apertura «líquida»:** resorte con un rebote sutil, y el contenido entra desenfocado y se enfoca detrás de la forma. Al cerrar, desenfoque rápido y sin rebote. Con Reducir movimiento, fundidos.
+- **Cambio de sección con dirección:** el contenido se desliza hacia donde vas, con clic, ⌘1…⌘9, ⌃Tab o **swipe con dos dedos**. En los extremos, efecto goma elástica.
+- **Hápticos** (trackpad Force Touch, desactivables): solo como respuesta a algo que haces tú, es decir, al cambiar de sección con swipe y al aterrizar algo en el shelf. Un aviso nunca da un toque: bajo una mano en reposo parecería un fallo.
 
 ## 6. Altillo para iOS y iPadOS
 
@@ -212,14 +238,67 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **4. Agentes en vivo (K+M)** | `altillo-hook`, socket, instalador de hooks (Claude, Codex), sesiones, peek automático, permitir/denegar desde el notch | 2 | 1,5 semanas |
 | **5. Altillo iOS v1 (K+I)** | AltilloSync (CKSyncEngine), app de iPhone: dashboard, agentes, widgets, notificaciones y personalización. Retirar el fork y ai-limits | 3 (puede ir en paralelo con 4) | 2 semanas |
 | **6. Dynamic Island + aprobar desde el iPhone (I+M)** | Live Activities, el Mac como proveedor de APNs (spike primero), permitir/denegar desde el iPhone con Face ID | 4, 5 | 1,5 semanas |
-| **7. Barra de menú (M)** | Iconos ocultos en el notch, lista y búsqueda en 27, ocultar secciones en 26 | 2 | 1 semana |
+| **7. Barra de menú (M)** | Estantería persistente en Altillo, catálogo por zonas, iconos ocultos en el notch y ocultación de secciones en 26 | 2 | 1 semana |
 | **8. AirDrop, Now Playing, calendario (M)** | §5.6 | 2 | 1-1,5 semanas |
 | **9. Altillo compartido + iPad** | `ShelfItem` en CloudKit, extensión de compartir en iPhone, shelf en iPad, dashboard de iPad | 5 | 2 semanas |
 | **10. Publicación** | Icono, nombre, bienvenida, web/README, Homebrew Cask, App Store (iOS) | — | 1 semana |
+| **11. Vida: movimiento, avisos y Pregunta (M)** | Apertura «líquida», transiciones con dirección, swipe entre secciones, ⌘1…9, hápticos, avisos en vivo (calendario y música) y el asistente on-device con tools y atajo global (§5.7-5.9) | 1 | 1,5 semanas |
+| **12. Utilidades del altillo (M)** | Temporizador (un reloj de cocina que asoma al sonar), nota rápida, portapapeles de solo texto (opt-in, excluye contraseñas), lanzador de Atajos. Pregunta aprende a usarlos («pon 10 min», «apunta esto») | 11 | 1,5 semanas |
+| **13. Pregunta con todo el contexto (K+M)** | Tools de uso de IA y agentes cuando existan («¿cuánto me queda de Claude?», «¿qué hace Codex?»), arrastrar un archivo a Pregunta para preguntarle por él y respuestas guardables | 3, 4, 11 | 1 semana |
+
+**Orden de ejecución (actualizado el 22-09-2026):** 11 ✓ → 2 ✓ → 3 → 4 → 12 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
 
 ### Estado
 
-- **Cajón / Drawer (20-09-2026, primera implementación de fase 7):** módulo con búsqueda y accesos AX, ajustes y selección mediante ⌘-arrastre, ocultación de grupo opt-in en macOS 26 y recuperación segura. La apertura vuelve a mostrar el grupo para dar al menú un anclaje visible. Si la barra sigue llena, explica el límite y no abre un menú fuera de pantalla. Pendiente aceptación física con notch, varias pantallas y barra autooculta; [detalle](docs/cajon.md).
+- **Fase 2 (23-09-2026):** implementación terminada y validación automática en verde.
+  - **Modo edición del notch:** clic derecho en el notch cerrado, clic derecho en la banda del abierto, el menú «Personalizar el notch…» o Ajustes › Secciones.
+    - Las pestañas tiemblan y se reordenan arrastrando; con «−» se guardan en una caja y con «+» vuelven.
+    - Las orejas se eligen arrastrando fichas a los huecos junto al notch, con la opción «Si hay algo / Siempre».
+    - Tres plantillas (Mínimo, Desarrollador, Todo). Todo se puede deshacer con ⌘Z y el botón «Hecho» cierra el modo.
+    - Funciona con teclado (flechas y espacio) y VoiceOver. Con Reducir movimiento no tiembla.
+  - **Orejas reales, todas por eventos:** cosas en el altillo, próximo evento («10:30» / «en 12 min») y un ecualizador mientras suena música. Uso y agentes están marcados como «muy pronto».
+  - **Pantallas:**
+    - Se puede elegir dónde aparece: la del notch, la de la barra de menús, todas o la del puntero.
+    - Sobre una app a pantalla completa, por defecto solo aparece al arrastrar algo.
+    - Detección de pantalla completa sin permisos, con `CGWindowList` y en cada cambio de espacio.
+    - Reposo, reactivación, conexión de pantallas y cambio de usuario sin paneles duplicados.
+  - **Release:**
+    - Sparkle 2.10.0, con «Buscar actualizaciones…» en el menú y en Ajustes › Acerca de.
+    - Entitlements de cámara, Apple Events y calendario, que el hardened runtime exigía.
+    - `script/release.sh`, con CI en tags `v*` y [docs/release.md](docs/release.md).
+    - Ensayo real firmado con Developer ID, con DMG y appcast. Falta la notarización, que necesita tu perfil.
+  - **Cajón:** sin sondeo. Caché de iconos, refresco por eventos (AX, apps, espacios, pantallas) y comprobación de permisos acotada a 2 min.
+  - **Accesibilidad del panel:** grupo «Altillo» para VoiceOver, Esc cierra y «Abrir Altillo» da el foco de teclado.
+  - **Rendimiento:** CPU en reposo 0,0 % (15 muestras de 1 s, con el Cajón activado) y 24 MB de memoria.
+  - 300 tests en macOS y 31 en `AltilloKit`, todos en verde. La app de iOS compila.
+  - **Pendiente, que haces tú:** la configuración de la release (ver [docs/release.md](docs/release.md)), publicar la 0.2.0, instalarla en el MacBook y recorrer la lista de macOS 27 y del notch real. No se marca la fase como aceptada hasta pasar una semana sin bugs en los dos Macs.
+
+- **Fase 11 (23-09-2026):** implementación terminada y validación automática en verde.
+  - **Movimiento:**
+    - Apertura con resorte 0,4 s / rebote 0,3: pico a unos 280 ms y un 3-5 % de sobrepaso. El contenido entra con desenfoque 10 y escala 0,95 y se enfoca. Al cerrar no hay rebote, con el 90 % recogido a los 130 ms.
+    - Anchura y altura se animan por separado, así que lo que crece rebota y lo que encoge no.
+    - Los peeks crecen primero hacia los lados y luego bajan.
+    - Las secciones se deslizan en la dirección del cambio, con goma elástica en los extremos. Todo tiene su versión con Reducir movimiento.
+    - Grabado en pantalla y comparado con OmniNotch.
+  - **Interacción:** swipe con dos dedos entre secciones (fuera de la fila del altillo), ⌘1…⌘9, ⌃Tab y hápticos desactivables.
+  - **Avisos en vivo:**
+    - Reunión 5 min antes, con un solo temporizador hasta el siguiente evento y sin pedir permisos.
+    - Canción nueva, por notificaciones distribuidas y desactivado por defecto.
+    - Pasar el puntero mantiene el aviso y el clic abre su sección.
+  - **Pregunta:**
+    - Foundation Models con 4 tools: altillo (lee texto, Markdown, código, RTF, Word y PDF), calendario, música y portapapeles.
+    - Streaming, parar, conversación nueva, «Súbelo al altillo», sugerencias según el contexto y aviso si la respuesta acaba con el notch cerrado.
+    - Atajo global ⌃⌥A. Mientras escribes, el notch no se cierra.
+    - Probado con el modelo real: responde en español y usa las tools. La conversación solo vive en memoria.
+  - Ajustes › Comportamiento: atajo, hápticos y avisos. Una sección nueva llega activada a quien ya tenía la app (`knownModules`).
+  - 223 tests en macOS y 29 en `AltilloKit`, todos en verde. La app de iOS compila.
+  - **Pendiente, que haces tú:**
+    - Probar el swipe con un trackpad de verdad y los hápticos en un Force Touch.
+    - Confirmar el aviso de canción nueva con Música o Spotify abiertos: las claves de `userInfo` siguen la documentación conocida, pero no se han visto en vivo.
+    - Probar el notch real del MacBook.
+  - **Detectado fuera de la fase y ya resuelto en la fase 2:** el Cajón refrescaba y capturaba iconos cada 2 s. Ahora funciona por eventos.
+
+- **Cajón / Drawer (20-09-2026, primera implementación de fase 7):** estantería persistente sobre la navegación, con catálogo AX y dos zonas de configuración. Los movimientos entre zonas usan ⌘-arrastre público y verificación AX; la ocultación es opt-in en macOS 26 y la recuperación es segura. La apertura vuelve a mostrar el grupo para dar al menú un anclaje visible. Si la barra sigue llena, explica el límite y no abre un menú fuera de pantalla. Pendiente aceptación física con notch, varias pantallas y barra autooculta; [detalle](docs/cajon.md).
 
 - **Fase 0 (18-09-2026):** el código está hecho.
   - Monorepo y CI.
@@ -245,6 +324,11 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 - **5:** el iPhone muestra los usos y agentes de los dos Macs y los widgets se actualizan solos.
 - **6:** la Dynamic Island avisa en < 5 s cuando un agente espera permiso.
 - **7:** en el MacBook, un icono tapado por el notch se abre desde Altillo con un clic.
+- **11:**
+  - Grabada a 60 fps, la apertura muestra el rebote y el enfoque del contenido y el cierre no rebota. Con Reducir movimiento todo son fundidos.
+  - «¿Qué tengo hoy?» y «Resume el PDF que he subido» responden con datos reales, sin salir del Mac.
+  - ⌃⌥A abre Pregunta desde cualquier app.
+  - Una reunión asoma 5 min antes sin gastar CPU en reposo.
 
 ## 8. Matriz de pruebas de drag & drop
 

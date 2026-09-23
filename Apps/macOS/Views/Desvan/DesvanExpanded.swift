@@ -4,15 +4,21 @@ import SwiftUI
 
 /// The open attic: a header band beside the notch (tabs left, context right) and the active tab below, lit by the
 /// bulb hanging under the notch. While a drag hovers (`dropTarget`) the body becomes the box and the paper plane.
+/// In edit mode (`model.isEditing`) the band holds the ears as slots and the body the editor (`DesvanEditBody`).
 struct DesvanExpandedFace: View {
     let model: NotchModel
     let chrome: NotchChrome
     let flicker: Double
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Which way the body is swapping (not observed: read by the transition as it runs).
+    @State private var swap = SectionSwap()
+    /// The current edit-mode visit: its undo steps, the selected ear, drags in flight.
+    @State private var editSession = NotchEditSession()
 
     private var isDropTarget: Bool { model.state == .dropTarget }
-    private var bodyKey: String { isDropTarget ? "drop" : model.module.rawValue }
+    private var isEditing: Bool { model.isEditing && !isDropTarget }
+    private var bodyKey: String { isDropTarget ? "drop" : (isEditing ? "edit" : model.module.rawValue) }
     private var hoveredZone: DropZone? {
         guard model.scenario == .dropTarget else { return model.dropZone }
         // `-demoMotion flaps`: the pointer comes and goes over the box.
@@ -22,22 +28,78 @@ struct DesvanExpandedFace: View {
 
     var body: some View {
         VStack(spacing: NotchChrome.expandedContentGap) {
-            header
+            if chrome.showsDrawer {
+                // Keep the camera band clear; the Drawer stays above navigation in every section.
+                ZStack {
+                    if isEditing {
+                        DesvanEditBand(model: model, chrome: chrome, session: editSession)
+                            .transition(.opacity)
+                    } else {
+                        Color.clear
+                    }
+                }
+                .frame(height: chrome.bandHeight)
+                DesvanDrawerView(model: model)
+                    .padding(.horizontal, chrome.contentInset)
+                ZStack {
+                    if isEditing {
+                        Text("Drag the tabs to reorder them, or onto an ear.")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .lineLimit(1)
+                            .transition(.opacity)
+                    } else {
+                        HStack(spacing: 12) {
+                            tabs
+                            Spacer(minLength: 8)
+                            accessory
+                        }
+                        .contentShape(Rectangle())
+                        .contextMenu { customizeMenu }
+                        .transition(.opacity)
+                    }
+                }
+                .frame(height: NotchChrome.drawerNavigationHeight)
+                .padding(.horizontal, chrome.contentInset)
+            } else {
+                ZStack {
+                    if isEditing {
+                        DesvanEditBand(model: model, chrome: chrome, session: editSession)
+                            .transition(.opacity)
+                    } else {
+                        header
+                            .contentShape(Rectangle())
+                            .contextMenu { customizeMenu }
+                            .transition(.opacity)
+                    }
+                }
+            }
+            let direction = swap.direction(for: bodyKey, modules: model.settings.modules,
+                                           moduleDirection: model.moduleDirection)
             ZStack(alignment: .top) {
                 content
                     .id(bodyKey)
-                    .transition(.contentSwap(shift: 4, reduceMotion: reduceMotion))
+                    .transition(DesvanSectionTransition(swap: swap, reduceMotion: reduceMotion))
             }
             .frame(height: chrome.contentHeight, alignment: .top)
             .padding(.horizontal, chrome.contentInset)
-            .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion), value: bodyKey)
+            // Neighbouring sections slide with the tab plaque's spring, so the two read as one motion.
+            .animation(Desvan.Motion.pick(direction == 0 ? Desvan.Motion.content : Desvan.Motion.section,
+                                          reduceMotion: reduceMotion), value: bodyKey)
+            .modifier(DesvanEdgeLean(bump: model.edgeBump, direction: model.edgeBumpDirection))
+            .zIndex(1) // A tab dragged up towards an ear floats over the band.
         }
         .frame(width: chrome.size.width, height: chrome.size.height, alignment: .top)
+        .coordinateSpace(.named(DesvanEdit.space))
+        .overlay { DesvanEditDragGhost(session: editSession) }
+        .onChange(of: model.isEditing, initial: true) { _, editing in
+            if editing { editSession.begin(with: model.settings) }
+        }
         .overlay {
             // The bulb hangs just under the notch; its light warms whatever sits below.
             // The band beside the notch stays pure black so it melts into the hardware notch.
             DesvanBulbGlow(intensity: glow + flicker, radius: 160, originY: chrome.bandHeight)
-                .animation(.easeInOut(duration: 0.25), value: glow)
+                .animation(Desvan.Motion.pick(.easeInOut(duration: 0.25), reduceMotion: reduceMotion), value: glow)
                 .mask {
                     VStack(spacing: 0) {
                         Color.clear.frame(height: chrome.bandHeight - 2)
@@ -86,6 +148,13 @@ struct DesvanExpandedFace: View {
     /// the narrowest notch only leaves ~105 pt a side.
     private static let bandInset: CGFloat = 6
 
+    /// Right-click on the open notch's band: the way into edit mode from inside (the closed notch has its own).
+    @ViewBuilder
+    private var customizeMenu: some View {
+        Button("Customize the Notch…") { model.actions.beginEditing() }
+        Button("Altillo Settings…") { model.actions.openSettings() }
+    }
+
     private var tabs: some View {
         DesvanTabs(model: model)
             .opacity(isDropTarget ? 0.4 : 1)
@@ -100,17 +169,85 @@ struct DesvanExpandedFace: View {
     private var content: some View {
         if isDropTarget {
             DesvanDropZones(model: model, hovered: hoveredZone)
+        } else if isEditing {
+            DesvanEditBody(model: model, session: editSession)
         } else {
             switch model.module {
             case .shelf: DesvanShelfView(model: model)
+            case .assistant: DesvanAssistantView(model: model)
             case .usage: DesvanUsageView(demo: model.demo)
             case .agents: DesvanAgentsView(model: model)
             case .calendar: DesvanCalendarView(model: model)
             case .mirror: DesvanMirrorView(model: model)
             case .nowPlaying: DesvanNowPlayingView(model: model)
-            case .drawer: DesvanDrawerView(model: model)
             }
         }
+    }
+}
+
+// MARK: - Section motion
+
+/// Remembers the body's key so a section change knows which way to slide. Not observed: it is updated while the face
+/// is evaluated and read by the transition as it runs, so the leaving section and the arriving one agree on the
+/// direction (the leaving one keeps the transition it was last drawn with, which predates the change).
+@MainActor
+private final class SectionSwap {
+    private var key: String?
+    private(set) var current = 0
+
+    /// The slide direction for the swap to `newKey`: the model's, when it really came from a neighbour in the tab
+    /// strip (tabs, ⌘1–9, ⌃Tab, swipes); 0 (a vertical crossfade) for the drop box, a jump or anything else.
+    func direction(for newKey: String, modules: [NotchModule], moduleDirection: Int) -> Int {
+        guard newKey != key else { return current }
+        defer { key = newKey }
+        guard let key else { return current }
+        current = Desvan.Motion.sectionDirection(from: key, to: newKey, modules: modules,
+                                                 moduleDirection: moduleDirection)
+        return current
+    }
+}
+
+/// The body's swap: sideways with the section (`SlideSwapTransition`), a vertical crossfade otherwise.
+private struct DesvanSectionTransition: Transition {
+    let swap: SectionSwap
+    let reduceMotion: Bool
+
+    func body(content: Content, phase: TransitionPhase) -> some View {
+        SlideSwapTransition(direction: swap.current, reduceMotion: reduceMotion).apply(content: content, phase: phase)
+    }
+}
+
+/// Rubber band at either end of the tab strip: a swipe past the first or last section tugs the body a few points
+/// the way the fingers went (where the next section would have come from) and it springs back. With Reduce Motion
+/// it stays still.
+private struct DesvanEdgeLean: ViewModifier {
+    let bump: Int
+    let direction: Int
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func body(content: Content) -> some View {
+        let pull = -CGFloat(direction.signum()) * Desvan.Motion.edgeLean
+        content.keyframeAnimator(initialValue: CGFloat.zero, trigger: reduceMotion ? 0 : bump) { content, lean in
+            content.offset(x: lean)
+        } keyframes: { _ in
+            KeyframeTrack {
+                CubicKeyframe(pull, duration: 0.09)
+                SpringKeyframe(0, duration: 0.45, spring: Spring(duration: 0.4, bounce: 0.3))
+            }
+        }
+    }
+}
+
+/// Presses for the notch's small plain buttons (tabs, the gear): they give a touch (94 %) in ≈ 100 ms and come
+/// back without a wobble. Hover highlights stay with each button.
+private struct DesvanPressStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
+            .opacity(configuration.isPressed ? 0.8 : 1)
+            .animation(Desvan.Motion.pick(Desvan.Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }
 
@@ -137,8 +274,7 @@ private struct DesvanTabs: View {
             overflowMenu(showTitle: true)
             overflowMenu(showTitle: false)
         }
-        .animation(Desvan.Motion.pick(.spring(duration: 0.3, bounce: 0.18), reduceMotion: reduceMotion),
-                   value: model.module)
+        .animation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion), value: model.module)
     }
 
     /// Seven sections cannot fit beside a hardware notch at narrow widths.
@@ -146,7 +282,7 @@ private struct DesvanTabs: View {
     private func overflowMenu(showTitle: Bool) -> some View {
         Menu {
             ForEach(model.settings.modules) { tab in
-                Button { model.module = tab } label: {
+                Button { model.select(tab) } label: {
                     Label(tab.title, systemImage: tab.symbol)
                 }
             }
@@ -174,8 +310,8 @@ private struct DesvanTabs: View {
                     metrics: metrics,
                     namespace: namespace
                 ) {
-                    withAnimation(Desvan.Motion.pick(.spring(duration: 0.3, bounce: 0.18), reduceMotion: reduceMotion)) {
-                        model.module = tab
+                    withAnimation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion)) {
+                        model.select(tab)
                     }
                 }
             }
@@ -245,7 +381,7 @@ private struct DesvanTabButton: View {
             }
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(DesvanPressStyle())
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .help(tab.title)
         .accessibilityLabel(tab.title)
@@ -320,10 +456,10 @@ private struct DesvanSettingsButton: View {
                         .fill(Desvan.Palette.paper.opacity(isHovering ? 0.10 : 0))
                 }
         }
-        .buttonStyle(.plain)
-        .onHover { isHovering = $0 }
-        .help("Ajustes de Altillo")
-        .accessibilityLabel("Ajustes de Altillo")
+        .buttonStyle(DesvanPressStyle())
+        .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+        .help("Altillo Settings")
+        .accessibilityLabel("Altillo Settings")
     }
 }
 
@@ -349,15 +485,15 @@ private struct DesvanHeaderAccessory: View {
             } else if model.module == .usage || model.module == .agents, model.scenario == nil {
                 // Only usage and agents still show sample data, until their modules exist (phases 3 and 4).
                 ViewThatFits(in: .horizontal) {
-                    sampleCaption("Datos de ejemplo")
-                    sampleCaption("Ejemplo")
+                    sampleCaption("Sample data")
+                    sampleCaption("Sample")
                 }
             } else {
                 switch model.module {
                 case .shelf: shelf
                 case .usage: usage
                 case .agents: agents
-                case .calendar, .mirror, .nowPlaying, .drawer: EmptyView()
+                case .assistant, .calendar, .mirror, .nowPlaying: EmptyView()
                 }
             }
         }
@@ -366,7 +502,7 @@ private struct DesvanHeaderAccessory: View {
 
     private static let caption = Desvan.Typeface.rounded(11, weight: .medium)
 
-    private func sampleCaption(_ text: String) -> some View {
+    private func sampleCaption(_ text: LocalizedStringKey) -> some View {
         Text(text)
             .font(Self.caption)
             .foregroundStyle(Desvan.Palette.paperTertiary)
@@ -379,7 +515,7 @@ private struct DesvanHeaderAccessory: View {
     private var shelf: some View {
         if !model.shelf.isEmpty {
             ViewThatFits(in: .horizontal) {
-                // "Vaciar" is the action, so it keeps its word for as long as possible; the status gives way first.
+                // "Empty" is the action, so it keeps its word for as long as possible; the status gives way first.
                 shelfRow(status: .long, clear: .word)
                 shelfRow(status: .short, clear: .word)
                 shelfRow(status: .none, clear: .word)
@@ -397,14 +533,14 @@ private struct DesvanHeaderAccessory: View {
     private func shelfRow(status: ShelfStatus, clear: ClearButton) -> some View {
         HStack(spacing: 6) {
             if model.isReceivingDrop {
-                Label(status == .long ? "Guardando…" : "…", systemImage: "arrow.down.circle")
+                Label(status == .long ? "Putting up…" : "…", systemImage: "arrow.down.circle")
                     .font(Self.caption)
                     .foregroundStyle(Desvan.Palette.bulb)
             } else if model.shelfProblem != nil {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .foregroundStyle(Desvan.Palette.warning)
                     .help(model.shelfProblem ?? "")
-                    .accessibilityLabel(model.shelfProblem ?? "Problema con el altillo")
+                    .accessibilityLabel(model.shelfProblem ?? String(localized: "Shelf problem"))
             } else {
                 switch status {
                 case .long: shelfStatusLong
@@ -414,14 +550,14 @@ private struct DesvanHeaderAccessory: View {
             }
             switch clear {
             case .word:
-                Button("Vaciar") { model.actions.clearShelf() }
+                Button("Empty") { model.actions.clearShelf() }
                     .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
             case .glyph:
                 Button { model.actions.clearShelf() } label: {
                     Image(systemName: "arrow.down.to.line").font(.system(size: 10.5, weight: .semibold))
                 }
                 .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
-                .help("Vaciar el altillo")
+                .help("Empty the shelf")
             }
         }
         .fixedSize()
@@ -430,16 +566,19 @@ private struct DesvanHeaderAccessory: View {
     @ViewBuilder
     private var shelfStatusLong: some View {
         if model.selection.isEmpty {
-            Text("\(Text("\(model.shelf.count)").font(Desvan.Typeface.figure(12, weight: .semibold)).foregroundStyle(Desvan.Palette.paper)) \(model.shelf.count == 1 ? "cosa" : "cosas") arriba")
+            let figure = Text("\(model.shelf.count)")
+                .font(Desvan.Typeface.figure(12, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paper)
+            (model.shelf.count == 1 ? Text("\(figure) thing up there") : Text("\(figure) things up there"))
                 .font(Self.caption)
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .contentTransition(.numericText(value: Double(model.shelf.count)))
-                .help("Arrástralo fuera para bajarlo")
+                .help("Drag it out to take it down")
         } else {
             // With something picked, the keys that act on it.
             HStack(spacing: 10) {
-                hint("space", "Mirar")
-                hint("delete.left", "Quitar")
+                hint("space", "Look")
+                hint("delete.left", "Remove")
             }
             .font(Self.caption)
             .foregroundStyle(Desvan.Palette.paperTertiary)
@@ -454,18 +593,18 @@ private struct DesvanHeaderAccessory: View {
                 .font(Desvan.Typeface.figure(12, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .contentTransition(.numericText(value: Double(model.shelf.count)))
-                .help("\(NotchFormat.things(model.shelf.count)) en el altillo")
+                .help("\(NotchFormat.things(model.shelf.count)) on the shelf")
         } else {
             HStack(spacing: 8) {
                 Image(systemName: "space").font(.system(size: 9.5, weight: .medium))
                 Image(systemName: "delete.left").font(.system(size: 9.5, weight: .medium))
             }
             .foregroundStyle(Desvan.Palette.paperTertiary)
-            .help("Espacio: mirar · Retroceso: quitar")
+            .help("Space: look · Delete: remove")
         }
     }
 
-    private func hint(_ symbol: String, _ text: String) -> some View {
+    private func hint(_ symbol: String, _ text: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
             Image(systemName: symbol).font(.system(size: 9.5, weight: .medium))
             Text(text)
@@ -477,7 +616,7 @@ private struct DesvanHeaderAccessory: View {
     private var usage: some View {
         let ago = NotchFormat.ago(model.demo.usageUpdatedAt)
         return ViewThatFits(in: .horizontal) {
-            usageRow(Text("Al día · \(ago)"))
+            usageRow(Text("Up to date · \(ago)"))
             usageRow(Text(ago))
             usageRow(nil)
         }
@@ -494,7 +633,7 @@ private struct DesvanHeaderAccessory: View {
             }
         }
         .fixedSize()
-        .help("Al día · \(NotchFormat.ago(model.demo.usageUpdatedAt))")
+        .help("Up to date · \(NotchFormat.ago(model.demo.usageUpdatedAt))")
     }
 
     // MARK: Agents
@@ -514,7 +653,7 @@ private struct DesvanHeaderAccessory: View {
             if waiting > 0 {
                 Group {
                     if long {
-                        Text("\(waiting) llama a la puerta")
+                        Text("\(waiting) knocking")
                     } else {
                         Label("\(waiting)", systemImage: "hand.raised")
                     }
@@ -524,7 +663,7 @@ private struct DesvanHeaderAccessory: View {
             if working > 0 {
                 Group {
                     if long {
-                        Text("\(working) trabajando")
+                        Text("\(working) working")
                     } else {
                         Label("\(working)", systemImage: "gearshape")
                     }
@@ -540,8 +679,8 @@ private struct DesvanHeaderAccessory: View {
 
     private func agentsSummary(waiting: Int, working: Int) -> String {
         var parts: [String] = []
-        if waiting > 0 { parts.append("\(waiting) llama a la puerta") }
-        if working > 0 { parts.append("\(working) trabajando") }
+        if waiting > 0 { parts.append(String(localized: "\(waiting) knocking")) }
+        if working > 0 { parts.append(String(localized: "\(working) working")) }
         return parts.joined(separator: " · ")
     }
 }

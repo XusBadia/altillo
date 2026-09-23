@@ -78,8 +78,8 @@ struct DragOutSafetyTests {
     @Test func multiItemMoveRemovesOnlyTheFileThatActuallyMoved() async throws {
         let movedURL = try makeFile()
         let keptURL = try makeFile()
-        let moved = ShelfItem(kind: .file(movedURL, isOwnedCopy: false), displayName: "movido.txt")
-        let kept = ShelfItem(kind: .file(keptURL, isOwnedCopy: false), displayName: "conservado.txt")
+        let moved = ShelfItem(kind: .file(movedURL, isOwnedCopy: false), displayName: "moved.txt")
+        let kept = ShelfItem(kind: .file(keptURL, isOwnedCopy: false), displayName: "kept.txt")
         try FileManager.default.moveItem(
             at: movedURL,
             to: movedURL.deletingLastPathComponent().appending(path: "destino.txt")

@@ -67,16 +67,16 @@ extension Tokens {
             }
         }
 
-        /// Spanish display name for Settings.
+        /// Display name for Settings.
         public var title: String {
             switch self {
-            case .amber: "Ámbar"
-            case .coral: "Coral"
-            case .lime: "Lima"
-            case .mint: "Menta"
-            case .sky: "Cielo"
-            case .violet: "Violeta"
-            case .rose: "Rosa"
+            case .amber: String(localized: "Amber", bundle: .module)
+            case .coral: String(localized: "Coral", bundle: .module)
+            case .lime: String(localized: "Lime", bundle: .module)
+            case .mint: String(localized: "Mint", bundle: .module)
+            case .sky: String(localized: "Sky", bundle: .module)
+            case .violet: String(localized: "Violet", bundle: .module)
+            case .rose: String(localized: "Rose", bundle: .module)
             }
         }
     }
@@ -124,7 +124,7 @@ extension Tokens {
         public static let label = Font.system(size: 11.5, weight: .medium)
         /// Metadata and captions.
         public static let caption = Font.system(size: 10.5, weight: .regular)
-        /// Tiny uppercase-ish labels over bars ("SESIÓN · 5 H").
+        /// Tiny uppercase-ish labels over bars ("SESSION · 5 H").
         public static let micro = Font.system(size: 9.5, weight: .semibold)
         /// Code / commands.
         public static let code = Font.system(size: 11, weight: .regular, design: .monospaced)
@@ -144,13 +144,16 @@ extension Tokens {
 // MARK: - Motion
 
 extension Tokens {
-    /// Springs of 250–420 ms. Opening may overshoot a hair; closing never bounces.
+    /// Springs of 250–420 ms. Opening overshoots a little and settles; closing never bounces.
     /// With Reduce Motion every movement becomes a short fade.
     public enum Motion {
-        /// The notch opening (peek → open, drag → drop target).
-        public static let open = Animation.spring(duration: 0.42, bounce: 0.14)
-        /// The notch closing. Critically damped: no bounce.
-        public static let close = Animation.spring(duration: 0.34, bounce: 0)
+        /// The notch opening (peek → open, drag → drop target): it peaks ≈ 280 ms in, about 4–5 % past its size,
+        /// and settles over the next ≈ 250 ms, like something liquid finding its level.
+        public static let openSpring = Spring(duration: 0.4, bounce: 0.3)
+        /// The notch closing: quicker than opening and critically damped, so it never bounces.
+        public static let closeSpring = Spring(duration: 0.3, bounce: 0)
+        public static let open = Animation.spring(openSpring)
+        public static let close = Animation.spring(closeSpring)
         /// Content swaps inside a stable container (tabs, list changes).
         public static let content = Animation.spring(duration: 0.30, bounce: 0)
         /// Small, immediate reactions (hover, press, selection).
@@ -162,6 +165,11 @@ extension Tokens {
 
         /// Content transitions move by 2 % of the container, never more.
         public static let contentShift: CGFloat = 0.02
+        /// A container's content comes into focus from this blur and scale as the container grows (`FocusTransition`).
+        public static let focusBlur: CGFloat = 10
+        public static let focusScale: CGFloat = 0.95
+        /// How far a section travels sideways when it swaps with its neighbour (`SlideSwapTransition`).
+        public static let slideDistance: CGFloat = 24
 
         public static func open(reduceMotion: Bool) -> Animation { reduceMotion ? reducedFade : open }
         public static func close(reduceMotion: Bool) -> Animation { reduceMotion ? reducedFade : close }

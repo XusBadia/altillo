@@ -2,13 +2,13 @@ import ApplicationServices
 import CoreGraphics
 import Foundation
 
-struct MenuBarApplication: Sendable {
+struct MenuBarApplication: Sendable, Hashable {
     let pid: Int32
     let bundleID: String
     let name: String
 }
 
-struct MenuBarEntry: Identifiable, Sendable {
+struct MenuBarEntry: Identifiable, Sendable, Equatable {
     let id: String
     let application: MenuBarApplication
     let title: String
@@ -22,6 +22,12 @@ enum MenuBarActionResult: Sendable {
     case unconfirmed
     /// The item or action is unavailable, or Accessibility rejected the request.
     case unavailable
+}
+
+extension Notification.Name {
+    /// Posted on the main thread when an owner reports that one of its status items was created,
+    /// destroyed, moved or resized.
+    static let menuBarItemsDidChange = Notification.Name("me.badia.altillo.menuBarItemsDidChange")
 }
 
 /// Reads and activates third-party status items through macOS Accessibility.
@@ -40,7 +46,11 @@ actor MenuBarAccessibility {
 
     private var itemsByID: [String: CachedItem] = [:]
     private var knownOwners: Set<String> = []
+    private var menuActions: [String: AXUIElement] = [:]
     private(set) var failedApplicationPIDs: Set<Int32> = []
+    /// One AX observer per status-item owner. Its callbacks only mark the catalog stale; they never scan.
+    private var observers: [Int32: AXObserver] = [:]
+    private var observedElements: [String: AXUIElement] = [:]
 
     /// Rebuilds the status-item cache. The regular application menu bar is never queried.
     func scan(applications: [MenuBarApplication]) -> [MenuBarEntry] {
@@ -67,6 +77,7 @@ actor MenuBarAccessibility {
             }
             Self.limitMessaging(on: extrasMenuBar)
             knownOwners.insert(application.bundleID)
+            let ownerObserver = observer(for: application.pid, extrasMenuBar: extrasMenuBar)
 
             let childrenResult: AttributeResult<[AXUIElement]> = Self.attribute(
                 kAXChildrenAttribute,
@@ -109,6 +120,7 @@ actor MenuBarAccessibility {
                 // Activation will fail open rather than blocking the entire section.
 
                 entries.append(MenuBarEntry(id: id, application: application, title: title, frame: frame))
+                if let ownerObserver { observe(element, id: id, with: ownerObserver) }
                 refreshedItems[id] = CachedItem(
                     applicationPID: application.pid,
                     element: element,
@@ -127,7 +139,52 @@ actor MenuBarAccessibility {
         }
         itemsByID = refreshedItems
         failedApplicationPIDs = failures
+        pruneObservers(liveIDs: Set(refreshedItems.keys), livePIDs: Set(applications.map(\.pid)))
         return entries
+    }
+
+    // MARK: - Change notifications
+
+    /// Registers for structural changes of one owner's status items. Registration happens only while
+    /// scanning (an event-driven or user-driven moment) and only once per element.
+    private func observer(for pid: Int32, extrasMenuBar: AXUIElement) -> AXObserver? {
+        if let existing = observers[pid] { return existing }
+        var created: AXObserver?
+        guard AXObserverCreate(pid_t(pid), { _, _, _, _ in
+            // Delivered on the main run loop. Coalescing and deciding whether to scan belong to the store.
+            NotificationCenter.default.post(name: .menuBarItemsDidChange, object: nil)
+        }, &created) == .success, let created else { return nil }
+        for notification in [kAXCreatedNotification, kAXUIElementDestroyedNotification] {
+            _ = AXObserverAddNotification(created, extrasMenuBar, notification as CFString, nil)
+        }
+        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(created), .commonModes)
+        observers[pid] = created
+        return created
+    }
+
+    private func observe(_ element: AXUIElement, id: String, with observer: AXObserver) {
+        if let previous = observedElements[id], CFEqual(previous, element) { return }
+        for notification in [kAXMovedNotification, kAXResizedNotification, kAXUIElementDestroyedNotification] {
+            _ = AXObserverAddNotification(observer, element, notification as CFString, nil)
+        }
+        observedElements[id] = element
+    }
+
+    private func pruneObservers(liveIDs: Set<String>, livePIDs: Set<Int32>) {
+        observedElements = observedElements.filter { liveIDs.contains($0.key) }
+        for (pid, observer) in observers where !livePIDs.contains(pid) {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+            observers[pid] = nil
+        }
+    }
+
+    /// Stops all change notifications, e.g. when the Drawer is turned off.
+    func stopObserving() {
+        for observer in observers.values {
+            CFRunLoopRemoveSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+        }
+        observers.removeAll()
+        observedElements.removeAll()
     }
 
     /// Performs only an action advertised by the item during the latest scan.
@@ -146,7 +203,164 @@ actor MenuBarAccessibility {
         }
     }
 
+    /// Standard NSMenu trees are exposed even while their status item is hidden.
+    /// Keep their real AX action targets and send only immutable presentation data to AppKit.
+    func menuSnapshot(id: String) -> MenuBarMenuSnapshot? {
+        guard let item = itemsByID[id] else { return nil }
+        menuActions.removeAll()
+        let result: AttributeResult<[AXUIElement]> = Self.attribute(kAXChildrenAttribute, of: item.element)
+        guard result.error == .success,
+              let menu = result.value?.first(where: { Self.stringAttribute(kAXRoleAttribute, of: $0) == kAXMenuRole }) else { return nil }
+        var remaining = 200
+        var unsupported = false
+        let nodes = snapshotChildren(of: menu, depth: 0, remaining: &remaining, unsupported: &unsupported)
+        guard !nodes.isEmpty else { return nil }
+        return MenuBarMenuSnapshot(nodes: nodes, hasUnsupportedContent: unsupported)
+    }
+
+    func performMenuAction(id: String) -> MenuBarActionResult {
+        guard let element = menuActions[id] else { return .unavailable }
+        let enabled: AttributeResult<Bool> = Self.attribute(kAXEnabledAttribute, of: element)
+        guard enabled.value == true, Self.actions(of: element).actions.contains(kAXPressAction) else { return .unavailable }
+        return switch AXUIElementPerformAction(element, kAXPressAction as CFString) {
+        case .success: .performed
+        case .cannotComplete: .unconfirmed
+        default: .unavailable
+        }
+    }
+
+    private func snapshotChildren(of parent: AXUIElement, depth: Int, remaining: inout Int, unsupported: inout Bool) -> [MenuBarMenuNode] {
+        guard depth < 8, remaining > 0 else { unsupported = true; return [] }
+        let result: AttributeResult<[AXUIElement]> = Self.attribute(kAXChildrenAttribute, of: parent)
+        guard result.error == .success, let elements = result.value else { unsupported = true; return [] }
+        let parentTitle = Self.stringAttribute(kAXRoleAttribute, of: parent) == kAXMenuItemRole
+            ? Self.nonemptyStringAttribute(kAXTitleAttribute, of: parent) : nil
+        let booleanButtons = elements.filter { element in
+            guard Self.stringAttribute(kAXRoleAttribute, of: element) == kAXButtonRole,
+                  Self.actions(of: element).actions.contains(kAXPressAction) else { return false }
+            let value: AttributeResult<NSNumber> = Self.attribute(kAXValueAttribute, of: element)
+            return value.value?.intValue == 0 || value.value?.intValue == 1
+        }
+        let contextualTitle = Self.anonymousToggleTitle(parentTitle: parentTitle, booleanButtonCount: booleanButtons.count)
+        var nodes: [MenuBarMenuNode] = []
+        for element in elements {
+            guard remaining > 0 else { unsupported = true; break }
+            remaining -= 1
+            Self.limitMessaging(on: element)
+            let role = Self.stringAttribute(kAXRoleAttribute, of: element) ?? ""
+            let actions = Self.actions(of: element).actions
+            // Decorative images are not missing menu commands.
+            if role == kAXImageRole && actions.isEmpty { continue }
+            var title = Self.menuTitle(role: role,
+                title: Self.nonemptyStringAttribute(kAXTitleAttribute, of: element),
+                description: Self.nonemptyStringAttribute(kAXDescriptionAttribute, of: element),
+                value: Self.nonemptyStringAttribute(kAXValueAttribute, of: element))
+            let inheritedToggleLabel = title.isEmpty && contextualTitle != nil
+                && booleanButtons.first.map { CFEqual($0, element) } == true
+            if inheritedToggleLabel { title = contextualTitle! }
+            let childResult: AttributeResult<[AXUIElement]> = Self.attribute(kAXChildrenAttribute, of: element)
+            let children = childResult.value ?? []
+            let submenu = children.first { Self.stringAttribute(kAXRoleAttribute, of: $0) == kAXMenuRole }
+            let enabled: AttributeResult<Bool> = Self.attribute(kAXEnabledAttribute, of: element)
+            let controlValue: AttributeResult<NSNumber> = Self.attribute(kAXValueAttribute, of: element)
+            let mark = Self.nonemptyStringAttribute(kAXMenuItemMarkCharAttribute, of: element)
+                ?? Self.controlMark(role: role, value: controlValue.value?.intValue)
+                ?? (inheritedToggleLabel && controlValue.value?.intValue == 1 ? "✓" : nil)
+            let modifiers: AttributeResult<Int> = Self.attribute(kAXMenuItemCmdModifiersAttribute, of: element)
+            let token = UUID().uuidString
+            let submenuNodes = submenu.map { snapshotChildren(of: $0, depth: depth + 1, remaining: &remaining, unsupported: &unsupported) } ?? []
+            let hasAction = actions.contains(kAXPressAction) && submenu == nil
+            if hasAction { menuActions[token] = element }
+            let isSeparator = role == kAXMenuItemRole && title.isEmpty && children.isEmpty && enabled.value != true
+            if !title.isEmpty || isSeparator {
+                nodes.append(MenuBarMenuNode(id: token, title: title,
+                    isEnabled: enabled.value == true && (hasAction || !submenuNodes.isEmpty),
+                    isChecked: mark != nil, isSeparator: isSeparator,
+                    shortcut: Self.nonemptyStringAttribute(kAXMenuItemCmdCharAttribute, of: element),
+                    shortcutModifiers: modifiers.value, mark: mark, children: submenuNodes))
+            }
+            if submenu != nil && submenuNodes.isEmpty { unsupported = true }
+            // NSMenu custom views often expose useful static text and real buttons beneath
+            // their menu-item wrapper. Preserve those controls as additional accessible rows.
+            if submenu == nil && !children.isEmpty {
+                let customNodes = snapshotChildren(of: element, depth: depth + 1, remaining: &remaining, unsupported: &unsupported)
+                if !hasAction, customNodes.contains(where: { $0.title == title && menuActions[$0.id] != nil }) {
+                    nodes.removeAll { $0.id == token }
+                }
+                nodes.append(contentsOf: customNodes)
+            } else if title.isEmpty && !isSeparator {
+                unsupported = true
+            }
+        }
+        return nodes.filter { node in
+            // The header's single unlabeled Boolean button now carries that exact header
+            // label, so its static copy need not appear as a second row.
+            !(node.title == contextualTitle && menuActions[node.id] == nil
+              && nodes.contains(where: { $0.title == contextualTitle && menuActions[$0.id] != nil }))
+        }.reduce(into: []) { result, node in
+            // A custom view may repeat its menu wrapper's label in a static-text child.
+            // Never remove actionable rows, separators, or rows with submenus.
+            if let previous = result.last,
+               previous.title == node.title, !node.title.isEmpty,
+               !previous.isSeparator, !node.isSeparator,
+               previous.children.isEmpty, node.children.isEmpty,
+               menuActions[previous.id] == nil, menuActions[node.id] == nil {
+                return
+            }
+            result.append(node)
+        }
+    }
+
+    nonisolated static func anonymousToggleTitle(parentTitle: String?, booleanButtonCount: Int) -> String? {
+        guard booleanButtonCount == 1, let title = normalized(parentTitle) else { return nil }
+        return title
+    }
+
+    nonisolated static func menuTitle(role: String, title: String?, description: String?, value: String?) -> String {
+        // AXStaticText.value contains the displayed text; its description may name a
+        // different status, as in Tailscale's title label (value=Tailscale, description=Connected).
+        if role == kAXStaticTextRole { return title ?? value ?? description ?? "" }
+        return title ?? description ?? value ?? ""
+    }
+
+    nonisolated static func controlMark(role: String, value: Int?) -> String? {
+        guard [kAXCheckBoxRole as String, kAXRadioButtonRole as String, "AXSwitch"].contains(role) else { return nil }
+        return switch value {
+        case 1: "✓"
+        case 2: "−"
+        default: nil
+        }
+    }
+
     // MARK: - Stable identity
+
+    /// System controls share a single application icon. Distinguish their exposed names
+    /// without capturing pixels or requiring Screen Recording access.
+    nonisolated static func systemSymbol(for entry: MenuBarEntry) -> String? {
+        guard ["com.apple.controlcenter", "com.apple.systemuiserver", "com.apple.Spotlight"]
+            .contains(entry.application.bundleID) else { return nil }
+        let name = "\(entry.id) \(entry.title)".lowercased()
+        let symbols: [(keywords: [String], symbol: String)] = [
+            (["wifi", "wi-fi", "wi fi"], "wifi"),
+            (["bluetooth"], "antenna.radiowaves.left.and.right"),
+            (["battery", "batería"], "battery.100percent"),
+            (["sound", "volume", "sonido", "volumen"], "speaker.wave.2.fill"),
+            (["focus", "donotdisturb", "concentración"], "moon.fill"),
+            (["screenmirroring", "screen mirroring", "duplicar"], "rectangle.on.rectangle"),
+            (["display", "brightness", "pantalla"], "display"),
+            (["clock", "date", "reloj", "fecha"], "clock"),
+            (["spotlight", "search"], "magnifyingglass"),
+            (["siri"], "sparkles"),
+            (["camera", "cámara"], "video.fill"),
+            (["screenrecording", "screen recording"], "record.circle"),
+            (["nowplaying", "now playing"], "play.fill"),
+            (["timemachine", "time machine"], "clock.arrow.circlepath"),
+            (["input", "keyboard", "teclado"], "keyboard"),
+            (["vpn"], "network.badge.shield.half.filled"),
+            (["controlcenter", "control center"], "switch.2")
+        ]
+        return symbols.first { mapping in mapping.keywords.contains { name.contains($0) } }?.symbol ?? "switch.2"
+    }
 
     /// Prefer the app's identifier. Titles often contain changing status (sync progress, battery level…),
     /// so the fallback is the item's position in its owner's AX children, not its screen position or title.

@@ -5,6 +5,7 @@
 xcuserdata/
 DerivedData/
 build/
+dist/
 .build/
 .swiftpm/
 *.xcresult
@@ -13,6 +14,8 @@ build/
 # macOS
 .DS_Store
 .claude/worktrees/
+node_modules/
+promo/qa/
 
 # Secrets and signing material — never commit these
 Config/Local.xcconfig

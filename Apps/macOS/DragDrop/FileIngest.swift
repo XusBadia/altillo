@@ -18,7 +18,7 @@ nonisolated struct FileIngest: Sendable {
 
         var errorDescription: String? {
             switch self {
-            case let .missing(url): "No existe: \(url.path)"
+            case let .missing(url): "Doesn't exist: \(url.path)"
             }
         }
     }
@@ -48,12 +48,12 @@ nonisolated struct FileIngest: Sendable {
         let path = Self.canonicalPath(url)
         let home = Self.canonicalPath(homeDirectory)
 
-        if Self.isInside(path, Self.canonicalPath(inboxRoot)) { return .copy(reason: "inbox propio") }
-        if Self.isInside(path, Self.canonicalPath(temporaryDirectory)) { return .copy(reason: "temporal") }
+        if Self.isInside(path, Self.canonicalPath(inboxRoot)) { return .copy(reason: "own inbox") }
+        if Self.isInside(path, Self.canonicalPath(temporaryDirectory)) { return .copy(reason: "temporary") }
         for root in ["/private/var/folders", "/private/tmp", "/private/var/tmp"] where Self.isInside(path, root) {
-            return .copy(reason: "temporal")
+            return .copy(reason: "temporary")
         }
-        if Self.isInside(path, home + "/.Trash") || path.contains("/.Trashes/") { return .copy(reason: "papelera") }
+        if Self.isInside(path, home + "/.Trash") || path.contains("/.Trashes/") { return .copy(reason: "trash") }
 
         let library = home + "/Library"
         if Self.isInside(path, library + "/Containers/com.apple.mail")
@@ -65,14 +65,14 @@ nonisolated struct FileIngest: Sendable {
             || Self.isInside(path, library + "/Safari") {
             return .copy(reason: "Safari")
         }
-        if Self.isInside(path, library + "/Caches") { return .copy(reason: "cachés") }
+        if Self.isInside(path, library + "/Caches") { return .copy(reason: "caches") }
 
         // Any sandboxed app's temporary folder: ~/Library/Containers/<bundle id>/Data/tmp/…
         let containers = library + "/Containers/"
         if path.hasPrefix(containers) {
             let parts = path.dropFirst(containers.count).split(separator: "/", omittingEmptySubsequences: true)
             if parts.count >= 3, parts[1] == "Data", parts[2] == "tmp" || parts[2] == "Library" && parts.count >= 4 && parts[3] == "Caches" {
-                return .copy(reason: "temporal de \(parts[0])")
+                return .copy(reason: "temporary file of \(parts[0])")
             }
         }
         return .reference
@@ -132,7 +132,7 @@ nonisolated struct FileIngest: Sendable {
             .replacingOccurrences(of: ":", with: "-")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmed = cleaned.hasPrefix(".") ? String(cleaned.drop(while: { $0 == "." })) : cleaned
-        return trimmed.isEmpty ? "Sin título" : String(trimmed.prefix(200))
+        return trimmed.isEmpty ? String(localized: "Untitled") : String(trimmed.prefix(200))
     }
 
     static func canonicalPath(_ url: URL) -> String {

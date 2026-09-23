@@ -15,7 +15,9 @@ extension NotchModel {
         model.module = scenario.module
         model.shelf = scenario.showsDemoShelf ? model.demo.shelfItems : []
         model.isReceivingDrop = scenario == .openShelfLoading
-        model.shelfProblem = scenario == .openShelfError ? "No he podido guardar lo que has soltado. Puedes volver a intentarlo." : nil
+        model.shelfProblem = scenario == .openShelfError
+            ? String(localized: "I couldn't put away what you dropped. You can try again.")
+            : nil
         model.state = scenario.state
         return model
     }
@@ -54,12 +56,12 @@ private struct PreviewMenuBar: View {
         HStack(spacing: 18) {
             Image(systemName: "apple.logo")
             Text("Finder").fontWeight(.bold)
-            Text("Archivo")
-            Text("Edición")
+            Text("File")
+            Text("Edit")
             Spacer()
             Image(systemName: "wifi")
             Image(systemName: "battery.75percent")
-            Text("vie 18 sept 10:24")
+            Text("Fri 18 Sep 10:24")
         }
         .font(.system(size: 13, weight: .medium))
         .foregroundStyle(.white)
@@ -69,26 +71,26 @@ private struct PreviewMenuBar: View {
     }
 }
 
-#Preview("Reposo") { NotchPreviewStage(model: .preview(.idle)) }
-#Preview("Reposo · isla") { NotchPreviewStage(model: .preview(.idle, hasNotch: false)) }
-#Preview("Reposo con orejas") { NotchPreviewStage(model: .preview(.idleWithEars)) }
-#Preview("Reposo con orejas · isla") { NotchPreviewStage(model: .preview(.idleWithEars, hasNotch: false)) }
-#Preview("Peek: altillo") { NotchPreviewStage(model: .preview(.peekShelf)) }
-#Preview("Peek: alerta de uso") { NotchPreviewStage(model: .preview(.peekUsageAlert)) }
-#Preview("Peek: agente esperando") { NotchPreviewStage(model: .preview(.peekAgentWaiting)) }
-#Preview("Arrastre en curso") { NotchPreviewStage(model: .preview(.dragArmed)) }
-#Preview("Zona de soltar") { NotchPreviewStage(model: .preview(.dropTarget)) }
-#Preview("Zona de soltar · encima") {
+#Preview("Idle") { NotchPreviewStage(model: .preview(.idle)) }
+#Preview("Idle · island") { NotchPreviewStage(model: .preview(.idle, hasNotch: false)) }
+#Preview("Idle with ears") { NotchPreviewStage(model: .preview(.idleWithEars)) }
+#Preview("Idle with ears · island") { NotchPreviewStage(model: .preview(.idleWithEars, hasNotch: false)) }
+#Preview("Peek: shelf") { NotchPreviewStage(model: .preview(.peekShelf)) }
+#Preview("Peek: usage alert") { NotchPreviewStage(model: .preview(.peekUsageAlert)) }
+#Preview("Peek: agent waiting") { NotchPreviewStage(model: .preview(.peekAgentWaiting)) }
+#Preview("Drag armed") { NotchPreviewStage(model: .preview(.dragArmed)) }
+#Preview("Drop target") { NotchPreviewStage(model: .preview(.dropTarget)) }
+#Preview("Drop target · hovered") {
     let model = NotchModel.preview(.dropTarget)
     model.dropZone = .shelf
     return NotchPreviewStage(model: model)
 }
-#Preview("Abierto: altillo vacío") { NotchPreviewStage(model: .preview(.openShelfEmpty)) }
-#Preview("Abierto: guardando") { NotchPreviewStage(model: .preview(.openShelfLoading)) }
-#Preview("Abierto: error") { NotchPreviewStage(model: .preview(.openShelfError)) }
-#Preview("Abierto: altillo con archivos") { NotchPreviewStage(model: .preview(.openShelf)) }
-#Preview("Abierto: uso de IA") { NotchPreviewStage(model: .preview(.openUsage)) }
-#Preview("Abierto: agentes") { NotchPreviewStage(model: .preview(.openAgents)) }
+#Preview("Open: empty shelf") { NotchPreviewStage(model: .preview(.openShelfEmpty)) }
+#Preview("Open: receiving") { NotchPreviewStage(model: .preview(.openShelfLoading)) }
+#Preview("Open: error") { NotchPreviewStage(model: .preview(.openShelfError)) }
+#Preview("Open: shelf with files") { NotchPreviewStage(model: .preview(.openShelf)) }
+#Preview("Open: AI usage") { NotchPreviewStage(model: .preview(.openUsage)) }
+#Preview("Open: agents") { NotchPreviewStage(model: .preview(.openAgents)) }
 #Preview("Open: Drawer") { NotchPreviewStage(model: .preview(.openDrawer)) }
 #Preview("Open: Drawer · island") { NotchPreviewStage(model: .preview(.openDrawer, hasNotch: false)) }
-#Preview("Abierto: agentes · isla") { NotchPreviewStage(model: .preview(.openAgents, hasNotch: false)) }
+#Preview("Open: agents · island") { NotchPreviewStage(model: .preview(.openAgents, hasNotch: false)) }

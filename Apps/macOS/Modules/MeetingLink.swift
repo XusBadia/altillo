@@ -46,7 +46,7 @@ enum MeetingLink {
         return candidates.first
     }
 
-    /// Which provider a link belongs to, for the button's tooltip ("Unirse por Zoom").
+    /// Which provider a link belongs to, for the button's tooltip ("Join with Zoom").
     static func provider(for url: URL) -> Provider? {
         guard let host = url.host(percentEncoded: false)?.lowercased() else { return nil }
         return Provider.allCases.first { provider in

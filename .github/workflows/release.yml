@@ -1,0 +1,88 @@
+name: Release
+
+# Tag a version to ship it: `git tag v0.2.0 && git push origin v0.2.0`. This workflow builds, signs,
+# notarizes, and packages Altillo, then publishes the GitHub release and the Sparkle appcast
+# (script/release.sh handles all of that — this workflow just provides credentials and calls it).
+# One-time setup (secrets, GitHub Pages) is documented in docs/release.md.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to build (e.g. v0.2.0)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+# Serialize releases: each run reads appcast.xml from gh-pages, regenerates it, and pushes the branch.
+# Without this, two tags pushed close together could race and drop a feed entry.
+concurrency:
+  group: release-appcast
+  cancel-in-progress: false
+
+env:
+  DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
+
+jobs:
+  release:
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Build the requested tag. On a tag push `inputs.tag` is empty and checkout defaults to the
+          # triggering tag; on workflow_dispatch this pins the tag instead of the default branch.
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0 # full history so CURRENT_PROJECT_VERSION (commit count) is correct
+
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          latest=$(find /Applications -maxdepth 1 -name "Xcode_26*.app" 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "${latest:-/Applications/Xcode.app}"
+          xcodebuild -version
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Resolve tag and version
+        id: meta
+        run: |
+          TAG="${{ inputs.tag }}"
+          [ -z "$TAG" ] && TAG="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG#v}"
+          {
+            echo "tag=$TAG"
+            echo "version=$VERSION"
+          } >> "$GITHUB_OUTPUT"
+
+      # Imports the Developer ID Application cert into a temporary keychain and adds it to the search
+      # list (cleaned up automatically in a post step). script/release.sh finds it by team ID.
+      - name: Import Developer ID certificate
+        uses: apple-actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.ALTILLO_CERTIFICATE_P12 }}
+          p12-password: ${{ secrets.ALTILLO_CERTIFICATE_PASSWORD }}
+
+      # script/release.sh reads team/bundle/signing config from Config/Local.xcconfig, same as a local
+      # dev build — CI writes the one values file that isn't a secret by itself (the actual signing
+      # material comes from the imported certificate and the notary/Sparkle secrets below).
+      - name: Write Config/Local.xcconfig
+        run: |
+          cat > Config/Local.xcconfig <<'EOF'
+          ALTILLO_TEAM = 9L2TD7KVV9
+          ALTILLO_BUNDLE_PREFIX = me.badia.altillo
+          ALTILLO_MAC_SIGN_IDENTITY = Developer ID Application
+          EOF
+
+      - name: Build, sign, notarize, package, and publish
+        env:
+          ALTILLO_NOTARY_APPLE_ID: ${{ secrets.ALTILLO_NOTARY_APPLE_ID }}
+          ALTILLO_NOTARY_APP_PASSWORD: ${{ secrets.ALTILLO_NOTARY_APP_PASSWORD }}
+          ALTILLO_NOTARY_TEAM_ID: ${{ secrets.ALTILLO_NOTARY_TEAM_ID }}
+          ALTILLO_SPARKLE_PUBLIC_KEY: ${{ secrets.ALTILLO_SPARKLE_PUBLIC_KEY }}
+          ALTILLO_SPARKLE_PRIVATE_KEY: ${{ secrets.ALTILLO_SPARKLE_PRIVATE_KEY }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: script/release.sh "${{ steps.meta.outputs.version }}" --publish

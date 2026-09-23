@@ -24,8 +24,8 @@ struct DesvanMirrorView: View {
             // Checked before the permission: a Mac mini has nothing to show whatever TCC says.
             DesvanModuleNotice(
                 symbol: "questionmark.video",
-                title: "No encuentro ninguna cámara",
-                message: "Conecta una o acerca el iPhone para usarlo como cámara de continuidad."
+                title: "I can't find a camera",
+                message: "Plug one in, or bring your iPhone close to use it as a Continuity Camera."
             )
         } else {
             permissioned
@@ -40,18 +40,18 @@ struct DesvanMirrorView: View {
         case .unknown:
             DesvanModuleNotice(
                 symbol: "person.crop.square",
-                title: "¿Te echas un vistazo?",
-                message: "El espejo enseña la cámara del Mac aquí arriba. La imagen no sale de tu Mac ni se graba.",
-                actionTitle: "Encender la cámara"
+                title: "Want a quick look at yourself?",
+                message: "The mirror shows the Mac's camera up here. The image never leaves your Mac and is never recorded.",
+                actionTitle: "Turn the camera on"
             ) {
                 Task { await store.requestAccess() }
             }
         case .denied:
             DesvanModuleNotice(
                 symbol: "video.slash",
-                title: "La cámara está apagada",
-                message: "Altillo no tiene permiso para usarla. Actívalo en Ajustes del Sistema y vuelve a abrir el notch.",
-                actionTitle: "Abrir Ajustes"
+                title: "The camera is off",
+                message: "Altillo doesn't have permission to use it. Turn it on in System Settings and open the notch again.",
+                actionTitle: "Open Settings"
             ) {
                 PrivacySettings.camera.open()
             }
@@ -88,7 +88,9 @@ struct DesvanMirrorView: View {
         .desvanCard(radius: 13)
         .shadow(color: .black.opacity(0.5), radius: 8, y: 3)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Espejo: la cámara del Mac\(store.isMirrored ? ", como en un espejo" : ", sin invertir")")
+        .accessibilityLabel(store.isMirrored
+            ? "Mirror: the Mac's camera, flipped like a mirror"
+            : "Mirror: the Mac's camera, not flipped")
     }
 
     private var controls: some View {
@@ -96,12 +98,12 @@ struct DesvanMirrorView: View {
             Button {
                 store.flip()
             } label: {
-                Label(store.isMirrored ? "Como un espejo" : "Tal cual", systemImage: "arrow.left.and.right")
+                Label(store.isMirrored ? "Mirrored" : "As it is", systemImage: "arrow.left.and.right")
                     .labelStyle(.titleAndIcon)
             }
             .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 24))
-            .help("Invertir la imagen de izquierda a derecha")
-            .accessibilityHint("Cambia entre la imagen invertida, como un espejo, y la imagen tal cual")
+            .help("Flip the image left to right")
+            .accessibilityHint("Switches between the flipped, mirror-like image and the image as it is")
 
             if store.cameras.count > 1 {
                 Menu {
@@ -123,7 +125,7 @@ struct DesvanMirrorView: View {
                 .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
                 .menuIndicator(.hidden)
                 .fixedSize()
-                .help("Elegir cámara")
+                .help("Choose camera")
             } else if let name = store.cameras.first?.name {
                 Label(name, systemImage: "camera")
                     .font(Desvan.Typeface.rounded(11, weight: .medium))
@@ -137,7 +139,7 @@ struct DesvanMirrorView: View {
     }
 
     private var currentCameraName: String {
-        store.cameras.first { $0.id == store.selectedCameraID }?.name ?? "Cámara"
+        store.cameras.first { $0.id == store.selectedCameraID }?.name ?? String(localized: "Camera")
     }
 }
 
@@ -177,7 +179,7 @@ struct DesvanCameraPreview: NSViewRepresentable {
         }
 
         @available(*, unavailable)
-        required init?(coder: NSCoder) { fatalError("init(coder:) no se usa") }
+        required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
 
         override func layout() {
             super.layout()

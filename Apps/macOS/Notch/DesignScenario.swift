@@ -1,6 +1,7 @@
 import AltilloCore
+import Foundation
 
-/// Frozen states shown from the menu bar ("Revisión de diseño") to review the look of every state on the real notch.
+/// Frozen states shown from the menu bar ("Design review") to review the look of every state on the real notch.
 enum DesignScenario: String, CaseIterable, Identifiable {
     case idle
     case idleWithEars
@@ -14,6 +15,8 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     case openShelfLoading
     case openShelfError
     case openShelf
+    case openAssistant
+    case peekAlert
     case openUsage
     case openAgents
     case openCalendar
@@ -25,34 +28,36 @@ enum DesignScenario: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .idle: "Reposo"
-        case .idleWithEars: "Reposo con orejas"
-        case .peekHint: "Peek: pista (altillo vacío)"
-        case .peekShelf: "Peek: altillo"
-        case .peekUsageAlert: "Peek: alerta de uso"
-        case .peekAgentWaiting: "Peek: agente esperando"
-        case .dragArmed: "Arrastre en curso"
-        case .dropTarget: "Zona de soltar"
-        case .openShelfEmpty: "Abierto: altillo vacío"
-        case .openShelfLoading: "Abierto: guardando una promesa"
-        case .openShelfError: "Abierto: error al guardar"
-        case .openShelf: "Abierto: altillo con archivos"
-        case .openUsage: "Abierto: uso de IA"
-        case .openAgents: "Abierto: agentes"
-        case .openCalendar: "Abierto: agenda"
-        case .openMirror: "Abierto: espejo"
-        case .openNowPlaying: "Abierto: sonando"
-        case .openDrawer: "Open: Drawer"
+        case .idle: String(localized: "Idle")
+        case .idleWithEars: String(localized: "Idle with ears")
+        case .peekHint: String(localized: "Peek: hint (empty shelf)")
+        case .peekShelf: String(localized: "Peek: shelf")
+        case .peekUsageAlert: String(localized: "Peek: usage alert")
+        case .peekAgentWaiting: String(localized: "Peek: agent waiting")
+        case .dragArmed: String(localized: "Drag armed")
+        case .dropTarget: String(localized: "Drop target")
+        case .openShelfEmpty: String(localized: "Open: empty shelf")
+        case .openShelfLoading: String(localized: "Open: receiving a promise")
+        case .openShelfError: String(localized: "Open: save error")
+        case .openShelf: String(localized: "Open: shelf with files")
+        case .openAssistant: String(localized: "Open: ask")
+        case .peekAlert: String(localized: "Peek: meeting about to start")
+        case .openUsage: String(localized: "Open: AI usage")
+        case .openAgents: String(localized: "Open: agents")
+        case .openCalendar: String(localized: "Open: calendar")
+        case .openMirror: String(localized: "Open: mirror")
+        case .openNowPlaying: String(localized: "Open: now playing")
+        case .openDrawer: String(localized: "Open: Drawer")
         }
     }
 
     var state: NotchState {
         switch self {
         case .idle, .idleWithEars: .idle
-        case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting: .peek
+        case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting, .peekAlert: .peek
         case .dragArmed: .dragArmed
         case .dropTarget: .dropTarget
-        case .openShelfEmpty, .openShelfLoading, .openShelfError, .openShelf, .openUsage, .openAgents,
+        case .openShelfEmpty, .openShelfLoading, .openShelfError, .openShelf, .openAssistant, .openUsage, .openAgents,
              .openCalendar, .openMirror, .openNowPlaying, .openDrawer: .open
         }
     }
@@ -67,12 +72,14 @@ enum DesignScenario: String, CaseIterable, Identifiable {
 
     var module: NotchModule {
         switch self {
+        case .openAssistant: .assistant
+        case .peekAlert: .calendar
         case .openUsage, .peekUsageAlert: .usage
         case .openAgents, .peekAgentWaiting: .agents
         case .openCalendar: .calendar
         case .openMirror: .mirror
         case .openNowPlaying: .nowPlaying
-        case .openDrawer: .drawer
+        case .openDrawer: .shelf
         default: .shelf
         }
     }

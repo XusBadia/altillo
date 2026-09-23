@@ -17,7 +17,7 @@ struct AgentGlyph: View {
                     .padding(size * 0.2)
             case .codex:
                 shape.fill(Color(hex: 0xF4F1EC))
-                Text(">_")
+                Text(verbatim: ">_")
                     .font(.system(size: size * 0.46, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color(hex: 0x1C1917))
                     .offset(y: -size * 0.02)

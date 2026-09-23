@@ -38,7 +38,7 @@ struct DemoContent {
                 agent: .claude,
                 project: "altillo",
                 phase: .waitingPermission,
-                activity: "Quiere ejecutar un comando",
+                activity: String(localized: "Wants to run a command"),
                 lastActivity: now.addingTimeInterval(-8),
                 request: PermissionRequest(tool: "Bash", command: "git push origin feat/notch-design")
             ),
@@ -47,7 +47,7 @@ struct DemoContent {
                 agent: .codex,
                 project: "openusage",
                 phase: .working,
-                activity: "Ejecutando tests · 42 de 118",
+                activity: String(localized: "Running tests · 42 of 118"),
                 lastActivity: now.addingTimeInterval(-3),
                 request: nil
             ),
@@ -56,7 +56,7 @@ struct DemoContent {
                 agent: .claude,
                 project: "badia.me",
                 phase: .finished,
-                activity: "Terminado en 6 min 12 s",
+                activity: String(localized: "Took 6 min 12 s"),
                 lastActivity: now.addingTimeInterval(-4 * 60),
                 request: nil
             ),
@@ -116,11 +116,11 @@ enum AgentPhase: Sendable {
 
     var title: String {
         switch self {
-        case .working: "Trabajando"
-        case .waitingPermission: "Esperando permiso"
-        case .waitingAnswer: "Esperando tu respuesta"
-        case .finished: "Terminado"
-        case .error: "Error"
+        case .working: String(localized: "Working")
+        case .waitingPermission: String(localized: "Waiting for permission")
+        case .waitingAnswer: String(localized: "Waiting for your answer")
+        case .finished: String(localized: "Finished")
+        case .error: String(localized: "Error")
         }
     }
 

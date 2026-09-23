@@ -30,17 +30,17 @@ struct CalendarModuleTests {
     @Test func allDayEventsComeFirstAndTheRestBySoonest() {
         let now = Date(timeIntervalSinceReferenceDate: 800_000_000)
         let sorted = CalendarMapping.sorted([
-            event("Tarde", start: now.addingTimeInterval(3_600)),
-            event("Cumpleaños", start: now, allDay: true),
-            event("Pronto", start: now.addingTimeInterval(600)),
+            event("Later", start: now.addingTimeInterval(3_600)),
+            event("Birthday", start: now, allDay: true),
+            event("Soon", start: now.addingTimeInterval(600)),
         ])
-        #expect(sorted.map(\.title) == ["Cumpleaños", "Pronto", "Tarde"])
+        #expect(sorted.map(\.title) == ["Birthday", "Soon", "Later"])
     }
 
     @Test func sameStartFallsBackToTheTitleSoTheOrderNeverWobbles() {
         let now = Date(timeIntervalSinceReferenceDate: 800_000_000)
-        let first = CalendarMapping.sorted([event("Zanahoria", start: now), event("Abeja", start: now)])
-        let second = CalendarMapping.sorted([event("Abeja", start: now), event("Zanahoria", start: now)])
+        let first = CalendarMapping.sorted([event("Carrot", start: now), event("Bee", start: now)])
+        let second = CalendarMapping.sorted([event("Bee", start: now), event("Carrot", start: now)])
         #expect(first.map(\.title) == second.map(\.title))
     }
 
@@ -59,38 +59,38 @@ struct CalendarModuleTests {
         #expect(CalendarStore.access(for: .notDetermined) == .unknown)
         #expect(CalendarStore.access(for: .denied) == .denied)
         #expect(CalendarStore.access(for: .restricted) == .denied)
-        // Write-only can add events but can't read them: useless for the agenda.
+        // Write-only can add events but can't read them: useless for the calendar.
         #expect(CalendarStore.access(for: .writeOnly) == .denied)
     }
 
     @Test func aRunningEventIsHappeningNow() {
         let now = Date(timeIntervalSinceReferenceDate: 800_000_000)
-        let running = event("Reunión", start: now.addingTimeInterval(-300))
-        let later = event("Después", start: now.addingTimeInterval(300))
+        let running = event("Meeting", start: now.addingTimeInterval(-300))
+        let later = event("Afterwards", start: now.addingTimeInterval(300))
         #expect(running.isRunning(at: now))
         #expect(!later.isRunning(at: now))
     }
 
     @Test func theCountdownSaysWhatIsGoingOn() {
         let now = Date(timeIntervalSinceReferenceDate: 800_000_000)
-        #expect(DesvanEventFormat.countdown(event("A", start: now.addingTimeInterval(720)), isTomorrow: false, now: now) == "en 12 min")
-        #expect(DesvanEventFormat.countdown(event("B", start: now.addingTimeInterval(-60)), isTomorrow: false, now: now) == "ahora")
-        #expect(DesvanEventFormat.countdown(event("C", start: now, allDay: true), isTomorrow: false, now: now) == "hoy")
-        #expect(DesvanEventFormat.countdown(event("D", start: now.addingTimeInterval(50_000)), isTomorrow: true, now: now) == "mañana")
+        #expect(DesvanEventFormat.countdown(event("A", start: now.addingTimeInterval(720)), isTomorrow: false, now: now) == "in 12 min")
+        #expect(DesvanEventFormat.countdown(event("B", start: now.addingTimeInterval(-60)), isTomorrow: false, now: now) == "now")
+        #expect(DesvanEventFormat.countdown(event("C", start: now, allDay: true), isTomorrow: false, now: now) == "today")
+        #expect(DesvanEventFormat.countdown(event("D", start: now.addingTimeInterval(50_000)), isTomorrow: true, now: now) == "tomorrow")
     }
 
     @Test func voiceOverGetsAWholeSentence() {
         let now = Date(timeIntervalSinceReferenceDate: 800_000_000)
         let spoken = DesvanEventFormat.spoken(
-            event("Diseño", start: now.addingTimeInterval(720), location: "Meet", link: "https://meet.google.com/a-b-c"),
+            event("Design", start: now.addingTimeInterval(720), location: "Meet", link: "https://meet.google.com/a-b-c"),
             isTomorrow: false,
             isNext: true,
             now: now
         )
-        #expect(spoken.hasPrefix("Lo siguiente:, Diseño"))
-        #expect(spoken.contains("en 12 min"))
-        #expect(spoken.contains("en Meet"))
-        #expect(spoken.contains("enlace"))
+        #expect(spoken.hasPrefix("Up next:, Design"))
+        #expect(spoken.contains("in 12 min"))
+        #expect(spoken.contains("at Meet"))
+        #expect(spoken.contains("link"))
     }
 
     @Test func samplesAreOrderedAndCarryAJoinLink() {

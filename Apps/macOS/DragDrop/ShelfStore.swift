@@ -32,9 +32,9 @@ final class ShelfStore {
         var errorDescription: String? {
             switch self {
             case .writesBlocked:
-                "No se guarda nada para no sobrescribir un estado del altillo que no se ha podido recuperar."
+                String(localized: "Nothing is written, so a shelf state that couldn't be restored isn't overwritten.")
             case .invalidOwnedLocation:
-                "Una copia marcada como propia está fuera del Inbox de Altillo."
+                String(localized: "A copy marked as ours is outside Altillo's Inbox.")
             }
         }
     }
@@ -74,7 +74,7 @@ final class ShelfStore {
         do {
             snapshot = try JSONDecoder().decode(Snapshot.self, from: Data(contentsOf: snapshotURL))
         } catch {
-            SpikeLog.shared.record(SpikeLog.Category.drop, "FALLO restaurando el altillo: \(error.localizedDescription)")
+            SpikeLog.shared.record(SpikeLog.Category.drop, "FAILED restoring the shelf: \(error.localizedDescription)")
             if quarantineCorruptSnapshot() {
                 return .recoveredFromCorruptSnapshot
             }
@@ -83,7 +83,7 @@ final class ShelfStore {
         }
 
         guard snapshot.version == Snapshot.currentVersion else {
-            SpikeLog.shared.record(SpikeLog.Category.drop, "Formato del altillo no compatible: v\(snapshot.version)")
+            SpikeLog.shared.record(SpikeLog.Category.drop, "Unsupported shelf format: v\(snapshot.version)")
             writesBlocked = true
             return .failed
         }
@@ -110,7 +110,7 @@ final class ShelfStore {
             removeOwnedFiles(for: discarded, preserving: restored)
             purgeOldRecovery(at: now)
         } catch {
-            SpikeLog.shared.record(SpikeLog.Category.shelf, "FALLO limpiando el altillo: \(error.localizedDescription)")
+            SpikeLog.shared.record(SpikeLog.Category.shelf, "FAILED cleaning up the shelf: \(error.localizedDescription)")
         }
         return .restored(restored)
     }
@@ -157,7 +157,7 @@ final class ShelfStore {
                 try? fileManager.setAttributes([.modificationDate: Date.now], ofItemAtPath: recoverySlot.path)
                 retired.append(RetiredFile(itemID: item.id, originalURL: url, recoveryURL: recoveryURL))
             } catch {
-                SpikeLog.shared.record(SpikeLog.Category.shelf, "FALLO apartando \(url.lastPathComponent): \(error.localizedDescription)")
+                SpikeLog.shared.record(SpikeLog.Category.shelf, "FAILED setting aside \(url.lastPathComponent): \(error.localizedDescription)")
                 continue
             }
             removeEmptySlot(containing: url)
@@ -201,7 +201,7 @@ final class ShelfStore {
             } catch {
                 SpikeLog.shared.record(
                     SpikeLog.Category.shelf,
-                    "FALLO recuperando \(file.originalURL.lastPathComponent): \(error.localizedDescription)"
+                    "FAILED restoring \(file.originalURL.lastPathComponent): \(error.localizedDescription)"
                 )
             }
         }
@@ -253,7 +253,7 @@ final class ShelfStore {
             try fileManager.moveItem(at: snapshotURL, to: quarantine)
             return true
         } catch {
-            SpikeLog.shared.record(SpikeLog.Category.shelf, "FALLO conservando el estado corrupto: \(error.localizedDescription)")
+            SpikeLog.shared.record(SpikeLog.Category.shelf, "FAILED preserving the corrupt state: \(error.localizedDescription)")
             return false
         }
     }

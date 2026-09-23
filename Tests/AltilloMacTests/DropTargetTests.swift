@@ -46,7 +46,7 @@ struct DropTargetTests {
         #expect(entered == 1, "entered fires once per hover")
 
         pasteboard.clearContents()
-        pasteboard.writeObjects(["texto" as NSString])
+        pasteboard.writeObjects(["text" as NSString])
         #expect(view.draggingUpdated(FakeDraggingInfo(pasteboard: pasteboard, mask: .every)) == .copy)
 
         pasteboard.clearContents()
@@ -60,7 +60,7 @@ struct DropTargetTests {
     @Test func rejectsOwnDrags() {
         let view = makeView()
         pasteboard.clearContents()
-        pasteboard.writeObjects(["texto" as NSString])
+        pasteboard.writeObjects(["text" as NSString])
         let own = FakeDraggingInfo(pasteboard: pasteboard, mask: .every, source: view)
         #expect(view.draggingEntered(own) == [])
         #expect(!view.performDragOperation(own))
@@ -77,7 +77,7 @@ struct DropTargetTests {
             try? FileManager.default.removeItem(at: root)
         }
         try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
-        let stable = root.appending(path: "estable.txt")
+        let stable = root.appending(path: "stable.txt")
         try Data("a".utf8).write(to: stable)
         let temporary = FileManager.default.temporaryDirectory.appending(path: "altillo-drop-\(UUID().uuidString).txt")
         try Data("b".utf8).write(to: temporary)
@@ -86,10 +86,10 @@ struct DropTargetTests {
         let image = NSPasteboardItem()
         image.setData(png, forType: .png)
         let link = NSPasteboardItem()
-        link.setString("https://example.com/pagina", forType: .URL)
+        link.setString("https://example.com/page", forType: .URL)
 
         pasteboard.clearContents()
-        pasteboard.writeObjects([stable as NSURL, temporary as NSURL, link, image, "nota rápida" as NSString])
+        pasteboard.writeObjects([stable as NSURL, temporary as NSURL, link, image, "quick note" as NSString])
 
         let view = makeView()
         var accepted = false
@@ -104,15 +104,15 @@ struct DropTargetTests {
             return
         }
         #expect(copy.path.hasPrefix(root.path))
-        #expect(items[2].kind == .link(URL(string: "https://example.com/pagina")!))
-        #expect(items[2].displayName == "example.com/pagina")
+        #expect(items[2].kind == .link(URL(string: "https://example.com/page")!))
+        #expect(items[2].displayName == "example.com/page")
         guard case let .file(imageFile, true) = items[3].kind else {
             Issue.record("image data should be written to the inbox")
             return
         }
         #expect(try Data(contentsOf: imageFile) == png)
-        #expect(items[4].kind == .text("nota rápida"))
-        #expect(items[4].displayName == "nota rápida")
+        #expect(items[4].kind == .text("quick note"))
+        #expect(items[4].displayName == "quick note")
     }
 
     @Test func partialFailureStillDeliversTheRest() async throws {
@@ -121,10 +121,10 @@ struct DropTargetTests {
             try? FileManager.default.removeItem(at: root)
         }
         pasteboard.clearContents()
-        pasteboard.writeObjects([URL(filePath: "/no/existe/\(UUID().uuidString).txt") as NSURL, "sobrevive" as NSString])
+        pasteboard.writeObjects([URL(filePath: "/does/not/exist/\(UUID().uuidString).txt") as NSURL, "survives" as NSString])
 
         let items = try #require(await drop(FakeDraggingInfo(pasteboard: pasteboard, mask: .every), on: makeView()))
-        #expect(items.map(\.kind) == [.text("sobrevive")])
+        #expect(items.map(\.kind) == [.text("survives")])
     }
 
     @Test func latePromiseFileIsMovedToRecovery() throws {

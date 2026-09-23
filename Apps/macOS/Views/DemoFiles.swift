@@ -23,21 +23,38 @@ enum DemoFiles {
         let now = Date.now
         var items: [ShelfItem] = []
 
-        func file(_ n: Int, _ name: String, minutesAgo: Double, write: (URL) -> Void) {
+        // `name` is the path component on disk (stable); `displayName` is what the shelf shows.
+        func file(_ n: Int, _ name: String, displayName: String, minutesAgo: Double, write: (URL) -> Void) {
             let url = folder.appending(path: name)
             if !FileManager.default.fileExists(atPath: url.path) { write(url) }
             items.append(ShelfItem(
                 id: id(n),
                 kind: .file(url, isOwnedCopy: false),
-                displayName: name,
+                displayName: displayName,
                 addedAt: now.addingTimeInterval(-minutesAgo * 60)
             ))
         }
 
-        file(1, "Captura de pantalla 2026-09-18 a las 10.24.12.png", minutesAgo: 42, write: writeScreenshotPNG)
-        file(2, "Propuesta Altillo v2.pdf", minutesAgo: 30, write: writeProposalPDF)
-        file(3, "notas-reunión.txt", minutesAgo: 21, write: writeNotes)
-        file(4, "altillo-assets.zip", minutesAgo: 12, write: writeZip)
+        file(
+            1, "Screenshot 2026-09-18 at 10.24.12.png",
+            displayName: String(localized: "Screenshot 2026-09-18 at 10.24.12.png"),
+            minutesAgo: 42, write: writeScreenshotPNG
+        )
+        file(
+            2, "Altillo proposal v2.pdf",
+            displayName: String(localized: "Altillo proposal v2.pdf"),
+            minutesAgo: 30, write: writeProposalPDF
+        )
+        file(
+            3, "meeting-notes.txt",
+            displayName: String(localized: "meeting-notes.txt"),
+            minutesAgo: 21, write: writeNotes
+        )
+        file(
+            4, "altillo-assets.zip",
+            displayName: String(localized: "altillo-assets.zip"),
+            minutesAgo: 12, write: writeZip
+        )
         items.append(ShelfItem(
             id: id(5),
             kind: .link(URL(string: "https://getseam.app")!),
@@ -46,8 +63,8 @@ enum DemoFiles {
         ))
         items.append(ShelfItem(
             id: id(6),
-            kind: .text("Revisar la matriz de arrastre antes del viernes: Fotos, Mail y Safari."),
-            displayName: "Revisar la matriz de arrastre",
+            kind: .text(String(localized: "Go through the drag matrix before Friday: Photos, Mail and Safari.")),
+            displayName: String(localized: "Go through the drag matrix"),
             addedAt: now.addingTimeInterval(-2 * 60)
         ))
         return items
@@ -109,9 +126,15 @@ enum DemoFiles {
         context.setFillColor(cg(0x1C1917))
         context.fill(CGRect(x: 0, y: 842 - 210, width: 595, height: 210))
         draw("Altillo", size: 54, weight: 0.4, color: cg(0xFFFFFB), at: CGPoint(x: 56, y: 842 - 120), in: context)
-        draw("Propuesta de diseño · v2", size: 18, weight: 0, color: cg(0xF5A524), at: CGPoint(x: 58, y: 842 - 160), in: context)
+        draw(
+            String(localized: "Design proposal · v2"),
+            size: 18, weight: 0, color: cg(0xF5A524), at: CGPoint(x: 58, y: 842 - 160), in: context
+        )
 
-        draw("Un sitio arriba donde dejar cosas", size: 20, weight: 0.3, color: cg(0x1C1917), at: CGPoint(x: 56, y: 842 - 270), in: context)
+        draw(
+            String(localized: "A place up top to leave things"),
+            size: 20, weight: 0.3, color: cg(0x1C1917), at: CGPoint(x: 56, y: 842 - 270), in: context
+        )
         context.setFillColor(cg(0xF5A524))
         context.fill(CGRect(x: 56, y: 842 - 292, width: 64, height: 4))
 
@@ -130,16 +153,16 @@ enum DemoFiles {
     }
 
     private static func writeNotes(to url: URL) {
-        let text = """
-        Notas · revisión del notch (18-09)
+        let text = String(localized: """
+        Notes · notch review (18-09)
 
-        - El reposo tiene que desaparecer en el notch físico.
-        - Orejas solo si hay algo que contar.
-        - Peek: una línea, nunca dos.
-        - Soltar: que se vea dónde cae antes de soltar.
-        - Uso de IA: ritmo además del porcentaje.
-        - Agentes: Permitir / Denegar sin ir a la terminal.
-        """
+        - Idle has to disappear on the hardware notch.
+        - Ears only if there's something to show.
+        - Peek: one line, never two.
+        - Drop: show where it'll land before you drop it.
+        - AI usage: pace as well as the percentage.
+        - Agents: Allow / Deny without going to the terminal.
+        """)
         try? text.write(to: url, atomically: true, encoding: .utf8)
     }
 

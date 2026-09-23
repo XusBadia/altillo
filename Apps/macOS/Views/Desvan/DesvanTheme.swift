@@ -83,19 +83,126 @@ extension Desvan {
 // MARK: - Motion
 
 extension Desvan {
-    /// Soft, with weight: things fall, bounce a little and settle. Closing never bounces.
+    /// Soft, with weight: things fall, squash a little and settle. Closing never bounces. With Reduce Motion, fades.
+    ///
+    /// The open notch is liquid rather than bouncy: the silhouette grows out of the notch, runs a little past its
+    /// size and settles, while its content comes into focus a hair behind it (blurred and slightly small → sharp).
+    /// Closing is quicker: the content blurs away first and the shape slips back into the notch without a bounce.
     enum Motion {
-        static let open = Animation.spring(duration: 0.44, bounce: 0.2)
-        static let close = Animation.spring(duration: 0.32, bounce: 0)
+        /// The silhouette opening: peaks ≈ 280 ms in, ≈ 4–5 % past its size, settles over the next ≈ 250 ms.
+        static let openSpring = Tokens.Motion.openSpring
+        /// The silhouette closing: ≈ 200 ms to 90 %, critically damped.
+        static let closeSpring = Tokens.Motion.closeSpring
+        static let open = Animation.spring(openSpring)
+        static let close = Animation.spring(closeSpring)
+        /// Opening near the edge of the panel, where an overshoot would be cut off: the same pace, no overshoot.
+        static let openFlat = Animation.spring(duration: 0.36, bounce: 0)
+
+        /// Changing section: the tab plaque, the body's slide and the silhouette's new height, as one motion.
+        static let sectionSpring = Spring(duration: 0.32, bounce: 0.15)
+        static let section = Animation.spring(sectionSpring)
+        /// The silhouette getting shorter for a section: an overshoot inwards would clip the content, so none.
+        static let sectionShrink = Animation.spring(duration: 0.3, bounce: 0)
+
+        /// A face coming into focus, a hair behind the silhouette that grows around it.
+        static let focusIn = Animation.spring(duration: 0.3, bounce: 0)
+        /// A face leaving: gone in ≈ 120 ms, before the shape has collapsed onto it.
+        static let focusOut = Animation.easeOut(duration: 0.12)
+
         static let content = Animation.spring(duration: 0.30, bounce: 0)
         static let settle = Animation.spring(duration: 0.5, bounce: 0.35)
         static let flaps = Animation.spring(duration: 0.26, bounce: 0.28)
         static let flapsClose = Animation.spring(duration: 0.22, bounce: 0)
-        static let hover = Animation.easeOut(duration: 0.15)
+        /// Hover highlights: reads in ≈ 100 ms.
+        static let hover = Animation.easeOut(duration: 0.12)
+        /// Pressing something: it gives in ≈ 100 ms and comes back without a wobble.
+        static let press = Animation.spring(duration: 0.16, bounce: 0)
+        /// A thing lifting under the pointer: quick, with a touch of spring.
+        static let lift = Animation.spring(duration: 0.2, bounce: 0.2)
         static let fade = Animation.easeInOut(duration: 0.18)
+
+        /// How far the open notch's body leans when a swipe runs past the first or last section.
+        static let edgeLean: CGFloat = 8
 
         static func pick(_ animation: Animation, reduceMotion: Bool) -> Animation {
             reduceMotion ? fade : animation
+        }
+
+        /// The animation for one axis of the silhouette as it goes from one face (or size) to another.
+        ///
+        /// Each axis picks its own spring: whatever grows gets the liquid overshoot, whatever shrinks never
+        /// bounces (an overshoot inwards would cut into content laid out at its final size). A peek grows sideways
+        /// first and then drops its line (its height waits 50 ms); leaving a peek it does the reverse.
+        static func silhouette(
+            _ axis: Axis,
+            from: (face: NotchFace, length: CGFloat),
+            to: (face: NotchFace, length: CGFloat),
+            limit: CGFloat = .infinity,
+            reduceMotion: Bool
+        ) -> Animation {
+            if reduceMotion { return fade }
+            let grows = to.length > from.length
+            if from.face == to.face {
+                // Same face, new size: a section of a different height, the drop box, the Drawer.
+                return grows ? section : sectionShrink
+            }
+            // The overshoot must stay inside the panel, or its edge would be cut off mid-flight.
+            let overshoot = (to.length - from.length) * 0.06
+            var animation = grows ? (to.length + overshoot > limit ? openFlat : open) : close
+            switch (from.face, to.face, axis) {
+            case (_, .peek, .vertical) where grows:
+                animation = animation.delay(0.05)
+            case (.peek, .rest, .horizontal), (.peek, .ears, .horizontal):
+                animation = animation.delay(0.04)
+            default:
+                break
+            }
+            return animation
+        }
+
+        /// Which way the open notch's body slides when it swaps from the section keyed `old` to `new` (module raw
+        /// values, or "drop" for the box): the model's direction when it really came from a neighbour in the tab
+        /// strip, 0 (a vertical crossfade) for the drop box, a jump or a stale direction.
+        static func sectionDirection(from old: String, to new: String, modules: [NotchModule],
+                                     moduleDirection: Int) -> Int {
+            guard moduleDirection != 0,
+                  let from = modules.firstIndex(where: { $0.rawValue == old }),
+                  let to = modules.firstIndex(where: { $0.rawValue == new }) else { return 0 }
+            return (to - from).signum() == moduleDirection.signum() ? moduleDirection.signum() : 0
+        }
+
+        /// How much a face is out of focus before it arrives: the open notch the most, the small faces a touch.
+        static func focusDepth(_ face: NotchFace) -> (blur: CGFloat, scale: CGFloat) {
+            switch face {
+            case .expanded: (Tokens.Motion.focusBlur, Tokens.Motion.focusScale)
+            case .peek(.hint), .ears: (3, 0.98)
+            case .peek, .dragArmed: (6, 0.97)
+            case .rest: (0, 1)
+            }
+        }
+
+        /// How long a face waits for the silhouette before it starts to come into focus. A peek waits for its
+        /// sideways growth, so its line sharpens as the shape drops.
+        static func focusDelay(_ face: NotchFace) -> Double {
+            switch face {
+            case .expanded: 0.05
+            case .peek(.hint): 0.03
+            case .peek: 0.08
+            case .ears, .dragArmed, .rest: 0.03
+            }
+        }
+
+        /// Faces come into focus as the silhouette grows around them and blur away quickly when it leaves.
+        @MainActor
+        static func face(_ face: NotchFace, reduceMotion: Bool) -> some Transition {
+            let depth = focusDepth(face)
+            return AsymmetricTransition(
+                insertion: FocusTransition(blur: depth.blur, scale: depth.scale, reduceMotion: reduceMotion)
+                    .animation(reduceMotion ? fade : focusIn.delay(focusDelay(face))),
+                removal: FocusTransition(blur: depth.blur * 0.6, scale: 1 - (1 - depth.scale) / 2,
+                                         reduceMotion: reduceMotion)
+                    .animation(reduceMotion ? fade : focusOut)
+            )
         }
     }
 }
@@ -103,7 +210,7 @@ extension Desvan {
 // MARK: - Typography
 
 extension Desvan {
-    /// SF Pro Rounded for titles, empty states, the "Hecho" stamp and figures;
+    /// SF Pro Rounded for titles, empty states, the "Done" stamp and figures;
     /// SF Pro Rounded for tabs, buttons and chips; SF Pro / SF Mono for names, sentences and commands.
     enum Typeface {
         /// Big numbers: SF Pro Rounded, one step bolder than asked, with tabular digits.

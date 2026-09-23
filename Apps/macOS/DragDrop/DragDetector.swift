@@ -90,7 +90,7 @@ final class DragDetector {
             }
         case .leftMouseUp:
             if case .dragging = phase {
-                SpikeLog.shared.record(SpikeLog.Category.dragEnd, "soltado en \(Self.describe(NSEvent.mouseLocation))")
+                SpikeLog.shared.record(SpikeLog.Category.dragEnd, "dropped at \(Self.describe(NSEvent.mouseLocation))")
                 phase = .idle
                 callbacks.ended()
             } else {
@@ -112,12 +112,12 @@ final class DragDetector {
         guard DragPasteboard.isDroppable(types) else {
             phase = .ignored
             SpikeLog.shared.record(SpikeLog.Category.dragStart,
-                                   "ignorado (sin tipos aceptables) · app: \(app) · tipos: \(Self.describe(types))")
+                                   "ignored (no acceptable types) · app: \(app) · types: \(Self.describe(types))")
             return
         }
         phase = .dragging
         SpikeLog.shared.record(SpikeLog.Category.dragStart,
-                               "app: \(app) · \(items) ítem(s) · tipos: \(Self.describe(types))")
+                               "app: \(app) · \(items) item(s) · types: \(Self.describe(types))")
         callbacks.began()
         callbacks.moved(NSEvent.mouseLocation)
     }

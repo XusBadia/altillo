@@ -5,9 +5,9 @@ import SwiftUI
 /// playing, a free afternoon. One icon, one warm sentence and at most one button.
 struct DesvanModuleNotice: View {
     var symbol: String
-    var title: String
-    var message: String?
-    var actionTitle: String?
+    var title: LocalizedStringKey
+    var message: LocalizedStringKey?
+    var actionTitle: LocalizedStringKey?
     var action: (() -> Void)?
 
     var body: some View {

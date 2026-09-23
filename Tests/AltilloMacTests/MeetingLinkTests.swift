@@ -11,32 +11,32 @@ struct MeetingLinkTests {
 
     @Test func findsTheLinkInsideTheNotes() throws {
         let notes = """
-        Hola:
-        Nos vemos aquí https://acme.zoom.us/j/98765432?pwd=secreto
-        Orden del día adjunto.
+        Hi:
+        See you here https://acme.zoom.us/j/98765432?pwd=secret
+        Agenda attached.
         """
-        let url = try #require(MeetingLink.find(location: "Sala 3", notes: notes))
+        let url = try #require(MeetingLink.find(location: "Room 3", notes: notes))
         #expect(MeetingLink.provider(for: url) == .zoom)
         #expect(url.absoluteString.contains("98765432"))
     }
 
     @Test func aKnownProviderBeatsAPlainLink() throws {
         let url = try #require(MeetingLink.find(
-            url: URL(string: "https://acme.example.com/evento/42"),
+            url: URL(string: "https://acme.example.com/event/42"),
             notes: "Llamada: https://teams.microsoft.com/l/meetup-join/xyz"
         ))
         #expect(MeetingLink.provider(for: url) == .teams)
     }
 
     @Test func fallsBackToThePlainLinkWhenThereIsNoProvider() throws {
-        let url = try #require(MeetingLink.find(location: "https://reunion.example.com/sala"))
+        let url = try #require(MeetingLink.find(location: "https://meeting.example.com/room"))
         #expect(MeetingLink.provider(for: url) == nil)
-        #expect(url.host() == "reunion.example.com")
+        #expect(url.host() == "meeting.example.com")
     }
 
     @Test func ignoresEverythingThatIsNotALink() {
-        #expect(MeetingLink.find(location: "Sala grande, segunda planta", notes: "Traer el portátil") == nil)
-        #expect(MeetingLink.find(url: URL(string: "mailto:alguien@example.com")) == nil)
+        #expect(MeetingLink.find(location: "Big room, second floor", notes: "Bring the laptop") == nil)
+        #expect(MeetingLink.find(url: URL(string: "mailto:someone@example.com")) == nil)
     }
 
     @Test func matchesSubdomainsButNotLookalikes() throws {

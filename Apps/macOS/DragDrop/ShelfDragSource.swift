@@ -136,7 +136,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         session.draggingFormation = .default
         let mask = draggingSession(session, sourceOperationMaskFor: .outsideApplication)
         SpikeLog.shared.record(SpikeLog.Category.dragOut,
-                               "inicio: \(items.count) ítem(s) [\(Self.kinds(items))] · máscara fuera de la app: \(mask.logDescription)")
+                               "start: \(items.count) item(s) [\(Self.kinds(items))] · mask outside the app: \(mask.logDescription)")
         return true
     }
 
@@ -169,7 +169,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         draggedItems = []
         initiallyExistingFileIDs = []
         SpikeLog.shared.record(SpikeLog.Category.dragOut,
-                               "fin: operación \(operation.logDescription) en (\(Int(screenPoint.x)), \(Int(screenPoint.y))) · \(items.count) ítem(s)")
+                               "end: operation \(operation.logDescription) at (\(Int(screenPoint.x)), \(Int(screenPoint.y))) · \(items.count) item(s)")
         releaseSwiftUIPress()
         Self.resolveDeparted(items, initiallyExistingFileIDs: initiallyExisting, after: operation, then: onEnded)
     }
@@ -212,7 +212,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
             for item in items {
                 guard let url = item.fileURL, initiallyExisting.contains(item.id) else { continue }
                 let exists = FileManager.default.fileExists(atPath: url.path)
-                SpikeLog.shared.record(SpikeLog.Category.dragOut, "\(url.lastPathComponent): existe después: \(exists ? "sí" : "no") · \(url.path)")
+                SpikeLog.shared.record(SpikeLog.Category.dragOut, "\(url.lastPathComponent): exists after: \(exists ? "yes" : "no") · \(url.path)")
                 if !exists, operation == .move || operation == .delete {
                     departed.append(item)
                 } else if operation == .delete {
@@ -223,10 +223,10 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
             if !toRecycle.isEmpty {
                 do {
                     let moved = try await NSWorkspace.shared.recycle(toRecycle)
-                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "papelera: Altillo movió \(moved.count) archivo(s) a la Papelera")
+                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "trash: Altillo moved \(moved.count) file(s) to the Trash")
                 } catch {
                     departed.removeAll { item in toRecycle.contains { $0 == item.fileURL } }
-                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "FALLO moviendo a la Papelera: \(error.localizedDescription)")
+                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "FAILED moving to the Trash: \(error.localizedDescription)")
                 }
             }
             onEnded(operation, departed)
@@ -236,9 +236,9 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
     private static func kinds(_ items: [ShelfItem]) -> String {
         items.map { item in
             switch item.kind {
-            case let .file(_, isOwnedCopy): isOwnedCopy ? "copia" : "referencia"
-            case .link: "enlace"
-            case .text: "texto"
+            case let .file(_, isOwnedCopy): isOwnedCopy ? "copy" : "reference"
+            case .link: "link"
+            case .text: "text"
             }
         }.joined(separator: ", ")
     }

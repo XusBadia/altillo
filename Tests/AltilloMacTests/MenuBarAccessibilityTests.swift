@@ -3,6 +3,35 @@ import Testing
 @testable import Altillo
 
 struct MenuBarAccessibilityTests {
+    @Test func anonymousBooleanControlRequiresAnUnambiguousNamedMenuHeader() {
+        #expect(MenuBarAccessibility.anonymousToggleTitle(parentTitle: "Tailscale", booleanButtonCount: 1) == "Tailscale")
+        #expect(MenuBarAccessibility.anonymousToggleTitle(parentTitle: "Tailscale", booleanButtonCount: 2) == nil)
+        #expect(MenuBarAccessibility.anonymousToggleTitle(parentTitle: "Tailscale", booleanButtonCount: 0) == nil)
+        #expect(MenuBarAccessibility.anonymousToggleTitle(parentTitle: nil, booleanButtonCount: 1) == nil)
+        #expect(MenuBarAccessibility.anonymousToggleTitle(parentTitle: " ", booleanButtonCount: 1) == nil)
+    }
+
+    @Test func staticMenuTextUsesItsDisplayedValueBeforeItsAccessibilityDescription() {
+        #expect(MenuBarAccessibility.menuTitle(role: "AXStaticText", title: nil, description: "Connected", value: "Tailscale") == "Tailscale")
+        #expect(MenuBarAccessibility.menuTitle(role: "AXButton", title: nil, description: "More Info", value: nil) == "More Info")
+        #expect(MenuBarAccessibility.menuTitle(role: "AXButton", title: nil, description: nil, value: nil).isEmpty)
+    }
+
+    @Test func menuToggleStateUsesOnlyKnownControlRoles() {
+        #expect(MenuBarAccessibility.controlMark(role: "AXCheckBox", value: 1) == "✓")
+        #expect(MenuBarAccessibility.controlMark(role: "AXSwitch", value: 2) == "−")
+        #expect(MenuBarAccessibility.controlMark(role: "AXCheckBox", value: 0) == nil)
+        #expect(MenuBarAccessibility.controlMark(role: "AXButton", value: 1) == nil)
+    }
+
+    @Test func unknownMenuTokensCannotTriggerAnAccessibilityAction() async {
+        let accessibility = MenuBarAccessibility()
+        let snapshot = await accessibility.menuSnapshot(id: "not-an-item")
+        #expect(snapshot?.nodes.count == nil)
+        let result = await accessibility.performMenuAction(id: "not-an-action")
+        if case .unavailable = result {} else { Issue.record("Unknown action tokens must not invoke an AX target") }
+    }
+
     @Test func identifierKeepsIdentityWhenTheVisibleTitleChanges() {
         let first = MenuBarAccessibility.stableID(
             bundleID: "com.example.status",

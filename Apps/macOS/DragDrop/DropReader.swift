@@ -57,7 +57,7 @@ struct DropPayload {
 
     var isEmpty: Bool { items.isEmpty && promises.isEmpty }
 
-    /// "2 promesas, 1 archivo, 1 texto" for the log.
+    /// "2 promises, 1 file, 1 text" for the log.
     var summary: String {
         var files = 0, links = 0, images = 0, texts = 0
         for item in items {
@@ -68,10 +68,10 @@ struct DropPayload {
             case .text: texts += 1
             }
         }
-        let parts = [(promises.count, "promesas"), (files, "archivos"), (links, "enlaces"), (images, "imágenes"), (texts, "textos")]
+        let parts = [(promises.count, "promise"), (files, "file"), (links, "link"), (images, "image"), (texts, "text")]
             .filter { $0.0 > 0 }
-            .map { "\($0.0) \($0.1)" }
-        return parts.isEmpty ? "nada legible" : parts.joined(separator: ", ")
+            .map { "\($0.0) \($0.1)\($0.0 == 1 ? "" : "s")" }
+        return parts.isEmpty ? "nothing readable" : parts.joined(separator: ", ")
     }
 }
 
@@ -172,6 +172,6 @@ enum DropReader {
             let base = source.deletingPathExtension().lastPathComponent
             if !base.isEmpty { return "\(base).\(ext)" }
         }
-        return "Imagen \(Date.now.formatted(.iso8601)).\(ext)"
+        return "Image \(Date.now.formatted(.iso8601)).\(ext)"
     }
 }

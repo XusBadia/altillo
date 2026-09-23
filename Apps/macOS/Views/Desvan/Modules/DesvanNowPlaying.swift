@@ -33,9 +33,9 @@ struct DesvanNowPlayingView: View {
         if store.access == .denied {
             DesvanModuleNotice(
                 symbol: "hand.raised.slash",
-                title: "No me dejan preguntar",
-                message: "Altillo necesita permiso para hablar con Música y Spotify. Actívalo en Ajustes del Sistema › Privacidad › Automatización.",
-                actionTitle: "Abrir Ajustes"
+                title: "I'm not allowed to ask",
+                message: "Altillo needs permission to talk to Music and Spotify. Turn it on in System Settings › Privacy & Security › Automation.",
+                actionTitle: "Open Settings"
             ) {
                 PrivacySettings.automation.open()
             }
@@ -44,14 +44,17 @@ struct DesvanNowPlayingView: View {
         } else if store.runningPlayers.isEmpty {
             DesvanModuleNotice(
                 symbol: "music.note",
-                title: "Aquí arriba no suena nada",
-                message: "Abre Música o Spotify y lo verás aparecer."
+                title: "Nothing playing up here",
+                message: "Open Music or Spotify and it'll show up."
             )
         } else {
+            let players = store.runningPlayers.map(\.appName).joined(separator: String(localized: " and "))
             DesvanModuleNotice(
                 symbol: "pause.circle",
-                title: "Todo en silencio",
-                message: "\(store.runningPlayers.map(\.appName).joined(separator: " y ")) está abierto, pero no suena nada."
+                title: "All quiet",
+                message: store.runningPlayers.count == 1
+                    ? "\(players) is open, but nothing is playing."
+                    : "\(players) are open, but nothing is playing."
             )
         }
     }
@@ -119,7 +122,7 @@ struct DesvanNowPlayingView: View {
                 .fixedSize()
         }
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Va por \(DesvanTrackFormat.spokenPosition(elapsed: elapsed, duration: track.duration))")
+        .accessibilityLabel("At \(DesvanTrackFormat.spokenPosition(elapsed: elapsed, duration: track.duration))")
     }
 
     private func controls(_ track: NowPlayingStore.Track) -> some View {
@@ -128,8 +131,8 @@ struct DesvanNowPlayingView: View {
                 Image(systemName: "backward.end.fill").font(.system(size: 11))
             }
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 26))
-            .help("Anterior")
-            .accessibilityLabel("Anterior")
+            .help("Previous")
+            .accessibilityLabel("Previous")
 
             Button { store.playPause() } label: {
                 Image(systemName: track.isPlaying ? "pause.fill" : "play.fill")
@@ -138,19 +141,19 @@ struct DesvanNowPlayingView: View {
                     .frame(width: 12)
             }
             .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
-            .help(track.isPlaying ? "Pausa" : "Reproducir")
-            .accessibilityLabel(track.isPlaying ? "Pausa" : "Reproducir")
+            .help(track.isPlaying ? "Pause" : "Play")
+            .accessibilityLabel(track.isPlaying ? "Pause" : "Play")
 
             Button { store.next() } label: {
                 Image(systemName: "forward.end.fill").font(.system(size: 11))
             }
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 26))
-            .help("Siguiente")
-            .accessibilityLabel("Siguiente")
+            .help("Next")
+            .accessibilityLabel("Next")
         }
         .disabled(store.track == nil)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Controles de \(track.appName)")
+        .accessibilityLabel("\(track.appName) controls")
     }
 }
 
@@ -232,13 +235,13 @@ enum DesvanTrackFormat {
     static func position(elapsed: TimeInterval?, duration: TimeInterval?) -> String {
         guard let elapsed else { return duration.map(clock) ?? "" }
         guard let duration, duration > 0 else { return clock(elapsed) }
-        return "\(clock(elapsed)) / \(clock(duration))"
+        return String(localized: "\(clock(elapsed)) / \(clock(duration))")
     }
 
     static func spokenPosition(elapsed: TimeInterval?, duration: TimeInterval?) -> String {
-        guard let elapsed else { return "el principio" }
+        guard let elapsed else { return String(localized: "the start") }
         guard let duration, duration > 0 else { return spoken(elapsed) }
-        return "\(spoken(elapsed)) de \(spoken(duration))"
+        return String(localized: "\(spoken(elapsed)) of \(spoken(duration))")
     }
 
     /// "3:45" or "1:02:30".
@@ -256,7 +259,7 @@ enum DesvanTrackFormat {
         let total = max(0, Int(seconds.rounded()))
         let minutes = total / 60
         let secs = total % 60
-        if minutes == 0 { return "\(secs) s" }
-        return secs == 0 ? "\(minutes) min" : "\(minutes) min \(secs) s"
+        if minutes == 0 { return String(localized: "\(secs) s") }
+        return secs == 0 ? String(localized: "\(minutes) min") : String(localized: "\(minutes) min \(secs) s")
     }
 }

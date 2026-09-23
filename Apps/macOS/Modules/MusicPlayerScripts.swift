@@ -12,7 +12,7 @@ enum MusicPlayer: String, CaseIterable, Identifiable, Sendable {
 
     var appName: String {
         switch self {
-        case .music: "Música"
+        case .music: "Music"
         case .spotify: "Spotify"
         }
     }

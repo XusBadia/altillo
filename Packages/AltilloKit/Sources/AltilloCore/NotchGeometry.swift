@@ -74,6 +74,14 @@ public struct NotchGeometry: Equatable, Sendable {
             .union(notchRect.offsetBy(dx: 0, dy: -verticalSlop))
     }
 
+    /// Pointer hit-testing includes the boundary: AppKit can report the cursor exactly at the screen's
+    /// top edge (`screenFrame.maxY`), which `CGRect.contains` excludes even though the notch touches it.
+    public static func containsPointer(_ point: CGPoint, in rect: CGRect) -> Bool {
+        guard !rect.isEmpty, !rect.isInfinite else { return false }
+        return point.x >= rect.minX && point.x <= rect.maxX
+            && point.y >= rect.minY && point.y <= rect.maxY
+    }
+
     /// Distance from a point to the notch, used to open the drop target as a drag approaches.
     public func distance(to point: CGPoint) -> CGFloat {
         let dx = max(notchRect.minX - point.x, 0, point.x - notchRect.maxX)

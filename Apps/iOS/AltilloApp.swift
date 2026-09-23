@@ -13,6 +13,10 @@ struct AltilloApp: App {
 /// Placeholder until Altillo for iOS starts (phase 5).
 struct ContentView: View {
     var body: some View {
-        ContentUnavailableView("Altillo", systemImage: "square.stack.3d.up", description: Text("Próximamente en iPhone y iPad."))
+        ContentUnavailableView(
+            "Altillo",
+            systemImage: "square.stack.3d.up",
+            description: Text("Coming soon to iPhone and iPad.")
+        )
     }
 }

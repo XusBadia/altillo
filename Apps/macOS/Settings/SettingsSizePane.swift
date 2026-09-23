@@ -6,14 +6,14 @@ struct SettingsSizePane: View {
 
     var body: some View {
         SettingsPane(
-            title: "Tamaño",
-            subtitle: "Cuánto se abre el altillo. Cuanto más estrecho, menos tapa la pantalla."
+            title: "Size",
+            subtitle: "How wide the shelf opens. The narrower it is, the less of the screen it covers."
         ) {
             VStack(alignment: .leading, spacing: 14) {
                 SettingsCard {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack(alignment: .firstTextBaseline) {
-                            Text("Ancho del altillo abierto")
+                            Text("Width when open")
                                 .font(Desvan.Typeface.rounded(13, weight: .medium))
                                 .foregroundStyle(Desvan.Palette.paper)
                             Spacer()
@@ -27,11 +27,11 @@ struct SettingsSizePane: View {
                             in: AltilloSettings.widthRange,
                             step: 5
                         ) {
-                            Text("Ancho del altillo abierto")
+                            Text("Width when open")
                         } minimumValueLabel: {
-                            Text("Estrecho").settingsHint()
+                            Text("Narrow").settingsHint()
                         } maximumValueLabel: {
-                            Text("Ancho").settingsHint()
+                            Text("Wide").settingsHint()
                         }
                         .labelsHidden()
 
@@ -51,12 +51,14 @@ struct SettingsSizePane: View {
 
                 SettingsCard {
                     VStack(alignment: .leading, spacing: 10) {
-                        Text("Vista previa")
+                        Text("Preview")
                             .font(Desvan.Typeface.rounded(11, weight: .semibold))
                             .foregroundStyle(Desvan.Palette.paperTertiary)
                             .textCase(.uppercase)
                         SettingsNotchPreview(width: settings.openWidth, modules: settings.modules)
-                        Text("El altillo abierto sobre la barra de menús, a la mitad de su tamaño.")
+                        SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
+                                            visibility: settings.earsVisibility)
+                        Text("The open shelf over the menu bar at half its size, and the notch at rest with its ears.")
                             .settingsHint()
                     }
                 }
@@ -78,7 +80,7 @@ private struct SettingsPresetButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 0) {
-                Text(name)
+                Text(verbatim: name)
                     .font(Desvan.Typeface.rounded(12, weight: .semibold))
                 Text("\(Int(value)) pt")
                     .font(Desvan.Typeface.figure(9.5, weight: .medium))
@@ -95,13 +97,13 @@ private struct SettingsPresetButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("\(name), \(Int(value)) puntos")
+        .accessibilityLabel("\(name), \(Int(value)) points")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
-/// A half-scale silhouette of the open notch on a toy screen, with the tabs in their order.
-/// Enough to judge the width before touching the real thing.
+/// A half-scale silhouette of the open notch on a toy screen, with the tabs in their order (the first one lit, as
+/// the notch opens on it). Enough to judge the width before touching the real thing.
 struct SettingsNotchPreview: View {
     let width: Double
     let modules: [NotchModule]
@@ -156,8 +158,10 @@ struct SettingsNotchPreview: View {
                             .foregroundStyle(
                                 module == modules.first ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary
                             )
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
+                .animation(.spring(duration: 0.3, bounce: 0.15), value: modules)
                 .padding(.top, 10)
             }
             .overlay(alignment: .bottom) {
@@ -179,5 +183,84 @@ struct SettingsNotchPreview: View {
                 .padding(.bottom, 8)
             }
             .animation(.easeOut(duration: 0.12), value: width)
+    }
+}
+
+/// The notch at rest on a strip of menu bar, with what each ear shows (sample figures: three things on the shelf,
+/// an event at 10:30, music playing). Follows the settings live.
+struct SettingsEarsPreview: View {
+    let leftEar: EarContent
+    let rightEar: EarContent
+    let visibility: EarsVisibility
+
+    private static let notchWidth: CGFloat = 120
+    private static let earWidth: CGFloat = 44
+
+    var body: some View {
+        let hasEars = leftEar != .none || rightEar != .none
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .fill(LinearGradient(colors: [Desvan.Palette.plank.opacity(0.55), Desvan.Palette.wood],
+                                 startPoint: .top, endPoint: .bottom))
+            .overlay {
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 1)
+            }
+            .frame(height: 40)
+            .overlay(alignment: .top) {
+                HStack(spacing: 0) {
+                    ear(leftEar).frame(width: hasEars ? Self.earWidth : 0)
+                    Color.clear.frame(width: Self.notchWidth)
+                    ear(rightEar).frame(width: hasEars ? Self.earWidth : 0)
+                }
+                .frame(height: 24)
+                .background {
+                    UnevenRoundedRectangle(bottomLeadingRadius: 9, bottomTrailingRadius: 9, style: .continuous)
+                        .fill(Desvan.Palette.notch)
+                }
+                .clipped()
+            }
+            .overlay(alignment: .bottomTrailing) {
+                Text(visibility == .always ? "Always" : "When there's something")
+                    .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .padding(6)
+            }
+            .animation(.spring(duration: 0.3, bounce: 0.15), value: [leftEar, rightEar])
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("Ears: \(leftEar.title) on the left, \(rightEar.title) on the right")
+    }
+
+    @ViewBuilder
+    private func ear(_ content: EarContent) -> some View {
+        Group {
+            switch content {
+            case .none:
+                EmptyView()
+            case .shelf:
+                HStack(spacing: 3) {
+                    DesvanHouseMark(size: 9.5)
+                    Text(verbatim: "3").font(Desvan.Typeface.figure(11, weight: .medium))
+                }
+            case .nextEvent:
+                HStack(spacing: 2) {
+                    Image(systemName: "calendar").font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                    Text(verbatim: "10:30").font(Desvan.Typeface.figure(10, weight: .medium))
+                }
+            case .nowPlaying:
+                HStack(alignment: .bottom, spacing: 1.5) {
+                    ForEach([0.45, 0.9, 0.6, 0.75], id: \.self) { level in
+                        Capsule().fill(Desvan.Palette.bulb).frame(width: 2, height: 10 * level)
+                    }
+                }
+                .frame(height: 10, alignment: .bottom)
+            case .usage, .agents:
+                Image(systemName: content.symbol)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+            }
+        }
+        .foregroundStyle(Desvan.Palette.paper)
+        .transition(.scale(scale: 0.6).combined(with: .opacity))
     }
 }

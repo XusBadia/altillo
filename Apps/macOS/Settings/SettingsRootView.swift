@@ -9,11 +9,11 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
     var title: String {
         switch self {
-        case .modules: "Secciones"
-        case .drawer: "Drawer"
-        case .size: "Tamaño"
-        case .behaviour: "Comportamiento"
-        case .about: "Acerca de"
+        case .modules: String(localized: "Sections")
+        case .drawer: String(localized: "Drawer")
+        case .size: String(localized: "Size")
+        case .behaviour: String(localized: "Behaviour")
+        case .about: String(localized: "About")
         }
     }
 
@@ -95,8 +95,8 @@ struct SettingsBackdrop: View {
 
 /// Every pane shares the same padding, the same warm form background and the same title voice.
 struct SettingsPane<Content: View>: View {
-    let title: String
-    let subtitle: String
+    let title: LocalizedStringKey
+    let subtitle: LocalizedStringKey
     @ViewBuilder var content: Content
 
     var body: some View {

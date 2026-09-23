@@ -10,7 +10,7 @@ enum NotchFace: Hashable {
     case ears
     /// Slightly grown with a one-line summary.
     case peek(PeekKind)
-    /// A drag is in progress somewhere: a small "Suelta aquí" tab.
+    /// A drag is in progress somewhere: a small "Drop here" tab.
     case dragArmed
     /// Fully open (tabs, or the drop zone while a drag hovers).
     case expanded
@@ -20,6 +20,8 @@ enum PeekKind: Hashable {
     /// Hovering with nothing to report: a quiet hint of what opens, no instructions.
     case hint
     case shelf, usageAlert, agentWaiting
+    /// A live alert (`NotchModel.alert`): a meeting about to start, a new song, an answer ready.
+    case alert
 }
 
 /// Size and corner radii of the black silhouette for the current face.
@@ -42,12 +44,32 @@ struct NotchChrome: Equatable {
     var showsShadow: Bool
     /// Height reserved for the open notch's body (0 unless `face == .expanded`).
     var contentHeight: CGFloat = 0
+    var showsDrawer: Bool = false
+    static let drawerHeight: CGFloat = 42
+    static let drawerNavigationHeight: CGFloat = 28
 
     /// `-simulateNotch YES` draws every face as if the display had a MacBook Pro 14" notch (185×32 pt), to review the
     /// notch look on a display without one. Views only: the window and hit-testing follow the drawn shape as usual.
     static let simulatedNotch: CGSize? = UserDefaults.standard.bool(forKey: "simulateNotch")
         ? CGSize(width: 185, height: 32)
         : nil
+
+    /// The silhouette at rest, for one screen's notch. Shared with the resting notches of "All of them", which draw
+    /// it on the screens the live notch isn't on.
+    struct RestShape: Equatable {
+        var size: CGSize
+        var topRadius: CGFloat
+        var bottomRadius: CGFloat
+    }
+
+    static func restShape(notch: CGSize, hasNotch: Bool) -> RestShape {
+        if hasNotch {
+            // Exactly the hardware notch plus its fillets, so it blends in.
+            return RestShape(size: CGSize(width: notch.width + 2 * 6, height: notch.height), topRadius: 6, bottomRadius: 10)
+        }
+        // Without a notch there is nothing to blend with: a hairline lip that only hints where Altillo lives.
+        return RestShape(size: CGSize(width: 76, height: 5), topRadius: 3, bottomRadius: 3)
+    }
 
     /// Height of the open tabs' body, between the band and the bottom margin. Never taller than what the visible
     /// module needs (PLAN §3: the attic takes as little vertical room as it can), so the silhouette is shorter for
@@ -63,8 +85,12 @@ struct NotchChrome: Equatable {
         static let agents: CGFloat = 104
         /// The cardboard box and the paper plane.
         static let drop: CGFloat = 100
-        /// Calendar (next event card plus rows), mirror and now playing: the tallest the attic gets.
+        /// Calendar (next event card plus rows), mirror and now playing.
         static let module: CGFloat = 104
+        /// The conversation and the prompt field: the one section that needs room to read.
+        static let assistant: CGFloat = 148
+        /// Edit mode: the sections to arrange, the ears and the presets.
+        static let editing: CGFloat = 150
     }
 
     static let expandedContentGap: CGFloat = 4
@@ -72,6 +98,13 @@ struct NotchChrome: Equatable {
     static let earWidth: CGFloat = 50
     static let peekEarWidth: CGFloat = 64
     static let peekLineHeight: CGFloat = 28
+
+    /// Where the open notch's body starts, from the top of the shape: below the band and, when it shows, the
+    /// Drawer and the tab row under it.
+    var contentTop: CGFloat {
+        bandHeight + Self.expandedContentGap
+            + (showsDrawer ? Self.drawerHeight + Self.drawerNavigationHeight + 2 * Self.expandedContentGap : 0)
+    }
 
     /// Horizontal inset of content inside the expanded shape (fillet + breathing room).
     var contentInset: CGFloat { topRadius + 12 }
@@ -91,16 +124,10 @@ struct NotchChrome: Equatable {
         switch face {
         case .rest:
             showsShadow = false
-            if hasNotch {
-                topRadius = 6
-                bottomRadius = 10
-                size = CGSize(width: notch.width + 2 * topRadius, height: notch.height)
-            } else {
-                // Without a notch there is nothing to blend with: a hairline lip that only hints where Altillo lives.
-                topRadius = 3
-                bottomRadius = 3
-                size = CGSize(width: 76, height: 5)
-            }
+            let rest = Self.restShape(notch: notch, hasNotch: hasNotch)
+            topRadius = rest.topRadius
+            bottomRadius = rest.bottomRadius
+            size = rest.size
         case .ears:
             showsShadow = !hasNotch
             topRadius = 6
@@ -145,11 +172,13 @@ struct NotchChrome: Equatable {
             // Beside a hardware notch the band is exactly the notch; the island keeps room for the tabs.
             let band = hasNotch ? notch.height : max(notch.height, 28)
             bandHeight = band
+            showsDrawer = model.drawer.enabled || model.scenario == .openDrawer
             let content = Self.expandedContentHeight(for: model)
             contentHeight = content
             size = CGSize(
                 width: model.settings.openWidth,
                 height: band + Self.expandedContentGap + content + Self.expandedBottomInset
+                    + (showsDrawer ? Self.drawerHeight + Self.drawerNavigationHeight + 2 * Self.expandedContentGap : 0)
             )
         }
     }
@@ -158,12 +187,13 @@ struct NotchChrome: Equatable {
     @MainActor
     static func expandedContentHeight(for model: NotchModel) -> CGFloat {
         if model.state == .dropTarget { return ExpandedContent.drop }
+        if model.isEditing { return ExpandedContent.editing }
         switch model.module {
         case .shelf: return model.shelf.isEmpty ? ExpandedContent.emptyShelf : ExpandedContent.shelf
         case .usage: return ExpandedContent.usage
         case .agents: return ExpandedContent.agents
+        case .assistant: return ExpandedContent.assistant
         case .calendar, .mirror, .nowPlaying: return ExpandedContent.module
-        case .drawer: return 144
         }
     }
 
@@ -173,6 +203,7 @@ struct NotchChrome: Equatable {
         case .idle:
             return showsEars(model) ? .ears : .rest
         case .peek:
+            if model.alert != nil, model.scenario == nil || model.scenario == .peekAlert { return .peek(.alert) }
             switch model.scenario {
             case .peekUsageAlert: return .peek(.usageAlert)
             case .peekAgentWaiting: return .peek(.agentWaiting)
@@ -191,6 +222,6 @@ struct NotchChrome: Equatable {
     @MainActor
     static func showsEars(_ model: NotchModel) -> Bool {
         if let scenario = model.scenario { return scenario == .idleWithEars }
-        return !model.shelf.isEmpty
+        return model.ears.showsEars(for: model)
     }
 }

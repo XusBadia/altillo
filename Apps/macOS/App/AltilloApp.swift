@@ -5,13 +5,24 @@ struct AltilloApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        MenuBarExtra("Altillo", image: "MenuBarIcon") {
+        MenuBarExtra {
             AppMenu(coordinator: appDelegate.coordinator)
+        } label: {
+            Image(nsImage: Self.menuBarIcon)
+                .accessibilityLabel("Altillo")
         }
-        Window("Registro de pruebas", id: SpikeLogView.windowID) {
+        Window("Spike log", id: SpikeLogView.windowID) {
             SpikeLogView(log: .shared)
         }
         .defaultSize(width: 720, height: 480)
+    }
+
+    /// Status items use an image's point size, even when its source is vector art.
+    private static var menuBarIcon: NSImage {
+        let image = (NSImage(named: "MenuBarIcon")?.copy() as? NSImage) ?? NSImage()
+        image.size = NSSize(width: 18, height: 18)
+        image.isTemplate = true
+        return image
     }
 }
 
@@ -21,11 +32,19 @@ struct AppMenu: View {
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
-        Button("Abrir Altillo") { coordinator.model.actions.send(.click) }
+        Button("Open Altillo") { coordinator.model.actions.send(.click) }
             .keyboardShortcut("a", modifiers: [.command, .option])
-        Button("Ajustes…") { SettingsWindowController.shared.show() }
+        Button("Customize the Notch…") { coordinator.beginEditing() }
+        Button("Settings…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",", modifiers: .command)
         Button("Drawer Settings…") { SettingsWindowController.shared.show(tab: .drawer) }
+        Button("Check for Updates…") { Updater.shared.checkForUpdates() }
+            .disabled(!Updater.shared.canCheckForUpdates)
+            .help(
+                Updater.shared.isConfigured
+                    ? "Check for a newer version of Altillo."
+                    : "This build has no update feed configured."
+            )
         if coordinator.model.drawer.enabled {
             Button(coordinator.model.drawer.isHidden ? "Show menu bar icons" : "Hide menu bar icons") {
                 if coordinator.model.drawer.isHidden { coordinator.model.drawer.reveal() }
@@ -40,22 +59,22 @@ struct AppMenu: View {
             .keyboardShortcut("z", modifiers: [.command, .shift])
             .disabled(!coordinator.model.canRedoShelfChange)
         Divider()
-        Menu("Revisión de diseño") {
+        Menu("Design review") {
             ForEach(DesignScenario.allCases) { scenario in
                 Button(scenario.title) { coordinator.show(scenario) }
             }
             Divider()
-            Button("Volver al modo normal") { coordinator.show(nil) }
+            Button("Back to normal") { coordinator.show(nil) }
         }
-        Button("Registro de pruebas de arrastre…") {
+        Button("Drag spike log…") {
             NSApp.activate()
             openWindow(id: SpikeLogView.windowID)
         }
         Divider()
-        Button("Vaciar el altillo") { coordinator.model.actions.clearShelf() }
+        Button("Empty the shelf") { coordinator.model.actions.clearShelf() }
             .disabled(coordinator.model.shelf.isEmpty)
         Divider()
-        Button("Salir de Altillo") { NSApp.terminate(nil) }
+        Button("Quit Altillo") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }
 }

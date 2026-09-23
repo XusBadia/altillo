@@ -4,4 +4,14 @@ ALTILLO_TEAM =
 ALTILLO_BUNDLE_PREFIX = dev.altillo
 ALTILLO_MAC_SIGN_IDENTITY = -
 
+// Sparkle auto-updates (see docs/release.md). Empty by default: Updater.swift treats a missing feed
+// URL or public key as "not configured" and stays inert, so forks still compile against Sparkle
+// without shipping a working updater. script/release.sh sets both when building a real release.
+//
+// xcconfig treats "//" anywhere on a line as a comment, so a URL value can't contain a literal "//"
+// directly (see Config/Local.xcconfig and script/release.sh, which both build the URL with this).
+ALTILLO_XC_SLASH = /
+ALTILLO_SPARKLE_FEED_URL =
+ALTILLO_SPARKLE_PUBLIC_KEY =
+
 #include? "Local.xcconfig"
