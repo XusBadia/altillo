@@ -28,6 +28,10 @@ env:
 
 jobs:
   release:
+    # Opt-in: tag pushes only build here once the secrets exist and the repository variable
+    # ALTILLO_CI_RELEASE is "true" (docs/release.md). Until then releases are published locally with
+    # `script/release.sh <version> --publish`, whose tag must not start a second, secret-less run.
+    if: github.event_name == 'workflow_dispatch' || vars.ALTILLO_CI_RELEASE == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@v4

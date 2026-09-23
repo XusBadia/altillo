@@ -106,6 +106,11 @@ variables → Actions:
 | `ALTILLO_SPARKLE_PUBLIC_KEY` | La clave pública EdDSA (no es secreta, pero así queda junto a las demás). |
 | `ALTILLO_SPARKLE_PRIVATE_KEY` | La clave privada EdDSA exportada en base64 (paso 1). **Esta sí es secreta de verdad.** |
 
+Cuando estén todos, crea la variable de repositorio `ALTILLO_CI_RELEASE` con valor `true`
+(Settings → Secrets and variables → Actions → Variables). Sin ella, empujar una etiqueta no lanza el
+workflow, que es lo correcto mientras las releases se publican en local: `script/release.sh … --publish`
+crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
+
 `GITHUB_TOKEN` lo proporciona GitHub Actions automáticamente (con permiso
 `contents: write` declarado en el workflow) — no hay que crearlo.
 
