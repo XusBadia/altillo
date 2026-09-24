@@ -8,11 +8,14 @@ let package = Package(
     products: [
         .library(name: "AltilloCore", targets: ["AltilloCore"]),
         .library(name: "AltilloDesign", targets: ["AltilloDesign"]),
+        .library(name: "AltilloUsage", targets: ["AltilloUsage"]),
     ],
     targets: [
         .target(name: "AltilloCore"),
         .target(name: "AltilloDesign", dependencies: ["AltilloCore"], resources: [.process("Resources")]),
+        .target(name: "AltilloUsage", dependencies: ["AltilloCore"]),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),
+        .testTarget(name: "AltilloUsageTests", dependencies: ["AltilloUsage"]),
         .testTarget(name: "AltilloDesignTests", dependencies: ["AltilloDesign"]),
     ]
 )

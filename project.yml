@@ -44,6 +44,8 @@ targets:
         product: AltilloCore
       - package: AltilloKit
         product: AltilloDesign
+      - package: AltilloKit
+        product: AltilloUsage
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook
