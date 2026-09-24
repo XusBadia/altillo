@@ -133,8 +133,9 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **Collectors propios en `AltilloUsage`:**
   - Claude: llavero `Claude Code-credentials` y el fichero como respaldo. **Nunca se refresca el token.**
   - Codex: `codex app-server` por JSON-RPC.
-  - Después se portan de openusage, uno a uno y con atribución MIT: Cursor, Copilot, Gemini/Antigravity y OpenRouter.
-- **Fuente opcional "compatible with OpenUsage":** su API local, para los proveedores que no tengamos nativos.
+  - Después, un collector nativo por proveedor (Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode…), cada uno con su `setupHint`. openusage (MIT) solo sirve de referencia de cómo funciona cada proveedor; si se adapta código, con atribución.
+- ~~**Fuente opcional "compatible with OpenUsage"**~~: **retirada el 24-09-2026 por decisión tuya.** Altillo es independiente y lee cada proveedor de forma nativa: no lee datos de otras apps (no hay acuerdos) ni obliga a instalar ninguna ([detalle](docs/uso-ia.md#independencia-24-09-2026)).
+- **Ajustes:** por defecto, todo proveedor encontrado en este Mac está activado y se puede apagar; los que no están configurados se pliegan en «Not set up on this Mac» con una línea de cómo configurarlos.
 - **Refresco:** cada 5 min, stale-while-revalidate, y en pausa mientras el Mac duerme.
 - **Publicación:** a CloudKit para iOS.
 - **Transición opcional:** escribir también el formato antiguo `openusage.mobile.v1` para que la app de TestFlight actual siga funcionando hasta que llegue Altillo iOS. Así se retiran ya el bridge y su watchdog.
@@ -243,7 +244,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **0. Cimientos** | Monorepo, `project.yml` con todos los targets, CI, AltilloDesign (tokens), mock visual de todos los estados del notch y spikes de drag & drop | — | 3-4 días |
 | **1. Shelf MVP (M)** | Máquina de estados, animaciones, recepción, drag out, Quick Look, persistencia, menú de la barra y arranque al iniciar sesión | 0 | 1 semana |
 | **2. Robustez + personalización (M)** | Multi-pantalla, pantalla completa, sleep/wake, macOS 27, **modo edición del notch**, presets, ajustes con vista previa, accesibilidad, primera release notarizada + Sparkle | 1 | 1,5 semanas |
-| **3. Uso de IA (K+M)** | AltilloUsage (Claude arreglado, Codex), fuente OpenUsage opcional, oreja + pestaña + alertas en el notch y escritor del formato antiguo para retirar el bridge | 0 | 1 semana |
+| **3. Uso de IA (K+M)** | AltilloUsage (Claude arreglado, Codex y después el resto de proveedores, todos nativos), oreja + pestaña + alertas en el notch y escritor del formato antiguo para retirar el bridge | 0 | 1 semana |
 | **4. Agentes en vivo (K+M)** | `altillo-hook`, socket, instalador de hooks (Claude, Codex), sesiones, peek automático, permitir/denegar desde el notch | 2 | 1,5 semanas |
 | **5. Altillo iOS v1 (K+I)** | AltilloSync (CKSyncEngine), app de iPhone: dashboard, agentes, widgets, notificaciones y personalización. Retirar el fork y ai-limits | 3 (puede ir en paralelo con 4) | 2 semanas |
 | **6. Dynamic Island + aprobar desde el iPhone (I+M)** | Live Activities, el Mac como proveedor de APNs (spike primero), permitir/denegar desde el iPhone con Face ID | 4, 5 | 1,5 semanas |
@@ -263,8 +264,8 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - **`AltilloUsage`:**
     - **Claude:** llavero leído con `/usr/bin/security`, sin diálogos, y el fichero como respaldo. Nunca refresca ni escribe tokens; si la sesión caduca, pide abrir Claude Code una vez.
     - **Codex:** `codex app-server` por JSON-RPC, con `wham/usage` de respaldo en solo lectura.
-    - **Fuente compatible con OpenUsage:** la API local, solo para los proveedores que Altillo no lee por sí mismo (Grok, por ejemplo).
-    - **Verificado en vivo contra la app oficial:** las cifras coinciden al punto (Claude Max 5x sesión 64 %/semana 57 %/Fable 10 %; Codex Pro 5x semana 100 %; Grok 0 %).
+    - ~~**Fuente compatible con OpenUsage**~~: retirada el 24-09-2026 por decisión tuya. Altillo lee todos los proveedores de forma nativa; los demás (Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode) llegan como collectors propios.
+    - **Verificado en vivo contra la app oficial:** las cifras coinciden al punto (Claude Max 5x sesión 64 %/semana 57 %/Fable 10 %; Codex Pro 5x semana 100 %).
   - **En el notch:**
     - Pestaña Uso con anillos, ritmo («Hasta las 13:22», «Límite alcanzado») y estados de problema en una frase.
     - Estado en la cabecera («Al día · hace 2 min», desactualizado a los 15 min) y botón de actualizar.
@@ -277,6 +278,13 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
     - **Falta un paso manual:** asignar el contenedor al App ID en developer.apple.com, porque la API no lo permite ([docs/release.md](docs/release.md)).
   - 405 tests en macOS y 102 en `AltilloKit`, todos en verde.
   - **Pendiente, que haces tú:** el paso de iCloud, y después retirar el puente con los comandos de [docs/uso-ia.md](docs/uso-ia.md).
+
+- **Independencia del uso de IA (24-09-2026, 0.3.1):**
+  - Fuera la lectura de otras apps.
+  - Altillo lee por sí mismo **10 proveedores**: Claude, Codex, Cursor, GitHub Copilot, Gemini (Antigravity), Grok, OpenRouter, Z.ai, Devin y OpenCode. Usa las credenciales que ya guardan sus propias herramientas, en solo lectura y sin renovar nunca un token.
+  - Verificado en vivo: Claude, Codex, Copilot (Free) y Grok (SuperGrok). Los demás muestran cómo configurarlos.
+  - openusage (MIT) es solo referencia, con atribución en `ThirdPartyNotices`.
+  - Sus cambios se vigilan con `script/openusage-upstream.sh` y un workflow semanal que abre un issue ([docs/proveedores.md](docs/proveedores.md)).
 
 - **Ronda de feedback de la 0.2.0 (24-09-2026):**
   - El notch abierto es más alto y respira (unos 250-290 pt; el panel pasa a 780×440).

@@ -487,18 +487,23 @@ private struct SettingsCalendarAccount: View {
 
 // MARK: - Usage
 
-/// The usage section's own settings: which providers it reads (with how each one is doing), when it peeks, and
-/// whether an OpenUsage-compatible app fills in the providers Altillo doesn't read itself.
+/// The usage section's own settings: which providers it reads (with how each one is doing), when it peeks, and the
+/// legacy iPhone export. Altillo reads every provider itself; the list scales to many of them by showing only the
+/// ones set up on this Mac, each with its switch (on until switched off), and folding the rest into "Not set up on
+/// this Mac" with one line on how to set each up.
 private struct SettingsUsageGroup: View {
     @Bindable var settings: AltilloSettings
     /// The running app's store; nil only in previews.
     let store: UsageStore?
 
+    @State private var showsNotSetUp = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
             providers
             alerts
-            openUsage
+            iPhone
         }
         .padding(.vertical, 6)
         .onAppear { store?.refreshIfOlder(than: 60) }
@@ -520,18 +525,65 @@ private struct SettingsUsageGroup: View {
                         .disabled(store.isRefreshing)
                 }
             }
-            let entries = store?.entries ?? []
-            if entries.isEmpty {
+            let setUp = store?.setUpEntries ?? []
+            let notSetUp = store?.notSetUpEntries ?? []
+            if setUp.isEmpty {
                 Text(store?.hasChecked == true
-                     ? "Neither Claude Code nor Codex is set up on this Mac yet. Sign in to one and it shows up here."
+                     ? "None of the AI tools Altillo reads is set up on this Mac yet. Set one up and it shows up here."
                      : "Looking for your AI tools…")
                     .settingsHint()
             } else {
-                ForEach(entries) { entry in
-                    SettingsUsageProviderRow(entry: entry, settings: settings)
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(setUp) { entry in
+                        SettingsUsageProviderRow(entry: entry, settings: settings)
+                    }
                 }
-                Text("Altillo reads the sign-in your tools already have. It never signs in, refreshes or changes anything, and your numbers never leave this Mac.")
+            }
+            if !notSetUp.isEmpty {
+                notSetUpList(notSetUp)
+            }
+            if !setUp.isEmpty || !notSetUp.isEmpty {
+                Text("Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything, and your numbers never leave this Mac.")
                     .settingsHint()
+            }
+        }
+    }
+
+    /// The providers Altillo can read that aren't set up here, folded away: each with how to set it up.
+    private func notSetUpList(_ entries: [UsageStore.Entry]) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Button {
+                withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) {
+                    showsNotSetUp.toggle()
+                }
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 9.5, weight: .bold))
+                        .rotationEffect(.degrees(showsNotSetUp ? 90 : 0))
+                        .accessibilityHidden(true)
+                    Text("Not set up on this Mac")
+                        .font(.system(size: 12, weight: .medium))
+                    Text(verbatim: "\(entries.count)")
+                        .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                        .monospacedDigit()
+                        .padding(.horizontal, 5)
+                        .frame(height: 15)
+                        .background(Capsule().fill(Desvan.Palette.woodRaised))
+                }
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityValue(Text(showsNotSetUp ? "Expanded" : "Collapsed"))
+            if showsNotSetUp {
+                VStack(alignment: .leading, spacing: 5) {
+                    ForEach(entries) { entry in
+                        SettingsUsageSetupRow(entry: entry)
+                    }
+                }
+                .padding(.leading, 14)
+                .transition(.opacity)
             }
         }
     }
@@ -583,20 +635,11 @@ private struct SettingsUsageGroup: View {
         )
     }
 
-    // MARK: OpenUsage
+    // MARK: iPhone
 
-    private var openUsage: some View {
+    /// The legacy export for the user's own iPhone app (until Altillo for iOS arrives).
+    private var iPhone: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Toggle(isOn: $settings.usageShowsOpenUsageSource) {
-                Text("Also read an app compatible with OpenUsage")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paper)
-            }
-            .toggleStyle(.checkbox)
-            Text("Only for providers Altillo doesn't read itself, and only if that app is running on this Mac.")
-                .settingsHint()
-                .padding(.leading, 20)
-
             Toggle(isOn: legacyExport) {
                 Text("Also send them to the current iPhone app")
                     .font(.system(size: 12.5))
@@ -604,7 +647,6 @@ private struct SettingsUsageGroup: View {
             }
             .toggleStyle(.checkbox)
             .disabled(!OpenUsageMobilePublisher.hasContainerEntitlement)
-            .padding(.top, 6)
             if OpenUsageMobilePublisher.hasContainerEntitlement {
                 Text("Writes the numbers to iCloud in the format the iPhone app from before Altillo reads, so you can retire the old bridge.")
                     .settingsHint()
@@ -642,13 +684,14 @@ private struct SettingsUsageProviderRow: View {
     private var hasProblem: Bool { !entry.isAvailable || entry.usage?.problem != nil }
 
     var body: some View {
-        HStack(spacing: 10) {
-            AgentGlyph(provider: entry.id, name: entry.displayName, size: 24)
+        HStack(spacing: 9) {
+            AgentGlyph(provider: entry.id, name: entry.displayName, size: 20)
                 .opacity(entry.isAvailable ? 1 : 0.5)
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 0) {
                 Text(entry.displayName)
-                    .font(Desvan.Typeface.rounded(13, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
+                    .lineLimit(1)
                 HStack(spacing: 4) {
                     if hasProblem {
                         Image(systemName: entry.isAvailable ? "exclamationmark.triangle.fill" : "person.crop.circle.badge.questionmark")
@@ -656,7 +699,7 @@ private struct SettingsUsageProviderRow: View {
                             .accessibilityHidden(true)
                     }
                     Text(UsageText.status(for: entry))
-                        .font(.system(size: 11.5))
+                        .font(.system(size: 11))
                         .lineLimit(1)
                 }
                 .foregroundStyle(entry.isAvailable && entry.usage?.problem != nil
@@ -669,7 +712,7 @@ private struct SettingsUsageProviderRow: View {
                 .toggleStyle(.switch)
                 .controlSize(.small)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 1)
         .accessibilityElement(children: .combine)
     }
 
@@ -680,5 +723,40 @@ private struct SettingsUsageProviderRow: View {
         guard let usage = entry.usage, let problem = usage.problem else { return "" }
         let sentence = UsageText.sentence(for: problem, provider: entry.id, displayName: entry.displayName)
         return usage.problemDetail.map { "\(sentence) \($0)" } ?? sentence
+    }
+}
+
+/// A provider Altillo can read that isn't set up on this Mac: its mark, dimmed, its name and how to set it up (a
+/// collector's hint may put a command in `backticks`; it shows in monospace).
+private struct SettingsUsageSetupRow: View {
+    let entry: UsageStore.Entry
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 8) {
+            AgentGlyph(provider: entry.id, name: entry.displayName, size: 16)
+                .opacity(0.55)
+                .padding(.top, 1)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(entry.displayName)
+                    .font(Desvan.Typeface.rounded(12, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .lineLimit(1)
+                Text(hint)
+                    .font(.system(size: 11))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            }
+            Spacer(minLength: 0)
+        }
+        .accessibilityElement(children: .combine)
+    }
+
+    private var hint: AttributedString {
+        let text = entry.setupHint.isEmpty
+            ? String(localized: "Set it up on this Mac and it shows up here.")
+            : UsageText.setupHint(for: entry.id, fallback: entry.setupHint)
+        return (try? AttributedString(markdown: text)) ?? AttributedString(text)
     }
 }

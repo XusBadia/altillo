@@ -846,7 +846,7 @@ final class NotchCoordinator {
             _ = (settings.assistantHotKey, settings.modules, settings.alertsForCalendar, settings.alertsForNowPlaying)
             _ = (settings.leftEar, settings.rightEar, settings.calendarHiddenIDs)
             _ = (settings.displayMode, settings.fullScreenBehaviour)
-            _ = (settings.usageDisabledProviders, settings.usageShowsOpenUsageSource)
+            _ = settings.usageDisabledProviders
             _ = model.calendar.access
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in

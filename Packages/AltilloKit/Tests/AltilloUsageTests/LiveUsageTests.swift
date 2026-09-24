@@ -11,14 +11,14 @@ struct LiveUsageTests {
         let now = Date()
         var lines: [String] = []
         for collector in UsageCollectors.all() {
+            guard await collector.isAvailable() else {
+                lines.append("== \(collector.displayName) [\(collector.providerID.rawValue)] not set up: \(collector.setupHint)")
+                continue
+            }
             let started = Date()
             let usage = await collector.fetch(previous: nil, now: now)
             lines.append(describe(usage, elapsed: Date().timeIntervalSince(started)))
         }
-        let started = Date()
-        let compatible = await OpenUsageCompatibleSource(excluding: []).fetch(now: now)
-        lines.append("== compatible source (all providers, \(String(format: "%.2f", Date().timeIntervalSince(started))) s)")
-        for usage in compatible { lines.append(describe(usage, elapsed: nil)) }
         print(lines.joined(separator: "\n"))
     }
 

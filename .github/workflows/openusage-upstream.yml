@@ -1,0 +1,81 @@
+name: openusage upstream watch
+
+# Weekly check for upstream changes in openusage's provider code (https://github.com/robinebers/openusage,
+# MIT) that Altillo's native AI-usage collectors are adapted from. See docs/proveedores.md and
+# script/openusage-upstream.sh. Never touches openusage; only reads its public GitHub API.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+concurrency:
+  group: openusage-upstream-watch
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE_TITLE: "Upstream openusage: cambios en proveedores"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure the "upstream" label exists
+        run: |
+          set -euo pipefail
+          if ! gh label list --repo "$GITHUB_REPOSITORY" --search upstream --json name -q '.[].name' \
+              | grep -qx upstream; then
+            gh label create upstream \
+              --repo "$GITHUB_REPOSITORY" \
+              --color BFD4F2 \
+              --description "openusage upstream changes affecting Altillo's usage collectors"
+          fi
+
+      - name: Run the upstream check
+        id: check
+        run: |
+          set -euo pipefail
+          set +e
+          script/openusage-upstream.sh >report.txt 2>&1
+          status=$?
+          set -e
+          echo "status=$status" >>"$GITHUB_OUTPUT"
+          cat report.txt
+
+      - name: Open or update the tracking issue
+        if: steps.check.outputs.status == '10'
+        run: |
+          set -euo pipefail
+          body="$(
+            {
+              echo "Cambios detectados upstream en [robinebers/openusage](https://github.com/robinebers/openusage) que afectan a proveedores de los que Altillo adapta código. Antes de actualizar, revisa \`docs/proveedores.md\` (sección \"Cómo actualizar un proveedor\")."
+              echo
+              echo '```'
+              cat report.txt
+              echo '```'
+              echo
+              echo "_Generado por [openusage-upstream.yml](../actions/workflows/openusage-upstream.yml) el $(date -u +%Y-%m-%dT%H:%M:%SZ)._"
+            }
+          )"
+
+          existing="$(gh issue list --repo "$GITHUB_REPOSITORY" --state open --label upstream \
+            --search "in:title \"$ISSUE_TITLE\"" --json number -q '.[0].number' || true)"
+
+          if [[ -n "$existing" ]]; then
+            gh issue comment "$existing" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --label upstream --body "$body"
+          fi
+
+      - name: Fail the job on an unexpected error
+        if: steps.check.outputs.status != '0' && steps.check.outputs.status != '10'
+        run: |
+          echo "openusage-upstream.sh exited ${{ steps.check.outputs.status }} (expected 0 or 10):"
+          cat report.txt
+          exit 1

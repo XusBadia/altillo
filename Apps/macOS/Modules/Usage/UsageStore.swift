@@ -21,14 +21,15 @@ import SystemConfiguration
 @MainActor
 @Observable
 final class UsageStore {
-    /// One provider as Settings lists it: whether it's set up here, the user's switch and its latest reading.
+    /// One provider as Settings lists it: whether it's set up here, how to set it up, the user's switch and its
+    /// latest reading.
     struct Entry: Identifiable, Equatable, Sendable {
         var id: UsageProviderID
         var displayName: String
-        /// Set up on this Mac (its CLI signed in), or reported by the OpenUsage-compatible app.
+        /// Set up on this Mac: its tool signed in, its key added…
         var isAvailable: Bool
-        /// From the OpenUsage-compatible app, not one of Altillo's own collectors.
-        var isExternal: Bool
+        /// How to set it up, for Settings' "Not set up on this Mac" list ("Sign in to Cursor").
+        var setupHint: String = ""
         var usage: ProviderUsage?
     }
 
@@ -41,7 +42,7 @@ final class UsageStore {
 
     // MARK: State
 
-    /// Every provider known, in display order: Altillo's collectors first, then the external ones.
+    /// Every provider Altillo reads, in display order, set up on this Mac or not.
     private(set) var entries: [Entry] = []
     /// Latest reading per provider (kept across failures).
     private(set) var readings: [UsageProviderID: ProviderUsage] = [:]
@@ -76,7 +77,6 @@ final class UsageStore {
 
     let settings: AltilloSettings
     @ObservationIgnored private let collectors: () -> [any UsageCollector]
-    @ObservationIgnored private let externalSource: (any UsageExternalSource)?
     @ObservationIgnored private let clock: any UsageClock
     @ObservationIgnored private let archiveURL: URL?
     @ObservationIgnored private let defaults: UserDefaults
@@ -89,13 +89,11 @@ final class UsageStore {
     @ObservationIgnored private var isStarted = false
     @ObservationIgnored private var isActive = true
     @ObservationIgnored private var sectionIsOn = true
-    @ObservationIgnored private var appliedShowsExternal = true
     @ObservationIgnored private var isAsleep = false
 
     init(
         settings: AltilloSettings,
         collectors: @escaping () -> [any UsageCollector] = { UsageCollectors.all() },
-        externalSource: (any UsageExternalSource)? = UsageExternalSources.standard(),
         clock: any UsageClock = SystemUsageClock(),
         archiveURL: URL? = URL.applicationSupportDirectory.appending(path: "Altillo/usage.json"),
         defaults: UserDefaults = .standard,
@@ -103,7 +101,6 @@ final class UsageStore {
     ) {
         self.settings = settings
         self.collectors = collectors
-        self.externalSource = externalSource
         self.clock = clock
         self.archiveURL = archiveURL
         self.defaults = defaults
@@ -112,8 +109,9 @@ final class UsageStore {
 
     // MARK: What the notch shows
 
-    /// The providers the notch shows, in order: set up on this Mac (or reported by the OpenUsage-compatible app) and
-    /// switched on. One signed out since the last refresh leaves; its last numbers stay for when it's back.
+    /// The providers the notch shows, in order: set up on this Mac and switched on (every provider found is on until
+    /// the user switches it off). One signed out since the last refresh leaves; its last numbers stay for when it's
+    /// back.
     var providers: [ProviderUsage] {
         entries.compactMap { entry in
             guard entry.isAvailable, settings.isUsageProviderEnabled(entry.id) else { return nil }
@@ -131,7 +129,10 @@ final class UsageStore {
     }
 
     nonisolated static func contextualSignal(primary: ProviderUsage?, thresholds: [Int], now: Date) -> UsageSignal? {
-        guard let primary, let window = primary.headline, !primary.isStale(now: now, limit: staleAfter) else {
+        // A warning, so any limit running high counts (a side pool like Cursor's "Grok Bot" too), not only the
+        // headline the card leads with.
+        guard let primary, !primary.isStale(now: now, limit: staleAfter),
+              let window = primary.windows.max(by: { $0.used < $1.used }) else {
             return nil
         }
         let level = Double(thresholds.min() ?? 80) / 100
@@ -139,9 +140,15 @@ final class UsageStore {
         return UsageSignal(providerName: primary.displayName, fraction: window.used)
     }
 
+    /// Settings' main list: the providers set up on this Mac, each with its switch.
+    var setUpEntries: [Entry] { entries.filter(\.isAvailable) }
+
+    /// Settings' "Not set up on this Mac" list, each with how to set it up.
+    var notSetUpEntries: [Entry] { entries.filter { !$0.isAvailable } }
+
     /// How old the numbers on screen are (the oldest of them). The refresh in flight is `isRefreshing`.
     func freshness(now: Date = .now) -> Freshness {
-        let dated = providers.filter { !$0.windows.isEmpty }
+        let dated = providers.filter { !$0.windows.isEmpty || !$0.balances.isEmpty }
         guard let oldest = dated.map(\.fetchedAt).min() else { return .nothing }
         return now.timeIntervalSince(oldest) > Self.staleAfter ? .stale(since: oldest) : .upToDate(since: oldest)
     }
@@ -184,17 +191,13 @@ final class UsageStore {
         if active { resumeAfterPause(delay: .zero) } else { cancelLoop() }
     }
 
-    /// The providers switched on changed: a provider switched back on gets its numbers now, and the
-    /// OpenUsage-compatible app's providers come (or go) as soon as its switch does.
+    /// The providers switched on changed: a provider switched back on without numbers gets them now.
     func providersMayHaveChanged() {
-        let showsExternal = settings.usageShowsOpenUsageSource
-        defer { appliedShowsExternal = showsExternal }
-        if !showsExternal { entries.removeAll { $0.isExternal } }
         guard isStarted, isActive, !isAsleep, hasChecked else { return }
         let missing = entries.contains { entry in
             settings.isUsageProviderEnabled(entry.id) && entry.isAvailable && readings[entry.id] == nil
         }
-        if missing || (showsExternal && !appliedShowsExternal) { refreshNow() }
+        if missing { refreshNow() }
     }
 
     /// The refresh button, and anything else that wants numbers now. Restarts the 5-minute rhythm from here.
@@ -278,8 +281,8 @@ final class UsageStore {
 
     // MARK: Refreshing
 
-    /// One batch: every collector (and the external source) in parallel, then the snapshot, the publishers and the
-    /// alerts. A second call while one runs waits for it instead of starting another.
+    /// One batch: every collector in parallel, then the snapshot, the publishers and the alerts. A second call while
+    /// one runs waits for it instead of starting another.
     func refresh() async {
         if let inFlight { return await inFlight.value }
         let task = Task { await self.performRefresh() }
@@ -298,28 +301,29 @@ final class UsageStore {
         let timeout = self.timeout
         let clock = self.clock
 
-        // Altillo's own collectors, in parallel. Availability is checked for every one (Settings shows it); only
-        // the ones switched on are read.
-        let own: [(index: Int, entry: Entry)] = await withTaskGroup(of: (Int, Entry).self) { group in
+        // Every collector, in parallel. Availability is checked for every one (Settings shows it); only the ones
+        // switched on are read.
+        let results: [(index: Int, entry: Entry)] = await withTaskGroup(of: (Int, Entry).self) { group in
             for (index, collector) in collectors.enumerated() {
                 let id = collector.providerID
                 let name = collector.displayName
+                let hint = collector.setupHint
                 let last = previous[id]
                 let wanted = !disabled.contains(id)
                 group.addTask {
                     let available = await collector.isAvailable()
                     guard available, wanted else {
-                        return (index, Entry(id: id, displayName: name, isAvailable: available, isExternal: false,
+                        return (index, Entry(id: id, displayName: name, isAvailable: available, setupHint: hint,
                                              usage: last))
                     }
                     if let last, case let .rateLimited(retryAfter?) = last.problem, retryAfter > now {
                         // Asked to wait: keep what we have until then.
-                        return (index, Entry(id: id, displayName: name, isAvailable: true, isExternal: false,
+                        return (index, Entry(id: id, displayName: name, isAvailable: true, setupHint: hint,
                                              usage: last))
                     }
                     let fresh = await UsageFetch.run(collector, previous: last, now: now, timeout: timeout,
                                                      clock: clock)
-                    return (index, Entry(id: id, displayName: name, isAvailable: true, isExternal: false,
+                    return (index, Entry(id: id, displayName: name, isAvailable: true, setupHint: hint,
                                          usage: UsageMerge.merge(fresh, previous: last)))
                 }
             }
@@ -327,22 +331,7 @@ final class UsageStore {
             for await result in group { results.append((result.0, result.1)) }
             return results
         }
-        var catalog = own.sorted { $0.index < $1.index }.map(\.entry)
-
-        // The OpenUsage-compatible app, only for providers none of the collectors read.
-        if let externalSource, settings.usageShowsOpenUsageSource {
-            let known = Set(catalog.map(\.id))
-            let lastExternal = previous.values.filter { !known.contains($0.id) }
-            let external = await UsageFetch.runExternal(externalSource, excluding: known, previous: lastExternal,
-                                                        now: now, timeout: timeout, clock: clock)
-            for usage in external where !known.contains(usage.id) {
-                let merged = UsageMerge.merge(usage, previous: previous[usage.id])
-                catalog.append(Entry(id: usage.id, displayName: usage.displayName, isAvailable: true,
-                                     isExternal: true, usage: merged))
-            }
-        }
-
-        apply(catalog, now: now)
+        apply(results.sorted { $0.index < $1.index }.map(\.entry), now: now)
     }
 
     /// Lands a batch on the main actor: new readings, the snapshot, the archive, publishers and alerts.
@@ -351,8 +340,8 @@ final class UsageStore {
         for entry in catalog {
             if let usage = entry.usage { next[entry.id] = usage }
         }
-        // A provider that fell out of the batch (switched off, external app closed) keeps its last numbers, so
-        // switching it back on shows something straight away.
+        // A provider that fell out of the batch (switched off, signed out) keeps its last numbers, so switching it
+        // back on shows something straight away.
         for (id, usage) in readings where next[id] == nil { next[id] = usage }
         entries = catalog
         readings = next
@@ -415,7 +404,7 @@ final class UsageStore {
         readings = restored
         // Until the first refresh confirms them, the archived providers stand in for the catalog.
         entries = snapshot.providers.map {
-            Entry(id: $0.id, displayName: $0.displayName, isAvailable: true, isExternal: false, usage: $0)
+            Entry(id: $0.id, displayName: $0.displayName, isAvailable: true, usage: $0)
         }
     }
 
@@ -432,7 +421,7 @@ final class UsageStore {
 
     /// Fixed numbers, no collectors: tests and previews.
     func replaceReadings(with usage: [ProviderUsage], at date: Date) {
-        entries = usage.map { Entry(id: $0.id, displayName: $0.displayName, isAvailable: true, isExternal: false, usage: $0) }
+        entries = usage.map { Entry(id: $0.id, displayName: $0.displayName, isAvailable: true, usage: $0) }
         readings = Dictionary(uniqueKeysWithValues: usage.map { ($0.id, $0) })
         lastAttempt = date
         hasChecked = true
@@ -452,26 +441,6 @@ struct SystemUsageClock: UsageClock {
     func sleep(for duration: Duration) async throws { try await Task.sleep(for: duration) }
 }
 
-// MARK: - External source (OpenUsage-compatible)
-
-/// Something that reports several providers at once: an OpenUsage-compatible app's local API. Only providers no
-/// collector reads are asked for, and a missing app is simply no providers.
-protocol UsageExternalSource: Sendable {
-    func fetch(excluding known: Set<UsageProviderID>, previous: [ProviderUsage], now: Date) async -> [ProviderUsage]
-}
-
-enum UsageExternalSources {
-    /// The local `openusage.limits.v1` API (127.0.0.1:6736), capped at 1 s and silent when nothing listens.
-    static func standard() -> (any UsageExternalSource)? { OpenUsageLocalAPI() }
-}
-
-/// `OpenUsageCompatibleSource` (AltilloUsage), asked only for the providers Altillo's collectors don't read.
-struct OpenUsageLocalAPI: UsageExternalSource {
-    func fetch(excluding known: Set<UsageProviderID>, previous: [ProviderUsage], now: Date) async -> [ProviderUsage] {
-        await OpenUsageCompatibleSource(excluding: known).fetch(now: now)
-    }
-}
-
 // MARK: - Fetching (off the main actor)
 
 enum UsageFetch {
@@ -482,14 +451,6 @@ enum UsageFetch {
         let fallback = timedOut(id: collector.providerID, name: collector.displayName, previous: previous, now: now)
         return await race(timeout: timeout, clock: clock, fallback: fallback) {
             await collector.fetch(previous: previous, now: now)
-        }
-    }
-
-    static func runExternal(_ source: any UsageExternalSource, excluding known: Set<UsageProviderID>,
-                            previous: [ProviderUsage], now: Date, timeout: Duration,
-                            clock: any UsageClock) async -> [ProviderUsage] {
-        await race(timeout: timeout, clock: clock, fallback: []) {
-            await source.fetch(excluding: known, previous: previous, now: now)
         }
     }
 
@@ -562,11 +523,14 @@ private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
 // MARK: - Stale-while-revalidate (pure)
 
 enum UsageMerge {
-    /// A failed read keeps the last good numbers and when they were read; a good one replaces them.
+    /// A failed read keeps the last good numbers (limits and balances) and when they were read; a good one replaces
+    /// them.
     static func merge(_ fresh: ProviderUsage, previous: ProviderUsage?) -> ProviderUsage {
-        guard fresh.problem != nil, let previous, !previous.windows.isEmpty else { return fresh }
+        guard fresh.problem != nil, let previous, !previous.windows.isEmpty || !previous.balances.isEmpty else {
+            return fresh
+        }
         var kept = fresh
-        if fresh.windows.isEmpty {
+        if fresh.windows.isEmpty && fresh.balances.isEmpty {
             kept.windows = previous.windows
             kept.balances = previous.balances
         }

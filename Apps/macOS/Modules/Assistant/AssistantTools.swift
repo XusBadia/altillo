@@ -344,7 +344,7 @@ enum AssistantUsage {
         var lines: [String] = []
         let plan = usage.plan.map { " (\($0) plan)" } ?? ""
         lines.append("\(usage.displayName)\(plan):")
-        if usage.windows.isEmpty {
+        if usage.windows.isEmpty && usage.balances.isEmpty {
             if let problem = usage.problem {
                 lines.append("- No numbers: \(UsageText.sentence(for: problem, provider: usage.id, displayName: usage.displayName, now: now))")
             } else {
@@ -373,6 +373,9 @@ enum AssistantUsage {
                 break
             }
             lines.append(line + ".")
+        }
+        for balance in usage.balances where UsageText.figure(for: balance) != nil {
+            lines.append("- \(balance.label): \(UsageText.summary(of: balance)).")
         }
         let age = NotchFormat.ago(usage.fetchedAt, now: now)
         if let problem = usage.problem {

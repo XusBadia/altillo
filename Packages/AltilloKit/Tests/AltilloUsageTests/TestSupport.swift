@@ -143,27 +143,4 @@ enum Fixtures {
      "credits":{"has_credits":true,"unlimited":false,"balance":"7"},
      "rate_limit_reset_credits":{"available_count":2}}
     """
-
-    /// Shape served by the OpenUsage app's local API (captured 2026-09-24).
-    static let openUsageLimits = """
-    {"errors":[{"provider":"cursor","message":"Not signed in"}],"generatedAt":"2026-09-24T10:39:26.641Z",
-     "providers":{
-      "claude":{"displayName":"Claude","expiresAt":"2026-09-24T10:41:22.558Z","fetchedAt":"2026-09-24T10:36:22.558Z",
-        "plan":"Max 5x","stale":false,"resources":{
-          "fable":{"kind":"consumption","limit":100,"remaining":90,"resetsAt":"2026-09-29T04:59:59.720Z",
-            "unit":"percent","used":10,"utilization":0.1,"windowSeconds":604800},
-          "rateLimitResets":{"available":1,"expiresAt":["2026-10-22T16:00:00.000Z"],"kind":"balance","unit":"resets"},
-          "session":{"kind":"consumption","limit":100,"remaining":58,"resetsAt":"2026-09-24T15:10:00.720Z",
-            "unit":"percent","used":42,"utilization":0.42,"windowSeconds":18000},
-          "weekly":{"kind":"consumption","limit":100,"remaining":45,"resetsAt":"2026-09-29T05:00:00.720Z",
-            "unit":"percent","used":55,"utilization":0.55,"windowSeconds":604800}}},
-      "cursor":{"displayName":"Cursor","fetchedAt":"2026-09-24T10:30:00Z","stale":true,"resources":{
-          "spend":{"kind":"consumption","unit":"usd","used":12.5,"limit":20},
-          "onDemand":{"kind":"consumption","unit":"usd","used":3}}},
-      "grok":{"displayName":"Grok","expiresAt":"2026-09-24T10:41:22.441Z","fetchedAt":"2026-09-24T10:36:22.441Z",
-        "plan":"SuperGrok","stale":false,"resources":{
-          "weekly":{"kind":"consumption","limit":100,"remaining":100,"resetsAt":"2026-10-01T06:45:30.300Z",
-            "unit":"percent","used":0,"utilization":0,"windowSeconds":604800}}}},
-     "schema":"openusage.limits.v1"}
-    """
 }

@@ -42,9 +42,13 @@ back to the source.
 | [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Pace projection (`UsagePace`) | `Packages/AltilloKit/Sources/AltilloCore/Usage.swift` | 2c906af |
 | [ai-limits](https://github.com/XusBadia/ai-limits) (© 2026 Xus Badia) | MIT | `codex app-server` JSON-RPC handshake and rate-limit result mapping | `Packages/AltilloKit/Sources/AltilloUsage/CodexAppServer.swift`, `CodexCollector.swift` | phase 3 |
 
-The optional local source in `OpenUsageCompatibleSource.swift` only reads the
-public `openusage.limits.v1` API; no code is copied. It is presented to users
-as "compatible with OpenUsage", never under the OpenUsage name.
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Provider knowledge for Cursor (SQLite/keychain credentials, Connect RPC + REST usage mapping), GitHub Copilot (token sources, `copilot_internal/user` quota mapping), OpenRouter and Z.ai (key locations, credits/quota mapping), Grok (billing/settings mapping), Gemini/Antigravity (language-server discovery, quota summary mapping), Devin (credentials, `GetUserStatus` mapping) and OpenCode (Go usage mapping); shared key-file and parsing helpers | `Packages/AltilloKit/Sources/AltilloUsage/{Cursor*,Copilot*,OpenRouter*,ZAI*,Grok*,Gemini*,Devin*,OpenCode*}.swift`, `ProviderSupport+Group1.swift`, `ProviderSupport+Group2.swift` | independence round (24-09-2026), fork commit 87c3d2d |
+
+Altillo reads every provider itself, with the credentials the providers' own
+tools already keep on the Mac; it never reads another app's data or API.
+OpenUsage is used only as a reference for how each provider works, and its
+upstream changes are tracked in `script/openusage-upstream.json`
+(`docs/proveedores.md`).
 
 Planned reuse (per [PLAN.md](../PLAN.md)), to be filled in as it lands:
 

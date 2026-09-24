@@ -122,9 +122,21 @@ public struct ProviderUsage: Identifiable, Hashable, Codable, Sendable {
     public var session: UsageWindow? { windows.first { $0.kind == .session } }
     public var weekly: UsageWindow? { windows.first { $0.kind == .weekly } }
 
-    /// The window that matters most right now: the fullest of session and week.
+    /// The window that matters most right now: the fullest of session and week; for providers without either
+    /// (a monthly quota, request counts…), the fullest window they have. On a tie, the one listed first.
     public var headline: UsageWindow? {
-        [session, weekly].compactMap { $0 }.max { $0.used < $1.used } ?? windows.first
+        let short = [session, weekly].compactMap { $0 }
+        if !short.isEmpty { return Self.fullest(short) }
+        // No session or week (a monthly plan, a request quota): the provider's main limit, which collectors list
+        // first, rather than a side pool that happens to be fuller (Cursor's "Grok Bot").
+        return windows.first { $0.kind != .other } ?? windows.first
+    }
+
+    private static func fullest(_ windows: [UsageWindow]) -> UsageWindow? {
+        windows.reduce(nil) { best, window in
+            guard let best else { return window }
+            return window.used > best.used ? window : best
+        }
     }
 
     /// Older than `limit` (default 15 min: three missed refreshes) means the view should say "stale".

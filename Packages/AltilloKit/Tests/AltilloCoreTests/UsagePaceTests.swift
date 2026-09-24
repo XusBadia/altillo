@@ -50,3 +50,30 @@ struct UsagePaceTests {
         #expect(UsagePace.evaluate(window(used: 1, elapsed: 0.5), now: now) == .behind(runsOutAt: nil))
     }
 }
+
+struct UsageHeadlineTests {
+    let now = Date(timeIntervalSince1970: 1_790_157_600)
+
+    func window(_ id: String, _ kind: UsageWindow.Kind, used: Double) -> UsageWindow {
+        UsageWindow(id: id, kind: kind, label: id, used: used, resetsAt: now.addingTimeInterval(3600), duration: nil)
+    }
+
+    func usage(_ windows: [UsageWindow]) -> ProviderUsage {
+        ProviderUsage(id: UsageProviderID(rawValue: "p"), displayName: "P", plan: nil, windows: windows, fetchedAt: now)
+    }
+
+    @Test func theFullestOfSessionAndWeekWins() {
+        let windows = [window("session", .session, used: 0.3), window("weekly", .weekly, used: 0.6),
+                       window("monthly", .monthly, used: 0.9)]
+        #expect(usage(windows).headline?.id == "weekly", "session and week come before longer windows")
+    }
+
+    @Test func withoutSessionOrWeekTheMainLimitWins() {
+        // Cursor: the month's total is the plan; "Grok Bot" is a side pool, even when it's fuller.
+        let windows = [window("total", .monthly, used: 0.2), window("grok-bot", .other, used: 0.7)]
+        #expect(usage(windows).headline?.id == "total")
+        let sidePoolsOnly = [window("requests", .other, used: 0.3), window("auto", .other, used: 0.7)]
+        #expect(usage(sidePoolsOnly).headline?.id == "requests", "without a main limit, the first one listed")
+        #expect(usage([]).headline == nil, "balances alone have no headline")
+    }
+}

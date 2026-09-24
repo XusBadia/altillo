@@ -27,12 +27,10 @@ struct UsageStoreTests {
         clock: FakeUsageClock,
         settings: AltilloSettings? = nil,
         defaults: UserDefaults = makeDefaults(),
-        archive: URL? = archiveURL(),
-        external: (any UsageExternalSource)? = nil
+        archive: URL? = archiveURL()
     ) -> UsageStore {
         UsageStore(settings: settings ?? AltilloSettings(defaults: defaults), collectors: { collectors },
-                   externalSource: external, clock: clock, archiveURL: archive, defaults: defaults,
-                   timeout: .seconds(30))
+                   clock: clock, archiveURL: archive, defaults: defaults, timeout: .seconds(30))
     }
 
     // MARK: - Refreshing
@@ -90,7 +88,7 @@ struct UsageStoreTests {
         #expect(codex.calls == 0, "nothing to read without a sign-in")
         #expect(store.providers.map(\.id) == [.claude])
         #expect(store.entries.first { $0.id == .codex }?.isAvailable == false)
-        #expect(UsageText.status(for: store.entries[1]) == "Not signed in on this Mac")
+        #expect(UsageText.status(for: store.entries[1]) == "Not set up on this Mac")
     }
 
     @Test func aFailedReadKeepsTheLastNumbersAndGoesStale() async {
@@ -133,6 +131,18 @@ struct UsageStoreTests {
         #expect(merged.windows == good.windows && merged.fetchedAt == start && merged.problem == .sessionExpired)
         failed.problem = nil
         #expect(UsageMerge.merge(failed, previous: good) == failed, "a good read always wins, even an empty one")
+
+        // A provider with only a balance (prepaid credits) keeps it too.
+        let credits = ProviderUsage(id: UsageProviderID(rawValue: "openrouter"), displayName: "OpenRouter", plan: nil,
+                                    windows: [],
+                                    balances: [UsageBalance(id: "credits", label: "Credits", remaining: 7.5, used: 12.5,
+                                                            limit: 20, unit: "USD")],
+                                    fetchedAt: start)
+        let offline = ProviderUsage(id: credits.id, displayName: "OpenRouter", plan: nil, windows: [],
+                                    fetchedAt: start.addingTimeInterval(300), problem: .unreachable("offline"))
+        let keptCredits = UsageMerge.merge(offline, previous: credits)
+        #expect(keptCredits.balances == credits.balances && keptCredits.fetchedAt == start)
+        #expect(keptCredits.problem == .unreachable("offline"))
     }
 
     @Test func aCollectorThatHangsTimesOutWithoutHoldingUpTheOthers() async {
@@ -169,29 +179,75 @@ struct UsageStoreTests {
         #expect(claude.calls == 2)
     }
 
-    @Test func theOpenUsageSourceOnlyFillsInProvidersAltilloDoesNotRead() async {
+    @Test func everyProviderFoundIsOnAndTheRestSayHowToSetThemUp() async {
         let clock = FakeUsageClock(now: start)
-        let claude = ScriptedCollector(.claude, "Claude") { _, now in .sample(.claude, used: 0.4, at: now) }
         let cursor = UsageProviderID(rawValue: "cursor")
-        let external = FakeExternalSource { known, now in
-            [ProviderUsage.sample(.claude, used: 0.99, at: now), ProviderUsage.sample(cursor, used: 0.1, at: now)]
-                .filter { !known.contains($0.id) }
+        let openRouter = UsageProviderID(rawValue: "openrouter")
+        let copilot = UsageProviderID(rawValue: "copilot")
+        let claude = ScriptedCollector(.claude, "Claude") { _, now in .sample(.claude, used: 0.4, at: now) }
+        let cursorCollector = ScriptedCollector(cursor, "Cursor", hint: "Sign in to Cursor") { _, now in
+            ProviderUsage(id: cursor, displayName: "Cursor", plan: "Pro",
+                          windows: [UsageWindow(id: "monthly", kind: .monthly, label: "Month", used: 0.3,
+                                                resetsAt: now.addingTimeInterval(12 * 86_400), duration: 30 * 86_400)],
+                          fetchedAt: now)
         }
+        let openRouterCollector = ScriptedCollector(openRouter, "OpenRouter", hint: "Add an OpenRouter API key") {
+            _, now in
+            ProviderUsage(id: openRouter, displayName: "OpenRouter", plan: nil, windows: [],
+                          balances: [UsageBalance(id: "credits", label: "Credits", remaining: 7.5, used: nil,
+                                                  limit: nil, unit: "USD")],
+                          fetchedAt: now)
+        }
+        let copilotCollector = ScriptedCollector(copilot, "Copilot", available: false,
+                                                 hint: "Install GitHub Copilot in your editor") { _, now in
+            .sample(copilot, used: 0.1, at: now)
+        }
+        let codex = ScriptedCollector(.codex, "Codex", available: false) { _, now in .sample(.codex, used: 0.2, at: now) }
         let defaults = Self.makeDefaults()
         let settings = AltilloSettings(defaults: defaults)
-        let store = makeStore([claude], clock: clock, settings: settings, defaults: defaults, external: external)
+        let store = makeStore([claude, cursorCollector, openRouterCollector, copilotCollector, codex], clock: clock,
+                              settings: settings, defaults: defaults)
 
         await store.refresh()
-        #expect(store.providers.map(\.id) == [.claude, cursor])
-        #expect(store.providers.first?.session?.used == 0.4, "Altillo's own reading wins")
-        #expect(store.entries.last?.isExternal == true)
-        #expect(external.lastExcluded == [.claude])
 
-        settings.usageShowsOpenUsageSource = false
-        store.providersMayHaveChanged()
-        #expect(store.providers.map(\.id) == [.claude], "its providers leave at once")
+        #expect(store.providers.map(\.id) == [.claude, cursor, openRouter], "found here: on, in the collectors' order")
+        #expect(store.setUpEntries.map(\.id) == [.claude, cursor, openRouter])
+        #expect(store.notSetUpEntries.map(\.id) == [copilot, .codex])
+        #expect(store.notSetUpEntries.map(\.setupHint) == ["Install GitHub Copilot in your editor",
+                                                          "Sign in to Codex on this Mac"],
+                "each collector says how; the protocol's default names the provider")
+        #expect(copilotCollector.calls == 0 && codex.calls == 0, "nothing to read until it's set up")
+        #expect(BareCollector().setupHint == "Sign in to Bare on this Mac", "collectors without a hint get one")
+        #expect(store.freshness(now: clock.now) == .upToDate(since: start), "a balance counts as numbers")
+        #expect(store.primary?.id == .claude)
+
+        // Switching one off takes it out of the notch but not out of Settings.
+        settings.setUsageProvider(cursor, enabled: false)
         await store.refresh()
-        #expect(external.calls == 1, "switched off: not asked")
+        #expect(store.providers.map(\.id) == [.claude, openRouter])
+        #expect(store.setUpEntries.map(\.id) == [.claude, cursor, openRouter])
+        #expect(cursorCollector.calls == 1, "switched off: not read again")
+
+        // Setting one up later brings it in, already on.
+        copilotCollector.setAvailable(true)
+        await store.refresh()
+        #expect(store.providers.map(\.id) == [.claude, openRouter, copilot])
+        #expect(store.notSetUpEntries.map(\.id) == [.codex])
+    }
+
+    @Test func aProviderWithoutSessionOrWeekLeadsWithItsMainLimitButWarnsOnAnyHighOne() {
+        let cursor = ProviderUsage(
+            id: UsageProviderID(rawValue: "cursor"), displayName: "Cursor", plan: "Pro",
+            windows: [UsageWindow(id: "monthly", kind: .monthly, label: "Month", used: 0.3, resetsAt: nil, duration: nil),
+                      UsageWindow(id: "premium", kind: .other, label: "Premium requests", used: 0.85,
+                                  resetsAt: nil, duration: nil)],
+            fetchedAt: start
+        )
+        #expect(cursor.headline?.id == "monthly", "the card leads with the plan's main limit")
+        let signal = UsageStore.contextualSignal(primary: cursor, thresholds: [80, 95], now: start)
+        #expect(signal == UsageSignal(providerName: "Cursor", fraction: 0.85))
+        #expect(UsageText.refillsIn(cursor.windows[0], now: start) == "no refill date", "only a session 'starts'")
+        #expect(UsageText.name(for: cursor.windows[0]) == "Month")
     }
 
     // MARK: - Scheduling
@@ -485,13 +541,71 @@ struct UsageStoreTests {
         #expect(UsageText.sentence(for: .sessionExpired, provider: .claude, displayName: "Claude")
             == "The sign-in expired. Open Claude Code once and it's back.")
         #expect(UsageText.canRetry(.unreachable("x")) && !UsageText.canRetry(.rateLimited(retryAfter: nil)))
-        let expired = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true, isExternal: false,
+        let expired = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true,
                                        usage: ProviderUsage(id: .claude, displayName: "Claude", plan: nil, windows: [],
                                                             fetchedAt: now, problem: .sessionExpired))
         #expect(UsageText.status(for: expired) == "Sign-in expired: open Claude Code once")
-        let connected = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true, isExternal: false,
+        let connected = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true,
                                          usage: .sample(.claude, used: 0.2, at: now))
         #expect(UsageText.status(for: connected) == "Connected · Max 20×")
+    }
+
+    @Test func balancesReadAsAFigureAndAFewWords() {
+        let dollars = UsageBalance(id: "credits", label: "Credits", remaining: 7.5, used: 12.5, limit: 20, unit: "usd")
+        #expect(UsageText.currencyCode("usd") == "USD" && UsageText.currencyCode("credits") == nil)
+        #expect(UsageText.unitWord("USD") == nil && UsageText.unitWord("requests") == "requests")
+        let figure = UsageText.figure(for: dollars)
+        #expect(figure?.caption == "left")
+        #expect(figure?.value.contains("7") == true && figure?.value.contains("5") == true)
+        #expect(UsageText.spentFraction(of: dollars) == 0.625)
+
+        let requests = UsageBalance(id: "premium", label: "Premium requests", remaining: nil, used: 120, limit: 300,
+                                    unit: "requests")
+        #expect(UsageText.figure(for: requests)?.value == "120")
+        #expect(UsageText.figure(for: requests)?.caption == "of 300 requests")
+        #expect(UsageText.summary(of: requests) == "120 of 300 requests")
+        #expect(UsageText.spentFraction(of: requests) == 0.4)
+
+        let credits = UsageBalance(id: "credits", label: "Credits", remaining: 340, used: nil, limit: nil,
+                                   unit: "credits")
+        #expect(UsageText.figure(for: credits)?.value == "340")
+        #expect(UsageText.figure(for: credits)?.caption == "credits left")
+        #expect(UsageText.summary(of: credits) == "340 credits left")
+        #expect(UsageText.spentFraction(of: credits) == nil, "no limit, no bar")
+
+        let spent = UsageBalance(id: "onDemand", label: "On demand", remaining: nil, used: 3, limit: nil, unit: "tokens")
+        #expect(UsageText.figure(for: spent)?.caption == "tokens used")
+        let empty = UsageBalance(id: "x", label: "Extra usage", remaining: nil, used: nil, limit: nil, unit: "USD")
+        #expect(UsageText.figure(for: empty) == nil && UsageText.summary(of: empty) == "Extra usage")
+    }
+
+    @Test func everyProviderGetsAMarkAndUnknownOnesKeepTheirColour() {
+        #expect(AgentGlyph.brand(for: .claude, name: "Claude") == .claude)
+        #expect(AgentGlyph.brand(for: .codex, name: "Codex") == .codex)
+        for id in ["cursor", "copilot", "openrouter", "zai", "grok", "gemini", "devin", "opencode"] {
+            let brand = AgentGlyph.brand(for: UsageProviderID(rawValue: id), name: id)
+            #expect(brand != AgentGlyph.fallback(for: UsageProviderID(rawValue: id), name: id), "\(id) has its own mark")
+        }
+        let mistral = UsageProviderID(rawValue: "mistral")
+        let first = AgentGlyph.brand(for: mistral, name: "Mistral")
+        #expect(first == AgentGlyph.brand(for: mistral, name: "Mistral"), "the same colour every time")
+        guard case let .monogram(letter, tile, _) = first else {
+            Issue.record("unknown providers get a monogram")
+            return
+        }
+        #expect(letter == "M")
+        #expect(AgentGlyph.fallbackTiles.contains { $0.tile == tile })
+        let ids = ["mistral", "perplexity", "kimi", "qwen", "deepseek", "amp", "warp", "kiro"]
+        let tiles = Set(ids.compactMap { id -> UInt32? in
+            guard case let .monogram(_, tile, _) = AgentGlyph.fallback(for: UsageProviderID(rawValue: id), name: id)
+            else { return nil }
+            return tile
+        })
+        #expect(tiles.count > 1, "different providers don't all share a colour")
+        guard case .monogram("?", _, _) = AgentGlyph.fallback(for: UsageProviderID(rawValue: ""), name: " ") else {
+            Issue.record("no letters at all: a question mark")
+            return
+        }
     }
 
     // MARK: - Settings
@@ -501,7 +615,7 @@ struct UsageStoreTests {
         let settings = AltilloSettings(defaults: defaults)
         #expect(settings.usageDisabledProviders.isEmpty, "every provider that's set up is on")
         #expect(settings.usageAlertThresholds == [80, 95])
-        #expect(settings.usageAlertsWhenRefilled && settings.alertsForUsage && settings.usageShowsOpenUsageSource)
+        #expect(settings.usageAlertsWhenRefilled && settings.alertsForUsage)
         #expect(settings.usageAlertConfiguration == UsageAlertConfiguration(thresholds: [80, 95]))
 
         settings.setUsageProvider(.codex, enabled: false)
@@ -509,14 +623,13 @@ struct UsageStoreTests {
         settings.setUsageAlertThreshold(90, enabled: true)
         settings.setUsageAlertThreshold(95, enabled: false)
         settings.usageAlertsWhenRefilled = false
-        settings.usageShowsOpenUsageSource = false
         settings.alertsForUsage = false
         #expect(settings.usageAlertThresholds == [50, 90], "sorted, unique, 1…99")
 
         let relaunched = AltilloSettings(defaults: defaults)
         #expect(!relaunched.isUsageProviderEnabled(.codex) && relaunched.isUsageProviderEnabled(.claude))
         #expect(relaunched.usageAlertThresholds == [50, 90])
-        #expect(!relaunched.usageAlertsWhenRefilled && !relaunched.usageShowsOpenUsageSource && !relaunched.alertsForUsage)
+        #expect(!relaunched.usageAlertsWhenRefilled && !relaunched.alertsForUsage)
         #expect(relaunched.usageAlertConfiguration.refilled == false)
     }
 
@@ -541,6 +654,13 @@ struct UsageStoreTests {
             .contains("isn't reading any AI limits"))
         #expect(AssistantUsage.answer(.init(isEnabled: false, providers: []), provider: nil, now: now)
             .contains("turned off"))
+        let openRouter = ProviderUsage(id: UsageProviderID(rawValue: "openrouter"), displayName: "OpenRouter", plan: nil,
+                                       windows: [],
+                                       balances: [UsageBalance(id: "credits", label: "Credits", remaining: 340,
+                                                               used: nil, limit: nil, unit: "credits")],
+                                       fetchedAt: now)
+        let credits = AssistantUsage.answer(.init(isEnabled: true, providers: [openRouter]), provider: nil, now: now)
+        #expect(credits.contains("- Credits: 340 credits left.") && !credits.contains("No limits reported"))
     }
 
     @Test func questionsAboutWhatIsLeftGoToTheLocalTools() {
@@ -620,20 +740,25 @@ final class ScriptedCollector: UsageCollector, @unchecked Sendable {
 
     let providerID: UsageProviderID
     let displayName: String
+    private let hint: String?
     private let lock = NSLock()
     private var response: Response
     private var count = 0
     private var available: Bool
     private let hangs: Bool
 
-    init(_ id: UsageProviderID, _ name: String, available: Bool = true, hangs: Bool = false,
+    init(_ id: UsageProviderID, _ name: String, available: Bool = true, hangs: Bool = false, hint: String? = nil,
          response: @escaping Response) {
         providerID = id
         displayName = name
+        self.hint = hint
         self.available = available
         self.hangs = hangs
         self.response = response
     }
+
+    /// The given hint, or the protocol's default.
+    var setupHint: String { hint ?? "Sign in to \(displayName) on this Mac" }
 
     var calls: Int { lock.withLock { count } }
 
@@ -653,24 +778,13 @@ final class ScriptedCollector: UsageCollector, @unchecked Sendable {
     }
 }
 
-final class FakeExternalSource: UsageExternalSource, @unchecked Sendable {
-    typealias Response = @Sendable (Set<UsageProviderID>, Date) -> [ProviderUsage]
-    private let lock = NSLock()
-    private let response: Response
-    private var count = 0
-    private var excluded: Set<UsageProviderID> = []
-
-    init(_ response: @escaping Response) { self.response = response }
-
-    var calls: Int { lock.withLock { count } }
-    var lastExcluded: Set<UsageProviderID> { lock.withLock { excluded } }
-
-    func fetch(excluding known: Set<UsageProviderID>, previous: [ProviderUsage], now: Date) async -> [ProviderUsage] {
-        lock.withLock {
-            count += 1
-            excluded = known
-        }
-        return response(known, now)
+/// A collector that only implements what the protocol requires, to see its defaults.
+private struct BareCollector: UsageCollector {
+    let providerID = UsageProviderID(rawValue: "bare")
+    let displayName = "Bare"
+    func isAvailable() async -> Bool { false }
+    func fetch(previous: ProviderUsage?, now: Date) async -> ProviderUsage {
+        ProviderUsage(id: providerID, displayName: displayName, plan: nil, windows: [], fetchedAt: now)
     }
 }
 

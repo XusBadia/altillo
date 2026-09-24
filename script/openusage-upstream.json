@@ -1,0 +1,159 @@
+{
+  "repo": "robinebers/openusage",
+  "providers": {
+    "claude": {
+      "label": "Claude",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/ClaudeCollector.swift",
+        "Packages/AltilloKit/Sources/AltilloUsage/ClaudeCredentials.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Claude/ClaudeUsageMapper.swift",
+        "Sources/OpenUsage/Providers/Claude/ClaudeAuthStore.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "codex": {
+      "label": "Codex",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/CodexCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Codex/CodexUsageMapper.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "core": {
+      "label": "Núcleo compartido (pace y alertas)",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloCore/Usage.swift",
+        "Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Support/Pace.swift",
+        "Sources/OpenUsage/Support/PaceNotificationLogic.swift",
+        "Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "cursor": {
+      "label": "Cursor",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/CursorCollector.swift",
+        "Packages/AltilloKit/Sources/AltilloUsage/CursorCredentials.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Cursor/CursorAuthStore.swift",
+        "Sources/OpenUsage/Providers/Cursor/CursorUsageClient.swift",
+        "Sources/OpenUsage/Providers/Cursor/CursorProvider.swift",
+        "Sources/OpenUsage/Providers/Cursor/CursorUsageMapper.swift",
+        "Sources/OpenUsage/Providers/Cursor/CursorUsageSummaryMapper.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "copilot": {
+      "label": "GitHub Copilot",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/CopilotCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Copilot/CopilotAuthStore.swift",
+        "Sources/OpenUsage/Providers/Copilot/CopilotUsageClient.swift",
+        "Sources/OpenUsage/Providers/Copilot/CopilotUsageMapper.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "openrouter": {
+      "label": "OpenRouter",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/OpenRouterCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterAuthStore.swift",
+        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterUsageClient.swift",
+        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterUsageMapper.swift",
+        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterProvider.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "zai": {
+      "label": "Z.ai",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/ZAICollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/ZAI/ZAIAuthStore.swift",
+        "Sources/OpenUsage/Providers/ZAI/ZAIUsageClient.swift",
+        "Sources/OpenUsage/Providers/ZAI/ZAIUsageMapper.swift",
+        "Sources/OpenUsage/Providers/ZAI/ZAIProvider.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "grok": {
+      "label": "Grok",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/GrokCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Grok/GrokUsageClient.swift",
+        "Sources/OpenUsage/Providers/Grok/GrokCreditsConfigDecoder.swift",
+        "Sources/OpenUsage/Providers/Grok/GrokUsageMapper.swift",
+        "Sources/OpenUsage/Providers/Grok/GrokAuthStore.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "gemini": {
+      "label": "Gemini (Antigravity)",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/GeminiCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Antigravity/AntigravityProvider.swift",
+        "Sources/OpenUsage/Providers/Antigravity/AntigravityUsageClient.swift",
+        "Sources/OpenUsage/Providers/Antigravity/AntigravityUsageMapper.swift",
+        "Sources/OpenUsage/Providers/Antigravity/AntigravityAuthStore.swift",
+        "Sources/OpenUsage/Services/LanguageServerDiscovery.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "devin": {
+      "label": "Devin",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/DevinCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/Devin/DevinAuthStore.swift",
+        "Sources/OpenUsage/Providers/Devin/DevinUsageClient.swift",
+        "Sources/OpenUsage/Providers/Devin/DevinUsageMapper.swift",
+        "Sources/OpenUsage/Providers/Devin/DevinProvider.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "opencode": {
+      "label": "OpenCode",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/OpenCodeCollector.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/OpenCode/OpenCodePaths.swift",
+        "Sources/OpenUsage/Providers/OpenCode/OpenCodeAuthStore.swift",
+        "Sources/OpenUsage/Providers/OpenCode/OpenCodeUsageClient.swift",
+        "Sources/OpenUsage/Providers/OpenCode/OpenCodeUsageMapper.swift",
+        "Sources/OpenUsage/Providers/OpenCode/OpenCodeProvider.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    },
+    "shared": {
+      "label": "Ayudas compartidas (claves y parseo)",
+      "altillo_files": [
+        "Packages/AltilloKit/Sources/AltilloUsage/ProviderSupport+Group1.swift",
+        "Packages/AltilloKit/Sources/AltilloUsage/ProviderSupport+Group2.swift"
+      ],
+      "upstream_paths": [
+        "Sources/OpenUsage/Providers/UserAPIKeyStore.swift",
+        "Sources/OpenUsage/Support/ProviderParse.swift"
+      ],
+      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+    }
+  }
+}

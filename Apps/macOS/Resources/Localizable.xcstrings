@@ -375,6 +375,23 @@
         }
       }
     },
+    "%@ left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "quedan %@"
+          }
+        }
+      }
+    },
     "%@ of %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -456,6 +473,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ cosas arriba"
+          }
+        }
+      }
+    },
+    "%@ used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ used"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ usado"
           }
         }
       }
@@ -1505,6 +1539,40 @@
         }
       }
     },
+    "Add a Z.ai API key to `~/.config/zai/key.json`" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add a Z.ai API key to `~/.config/zai/key.json`"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añade una clave de API de Z.ai en `~/.config/zai/key.json`"
+          }
+        }
+      }
+    },
+    "Add an OpenRouter API key to `~/.config/openrouter/key.json`" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add an OpenRouter API key to `~/.config/openrouter/key.json`"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añade una clave de API de OpenRouter en `~/.config/openrouter/key.json`"
+          }
+        }
+      }
+    },
     "Adds it back to the tabs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2045,6 +2113,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Propuesta Altillo v2.pdf"
+          }
+        }
+      }
+    },
+    "Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything, and your numbers never leave this Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything, and your numbers never leave this Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo lee la sesión o la clave que tus herramientas ya tienen en este Mac. Nunca inicia sesión, ni la renueva ni cambia nada, y tus cifras nunca salen de este Mac."
           }
         }
       }
@@ -3069,6 +3154,23 @@
         }
       }
     },
+    "Collapsed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Collapsed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plegado"
+          }
+        }
+      }
+    },
     "Coming soon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3949,6 +4051,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todo"
+          }
+        }
+      }
+    },
+    "Expanded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expanded"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desplegado"
           }
         }
       }
@@ -5959,6 +6078,23 @@
         }
       }
     },
+    "None of the AI tools Altillo reads is set up on this Mac yet. Set one up and it shows up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "None of the AI tools Altillo reads is set up on this Mac yet. Set one up and it shows up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no hay configurada en este Mac ninguna de las herramientas de IA que lee Altillo. Configura una y aparecerá aquí."
+          }
+        }
+      }
+    },
     "Not allowed" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5972,6 +6108,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin permiso"
+          }
+        }
+      }
+    },
+    "Not set up on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not set up on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin configurar en este Mac"
           }
         }
       }
@@ -6516,6 +6669,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir Altillo al iniciar sesión"
+          }
+        }
+      }
+    },
+    "Open Antigravity or sign in with `agy` on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Antigravity or sign in with `agy` on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Antigravity o inicia sesión con `agy` en este Mac"
           }
         }
       }
@@ -8050,6 +8220,23 @@
         }
       }
     },
+    "Set it up on this Mac and it shows up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set it up on this Mac and it shows up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configúrala en este Mac y aparecerá aquí."
+          }
+        }
+      }
+    },
     "Set up" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8080,6 +8267,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configura el cajón para elegir qué iconos de la barra de menús guardas."
+          }
+        }
+      }
+    },
+    "Set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configura en este Mac las herramientas de IA que usas (Claude Code, Codex, Cursor…) y sus límites aparecerán aquí."
           }
         }
       }
@@ -8424,6 +8628,23 @@
         }
       }
     },
+    "Sign in to Claude Code on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to Claude Code on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en Claude Code en este Mac"
+          }
+        }
+      }
+    },
     "Sign in to Claude Code or Codex on this Mac and your limits show up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8437,6 +8658,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Inicia sesión en Claude Code o Codex en este Mac y tus límites aparecerán aquí."
+          }
+        }
+      }
+    },
+    "Sign in to Cursor on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to Cursor on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en Cursor en este Mac"
+          }
+        }
+      }
+    },
+    "Sign in to Devin on this Mac (run `devin auth login` or open the app)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to Devin on this Mac (run `devin auth login` or open the app)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en Devin en este Mac (ejecuta `devin auth login` o abre la app)"
+          }
+        }
+      }
+    },
+    "Sign in to GitHub Copilot in your editor, or run `gh auth login`" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to GitHub Copilot in your editor, or run `gh auth login`"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en GitHub Copilot desde tu editor, o ejecuta `gh auth login`"
+          }
+        }
+      }
+    },
+    "Sign in to OpenCode Go in OpenCode on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to OpenCode Go in OpenCode on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en OpenCode Go desde OpenCode en este Mac"
+          }
+        }
+      }
+    },
+    "Sign in to the Codex CLI on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to the Codex CLI on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en la CLI de Codex en este Mac"
+          }
+        }
+      }
+    },
+    "Sign in to the Grok CLI on this Mac (run `grok login`)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to the Grok CLI on this Mac (run `grok login`)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en la CLI de Grok en este Mac (ejecuta `grok login`)"
           }
         }
       }
@@ -10692,6 +11015,23 @@
         }
       }
     },
+    "credits" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "credits"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "créditos"
+          }
+        }
+      }
+    },
     "fast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10828,6 +11168,23 @@
         }
       }
     },
+    "limit resets" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "limit resets"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "reinicios de límite"
+          }
+        }
+      }
+    },
     "meeting-notes.txt" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10862,6 +11219,23 @@
         }
       }
     },
+    "no date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no date"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sin fecha"
+          }
+        }
+      }
+    },
     "no events" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10875,6 +11249,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "sin eventos"
+          }
+        }
+      }
+    },
+    "no refill date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no refill date"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sin fecha de recarga"
           }
         }
       }
@@ -10909,6 +11300,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "ahora"
+          }
+        }
+      }
+    },
+    "of %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "of %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "de %@"
           }
         }
       }
@@ -10977,6 +11385,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "se repone en %@"
+          }
+        }
+      }
+    },
+    "requests" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "requests"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "peticiones"
           }
         }
       }
@@ -11215,6 +11640,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "mañana"
+          }
+        }
+      }
+    },
+    "used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "used"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "usado"
           }
         }
       }

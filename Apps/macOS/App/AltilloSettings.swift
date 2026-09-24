@@ -130,6 +130,9 @@ final class AltilloSettings {
 
     /// Providers the user switched off in Settings › Sections › Usage. Stored as an opt-out list so every provider
     /// that is set up on this Mac is read by default, including ones a later version learns to read.
+    ///
+    /// Altillo reads every provider itself. Builds before 24-09-2026 could also read another usage app and stored
+    /// that switch under "usageShowsOpenUsageSource"; nothing reads that key any more and it's left alone.
     var usageDisabledProviders: Set<UsageProviderID> {
         didSet { defaults.set(usageDisabledProviders.map(\.rawValue).sorted(), forKey: Key.usageDisabledProviders) }
     }
@@ -151,11 +154,6 @@ final class AltilloSettings {
     /// Also peek when a limit that ran high refills.
     var usageAlertsWhenRefilled: Bool {
         didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
-    }
-
-    /// Read an OpenUsage-compatible app running on this Mac for providers Altillo doesn't read itself.
-    var usageShowsOpenUsageSource: Bool {
-        didSet { defaults.set(usageShowsOpenUsageSource, forKey: Key.usageShowsOpenUsageSource) }
     }
 
     func isUsageProviderEnabled(_ id: UsageProviderID) -> Bool { !usageDisabledProviders.contains(id) }
@@ -224,7 +222,6 @@ final class AltilloSettings {
         static let alertsForUsage = "alertsForUsage"
         static let usageAlertThresholds = "usageAlertThresholds"
         static let usageAlertsWhenRefilled = "usageAlertsWhenRefilled"
-        static let usageShowsOpenUsageSource = "usageShowsOpenUsageSource"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -278,7 +275,6 @@ final class AltilloSettings {
             (defaults.array(forKey: Key.usageAlertThresholds) as? [Int]) ?? Self.defaultUsageAlertThresholds
         )
         usageAlertsWhenRefilled = defaults.object(forKey: Key.usageAlertsWhenRefilled) as? Bool ?? true
-        usageShowsOpenUsageSource = defaults.object(forKey: Key.usageShowsOpenUsageSource) as? Bool ?? true
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything

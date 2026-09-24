@@ -22,7 +22,7 @@ Análisis de `~/Documents/GitHub/openusage` (fork) y `~/Documents/GitHub/ai-limi
   - Claude: llavero `Claude Code-credentials` → `api.anthropic.com/api/oauth/usage`.
   - Codex: `wham/usage`.
   - El resto: Cursor, Copilot, Antigravity, Devin, Grok, OpenCode, OpenRouter, pi y Z.ai.
-- **Reutilización:** el código de proveedores es `internal`, `@MainActor` y está acoplado a `AppContainer`, así que no sirve como librería. Los contratos estables son la **API local** `127.0.0.1:6736/v1/limits` (esquema `openusage.limits.v1`) y el CLI.
+- **Reutilización:** el código de proveedores es `internal`, `@MainActor` y está acoplado a `AppContainer`, así que no sirve como librería. Los contratos estables son la **API local** `127.0.0.1:6736/v1/limits` (esquema `openusage.limits.v1`) y el CLI. Altillo no usa ninguno de los dos (ver [Independencia](#independencia-24-09-2026)).
 - **Fork:**
   - `OpenUsageMobileCore`: modelo `openusage.mobile.v1`, con reader y writer de iCloud Documents.
   - App iOS con widgets y alertas (umbrales 50/80/90/95 % y reset).
@@ -50,11 +50,22 @@ ai-limits y el fork **no se usan como base**. Se aprovechan ideas y fragmentos p
 - de openusage: los mappers de proveedores, el cálculo de ritmo y los umbrales de alerta;
 - de ai-limits: el collector de Codex vía `app-server` y la configuración de XcodeGen y la notarización.
 
-1. **`AltilloUsage`** (en `Packages/AltilloKit`): collectors de Claude (llavero primero, sin refrescar nunca el token) y Codex (`app-server`). Después, Cursor, Copilot, Gemini y OpenRouter, uno a uno.
+1. **`AltilloUsage`** (en `Packages/AltilloKit`): collectors de Claude (llavero primero, sin refrescar nunca el token) y Codex (`app-server`). Después, collectors nativos para el resto (Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode…), uno a uno.
 2. **Transición opcional:** Altillo escribe también `openusage.mobile.v1` en `iCloud.me.badia.ailimits`, para que la app actual de TestFlight siga funcionando. Así se retiran ya el bridge y el watchdog (`launchctl bootout` del LaunchAgent).
 3. **Altillo para iOS**, desde cero, con el contenedor nuevo `iCloud.me.badia.altillo` y CloudKit (`CKSyncEngine`).
 4. **Retirar:** cuando Altillo para iOS esté en TestFlight, se archivan el fork y ai-limits y se da de baja la app `me.badia.ailimits`.
-5. **Marca:** nada con el nombre "OpenUsage". Solo se permite decir "compatible with OpenUsage".
+5. **Marca:** nada con el nombre "OpenUsage".
+
+## Independencia (24-09-2026)
+
+Decisión tuya: **Altillo es una app independiente y lee cada proveedor por sí mismo.** No se leen datos de otras apps de uso (no hay acuerdos con ellas) y nadie tiene que instalar otra app para ver sus límites.
+
+- **Se retira la fuente opcional "compatible with OpenUsage"** (la API local `127.0.0.1:6736`): fuera `OpenUsageCompatibleSource`, su interruptor en Ajustes (la clave `usageShowsOpenUsageSource` se queda en los defaults, ignorada) y el estado «Conectado a través de OpenUsage».
+- **openusage (MIT) es solo una referencia** de cómo funciona cada proveedor (qué fichero o llavero guarda la sesión, qué endpoint da el uso). Cuando se adapta código, va con atribución en `ThirdPartyNotices`.
+- **Cada proveedor es un `UsageCollector`** con su `UsageProviderID`, registrado en `UsageCollectors.all()`. Lee lo que las herramientas del propio proveedor ya guardan en este Mac (la sesión de un CLI o de un editor, una API key que añades tú), nunca refresca ni reescribe credenciales ajenas, y trae un `setupHint` de una línea («Sign in to Cursor») para quien aún no lo tiene configurado.
+- **Por defecto** todos los proveedores que se encuentran en este Mac están activados; cada uno se puede apagar en Ajustes › Secciones › Uso. Los que no están configurados se agrupan en «Not set up on this Mac», cada uno con su pista.
+- **Límites que no son sesión/semana:** cuotas mensuales, contadores de peticiones y saldos (créditos, dólares) se muestran igual de bien. La tarjeta lleva como anillo la sesión o, si no hay, el límite más lleno (`headline`); si un proveedor solo tiene saldo, la cifra grande es el saldo («$7.50 left»).
+- **Lo que se mantiene:** el escritor del formato antiguo para tu propia app de iPhone (`OpenUsageMobilePublisher`, abajo). No lee nada de otras apps: escribe un fichero para tu app.
 
 ## Transición: Altillo escribe el formato antiguo (fase 3)
 
@@ -66,7 +77,7 @@ Hecho el 24-09-2026. Las builds de **release** de Altillo escriben `openusage.mo
 - **Estado:** sin problema → `available` (`attention` si los datos tienen más de 15 min). Rate limit, red o respuesta rara → `attention` si quedan números, si no `unavailable`. Sesión caducada, llavero denegado → `unavailable`. Un proveedor sin configurar no aparece.
 - **Device id:** se reutiliza el del bridge (`openusage.mobileBridge.deviceID.v1` en el dominio `me.badia.ailimits.collector`; en este Mac, `e69aee15-a3b9-4448-94a0-db20fe6e0e38`) y se guarda en `legacyMobileExport.deviceID`. Así Altillo sustituye el fichero del bridge y el iPhone no ve dos Macs. En un Mac donde nunca corrió el bridge se genera un UUID nuevo.
 - **Cuándo está activo:** `isEnabled` = ajuste `legacyMobileExport` (UserDefaults, `true` por defecto) **y** la app firmada con el entitlement del contenedor **y** sesión de iCloud iniciada. Las builds de desarrollo (Debug, Apple Development, sin perfil) nunca lo tienen, así que ahí no hace nada. El entitlement solo lo pone `script/release.sh`, y solo si hay perfil (ver [release.md](release.md#icloud-transición)).
-- **Lo que no se migra:** el bridge también copiaba el historial de OpenUsage a `OpenUsage/History/v1/`; Altillo no lo escribe, así que las gráficas de historial del iPhone se quedan congeladas. Tampoco se exporta Grok ni el resto de proveedores que Altillo aún no lee.
+- **Lo que no se migra:** el bridge también copiaba el historial de OpenUsage a `OpenUsage/History/v1/`; Altillo no lo escribe, así que las gráficas de historial del iPhone se quedan congeladas. Se exportan los proveedores que Altillo lee de forma nativa: cada uno aparece en el iPhone cuando Altillo tiene su collector.
 - **Comprobar una build firmada:** `open -g -n dist/Altillo.app --args -legacyMobileExportSelfTest altillo-selftest` escribe un documento de prueba con ese id y cierra la app; el resultado queda en `~/Library/Logs/Altillo/legacy-mobile-export-selftest.json`. `-legacyMobileExportSelfTestDelete altillo-selftest` lo borra (borrado coordinado, se propaga a iCloud).
 
 ### Retirar el bridge y el watchdog
