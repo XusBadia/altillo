@@ -42,6 +42,7 @@ final class NotchModel {
     let nowPlaying = NowPlayingStore()
     let assistant = AssistantStore()
     let ears = EarsStore()
+    let agentHub = AgentHub()
     let drawer = MenuBarDrawerStore.shared
     /// AI usage: the numbers behind the usage section, its ear and alerts, and Ask's `usage` tool.
     let usage: UsageStore
