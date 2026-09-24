@@ -158,6 +158,14 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
   - Pestaña con las sesiones y sus botones Permitir / Denegar / Ir a la terminal.
 - **Instalador de hooks:** con consentimiento explícito, muestra el diff antes de escribir, hace copia de seguridad, es idempotente y **se puede desinstalar con un clic**. Los hooks existentes del usuario no se tocan.
 - **Limitación conocida:** los hooks no se disparan de forma fiable en la app Claude Desktop. Funcionan en la CLI y en VS Code/JetBrains.
+- **Mejoras sobre el plan inicial (24-09-2026):**
+  - **Funciona sin instalar nada.** Altillo lee los ficheros de sesión que los propios agentes escriben (`~/.claude/projects/…/*.jsonl` y `~/.codex/sessions/…/rollout-*.jsonl`), solo el final y solo cuando cambian. Así muestra qué sesiones hay y si trabajan o esperan. Los hooks pasan a ser un extra: estados precisos y aprobar desde el notch.
+  - **«Ir a la terminal» de verdad.** El hook guarda desde qué app y pestaña corre el agente: Terminal, iTerm2, Ghostty, Warp, VS Code o Cursor, gracias a `TERM_PROGRAM`, el id de sesión, el tty y la cadena de procesos. Altillo trae al frente esa ventana y, cuando se puede, la pestaña exacta.
+  - **Resumen al terminar:** el aviso incluye el principio del último mensaje del agente.
+  - **«Permitir en esta sesión»** cuando el agente lo ofrece, con los permission suggestions de Claude.
+  - **Pregunta** sabe de agentes («¿qué está haciendo Codex?»).
+  - **Ruta estable del hook** (`~/Library/Application Support/Altillo/bin/altillo-hook`), para que los hooks sigan funcionando al mover o actualizar la app.
+  - **Siguiente tanda:** Gemini CLI y Copilot CLI (hooks) y OpenCode (SSE). Más adelante, **responder al agente desde el notch** cuando espera tu respuesta: el hook `Stop` de Claude puede devolverle una instrucción para que siga.
 
 ### 5.4 Cajón / Drawer ([implementación y pruebas](docs/cajon.md))
 - **Qué hace:** cuando está activo, una estantería compacta permanece encima de los modos y las opciones de Altillo. En Ajustes, el usuario mueve los iconos entre las zonas **Altillo** y **Menu Bar**; Drawer los oculta y ofrece búsqueda y apertura desde la estantería, con `AXExtrasMenuBar`, `AXPress` y `AXShowMenu`. El panel se recoge antes de abrir un menú.
@@ -244,7 +252,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **1. Shelf MVP (M)** | Máquina de estados, animaciones, recepción, drag out, Quick Look, persistencia, menú de la barra y arranque al iniciar sesión | 0 | 1 semana |
 | **2. Robustez + personalización (M)** | Multi-pantalla, pantalla completa, sleep/wake, macOS 27, **modo edición del notch**, presets, ajustes con vista previa, accesibilidad, primera release notarizada + Sparkle | 1 | 1,5 semanas |
 | **3. Uso de IA (K+M)** | AltilloUsage (Claude arreglado, Codex y después el resto de proveedores, todos nativos), oreja + pestaña + alertas en el notch | 0 | 1 semana |
-| **4. Agentes en vivo (K+M)** | `altillo-hook`, socket, instalador de hooks (Claude, Codex), sesiones, peek automático, permitir/denegar desde el notch | 2 | 1,5 semanas |
+| **4. Agentes en vivo (K+M)** | Sesiones sin configurar nada (ficheros de sesión), `altillo-hook`, socket, instalador de hooks seguro (Claude, Codex), peek automático, permitir/denegar/permitir en la sesión desde el notch, ir a la terminal exacta, resumen al terminar, Pregunta sabe de agentes | 2 | 1,5 semanas |
 | **5. Altillo iOS v1 (K+I)** | AltilloSync (CKSyncEngine), app de iPhone desde cero: dashboard, agentes, widgets, notificaciones y personalización, con las features que se definan contigo llegado el momento | 3 (puede ir en paralelo con 4) | 2 semanas |
 | **6. Dynamic Island + aprobar desde el iPhone (I+M)** | Live Activities, el Mac como proveedor de APNs (spike primero), permitir/denegar desde el iPhone con Face ID | 4, 5 | 1,5 semanas |
 | **7. Barra de menú (M)** | Estantería persistente en Altillo, catálogo por zonas, iconos ocultos en el notch y ocultación de secciones en 26 | 2 | 1 semana |
@@ -253,9 +261,11 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **10. Publicación** | Icono, nombre, bienvenida, web/README, Homebrew Cask, App Store (iOS) | — | 1 semana |
 | **11. Vida: movimiento, avisos y Pregunta (M)** | Apertura «líquida», transiciones con dirección, swipe entre secciones, ⌘1…9, hápticos, avisos en vivo (calendario y música) y el asistente on-device con tools y atajo global (§5.7-5.9) | 1 | 1,5 semanas |
 | **12. Utilidades del altillo (M)** | Temporizador (un reloj de cocina que asoma al sonar), nota rápida, portapapeles de solo texto (opt-in, excluye contraseñas), lanzador de Atajos. Pregunta aprende a usarlos («pon 10 min», «apunta esto») | 11 | 1,5 semanas |
-| **13. Pregunta con todo el contexto (K+M)** | Tools de uso de IA y agentes cuando existan («¿cuánto me queda de Claude?», «¿qué hace Codex?»), arrastrar un archivo a Pregunta para preguntarle por él y respuestas guardables | 3, 4, 11 | 1 semana |
+| **13. Pregunta con todo el contexto (K+M)** | Los tools de uso y agentes ya llegaron con las fases 3 y 4. Queda: arrastrar un archivo a Pregunta para preguntarle por él, respuestas guardables, acciones (poner un temporizador, crear un recordatorio, responder a un agente) y dictado por voz | 3, 4, 11, 12 | 1 semana |
+| **14. Más agentes (K+M)** | Gemini CLI y Copilot CLI (hooks), OpenCode (SSE de `opencode serve`) y Cursor CLI (ACP); responder desde el notch cuando un agente espera tu respuesta | 4 | 1 semana |
+| **15. Primer arranque (M)** | Bienvenida adelantada de la fase 10, ahora que ya hay releases públicas: plantilla, permisos explicados uno a uno (calendario, Automatización, Accesibilidad) solo cuando hacen falta, ofrecer los hooks y detectar qué proveedores de IA hay en el Mac | 4 | 3-4 días |
 
-**Orden de ejecución (actualizado el 22-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 → 12 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
+**Orden de ejecución (actualizado el 24-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 → 15 → 12 → 14 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
 
 ### Estado
 
