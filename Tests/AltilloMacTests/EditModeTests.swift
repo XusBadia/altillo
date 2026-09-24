@@ -96,7 +96,7 @@ struct EditModeTests {
         let session = NotchEditSession()
         #expect(!session.assign(.usage, to: .left, in: settings))
         #expect(!session.assign(.agents, to: .right, in: settings))
-        #expect(settings.leftEar == .none && settings.rightEar == .shelf)
+        #expect(settings.leftEar == .automatic && settings.rightEar == .shelf, "the defaults stay")
     }
 
     @Test func aTabDroppedOnAnEarShowsWhatItMeans() {
@@ -146,7 +146,7 @@ struct EditModeTests {
         session.assign(.nowPlaying, to: .left, in: settings)
         #expect(session.undoStack.count == 3)
         session.undo(in: settings)
-        #expect(settings.leftEar == .none)
+        #expect(settings.leftEar == .automatic, "back to the default")
         session.undo(in: settings)
         #expect(settings.earsVisibility == .withActivity)
         session.undo(in: settings)

@@ -9,8 +9,9 @@ import Observation
 /// - **Shelf**: read straight from the model, nothing to watch.
 /// - **Next event**: EventKit, only if calendar access is already granted (this store never asks for it). One timer
 ///   asleep until the next moment the ear's text changes, plus EventKit changes, waking, clock and day changes.
-/// - **Music**: the distributed notifications Music and Spotify post on every state change. No AppleScript, no
-///   polling; an app quitting counts as stopped.
+/// - **Music**: `NowPlayingStore`'s background listening (the players' own broadcasts, no polling), shared with the
+///   contextual ear so the players are only ever listened to once.
+/// - **What matters now** (`.automatic`): `NotchActivityLogic` over the sources above, only for sections that are on.
 ///
 /// Ears set to nothing cost nothing.
 @MainActor
@@ -18,32 +19,25 @@ import Observation
 final class EarsStore {
     /// The event the next-event ear talks about, if there is one worth mentioning.
     private(set) var nextEvent: EarEvent?
-    /// True while Music or Spotify reports it is playing.
-    var isPlaying: Bool { musicPlaying || spotifyPlaying }
     /// "Now" as of the last boundary. Bumped by the timer so the next-event text re-renders exactly when it changes.
     private(set) var clock = Date.now
 
-    private var musicPlaying = false
-    private var spotifyPlaying = false
     private var watchesCalendar = false
-    private var watchesPlayers = false
 
     @ObservationIgnored private var eventStore: EKEventStore?
     @ObservationIgnored private var timerTask: Task<Void, Never>?
     @ObservationIgnored private var calendarObservers: [NSObjectProtocol] = []
-    @ObservationIgnored private var playerObservers: [NSObjectProtocol] = []
 
     /// Injected so tests can control "now" and the events without EventKit.
     @ObservationIgnored var now: () -> Date = { .now }
     @ObservationIgnored var fetchEvents: (() -> [EarEvent])?
     @ObservationIgnored var hasCalendarAccess: () -> Bool = { EKEventStore.authorizationStatus(for: .event) == .fullAccess }
 
-    /// Starts or stops the (event-driven) sources the chosen ears need. Idempotent; calling it again also picks up
-    /// calendar access granted in the meantime (the coordinator calls it whenever access changes).
-    func update(left: EarContent, right: EarContent) {
-        let chosen: Set<EarContent> = [left, right]
-        setCalendar(watching: chosen.contains(.nextEvent))
-        setPlayers(watching: chosen.contains(.nowPlaying))
+    /// Starts or stops the (event-driven) calendar source the chosen ears need. Idempotent; calling it again also
+    /// picks up calendar access granted in the meantime (the coordinator calls it whenever access changes). The
+    /// music source lives in `NowPlayingStore` (`EarsLogic.watchesPlayback`).
+    func update(left: EarContent, right: EarContent, modules: [NotchModule]) {
+        setCalendar(watching: EarsLogic.watchesCalendar(left: left, right: right, modules: modules))
     }
 
     /// Whether the resting notch grows ears right now.
@@ -51,17 +45,18 @@ final class EarsStore {
         let settings = model.settings
         return EarsLogic.showsEars(left: settings.leftEar, right: settings.rightEar,
                                    visibility: settings.earsVisibility) { content in
-            hasActivity(content, shelfCount: model.shelf.count)
+            hasActivity(content, in: model)
         }
     }
 
     /// Whether an ear showing `content` has something to say right now.
-    func hasActivity(_ content: EarContent, shelfCount: Int) -> Bool {
+    func hasActivity(_ content: EarContent, in model: NotchModel) -> Bool {
         switch content {
         case .none, .usage, .agents: false
-        case .shelf: shelfCount > 0
+        case .shelf: !model.shelf.isEmpty
         case .nextEvent: nextEvent != nil
-        case .nowPlaying: isPlaying
+        case .nowPlaying: model.nowPlaying.isPlaying
+        case .automatic: model.contextualActivity != .rest
         }
     }
 
@@ -155,56 +150,6 @@ final class EarsStore {
                          end: event.endDate ?? now, isAllDay: event.isAllDay)
             }
     }
-
-    // MARK: - Music
-
-    /// The two players' state-change broadcasts, and the bundle id that tells which one quit.
-    private static let players: [(name: Notification.Name, bundleID: String, isMusic: Bool)] = [
-        (Notification.Name("com.apple.Music.playerInfo"), "com.apple.Music", true),
-        (Notification.Name("com.spotify.client.PlaybackStateChanged"), "com.spotify.client", false),
-    ]
-
-    private func setPlayers(watching: Bool) {
-        guard watching != watchesPlayers else { return }
-        watchesPlayers = watching
-        if watching {
-            let distributed = DistributedNotificationCenter.default()
-            for player in Self.players {
-                let isMusic = player.isMusic
-                playerObservers.append(distributed.addObserver(forName: player.name, object: nil, queue: .main) {
-                    [weak self] notification in
-                    let state = notification.userInfo?["Player State"] as? String
-                    MainActor.assumeIsolated { self?.playerChanged(isMusic: isMusic, state: state) }
-                })
-            }
-            playerObservers.append(NSWorkspace.shared.notificationCenter.addObserver(
-                forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main
-            ) { [weak self] notification in
-                let app = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
-                let bundleID = app?.bundleIdentifier
-                MainActor.assumeIsolated { self?.playerQuit(bundleID: bundleID) }
-            })
-        } else {
-            playerObservers.forEach {
-                DistributedNotificationCenter.default().removeObserver($0)
-                NSWorkspace.shared.notificationCenter.removeObserver($0)
-            }
-            playerObservers.removeAll()
-            musicPlaying = false
-            spotifyPlaying = false
-        }
-    }
-
-    /// A player's broadcast. Exposed to the module (not private) so tests can drive it without the real players.
-    func playerChanged(isMusic: Bool, state: String?) {
-        guard let playing = EarsLogic.isPlaying(playerState: state) else { return }
-        if isMusic { musicPlaying = playing } else { spotifyPlaying = playing }
-    }
-
-    private func playerQuit(bundleID: String?) {
-        if bundleID == "com.apple.Music" { musicPlaying = false }
-        if bundleID == "com.spotify.client" { spotifyPlaying = false }
-    }
 }
 
 // MARK: - Plain data
@@ -232,6 +177,18 @@ enum EarsLogic {
         case countdown(minutes: Int)
         /// It has just started.
         case now
+    }
+
+    /// The calendar is read for a next-event ear, or for the contextual one while the calendar section is on.
+    static func watchesCalendar(left: EarContent, right: EarContent, modules: [NotchModule]) -> Bool {
+        let chosen: Set<EarContent> = [left, right]
+        return chosen.contains(.nextEvent) || (chosen.contains(.automatic) && modules.contains(.calendar))
+    }
+
+    /// The players are listened to for a music ear, or for the contextual one while Now playing is on.
+    static func watchesPlayback(left: EarContent, right: EarContent, modules: [NotchModule]) -> Bool {
+        let chosen: Set<EarContent> = [left, right]
+        return chosen.contains(.nowPlaying) || (chosen.contains(.automatic) && modules.contains(.nowPlaying))
     }
 
     /// Whether the resting notch grows ears: with `.always`, as soon as an ear is chosen; with `.withActivity`,

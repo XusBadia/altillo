@@ -35,7 +35,8 @@ final class NotchModel {
     var alert: NotchAlert?
     let settings: AltilloSettings
 
-    // Module data. Each store only works while its module is visible.
+    // Module data. Each store only works while its module is visible, or lightly (events, never polling) while an
+    // ear needs it.
     let calendar = CalendarStore()
     let mirror = MirrorStore()
     let nowPlaying = NowPlayingStore()
@@ -106,6 +107,19 @@ final class NotchModel {
         edgeBump += 1
     }
 
+    /// What the contextual left ear is about (PLAN §4): real, enabled sources only, never a design scenario.
+    /// Agents and AI usage have no live source yet (phases 4 and 3), so they don't take part until they do.
+    var contextualActivity: NotchActivity {
+        guard scenario == nil else { return .rest }
+        let inputs = NotchActivityInputs(
+            agentRequest: nil,
+            nextEvent: ears.nextEvent,
+            playback: nowPlaying.playbackSignal,
+            usage: nil
+        )
+        return NotchActivityLogic.resolve(inputs, enabled: Set(settings.modules), now: ears.clock)
+    }
+
     /// The neighbouring section in the tab strip (`offset` +1 right, -1 left), or nil at either end.
     func neighbour(_ offset: Int) -> NotchModule? {
         let modules = settings.modules
@@ -134,6 +148,8 @@ struct NotchActions {
     var addToShelf: ([ShelfItem]) -> Void = { _ in }
     /// Gives the open notch keyboard focus (a text field was clicked or the assistant was summoned).
     var takeKeyboardFocus: () -> Void = {}
+    /// Opens the notch on the section the contextual ear stands for (VoiceOver's action on it).
+    var openFromIndicator: (NotchModule) -> Void = { _ in }
     /// Opens the notch in edit mode, or leaves it.
     var beginEditing: () -> Void = {}
     var endEditing: () -> Void = {}

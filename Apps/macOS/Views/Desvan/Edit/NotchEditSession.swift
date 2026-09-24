@@ -268,6 +268,7 @@ extension EarContent {
     var shortTitle: String {
         switch self {
         case .none: String(localized: "None")
+        case .automatic: String(localized: "Auto")
         case .shelf: String(localized: "Shelf")
         case .nextEvent: String(localized: "Event")
         case .nowPlaying: String(localized: "Music")

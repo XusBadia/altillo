@@ -4,8 +4,13 @@ import Observation
 /// What's playing right now. Phase 1 covers Music and Spotify through AppleScript; other apps arrive with the
 /// MediaRemote adapter in phase 5 (PLAN §5.6).
 ///
-/// Nothing runs unless the module is on screen *and* one of the two apps is open: `NSWorkspace` tells us when they
-/// launch and quit, so a closed Music means a cancelled poll loop, not a timer firing into the void.
+/// Two speeds, never both polling:
+/// - **On screen** (`start()`/`stop()`, the Now playing section): an AppleScript poll every 2 s at most, only while
+///   one of the two apps is open. `NSWorkspace` tells us when they launch and quit, so a closed Music means a
+///   cancelled poll loop, not a timer firing into the void.
+/// - **Off screen** (`watchInBackground(_:)`, for the ears): the distributed notifications Music and Spotify post on
+///   every state change. No polling. AppleScript only runs once per new track (for its artwork) or after waking,
+///   and only if the user already allowed it: the permission is checked without ever showing the dialog.
 @MainActor
 @Observable
 final class NowPlayingStore {
@@ -32,17 +37,37 @@ final class NowPlayingStore {
     /// Music and/or Spotify, as far as `NSWorkspace` knows.
     private(set) var runningPlayers: [MusicPlayer] = []
 
+    /// True while a player says it is playing (paused and stopped are not).
+    var isPlaying: Bool { track?.isPlaying ?? false }
+
+    /// What the contextual ear needs, while something actually plays.
+    var playbackSignal: PlaybackSignal? {
+        guard let track, track.isPlaying else { return nil }
+        return PlaybackSignal(title: track.title, artist: track.artist, appName: track.appName)
+    }
+
     /// The ceiling asked for in PLAN §5.6: never more often than this, and only while visible.
     static let pollInterval: Duration = .seconds(2)
 
-    private var viewers = 0
-    private var loop: Task<Void, Never>?
-    private var artworkTask: Task<Void, Never>?
-    /// `bundleID#trackID` of the artwork we already have, so it is fetched once per track and not every 2 s.
-    private var artworkKey: String?
-    /// Polled first: the app that last reported playing.
-    private var preferred: MusicPlayer?
-    private var observers: [NSObjectProtocol] = []
+    /// Checks the Apple Events permission without ever asking. Injected by tests.
+    @ObservationIgnored var permission: @Sendable (MusicPlayer) async -> AutomationPermission.Status = {
+        await AutomationPermission.status(for: $0.bundleID)
+    }
+
+    @ObservationIgnored private var viewers = 0
+    @ObservationIgnored private var watchesInBackground = false
+    @ObservationIgnored private var loop: Task<Void, Never>?
+    @ObservationIgnored private var artworkTask: Task<Void, Never>?
+    @ObservationIgnored private var resyncTask: Task<Void, Never>?
+    /// `bundleID#title#artist#album` of the artwork we already have, so it is fetched once per track. Built the
+    /// same way from a poll and from a broadcast, so opening the section doesn't fetch it again.
+    @ObservationIgnored private var artworkKey: String?
+    /// Polled first and preferred when both play: the app that last started playing.
+    @ObservationIgnored private var preferred: MusicPlayer?
+    /// What each player last said, from its broadcasts or a poll. Missing: stopped, quit or never heard from.
+    @ObservationIgnored private var states: [MusicPlayer: PlayerState] = [:]
+    @ObservationIgnored private var workspaceObservers: [NSObjectProtocol] = []
+    @ObservationIgnored private var broadcastObservers: [NSObjectProtocol] = []
 
     /// Called by the view when the module appears.
     func start() {
@@ -50,20 +75,46 @@ final class NowPlayingStore {
         guard viewers == 1 else { return }
         observeWorkspace()
         refreshRunningPlayers()
+        if access == .denied {
+            // Refused earlier: look again (silently) in case it was allowed in System Settings since.
+            recheckDeniedAccess()
+        }
         beginLoop()
     }
 
-    /// Called by the view when the module goes away: no processes, no timers, nothing.
+    /// Called by the view when the module goes away: no processes, no timers. The broadcasts keep listening only
+    /// if the ears asked for them.
     func stop() {
         viewers = max(0, viewers - 1)
         guard viewers == 0 else { return }
         loop?.cancel()
         loop = nil
+        guard !watchesInBackground else { return }
         artworkTask?.cancel()
         artworkTask = nil
-        let center = NSWorkspace.shared.notificationCenter
-        observers.forEach(center.removeObserver)
-        observers = []
+        stopObservingWorkspace()
+    }
+
+    /// Listens to the players' broadcasts while the section is off screen, for the ears. Idempotent. Off, it
+    /// forgets what they said: a disabled source never leaves a song behind.
+    func watchInBackground(_ watching: Bool) {
+        guard watching != watchesInBackground else { return }
+        watchesInBackground = watching
+        if watching {
+            observeWorkspace()
+            observeBroadcasts()
+            resync()
+        } else {
+            stopObservingBroadcasts()
+            resyncTask?.cancel()
+            resyncTask = nil
+            states = [:]
+            guard viewers == 0 else { return }
+            artworkTask?.cancel()
+            artworkTask = nil
+            stopObservingWorkspace()
+            clear()
+        }
     }
 
     // MARK: - Controls
@@ -100,6 +151,118 @@ final class NowPlayingStore {
         }
     }
 
+    // MARK: - Broadcasts
+
+    /// A player's broadcast. Internal (not private) so tests can drive it without the real players.
+    func receive(state: String?, track info: NowPlayingLogic.BroadcastTrack?, from player: MusicPlayer) {
+        let previous = states[player]
+        let next = NowPlayingLogic.next(after: previous, state: state, track: info)
+        guard next != previous else { return }
+        states[player] = next
+        if next?.isPlaying == true, previous?.isPlaying != true { preferred = player }
+        if viewers > 0 {
+            // On screen the poll is the truth: ask now instead of waiting up to two seconds.
+            restartLoop()
+        } else {
+            applyStates()
+        }
+    }
+
+    private func observeBroadcasts() {
+        guard broadcastObservers.isEmpty else { return }
+        let distributed = DistributedNotificationCenter.default()
+        for player in MusicPlayer.allCases {
+            broadcastObservers.append(distributed.addObserver(
+                forName: player.broadcastName, object: nil, queue: .main
+            ) { [weak self] notification in
+                // Everything usable is pulled out of the `Any` userInfo here, and only Sendable values cross over.
+                let info = notification.userInfo ?? [:]
+                let state = info["Player State"] as? String
+                let track = NowPlayingLogic.track(from: info)
+                MainActor.assumeIsolated { self?.receive(state: state, track: track, from: player) }
+            })
+        }
+        // Broadcasts sent while asleep are lost: look again on waking.
+        broadcastObservers.append(NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in MainActor.assumeIsolated { self?.resync() } })
+    }
+
+    private func stopObservingBroadcasts() {
+        broadcastObservers.forEach {
+            DistributedNotificationCenter.default().removeObserver($0)
+            NSWorkspace.shared.notificationCenter.removeObserver($0)
+        }
+        broadcastObservers.removeAll()
+    }
+
+    /// The track the players' last words add up to. Off screen only: on screen the poll decides.
+    private func applyStates() {
+        guard viewers == 0 else { return }
+        guard let (player, state) = NowPlayingLogic.current(states, preferred: preferred) else {
+            clear()
+            return
+        }
+        let fresh = Track(
+            title: state.title,
+            artist: state.artist,
+            album: state.album,
+            duration: state.duration,
+            elapsed: state.elapsed,
+            isPlaying: state.isPlaying,
+            appBundleID: player.bundleID,
+            appName: player.appName
+        )
+        if fresh != track {
+            track = fresh
+            sampledAt = .now
+        }
+        // The one still playing when another pauses becomes the one to keep once everything is paused.
+        if state.isPlaying { preferred = player }
+        let key = Self.artworkKey(player: player, title: state.title, artist: state.artist, album: state.album)
+        guard key != artworkKey else { return }
+        artworkKey = key
+        artwork = nil
+        fetchArtwork(for: player, url: state.artworkURL, onlyIfAllowed: true)
+    }
+
+    /// Catches up after starting to listen or waking: players that quit are forgotten, and the ones Altillo may
+    /// already talk to are asked once (never the others: that would show the permission dialog out of nowhere).
+    private func resync() {
+        refreshRunningPlayers()
+        states = states.filter { runningPlayers.contains($0.key) }
+        if viewers > 0 {
+            restartLoop()
+            return
+        }
+        applyStates()
+        guard !runningPlayers.isEmpty, access != .denied else { return }
+        resyncTask?.cancel()
+        let players = runningPlayers
+        resyncTask = Task { [weak self] in
+            for player in players {
+                guard let self, !Task.isCancelled else { return }
+                let permission = await self.permission(player)
+                guard permission == .granted, !Task.isCancelled else {
+                    if permission == .denied { self.access = .denied }
+                    continue
+                }
+                guard let output = try? await AppleScriptRunner.run(MusicPlayerScripts.status(for: player)),
+                      !Task.isCancelled
+                else { continue }
+                self.access = .granted
+                self.record(MusicPlayerScripts.parse(output), from: player)
+            }
+            self?.applyStates()
+        }
+    }
+
+    private func record(_ snapshot: PlayerSnapshot?, from player: MusicPlayer) {
+        let previous = states[player]
+        states[player] = snapshot.map(PlayerState.init)
+        if snapshot?.isPlaying == true, previous?.isPlaying != true { preferred = player }
+    }
+
     // MARK: - Polling
 
     private func beginLoop() {
@@ -111,6 +274,12 @@ final class NowPlayingStore {
                 try? await Task.sleep(for: Self.pollInterval)
             }
         }
+    }
+
+    private func restartLoop() {
+        loop?.cancel()
+        loop = nil
+        beginLoop()
     }
 
     private func poll() async {
@@ -131,11 +300,16 @@ final class NowPlayingStore {
                 loop?.cancel()
                 loop = nil
                 return
+            } catch AppleScriptRunner.Failure.notRunning {
+                states[player] = nil
+                continue
             } catch {
                 continue
             }
             if access != .granted { access = .granted }
-            guard let snapshot = MusicPlayerScripts.parse(output) else { continue }
+            let snapshot = MusicPlayerScripts.parse(output)
+            record(snapshot, from: player)
+            guard let snapshot else { continue }
             if snapshot.isPlaying {
                 apply(snapshot, from: player)
                 return
@@ -164,11 +338,11 @@ final class NowPlayingStore {
         )
         sampledAt = .now
 
-        let key = "\(player.bundleID)#\(snapshot.trackID)"
+        let key = Self.artworkKey(player: player, title: snapshot.title, artist: snapshot.artist, album: snapshot.album)
         guard key != artworkKey else { return }
         artworkKey = key
         artwork = nil
-        fetchArtwork(for: snapshot, from: player)
+        fetchArtwork(for: player, url: snapshot.artworkURL, onlyIfAllowed: false)
     }
 
     private func clear() {
@@ -179,14 +353,32 @@ final class NowPlayingStore {
 
     // MARK: - Artwork
 
-    private func fetchArtwork(for snapshot: PlayerSnapshot, from player: MusicPlayer) {
+    private static func artworkKey(player: MusicPlayer, title: String, artist: String, album: String?) -> String {
+        [player.bundleID, title, artist, album ?? ""].joined(separator: "#")
+    }
+
+    /// `onlyIfAllowed`: off screen, the artwork is a nicety: no dialog for it. Spotify's URL comes with a poll; from
+    /// a broadcast it takes one `osascript`, once per track.
+    private func fetchArtwork(for player: MusicPlayer, url: URL?, onlyIfAllowed: Bool) {
         artworkTask?.cancel()
         let key = artworkKey
+        let permission = permission
         artworkTask = Task { [weak self] in
+            if onlyIfAllowed {
+                let status = await permission(player)
+                guard status == .granted else {
+                    if status == .denied { self?.access = .denied }
+                    return
+                }
+            }
             let data: Data?
             switch player {
             case .spotify:
-                data = await Self.download(snapshot.artworkURL)
+                var url = url
+                if url == nil, let output = try? await AppleScriptRunner.run(MusicPlayerScripts.status(for: player)) {
+                    url = MusicPlayerScripts.parse(output)?.artworkURL
+                }
+                data = await Self.download(url)
             case .music:
                 data = await Self.musicArtwork()
             }
@@ -216,35 +408,171 @@ final class NowPlayingStore {
         return data
     }
 
+    // MARK: - Permission
+
+    private func recheckDeniedAccess() {
+        let players = runningPlayers
+        let permission = permission
+        Task { [weak self] in
+            for player in players {
+                guard await permission(player) == .granted else { continue }
+                guard let self else { return }
+                self.access = .granted
+                self.beginLoop()
+                return
+            }
+        }
+    }
+
     // MARK: - Who is running
 
     private func observeWorkspace() {
-        guard observers.isEmpty else { return }
+        guard workspaceObservers.isEmpty else { return }
         let center = NSWorkspace.shared.notificationCenter
         for name in [NSWorkspace.didLaunchApplicationNotification, NSWorkspace.didTerminateApplicationNotification] {
-            observers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
-                Task { @MainActor in self?.runningPlayersChanged() }
+            workspaceObservers.append(center.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.runningPlayersChanged() }
             })
         }
+    }
+
+    private func stopObservingWorkspace() {
+        let center = NSWorkspace.shared.notificationCenter
+        workspaceObservers.forEach(center.removeObserver)
+        workspaceObservers = []
     }
 
     private func runningPlayersChanged() {
         let before = runningPlayers
         refreshRunningPlayers()
         guard before != runningPlayers else { return }
+        // A player that quit said its last word: forget it (it rarely broadcasts "Stopped" on the way out).
+        states = states.filter { runningPlayers.contains($0.key) }
         if runningPlayers.isEmpty {
             loop?.cancel()
             loop = nil
             artworkTask?.cancel()
             clear()
-        } else {
+        } else if viewers > 0 {
             beginLoop()
+        } else {
+            applyStates()
         }
     }
 
     private func refreshRunningPlayers() {
         let open = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
         runningPlayers = MusicPlayer.allCases.filter { open.contains($0.bundleID) }
+    }
+
+    /// Tests: which players are open, without `NSWorkspace`.
+    func setRunningPlayersForTesting(_ players: [MusicPlayer]) {
+        runningPlayers = players
+        states = states.filter { players.contains($0.key) }
+        applyStates()
+    }
+}
+
+// MARK: - Player state
+
+/// What one player last said, from a broadcast or a poll.
+struct PlayerState: Equatable, Sendable {
+    var isPlaying: Bool
+    var title: String
+    var artist: String
+    var album: String?
+    var duration: TimeInterval?
+    var elapsed: TimeInterval?
+    var artworkURL: URL?
+
+    init(isPlaying: Bool, title: String, artist: String, album: String? = nil, duration: TimeInterval? = nil,
+         elapsed: TimeInterval? = nil, artworkURL: URL? = nil) {
+        self.isPlaying = isPlaying
+        self.title = title
+        self.artist = artist
+        self.album = album
+        self.duration = duration
+        self.elapsed = elapsed
+        self.artworkURL = artworkURL
+    }
+
+    init(_ snapshot: PlayerSnapshot) {
+        self.init(isPlaying: snapshot.isPlaying, title: snapshot.title, artist: snapshot.artist, album: snapshot.album,
+                  duration: snapshot.duration, elapsed: snapshot.elapsed, artworkURL: snapshot.artworkURL)
+    }
+}
+
+extension MusicPlayer {
+    /// The state-change broadcast each player posts (the one their own widgets listen to).
+    var broadcastName: Notification.Name {
+        switch self {
+        case .music: Notification.Name("com.apple.Music.playerInfo")
+        case .spotify: Notification.Name("com.spotify.client.PlaybackStateChanged")
+        }
+    }
+}
+
+// MARK: - Logic (pure, testable)
+
+enum NowPlayingLogic {
+    /// The track a broadcast describes, free of `Notification` so tests can build it by hand.
+    struct BroadcastTrack: Equatable, Sendable {
+        var title: String
+        var artist: String
+        var album: String?
+        var duration: TimeInterval?
+        var elapsed: TimeInterval?
+    }
+
+    /// The track in a broadcast's userInfo, or `nil` without a name. Every key is optional: Music sends
+    /// "Total Time" in ms and no position; Spotify "Duration" in ms and "Playback Position" in seconds.
+    nonisolated static func track(from info: [AnyHashable: Any]) -> BroadcastTrack? {
+        guard let name = (info["Name"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty
+        else { return nil }
+        func text(_ key: String) -> String? {
+            let value = (info[key] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return value?.isEmpty == false ? value : nil
+        }
+        func number(_ key: String) -> Double? { (info[key] as? NSNumber)?.doubleValue }
+        let milliseconds = number("Total Time") ?? number("Duration")
+        return BroadcastTrack(
+            title: name,
+            artist: text("Artist") ?? "",
+            album: text("Album"),
+            duration: milliseconds.flatMap { $0 > 0 ? $0 / 1000 : nil },
+            elapsed: number("Playback Position").map { max(0, $0) }
+        )
+    }
+
+    /// A player's state after a broadcast. "Stopped" forgets it; "Playing"/"Paused" take the new track, or flip the
+    /// known one when the broadcast carries none; anything unrecognised leaves it as it was.
+    static func next(after previous: PlayerState?, state: String?, track: BroadcastTrack?) -> PlayerState? {
+        guard let playing = EarsLogic.isPlaying(playerState: state) else { return previous }
+        if state == "Stopped" { return nil }
+        guard let track else {
+            guard var previous else { return nil }
+            previous.isPlaying = playing
+            return previous
+        }
+        // The same song keeps the artwork URL a poll found for it.
+        let sameSong = previous.map { $0.title == track.title && $0.artist == track.artist && $0.album == track.album }
+        return PlayerState(
+            isPlaying: playing,
+            title: track.title,
+            artist: track.artist,
+            album: track.album,
+            duration: track.duration ?? (sameSong == true ? previous?.duration : nil),
+            elapsed: track.elapsed,
+            artworkURL: sameSong == true ? previous?.artworkURL : nil
+        )
+    }
+
+    /// The player worth showing: one that plays (the preferred one if both do), else a paused one (the preferred
+    /// one first). `nil` when every player is stopped, quit or silent.
+    static func current(_ states: [MusicPlayer: PlayerState], preferred: MusicPlayer?) -> (MusicPlayer, PlayerState)? {
+        let order = MusicPlayer.allCases.sorted { lhs, rhs in lhs == preferred && rhs != preferred }
+        let known = order.compactMap { player in states[player].map { (player, $0) } }
+        return known.first { $0.1.isPlaying } ?? known.first
     }
 }
 

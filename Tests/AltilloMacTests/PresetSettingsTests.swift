@@ -15,7 +15,7 @@ struct PresetSettingsTests {
         let settings = AltilloSettings(defaults: Self.makeDefaults())
         #expect(settings.displayMode == .notch)
         #expect(settings.fullScreenBehaviour == .dragOnly)
-        #expect(settings.leftEar == .none)
+        #expect(settings.leftEar == .automatic, "the contextual ear stays empty until something real matters")
         #expect(settings.rightEar == .shelf, "the shelf count is what the ears showed before phase 2")
         #expect(settings.earsVisibility == .withActivity)
     }
@@ -65,6 +65,6 @@ struct PresetSettingsTests {
     @Test func earsThatArentReadyYetAreMarked() {
         #expect(!EarContent.usage.isAvailable)
         #expect(!EarContent.agents.isAvailable)
-        #expect(EarContent.allCases.filter(\.isAvailable) == [.none, .shelf, .nextEvent, .nowPlaying])
+        #expect(EarContent.allCases.filter(\.isAvailable) == [.none, .automatic, .shelf, .nextEvent, .nowPlaying])
     }
 }

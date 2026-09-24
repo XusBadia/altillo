@@ -239,6 +239,40 @@
         }
       }
     },
+    "%@ is waiting for you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is waiting for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ te espera"
+          }
+        }
+      }
+    },
+    "%@ is waiting for you in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is waiting for you in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ te espera en %@"
+          }
+        }
+      }
+    },
     "%@ of %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3426,19 +3460,19 @@
         }
       }
     },
-    "Every section, with the next event beside the notch." : {
+    "Every section, with what matters now beside the notch." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Every section, with the next event beside the notch."
+            "value" : "Every section, with what matters now beside the notch."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Todas las secciones, con el próximo evento junto al notch."
+            "value" : "Todas las secciones, con lo que importa ahora junto al notch."
           }
         }
       }
@@ -5415,6 +5449,23 @@
         }
       }
     },
+    "Nothing going on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing going on"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada en marcha"
+          }
+        }
+      }
+    },
     "Nothing is written, so a shelf state that couldn't be restored isn't overwritten." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5547,6 +5598,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sonando"
+          }
+        }
+      }
+    },
+    "Now playing: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now playing: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonando: %@"
+          }
+        }
+      }
+    },
+    "Now playing: %@ by %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Now playing: %@ by %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonando: %@, de %@"
           }
         }
       }
@@ -6125,6 +6210,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abierto: altillo con archivos"
+          }
+        }
+      }
+    },
+    "Opens %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre %@"
           }
         }
       }
@@ -9039,6 +9141,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Qué tengo hoy?"
+          }
+        }
+      }
+    },
+    "What matters now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What matters now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo que importa ahora"
           }
         }
       }

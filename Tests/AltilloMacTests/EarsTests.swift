@@ -63,13 +63,15 @@ struct EarsTests {
         let model = NotchModel(settings: settings)
         settings.leftEar = .nowPlaying
         settings.rightEar = .none
+        model.nowPlaying.permission = { _ in .undetermined }
+        let song = NowPlayingLogic.BroadcastTrack(title: "Teardrop", artist: "Massive Attack")
         #expect(!model.ears.showsEars(for: model))
-        model.ears.playerChanged(isMusic: true, state: "Playing")
-        #expect(model.ears.isPlaying)
+        model.nowPlaying.receive(state: "Playing", track: song, from: .music)
+        #expect(model.nowPlaying.isPlaying)
         #expect(model.ears.showsEars(for: model))
-        model.ears.playerChanged(isMusic: false, state: "Paused")
-        #expect(model.ears.isPlaying, "Spotify pausing doesn't stop Music")
-        model.ears.playerChanged(isMusic: true, state: "Stopped")
+        model.nowPlaying.receive(state: "Paused", track: song, from: .spotify)
+        #expect(model.nowPlaying.isPlaying, "Spotify pausing doesn't stop Music")
+        model.nowPlaying.receive(state: "Stopped", track: nil, from: .music)
         #expect(!model.ears.showsEars(for: model))
     }
 
@@ -84,9 +86,10 @@ struct EarsTests {
     }
 
     @Test func anUnknownStateDoesNotStopTheEqualiser() {
-        let store = EarsStore()
-        store.playerChanged(isMusic: false, state: "Playing")
-        store.playerChanged(isMusic: false, state: nil)
+        let store = NowPlayingStore()
+        store.permission = { _ in .undetermined }
+        store.receive(state: "Playing", track: .init(title: "Teardrop", artist: ""), from: .spotify)
+        store.receive(state: nil, track: nil, from: .spotify)
         #expect(store.isPlaying)
     }
 
@@ -165,13 +168,12 @@ struct EarsTests {
         let upcoming = event("Standup", in: 20)
         store.now = { self.now }
         store.fetchEvents = { [upcoming] }
-        store.update(left: .none, right: .shelf)
+        store.update(left: .none, right: .shelf, modules: NotchModule.allCases)
         #expect(store.nextEvent == nil, "nothing runs for ears that don't show the next event")
-        store.update(left: .nextEvent, right: .shelf)
+        store.update(left: .nextEvent, right: .shelf, modules: [.shelf])
         #expect(store.nextEvent == upcoming)
         #expect(store.nextEventLabel == .countdown(minutes: 20))
-        #expect(store.hasActivity(.nextEvent, shelfCount: 0))
-        store.update(left: .none, right: .shelf)
+        store.update(left: .none, right: .shelf, modules: NotchModule.allCases)
         #expect(store.nextEvent == nil, "turning the ear off drops the event and its timer")
     }
 }

@@ -257,6 +257,18 @@ struct SettingsEarsPreview: View {
                     }
                 }
                 .frame(height: 10, alignment: .bottom)
+            case .automatic:
+                // Whatever matters most; the sample is a song playing.
+                HStack(alignment: .bottom, spacing: 3) {
+                    Image(systemName: "music.note").font(.system(size: 9.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.bulb)
+                    HStack(alignment: .bottom, spacing: 1.5) {
+                        ForEach([0.45, 0.9, 0.6], id: \.self) { level in
+                            Capsule().fill(Desvan.Palette.bulb).frame(width: 2, height: 10 * level)
+                        }
+                    }
+                    .frame(height: 10, alignment: .bottom)
+                }
             case .usage, .agents:
                 Image(systemName: content.symbol)
                     .font(.system(size: 9, weight: .semibold))

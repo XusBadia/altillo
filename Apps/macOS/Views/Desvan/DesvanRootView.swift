@@ -243,11 +243,13 @@ struct DesvanEarContent: View {
 
     var body: some View {
         let ears = model.ears
-        let active = ears.hasActivity(content, shelfCount: model.shelf.count)
+        let active = ears.hasActivity(content, in: model)
         Group {
             switch content {
             case .none:
                 EmptyView()
+            case .automatic:
+                DesvanContextualEar(model: model, style: style)
             case .shelf:
                 if active {
                     DesvanShelfCount(count: model.shelf.count)
@@ -518,7 +520,7 @@ private struct DesvanPeekFace: View {
 
     var body: some View {
         if kind == .hint {
-            DesvanHintFace(chrome: chrome)
+            DesvanHintFace(model: model, chrome: chrome)
         } else if chrome.hasNotch {
             VStack(spacing: 0) {
                 EarBand(chrome: chrome, earWidth: NotchChrome.peekEarWidth) { leadingEar } trailing: { trailingEar }
@@ -699,23 +701,34 @@ private struct DesvanLineArrival: ViewModifier {
     }
 }
 
-/// Hovering with nothing to report: the house with its window lit and the logotype. No instructions.
+/// Hovering with nothing to report: the house with its window lit and the logotype. No instructions. The contextual
+/// ear, when it has something, keeps its place on the left so it can still be clicked.
 private struct DesvanHintFace: View {
+    let model: NotchModel
     let chrome: NotchChrome
 
     var body: some View {
         if chrome.hasNotch {
             EarBand(chrome: chrome, earWidth: NotchChrome.earWidth) {
-                DesvanHouseMark(size: 13)
+                leading
             } trailing: {
                 wordmark
             }
         } else {
             HStack(spacing: 7) {
-                DesvanHouseMark(size: 13)
+                leading
                 wordmark
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+    }
+
+    @ViewBuilder
+    private var leading: some View {
+        if model.settings.leftEar == .automatic, model.contextualActivity != .rest {
+            DesvanContextualEar(model: model)
+        } else {
+            DesvanHouseMark(size: 13)
         }
     }
 

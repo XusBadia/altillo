@@ -36,6 +36,9 @@ final class NotchCoordinator {
     private var observers: [NSObjectProtocol] = []
     private var pendingTimers: [TimerKind: Task<Void, Never>] = [:]
     private var droppedDuringCurrentDrag = false
+    /// The section the contextual ear stood for when the user reached for it (the hover's dwell or a click on it),
+    /// honoured only by the open that same gesture causes. Nothing else ever switches the section on its own.
+    private var indicatorTarget: NotchModule?
     private var isHovering = false
     private var isStarted = false
     private var keyMonitor: Any?
@@ -96,6 +99,7 @@ final class NotchCoordinator {
                 guard let self, self.model.state == .open else { return }
                 self.window?.panel.makeKey()
             },
+            openFromIndicator: { [weak self] module in self?.openFromIndicator(module) },
             beginEditing: { [weak self] in self?.beginEditing() },
             endEditing: { [weak self] in self?.endEditing() },
             haptic: { Haptics.perform($0) }
@@ -181,6 +185,7 @@ final class NotchCoordinator {
         hotKey.unregister()
         calendarAlerts.update(enabled: false)
         nowPlayingAlerts.update(enabled: false)
+        model.nowPlaying.watchInBackground(false)
         input.stop()
         dragDetector.stop()
         model.drawer.stop()
@@ -395,6 +400,7 @@ final class NotchCoordinator {
         cancel(.closeGrace)
         cancel(.alert)
         isHovering = false
+        indicatorTarget = nil
         model.dragProximity = 0
         guard machine.state != .idle else { return }
         machine = NotchStateMachine(opensOnHover: model.settings.opensOnHover)
@@ -420,11 +426,17 @@ final class NotchCoordinator {
         let state = machine.state
         let previous = model.state
         if state != previous { SpikeLog.shared.record("notch", "\(previous) → \(state)") }
+        let indicator = indicatorTarget
+        if state != .idle, state != .peek { indicatorTarget = nil }
         withAnimation(state == .idle ? .closeNotch : .openNotch) {
             // Reaching for an alert opens the section it's about.
             if state == .open, previous == .peek, let alert = model.alert, model.scenario == nil {
                 if let module = alert.module, model.settings.modules.contains(module) { model.jump(to: module) }
                 model.alert = nil
+            } else if state == .open, previous == .idle || previous == .peek, let indicator, model.scenario == nil,
+                      model.settings.modules.contains(indicator) {
+                // Reaching for the contextual ear opens what it's about (music playing: Now playing).
+                model.jump(to: indicator)
             }
             if state == .idle || state == .dragArmed || state == .dropTarget {
                 model.alert = nil
@@ -466,12 +478,15 @@ final class NotchCoordinator {
         if inside {
             cancel(.closeGrace)
             schedule(.hoverIntent, after: NotchLayout.Timing.hoverIntent) { [weak self] in
+                // Where the pointer rests once the dwell is over, not where it came in.
+                self?.aimAtIndicator(NSEvent.mouseLocation)
                 self?.send(.hoverIntent)
                 self?.schedule(.hoverSustained, after: NotchLayout.Timing.hoverSustained) { self?.send(.hoverSustained) }
             }
         } else {
             cancel(.hoverIntent)
             cancel(.hoverSustained)
+            indicatorTarget = nil
             send(.pointerLeft)
             if model.state == .open {
                 schedule(.closeGrace, after: NotchLayout.Timing.closeGrace) { [weak self] in
@@ -497,6 +512,7 @@ final class NotchCoordinator {
             return
         }
         if onShape, model.state == .idle || model.state == .peek {
+            aimAtIndicator(point)
             send(.click)
             // An explicit click means the user wants to interact: take keyboard focus (hover-opening never does).
             window.panel.makeKey()
@@ -694,6 +710,38 @@ final class NotchCoordinator {
         }
     }
 
+    // MARK: - Contextual ear
+
+    /// Remembers which section the contextual ear under `point` stands for, if the pointer is on it.
+    private func aimAtIndicator(_ point: CGPoint) {
+        indicatorTarget = indicatorModule(at: point)
+    }
+
+    /// The section behind the contextual ear at `point` (screen coordinates): only on the resting ears or the hover
+    /// hint, where it is drawn, and only for a section that's on.
+    private func indicatorModule(at point: CGPoint) -> NotchModule? {
+        guard model.scenario == nil, model.settings.leftEar == .automatic, model.alert == nil,
+              model.state == .idle || model.state == .peek,
+              let window, window.isShown,
+              let module = model.contextualActivity.module, model.settings.modules.contains(module)
+        else { return nil }
+        let chrome = NotchChrome(model: model)
+        guard chrome.face == .ears || chrome.face == .peek(.hint) else { return nil }
+        // The island's hint is one centred row, the indicator on its left half; elsewhere the ears flank a gap.
+        let clearWidth = chrome.face == .ears || chrome.hasNotch ? chrome.clearWidth : 0
+        return NotchActivityLogic.isOnLeftEar(point, shape: window.visibleShapeScreenRect, clearWidth: clearWidth)
+            ? module : nil
+    }
+
+    /// VoiceOver's action on the contextual ear: open straight on its section, like a click on it.
+    private func openFromIndicator(_ module: NotchModule) {
+        guard model.scenario == nil, model.settings.modules.contains(module),
+              model.state == .idle || model.state == .peek else { return }
+        indicatorTarget = module
+        send(.click)
+        window?.panel.makeKey()
+    }
+
     // MARK: - Alerts
 
     /// Shows an alert as a peek if the notch is idle (or already showing another alert, which it replaces).
@@ -731,6 +779,7 @@ final class NotchCoordinator {
     /// Right-click on the notch (or the menu's "Customize the Notch…"): open it in edit mode, ready to rearrange.
     func beginEditing() {
         guard model.scenario == nil, model.state != .dragArmed, model.state != .dropTarget else { return }
+        indicatorTarget = nil
         model.alert = nil
         cancel(.alert)
         cancel(.closeGrace)
@@ -762,6 +811,7 @@ final class NotchCoordinator {
         }
         guard model.state == .idle || model.state == .peek || model.state == .open else { return }
         moveLiveForAttention()
+        indicatorTarget = nil
         model.alert = nil
         cancel(.alert)
         model.jump(to: .assistant)
@@ -803,7 +853,10 @@ final class NotchCoordinator {
         calendarAlerts.update(enabled: settings.alertsForCalendar && settings.modules.contains(.calendar))
         nowPlayingAlerts.update(enabled: settings.alertsForNowPlaying && settings.modules.contains(.nowPlaying))
         calendarAlerts.accessMayHaveChanged()
-        model.ears.update(left: settings.leftEar, right: settings.rightEar)
+        model.ears.update(left: settings.leftEar, right: settings.rightEar, modules: settings.modules)
+        model.nowPlaying.watchInBackground(
+            EarsLogic.watchesPlayback(left: settings.leftEar, right: settings.rightEar, modules: settings.modules)
+        )
         if appliedScreenSettings?.mode != settings.displayMode
             || appliedScreenSettings?.fullScreen != settings.fullScreenBehaviour {
             appliedScreenSettings = (settings.displayMode, settings.fullScreenBehaviour)

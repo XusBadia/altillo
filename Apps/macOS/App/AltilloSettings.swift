@@ -199,7 +199,7 @@ final class AltilloSettings {
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init) ?? .notch
         fullScreenBehaviour = defaults.string(forKey: Key.fullScreenBehaviour).flatMap(FullScreenBehaviour.init)
             ?? .dragOnly
-        leftEar = defaults.string(forKey: Key.leftEar).flatMap(EarContent.init) ?? .none
+        leftEar = defaults.string(forKey: Key.leftEar).flatMap(EarContent.init) ?? .automatic
         rightEar = defaults.string(forKey: Key.rightEar).flatMap(EarContent.init) ?? .shelf
         earsVisibility = defaults.string(forKey: Key.earsVisibility).flatMap(EarsVisibility.init) ?? .withActivity
         assistantWebSearch = defaults.object(forKey: Key.assistantWebSearch) as? Bool ?? false
@@ -343,6 +343,9 @@ enum FullScreenBehaviour: String, CaseIterable, Identifiable, Codable, Sendable 
 /// What an ear beside the resting notch shows.
 enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
     case none
+    /// Whatever matters most right now (`NotchActivity`): an agent asking, an event about to start, music playing,
+    /// AI usage. Tapping it opens that section.
+    case automatic
     /// How many things wait on the shelf.
     case shelf
     /// The next event and how long until it starts.
@@ -359,6 +362,7 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
     var title: String {
         switch self {
         case .none: String(localized: "Nothing")
+        case .automatic: String(localized: "What matters now")
         case .shelf: String(localized: "Things on the shelf")
         case .nextEvent: String(localized: "Next event")
         case .nowPlaying: String(localized: "Music playing")
@@ -370,6 +374,7 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
     var symbol: String {
         switch self {
         case .none: "circle.dashed"
+        case .automatic: "sparkles"
         case .shelf: "house"
         case .nextEvent: "calendar"
         case .nowPlaying: "waveform"
@@ -445,7 +450,7 @@ enum NotchPreset: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .minimal: String(localized: "Just the shelf. The notch stays out of sight.")
         case .developer: String(localized: "Shelf, Ask, AI usage and your agents.")
-        case .everything: String(localized: "Every section, with the next event beside the notch.")
+        case .everything: String(localized: "Every section, with what matters now beside the notch.")
         }
     }
 
@@ -460,8 +465,7 @@ enum NotchPreset: String, CaseIterable, Identifiable, Sendable {
     var leftEar: EarContent {
         switch self {
         case .minimal: .none
-        case .developer: .usage
-        case .everything: .nextEvent
+        case .developer, .everything: .automatic
         }
     }
 
