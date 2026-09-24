@@ -38,7 +38,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .assistant: String(localized: "Ask anything. It runs on your Mac with Apple Intelligence and can look at your shelf, calendar and music.")
         case .usage: String(localized: "How much Claude, Codex and company you have left.")
         case .agents: String(localized: "What your agents are doing, and what they're asking you for.")
-        case .calendar: String(localized: "Your next event, with a button to join.")
+        case .calendar: String(localized: "Your day and your month, with a button to join calls.")
         case .mirror: String(localized: "The Mac's camera, to check yourself before a call.")
         case .nowPlaying: String(localized: "What's playing, with its controls.")
         }

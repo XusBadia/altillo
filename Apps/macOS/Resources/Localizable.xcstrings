@@ -52,6 +52,23 @@
         }
       }
     },
+    "%@ %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ %@"
+          }
+        }
+      }
+    },
     "%@ (coming soon)" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -695,6 +712,23 @@
         }
       }
     },
+    "%lld events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld eventos"
+          }
+        }
+      }
+    },
     "%lld h" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1063,6 +1097,40 @@
         }
       }
     },
+    "1 event" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 event"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 evento"
+          }
+        }
+      }
+    },
+    "1:1 with Marta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1:1 with Marta"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1:1 con Marta"
+          }
+        }
+      }
+    },
     "5 h" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1263,6 +1331,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Al cabo de una semana"
+          }
+        }
+      }
+    },
+    "Agenda" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agenda"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agenda"
           }
         }
       }
@@ -1522,6 +1607,23 @@
         }
       }
     },
+    "Altillo 1.0" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo 1.0"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo 1.0"
+          }
+        }
+      }
+    },
     "Altillo Settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1573,6 +1675,23 @@
         }
       }
     },
+    "Altillo can't see your calendars yet. Events never leave your Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo can't see your calendars yet. Events never leave your Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo aún no puede ver tus calendarios. Los eventos nunca salen de tu Mac."
+          }
+        }
+      }
+    },
     "Altillo doesn't have permission to use it. Turn it on in System Settings and open the notch again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1586,6 +1705,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo no tiene permiso para usarla. Actívalo en Ajustes del Sistema y vuelve a abrir el notch."
+          }
+        }
+      }
+    },
+    "Altillo isn't allowed to see your calendars. You can change that in System Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo isn't allowed to see your calendars. You can change that in System Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no tiene permiso para ver tus calendarios. Puedes cambiarlo en Ajustes del Sistema."
           }
         }
       }
@@ -1705,6 +1841,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Siempre"
+          }
+        }
+      }
+    },
+    "Always allow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Always allow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir siempre"
           }
         }
       }
@@ -2066,6 +2219,23 @@
         }
       }
     },
+    "Back to the month (Esc)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the month (Esc)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver al mes (Esc)"
+          }
+        }
+      }
+    },
     "Behaviour" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2113,6 +2283,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agenda"
+          }
+        }
+      }
+    },
+    "Calendar options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendar options"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opciones del calendario"
+          }
+        }
+      }
+    },
+    "Calendars" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendars"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calendarios"
           }
         }
       }
@@ -2198,6 +2402,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mirando la agenda…"
+          }
+        }
+      }
+    },
+    "Choose Calendars…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose Calendars…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir calendarios…"
           }
         }
       }
@@ -2355,6 +2576,23 @@
         }
       }
     },
+    "Climbing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Climbing"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escalada"
+          }
+        }
+      }
+    },
     "Cloud drive" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2368,6 +2606,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Disco en la nube"
+          }
+        }
+      }
+    },
+    "Clínica Sol" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clínica Sol"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clínica Sol"
           }
         }
       }
@@ -2572,6 +2827,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Personalizar el notch"
+          }
+        }
+      }
+    },
+    "Dentist" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dentist"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dentista"
           }
         }
       }
@@ -3375,6 +3647,40 @@
         }
       }
     },
+    "For live things like scores, news or prices, Ask writes a short search from your question and sends it to DuckDuckGo (Bing if DuckDuckGo is busy), then reads the top pages it finds; for the weather, only the place goes to Open-Meteo. No cookies, no account. Answers that used the web show a globe with their sources." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For live things like scores, news or prices, Ask writes a short search from your question and sends it to DuckDuckGo (Bing if DuckDuckGo is busy), then reads the top pages it finds; for the weather, only the place goes to Open-Meteo. No cookies, no account. Answers that used the web show a globe with their sources."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para cosas en vivo como resultados, noticias o precios, Pregunta escribe una búsqueda breve a partir de tu pregunta y la envía a DuckDuckGo (o a Bing si DuckDuckGo está ocupado), y lee las primeras páginas que encuentra. Para el tiempo, solo el lugar va a Open-Meteo. Sin cookies ni cuenta. Las respuestas que usan la web muestran un globo con sus fuentes."
+          }
+        }
+      }
+    },
+    "Free" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Libre"
+          }
+        }
+      }
+    },
     "Fri 18 Sep 10:24" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3409,6 +3715,23 @@
         }
       }
     },
+    "Give Access…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Give Access…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dar acceso…"
+          }
+        }
+      }
+    },
     "Give access" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3439,6 +3762,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Que el notch asome"
+          }
+        }
+      }
+    },
+    "Go back to today (T)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go back to today (T)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a hoy (T)"
           }
         }
       }
@@ -3524,6 +3864,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ayúdame a escribir un mensaje breve y amable para rechazar una invitación."
+          }
+        }
+      }
+    },
+    "Hidden calendars leave the grid and the agenda. Nothing changes in Calendar itself." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hidden calendars leave the grid and the agenda. Nothing changes in Calendar itself."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los calendarios ocultos desaparecen del mes y de la agenda. En Calendario no cambia nada."
           }
         }
       }
@@ -3813,6 +4170,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No he podido guardar lo que has soltado. Puedes volver a intentarlo."
+          }
+        }
+      }
+    },
+    "I couldn't reach the web. Try again in a moment." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I couldn't reach the web. Try again in a moment."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No he podido conectar con la web. Vuelve a probar en un momento."
           }
         }
       }
@@ -4140,6 +4514,23 @@
         }
       }
     },
+    "Layout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Layout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disposición"
+          }
+        }
+      }
+    },
     "Leave Empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4208,6 +4599,40 @@
         }
       }
     },
+    "Let Ask search the web" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let Ask search the web"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dejar que Pregunta busque en la web"
+          }
+        }
+      }
+    },
+    "Let Ask search the web whenever a question needs it. You can turn it off in Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let Ask search the web whenever a question needs it. You can turn it off in Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deja que Pregunta busque en la web siempre que haga falta. Puedes desactivarlo en Ajustes."
+          }
+        }
+      }
+    },
     "Let go to put it away" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4255,6 +4680,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Enlace · %@"
+          }
+        }
+      }
+    },
+    "Lisbon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lisbon"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lisboa"
           }
         }
       }
@@ -4514,6 +4956,57 @@
         }
       }
     },
+    "Month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Month"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mes"
+          }
+        }
+      }
+    },
+    "Month and agenda" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Month and agenda"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mes y agenda"
+          }
+        }
+      }
+    },
+    "More sections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "More sections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más secciones"
+          }
+        }
+      }
+    },
     "Move earlier" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4769,6 +5262,23 @@
         }
       }
     },
+    "Next month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next month"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mes siguiente"
+          }
+        }
+      }
+    },
     "No icons match your search." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4922,6 +5432,74 @@
         }
       }
     },
+    "Nothing leaves this Mac. When a question needs something live, Ask offers to search the web for that question only, and you decide." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing leaves this Mac. When a question needs something live, Ask offers to search the web for that question only, and you decide."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No sale nada de este Mac. Cuando una pregunta necesita algo en vivo, Pregunta te ofrece buscar en la web solo esa vez, y decides tú."
+          }
+        }
+      }
+    },
+    "Nothing left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No queda nada"
+          }
+        }
+      }
+    },
+    "Nothing left today." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing left today."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No queda nada hoy."
+          }
+        }
+      }
+    },
+    "Nothing on this day." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing on this day."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada este día."
+          }
+        }
+      }
+    },
     "Nothing playing up here" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4969,6 +5547,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sonando"
+          }
+        }
+      }
+    },
+    "On My Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On My Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En mi Mac"
           }
         }
       }
@@ -5177,6 +5772,23 @@
         }
       }
     },
+    "Open Calendar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Calendar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Calendario"
+          }
+        }
+      }
+    },
     "Open Inbox" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5211,6 +5823,23 @@
         }
       }
     },
+    "Open Privacy Settings…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Privacy Settings…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir ajustes de privacidad…"
+          }
+        }
+      }
+    },
     "Open Settings" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5241,6 +5870,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abre una app que tenga icono en la barra de menús y vuelve a actualizar."
+          }
+        }
+      }
+    },
+    "Open in Calendar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in Calendar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir en Calendario"
+          }
+        }
+      }
+    },
+    "Open in browser" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open in browser"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir en el navegador"
           }
         }
       }
@@ -5500,6 +6163,23 @@
         }
       }
     },
+    "Opens the page in your browser" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens the page in your browser"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre la página en tu navegador"
+          }
+        }
+      }
+    },
     "Out of sight entirely. The Ask shortcut still opens it." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5670,6 +6350,23 @@
         }
       }
     },
+    "Planning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planning"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planificación"
+          }
+        }
+      }
+    },
     "Play" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5751,6 +6448,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Anterior"
+          }
+        }
+      }
+    },
+    "Previous month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Previous month"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mes anterior"
+          }
+        }
+      }
+    },
+    "Privately, on this Mac. I can look at your shelf, calendar, music and clipboard, and search the web." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privately, on this Mac. I can look at your shelf, calendar, music and clipboard, and search the web."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En privado, en este Mac. Puedo mirar tu altillo, tu calendario, tu música y lo que has copiado, y buscar en la web."
           }
         }
       }
@@ -6112,6 +6843,23 @@
         }
       }
     },
+    "Right-click the calendar in the notch to switch layout from there." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right-click the calendar in the notch to switch layout from there."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic derecho en el calendario del notch para cambiar la disposición desde allí."
+          }
+        }
+      }
+    },
     "Running tests · 42 of 118" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6214,6 +6962,23 @@
         }
       }
     },
+    "Search for it in your browser instead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search for it in your browser instead"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Búscalo en tu navegador"
+          }
+        }
+      }
+    },
     "Search icons" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6227,6 +6992,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscar iconos"
+          }
+        }
+      }
+    },
+    "Search the web" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the web"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar en la web"
+          }
+        }
+      }
+    },
+    "Searched the web" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searched the web"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha buscado en la web"
+          }
+        }
+      }
+    },
+    "Searching the web…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Searching the web…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscando en la web…"
           }
         }
       }
@@ -6265,6 +7081,23 @@
         }
       }
     },
+    "Sends this question to DuckDuckGo, just this once, and answers again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sends this question to DuckDuckGo, just this once, and answers again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Envía esta pregunta a DuckDuckGo, solo esta vez, y vuelve a responder"
+          }
+        }
+      }
+    },
     "Set up" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6295,6 +7128,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configura el cajón para elegir qué iconos de la barra de menús guardas."
+          }
+        }
+      }
+    },
+    "Settings sections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings sections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secciones de ajustes"
           }
         }
       }
@@ -6401,6 +7251,40 @@
         }
       }
     },
+    "Show All-Day Events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show All-Day Events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar eventos de todo el día"
+          }
+        }
+      }
+    },
+    "Show all-day events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show all-day events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar eventos de todo el día"
+          }
+        }
+      }
+    },
     "Show icons" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6469,6 +7353,23 @@
         }
       }
     },
+    "Show the day (Space)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show the day (Space)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ver el día (espacio)"
+          }
+        }
+      }
+    },
     "Show the ears" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6533,6 +7434,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrarlas"
+          }
+        }
+      }
+    },
+    "Shows the day's events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the day's events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra los eventos del día"
           }
         }
       }
@@ -6622,6 +7540,23 @@
         }
       }
     },
+    "Source: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Source: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fuente: %@"
+          }
+        }
+      }
+    },
     "Space: look · Delete: remove" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6652,6 +7587,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Registro de pruebas"
+          }
+        }
+      }
+    },
+    "Stand-up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand-up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand-up"
           }
         }
       }
@@ -7309,6 +8261,23 @@
         }
       }
     },
+    "There are no calendars on this Mac yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There are no calendars on this Mac yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no hay calendarios en este Mac."
+          }
+        }
+      }
+    },
     "Things on the shelf" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7390,6 +8359,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esta versión no tiene configurado un canal de actualizaciones."
+          }
+        }
+      }
+    },
+    "This needs something live. Look it up on the web?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This needs something live. Look it up on the web?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto necesita algo en vivo. ¿Lo busco en la web?"
+          }
+        }
+      }
+    },
+    "Today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy"
+          }
+        }
+      }
+    },
+    "Tomorrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana"
           }
         }
       }
@@ -8176,6 +9196,23 @@
         }
       }
     },
+    "Worked out exactly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Worked out exactly"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculado con exactitud"
+          }
+        }
+      }
+    },
     "Working" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8189,6 +9226,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Trabajando"
+          }
+        }
+      }
+    },
+    "Working it out…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working it out…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Calculando…"
           }
         }
       }
@@ -8240,6 +9294,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tu respuesta está lista"
+          }
+        }
+      }
+    },
+    "Your day and your month, with a button to join calls." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your day and your month, with a button to join calls."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu día y tu mes, con un botón para unirte a las llamadas."
           }
         }
       }
@@ -8580,6 +9651,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "música"
+          }
+        }
+      }
+    },
+    "no events" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no events"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sin eventos"
           }
         }
       }

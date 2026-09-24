@@ -1,7 +1,7 @@
 import AltilloDesign
 import SwiftUI
 
-/// Edit mode's body (150 pt, PLAN §4): the tabs to arrange, the box of put-away sections, what the selected ear
+/// Edit mode's body (200 pt, PLAN §4): the tabs to arrange, the box of put-away sections, what the selected ear
 /// shows, and the presets. Every change is live: the tabs above, the ears and Settings follow as you go.
 ///
 /// Four compact rows, each with its name on the left. The ears themselves are slots in the band beside the notch
@@ -12,8 +12,16 @@ struct DesvanEditBody: View {
 
     @Namespace private var namespace
 
-    static let captionWidth: CGFloat = 56
-    static let rowSpacing: CGFloat = 7
+    /// Wide enough for "Right ear" and its arrow at full size.
+    static let captionWidth: CGFloat = 70
+    static let rowSpacing: CGFloat = 12
+    static let topPadding: CGFloat = 4
+    /// The put-away box and the ear chips: 26–28 pt pieces (28 pt targets) with room around them.
+    static let chipRowHeight: CGFloat = 32
+    static let presetsHeight: CGFloat = 46
+
+    // 200 pt budget (`NotchChrome.ExpandedContent.editing`): 4 (top) + 50 (tabs: 42 tiles + 8 for the "−" badges)
+    // + 32 (put away) + 32 (ears) + 46 (presets) + 3 × 12 (spacing) = 200.
 
     var body: some View {
         VStack(alignment: .leading, spacing: Self.rowSpacing) {
@@ -26,21 +34,21 @@ struct DesvanEditBody: View {
             row { caption(Text("Put away")) } content: {
                 DesvanEditTray(model: model, session: session, namespace: namespace)
             }
-            .frame(height: 26)
+            .frame(height: Self.chipRowHeight)
             .zIndex(2)
 
             row { earCaption } content: {
                 DesvanEditEarsRow(model: model, session: session)
             }
-            .frame(height: 24)
+            .frame(height: Self.chipRowHeight)
             .zIndex(1)
 
             row { caption(Text("Presets")) } content: {
                 DesvanEditPresets(model: model, session: session)
             }
-            .frame(height: 32)
+            .frame(height: Self.presetsHeight)
         }
-        .padding(.top, 2)
+        .padding(.top, Self.topPadding)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onChange(of: model.settings.modules) { _, modules in
             // A section put away (or dropped by a preset) can't stay the one the notch opens on.
@@ -61,7 +69,7 @@ struct DesvanEditBody: View {
 
     private func caption(_ text: Text) -> some View {
         text
-            .font(Desvan.Typeface.rounded(10.5, weight: .semibold))
+            .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
             .foregroundStyle(Desvan.Palette.paperTertiary)
             .lineLimit(1)
             .minimumScaleFactor(0.8)
@@ -71,10 +79,10 @@ struct DesvanEditBody: View {
     private var earCaption: some View {
         HStack(spacing: 2) {
             Image(systemName: session.selectedEar == .left ? "arrow.up.left" : "arrow.up.right")
-                .font(.system(size: 8, weight: .bold))
+                .font(.system(size: 10.5, weight: .bold))
             Text(session.selectedEar.title)
         }
-        .font(Desvan.Typeface.rounded(10.5, weight: .semibold))
+        .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
         .foregroundStyle(Desvan.Palette.bulb.opacity(0.85))
         .lineLimit(1)
         .minimumScaleFactor(0.75)
@@ -106,10 +114,11 @@ private struct DesvanEditStrip: View {
     @GestureState private var isDragging = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    static let height: CGFloat = 38
-    static let tileHeight: CGFloat = 30
+    static let height: CGFloat = 50
+    static let tileHeight: CGFloat = 42
     static let spacing: CGFloat = 5
-    static let maxTile: CGFloat = 92
+    /// Room for the longest name ("Now playing") beside its icon.
+    static let maxTile: CGFloat = 108
 
     var body: some View {
         GeometryReader { proxy in
@@ -332,14 +341,21 @@ private struct DesvanEditTile: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
-        HStack(spacing: 5) {
-            icon
+        let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
+        Group {
             if showsTitle {
-                Text(module.title)
-                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
+                // The name only where it fits at full size; a plaque too narrow for it keeps just its icon.
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: 5) {
+                        icon
+                        Text(module.title)
+                            .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                            .lineLimit(1)
+                    }
+                    icon
+                }
+            } else {
+                icon
             }
         }
         .foregroundStyle(Desvan.Palette.paper)
@@ -356,20 +372,21 @@ private struct DesvanEditTile: View {
                 .shadow(color: .black.opacity(isLifted ? 0.75 : 0.6), radius: isLifted ? 7 : 1.5, y: isLifted ? 4 : 1)
                 .shadow(color: Desvan.Palette.bulb.opacity(isLifted ? 0.3 : 0), radius: 8)
         }
+        // Before the badge: a content shape limits hit testing underneath it, and the "−" reaches past the corner.
+        .contentShape(shape)
         .overlay(alignment: .topLeading) {
-            if !module.isAlwaysOn { minusBadge.offset(x: -5, y: -5) }
+            if !module.isAlwaysOn { minusBadge.offset(x: -3, y: -3) }
         }
         .overlay(alignment: .topTrailing) {
             if module.isAlwaysOn {
                 Image(systemName: "pin.fill")
-                    .font(.system(size: 6.5, weight: .bold))
+                    .font(.system(size: 9.5, weight: .bold))
                     .foregroundStyle(Desvan.Palette.kraft)
                     .rotationEffect(.degrees(30))
-                    .offset(x: -3, y: 3)
+                    .offset(x: -4, y: 4)
                     .help("The shelf is always first")
             }
         }
-        .contentShape(shape)
         .scaleEffect(isLifted && !reduceMotion ? 1.08 : 1)
         // Lifting only pauses the rock: swapping the view's structure mid-drag would cancel the pointer's gesture.
         .modifier(DesvanJiggle(isEnabled: !module.isAlwaysOn && !reduceMotion, isPaused: isLifted, seed: seed))
@@ -382,10 +399,10 @@ private struct DesvanEditTile: View {
     @ViewBuilder
     private var icon: some View {
         if module.isAlwaysOn {
-            DesvanHouseMark(size: 12, lit: 1)
+            DesvanHouseMark(size: 16, lit: 1)
         } else {
             Image(systemName: module.symbol)
-                .font(.system(size: 11.5, weight: .medium))
+                .font(.system(size: 15.5, weight: .medium))
                 .symbolRenderingMode(.hierarchical)
         }
     }
@@ -407,21 +424,20 @@ private struct DesvanEditTile: View {
         }
     }
 
-    /// "−": into the box.
+    /// "−": into the box. A 16 pt badge with a 28 pt target (4 pt of it over the neighbour's rounded corner).
     private var minusBadge: some View {
         Button(action: putAway) {
             Image(systemName: "minus")
-                .font(.system(size: 7.5, weight: .heavy))
+                .font(.system(size: 9, weight: .heavy))
                 .foregroundStyle(Desvan.Palette.ink)
-                .frame(width: 14, height: 14)
+                .frame(width: 16, height: 16)
                 .background {
                     Circle()
                         .fill(Desvan.Palette.kraft)
                         .overlay { Circle().strokeBorder(.black.opacity(0.35), lineWidth: 0.5) }
                         .shadow(color: .black.opacity(0.6), radius: 1.5, y: 1)
                 }
-                .frame(width: 20, height: 20)
-                .contentShape(Circle())
+                .desvanHitTarget()
         }
         .buttonStyle(DesvanEditPressStyle())
         .help("Put \(module.title) away")
@@ -482,7 +498,7 @@ private struct DesvanEditTray: View {
     var body: some View {
         let away = NotchModule.allCases.filter { !model.settings.isEnabled($0) }
         let targeted = isTargeted
-        let titles = width >= CGFloat(away.count) * 96
+        let titles = width >= CGFloat(away.count) * 104
         let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
         HStack(spacing: 5) {
             ForEach(away) { module in
@@ -490,8 +506,8 @@ private struct DesvanEditTray: View {
             }
             if away.isEmpty {
                 Text(targeted ? "Let go to put it away" : "Nothing put away. Tap − on a tab.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(targeted ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(targeted ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
                     .lineLimit(1)
                     .padding(.leading, 6)
                     .transition(.opacity)
@@ -536,26 +552,26 @@ private struct DesvanEditTray: View {
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: "plus")
-                    .font(.system(size: 8, weight: .heavy))
+                    .font(.system(size: 10, weight: .heavy))
                     .foregroundStyle(Desvan.Palette.bulb)
                 Image(systemName: module.symbol)
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .symbolRenderingMode(.hierarchical)
                 if titles {
                     Text(module.title)
-                        .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                        .font(Desvan.Typeface.rounded(12, weight: .semibold))
                         .lineLimit(1)
                 }
             }
             .foregroundStyle(Desvan.Palette.paperSecondary)
             .padding(.horizontal, 7)
-            .frame(height: 20)
+            .frame(height: 26)
             .background {
                 Capsule()
                     .fill(Desvan.Palette.wood.opacity(0.9))
                     .overlay { Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.75) }
             }
-            .contentShape(Capsule())
+            .desvanHitTarget()
             .matchedGeometryEffect(id: module, in: namespace)
         }
         .buttonStyle(DesvanEditPressStyle())
@@ -620,6 +636,7 @@ private struct DesvanEarChip: View {
             DesvanEarChipLabel(content: content, titles: titles, isChosen: isChosen, isInOtherEar: otherSide,
                                isHovering: isHovering)
                 .opacity(isDragged ? 0.35 : 1)
+                .desvanHitTarget()
         }
         .buttonStyle(DesvanEditPressStyle())
         .disabled(!content.isAvailable)
@@ -691,16 +708,18 @@ struct DesvanEarChipLabel: View {
     var isInOtherEar = false
     var isHovering = false
 
+    static let height: CGFloat = 28
+
     var body: some View {
         let shape = Capsule()
         HStack(spacing: 4) {
             HStack(spacing: 4) {
                 Image(systemName: content.symbol)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .symbolRenderingMode(.hierarchical)
                 if titles {
                     Text(content.shortTitle)
-                        .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                        .font(Desvan.Typeface.rounded(12, weight: .semibold))
                         .lineLimit(1)
                 }
             }
@@ -708,7 +727,7 @@ struct DesvanEarChipLabel: View {
             .opacity(content.isAvailable ? 1 : 0.4)
             if !content.isAvailable, titles {
                 Text("soon")
-                    .font(Desvan.Typeface.rounded(8.5, weight: .bold))
+                    .font(Desvan.Typeface.rounded(11, weight: .bold))
                     .foregroundStyle(Desvan.Palette.ink)
                     .padding(.horizontal, 4)
                     .padding(.vertical, 1)
@@ -717,8 +736,8 @@ struct DesvanEarChipLabel: View {
         }
         .foregroundStyle(isChosen ? Desvan.Palette.paper : (isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary))
         .padding(.horizontal, titles ? 8 : 0)
-        .frame(minWidth: 24)
-        .frame(height: 22)
+        .frame(minWidth: DesvanHitTarget.minimum)
+        .frame(height: Self.height)
         .background {
             if isChosen {
                 shape
@@ -774,11 +793,11 @@ private struct DesvanEditVisibility: View {
             }
         } label: {
             Text(verbatim: title(visibility))
-                .font(Desvan.Typeface.rounded(10.5, weight: .semibold))
+                .font(Desvan.Typeface.rounded(12, weight: .semibold))
                 .foregroundStyle(isSelected ? Desvan.Palette.paper : Desvan.Palette.paperTertiary)
                 .lineLimit(1)
                 .padding(.horizontal, 8)
-                .frame(height: 18)
+                .frame(height: DesvanEarChipLabel.height - 4)
                 .background {
                     if isSelected {
                         Capsule()
@@ -787,7 +806,8 @@ private struct DesvanEditVisibility: View {
                             .overlay { Capsule().strokeBorder(DesvanEditBrass.rim, lineWidth: 0.8) }
                     }
                 }
-                .contentShape(Capsule())
+                // With the switch's 2 pt rim: a 28 pt target.
+                .desvanHitTarget()
         }
         .buttonStyle(DesvanEditPressStyle())
         .help(visibility.title)
@@ -845,28 +865,28 @@ private struct DesvanPresetCard: View {
     @State private var isHovering = false
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
-        VStack(alignment: .leading, spacing: 3) {
+        let shape = RoundedRectangle(cornerRadius: 10, style: .continuous)
+        VStack(alignment: .leading, spacing: 4) {
             HStack(spacing: 4) {
                 Text(preset.title)
-                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                     .foregroundStyle(isSelected || isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
                     .lineLimit(1)
                 Spacer(minLength: 0)
                 if isSelected {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 8, weight: .heavy))
+                        .font(.system(size: 10.5, weight: .heavy))
                         .foregroundStyle(Desvan.Palette.bulb)
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            HStack(spacing: 3) {
-                ForEach(preset.modules) { module in
-                    Image(systemName: module.symbol)
-                        .font(.system(size: 7.5, weight: .semibold))
-                }
+            // 11 pt wherever it fits; all seven of Everything on a card at the narrowest notch need 10, then 9.
+            ViewThatFits(in: .horizontal) {
+                symbols(size: 11, spacing: 3.5)
+                symbols(size: 10, spacing: 2.5)
+                symbols(size: 9, spacing: 2)
             }
-            .foregroundStyle(isSelected ? Desvan.Palette.bulb.opacity(0.8) : Desvan.Palette.paperTertiary)
+            .foregroundStyle(isSelected ? Desvan.Palette.bulb.opacity(0.8) : Desvan.Palette.paperSecondary)
             .lineLimit(1)
         }
         .padding(.horizontal, 8)
@@ -889,6 +909,15 @@ private struct DesvanPresetCard: View {
         }
         .contentShape(shape)
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+    }
+
+    private func symbols(size: CGFloat, spacing: CGFloat) -> some View {
+        HStack(spacing: spacing) {
+            ForEach(preset.modules) { module in
+                Image(systemName: module.symbol)
+                    .font(.system(size: size, weight: .semibold))
+            }
+        }
     }
 }
 

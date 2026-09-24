@@ -5,8 +5,8 @@ import SwiftUI
 
 /// Prototype of direction B, «Desván» (docs/design/direcciones.md): the attic at home, lit by a warm bulb.
 ///
-/// Same contract as `NotchRootView`: the pure black silhouette is drawn top-centred in the fixed 760×320 panel,
-/// morphs between faces (each laid out at its final size and clipped by the shape) and reports its drawn size to
+/// Same contract as `NotchRootView`: the pure black silhouette is drawn top-centred in the fixed panel
+/// (`NotchLayout.panelSize`), morphs between faces (each laid out at its final size and clipped by the shape) and reports its drawn size to
 /// `model.visibleShapeSize` for hit-testing. The personality lives inside: the bulb's light, wood, paper and kraft.
 struct DesvanRootView: View {
     let model: NotchModel
@@ -253,7 +253,7 @@ struct DesvanEarContent: View {
                     DesvanShelfCount(count: model.shelf.count)
                 } else if style != .live {
                     // Nobody home: the house with its light off.
-                    DesvanHouseMark(size: 11, lit: 0, outline: Desvan.Palette.paperTertiary)
+                    DesvanHouseMark(size: 13, lit: 0, outline: Desvan.Palette.paperTertiary)
                         .accessibilityElement(children: .ignore)
                         .accessibilityLabel("The shelf is empty")
                 }
@@ -284,7 +284,7 @@ struct DesvanEarGlyph: View {
 
     var body: some View {
         Image(systemName: symbol)
-            .font(.system(size: 10.5, weight: .semibold))
+            .font(.system(size: 13, weight: .semibold))
             .foregroundStyle(Desvan.Palette.paperTertiary)
     }
 }
@@ -312,7 +312,7 @@ struct DesvanNextEventEar: View {
         HStack(spacing: 3) {
             if glyph {
                 Image(systemName: "calendar")
-                    .font(.system(size: 9.5, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
             }
             Text(verbatim: text)
@@ -335,7 +335,7 @@ struct DesvanNextEventEar: View {
 /// Four little bars dancing while music plays. Still (and low) when paused, and still with Reduce Motion.
 struct DesvanEqualiser: View {
     var isPlaying: Bool
-    var height: CGFloat = 11
+    var height: CGFloat = 13
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -383,8 +383,8 @@ struct DesvanUsageEar: View {
     var body: some View {
         let used = usage.session.used
         HStack(spacing: 5) {
-            DesvanRing(value: used, lineWidth: 2.2)
-                .frame(width: 12, height: 12)
+            DesvanRing(value: used, lineWidth: 2.4)
+                .frame(width: 14, height: 14)
             Text("\(Int((used * 100).rounded()))")
                 .font(Desvan.Typeface.figure(13, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paper)
@@ -400,7 +400,7 @@ struct DesvanShelfCount: View {
 
     var body: some View {
         HStack(spacing: 4) {
-            DesvanHouseMark(size: 11)
+            DesvanHouseMark(size: 13)
             Text("\(count)")
                 .font(Desvan.Typeface.figure(13, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paper)
@@ -562,7 +562,7 @@ private struct DesvanPeekFace: View {
         case .hint: EmptyView()
         case .shelf: DesvanHouseMark(size: 13)
         case .usageAlert: AgentGlyph(agent: model.demo.primaryUsage.agent, size: 15)
-        case .agentWaiting: DesvanKnockingHand(size: 12)
+        case .agentWaiting: DesvanKnockingHand(size: 14)
         case .alert: if let alert = model.alert { DesvanAlertSymbol(alert: alert) }
         }
     }
@@ -576,8 +576,8 @@ private struct DesvanPeekFace: View {
         case .usageAlert:
             // The alert itself: burning faster than the window allows.
             HStack(spacing: 3) {
-                Image(systemName: "arrow.up.right").font(.system(size: 9, weight: .bold))
-                Text("fast").font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .bold))
+                Text("fast").font(Desvan.Typeface.rounded(12.5, weight: .semibold))
             }
             .foregroundStyle(Desvan.Palette.warning)
         case .agentWaiting:
@@ -782,7 +782,7 @@ private struct DesvanDragArmedFace: View {
         HStack(spacing: 3) {
             Text("Put it up")
             Image(systemName: "arrow.up")
-                .font(.system(size: 10.5, weight: .bold))
+                .font(.system(size: 11.5, weight: .bold))
                 .symbolEffect(.bounce.up.byLayer, options: .repeat(.periodic(delay: 1.4)), isActive: !reduceMotion)
         }
         .font(Desvan.Typeface.rounded(13, weight: .semibold))

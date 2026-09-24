@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Sections of the Settings window. A plain macOS tabbed settings window, dressed in Desván's warmth:
-/// dark wood surfaces, rounded type and the bulb as the accent.
+/// Sections of the Settings window. A macOS settings window with its sections in the title bar, dressed in Desván's
+/// warmth: dark wood surfaces, rounded type and the bulb as the accent.
 enum SettingsTab: String, CaseIterable, Identifiable {
     case modules, drawer, size, behaviour, about
 
@@ -38,33 +38,125 @@ struct SettingsRootView: View {
     @Bindable private var settings = AltilloSettings.shared
 
     var body: some View {
-        TabView(selection: $navigation.tab) {
-            SettingsModulesPane(settings: settings)
-                .settingsTab(.modules)
-            SettingsDrawerPane()
-                .settingsTab(.drawer)
-            SettingsSizePane(settings: settings)
-                .settingsTab(.size)
-            SettingsBehaviourPane(settings: settings)
-                .settingsTab(.behaviour)
-            SettingsAboutPane()
-                .settingsTab(.about)
-        }
+        // The window draws its content under the title bar and the tab bar is the title bar, beside the traffic
+        // lights. The pane keeps to the safe area below it, so its lists and scroll views start where they should.
+        pane
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .overlay(alignment: .top) {
+                Rectangle()
+                    .fill(Desvan.Palette.hairlineStrong)
+                    .frame(height: 0.75)
+            }
+            .overlay(alignment: .top) {
+                GeometryReader { proxy in
+                    SettingsTabBar(selection: $navigation.tab)
+                        .frame(height: proxy.safeAreaInsets.top)
+                        .offset(y: -proxy.safeAreaInsets.top)
+                }
+            }
         .tint(Desvan.Palette.bulb)
-        .frame(
-            width: SettingsWindowController.contentSize.width,
-            height: SettingsWindowController.contentSize.height
-        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(SettingsBackdrop())
+    }
+
+    @ViewBuilder
+    private var pane: some View {
+        switch navigation.tab {
+        case .modules: SettingsModulesPane(settings: settings)
+        case .drawer: SettingsDrawerPane()
+        case .size: SettingsSizePane(settings: settings)
+        case .behaviour: SettingsBehaviourPane(settings: settings)
+        case .about: SettingsAboutPane()
+        }
     }
 }
 
-private extension View {
-    func settingsTab(_ tab: SettingsTab) -> some View {
-        self
-            .background(SettingsBackdrop())
-            .tabItem { Label(tab.title, systemImage: tab.symbol) }
-            .tag(tab)
+// MARK: - Tab bar
+
+/// The window's sections, in the title bar: a symbol over its name, the chosen one on the same brass-rimmed plaque as
+/// the notch's active tab. ⌘1–⌘5 switch too. If the names ever don't fit beside the traffic lights (a longer
+/// translation), they move to the tooltips and only the symbols stay. macOS's "Larger Text" display setting scales
+/// the whole window evenly, so the proportions hold; the window's height is chosen to fit it.
+private struct SettingsTabBar: View {
+    @Binding var selection: SettingsTab
+    @Namespace private var namespace
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// Room kept free on both sides for the traffic lights, so the centred tabs never slide under them.
+    private static let trafficLightsInset: CGFloat = 76
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            bar(showsTitles: true)
+            bar(showsTitles: false)
+        }
+        .padding(.horizontal, Self.trafficLightsInset)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Settings sections")
+    }
+
+    private func bar(showsTitles: Bool) -> some View {
+        HStack(spacing: 2) {
+            ForEach(Array(SettingsTab.allCases.enumerated()), id: \.element) { index, tab in
+                SettingsTabButton(tab: tab, isSelected: selection == tab, showsTitle: showsTitles,
+                                  namespace: namespace) {
+                    withAnimation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion)) {
+                        selection = tab
+                    }
+                }
+                .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: .command)
+            }
+        }
+        .fixedSize()
+    }
+}
+
+private struct SettingsTabButton: View {
+    let tab: SettingsTab
+    let isSelected: Bool
+    let showsTitle: Bool
+    let namespace: Namespace.ID
+    let action: () -> Void
+
+    @State private var isHovering = false
+    private let symbolSize: CGFloat = 15
+    private let titleSize: CGFloat = 11.5
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 2) {
+                Image(systemName: tab.symbol)
+                    .font(.system(size: symbolSize, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .frame(height: symbolSize + 5)
+                if showsTitle {
+                    Text(tab.title)
+                        .font(Desvan.Typeface.rounded(titleSize, weight: .semibold))
+                        .lineLimit(1)
+                        .fixedSize()
+                }
+            }
+            .foregroundStyle(isSelected || isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
+            .shadow(color: .black.opacity(isSelected ? 0.7 : 0), radius: 0, y: -0.5)
+            .padding(.horizontal, 9)
+            .padding(.vertical, 4)
+            .frame(minWidth: showsTitle ? 62 : 38, minHeight: 40)
+            .background {
+                if isSelected {
+                    DesvanTabPlaque(cornerRadius: 9)
+                        .matchedGeometryEffect(id: "settingsTab", in: namespace)
+                } else if isHovering {
+                    RoundedRectangle(cornerRadius: 9, style: .continuous).fill(Desvan.Palette.paper.opacity(0.07))
+                }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+        .help(tab.title)
+        .accessibilityLabel(tab.title)
+        .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }
 
@@ -106,12 +198,12 @@ struct SettingsPane<Content: View>: View {
                     .font(Desvan.Typeface.display(17, weight: 650))
                     .foregroundStyle(Desvan.Palette.paper)
                 Text(subtitle)
-                    .font(.system(size: 11.5))
+                    .font(.system(size: 12))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 14)
             .padding(.bottom, 10)
 
             content

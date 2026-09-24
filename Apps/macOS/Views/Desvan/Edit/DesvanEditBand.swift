@@ -10,8 +10,10 @@ enum DesvanEdit {
     @MainActor static var didCustomizeOnLaunch = false
     /// How long the Undo button glows after a preset replaced the configuration.
     static let undoOffer: Duration = .seconds(6)
-    /// A slot's well inside an ear.
-    static let slotWidth: CGFloat = 44
+    /// A slot's well inside an ear (`NotchChrome.earWidth` is 50: the pointer gets the whole ear).
+    static let slotWidth: CGFloat = 48
+    /// Height of the band's capsules (Undo, Done): they fit the island's 28 pt band with room to breathe.
+    static let bandButtonHeight: CGFloat = 24
 }
 
 // MARK: - Band
@@ -97,15 +99,16 @@ private struct DesvanEditUndoButton: View {
         } label: {
             ViewThatFits(in: .horizontal) {
                 HStack(spacing: 4) {
-                    Image(systemName: "arrow.uturn.backward").font(.system(size: 10, weight: .bold))
+                    Image(systemName: "arrow.uturn.backward").font(.system(size: 12, weight: .bold))
                     Text("Undo")
                 }
-                Image(systemName: "arrow.uturn.backward").font(.system(size: 10.5, weight: .bold))
+                Image(systemName: "arrow.uturn.backward").font(.system(size: 12, weight: .bold))
             }
-            .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+            .font(Desvan.Typeface.rounded(12, weight: .semibold))
             .foregroundStyle(offered ? Desvan.Palette.bulb : (isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary))
             .padding(.horizontal, 8)
-            .frame(height: 22)
+            .frame(minWidth: DesvanHitTarget.minimum)
+            .frame(height: DesvanEdit.bandButtonHeight)
             .background {
                 Capsule()
                     .fill(Desvan.Palette.paper.opacity(isHovering ? 0.10 : 0.04))
@@ -115,7 +118,7 @@ private struct DesvanEditUndoButton: View {
                     }
                     .shadow(color: Desvan.Palette.bulb.opacity(offered ? 0.45 : 0), radius: 6)
             }
-            .contentShape(Capsule())
+            .desvanHitTarget()
         }
         .buttonStyle(DesvanEditPressStyle())
         .keyboardShortcut("z", modifiers: .command)
@@ -146,7 +149,7 @@ private struct DesvanEditDoneButton: View {
         Button { model.actions.endEditing() } label: {
             ViewThatFits(in: .horizontal) {
                 Text("Done").padding(.horizontal, 11)
-                Image(systemName: "checkmark").font(.system(size: 10.5, weight: .bold)).padding(.horizontal, 7)
+                Image(systemName: "checkmark").font(.system(size: 12, weight: .bold)).padding(.horizontal, 8)
             }
         }
         .buttonStyle(DesvanEditPrimaryStyle())
@@ -183,18 +186,18 @@ struct DesvanEarSlot: View {
                 Group {
                     if content == .none {
                         Image(systemName: "plus")
-                            .font(.system(size: 9.5, weight: .bold))
+                            .font(.system(size: 11, weight: .bold))
                             .foregroundStyle(isSelected ? Desvan.Palette.bulb.opacity(0.9) : Desvan.Palette.paperTertiary)
                     } else {
                         DesvanEarContent(content: content, model: model, style: .preview)
-                            .scaleEffect(0.92)
                     }
                 }
                 .id(content)
                 .transition(.scale(scale: 0.6).combined(with: .opacity))
             }
             .frame(width: DesvanEdit.slotWidth, height: height)
-            .contentShape(Rectangle())
+            // The band's full height (the well is 8 pt shorter than the band): 28–38 pt, never less.
+            .desvanHitTarget(max(DesvanHitTarget.minimum, height + 8))
         }
         .buttonStyle(DesvanEditPressStyle())
         .scaleEffect(targeted && !reduceMotion ? 1.1 : 1)
@@ -301,7 +304,8 @@ private struct DesvanEditPrimaryBody: View {
             .font(Desvan.Typeface.rounded(12, weight: .semibold))
             .lineLimit(1)
             .fixedSize()
-            .frame(height: 22)
+            .frame(minWidth: DesvanHitTarget.minimum)
+            .frame(height: DesvanEdit.bandButtonHeight)
             .foregroundStyle(Desvan.Palette.bulbInk)
             .background {
                 Capsule()
@@ -314,7 +318,7 @@ private struct DesvanEditPrimaryBody: View {
                     .grain(0.08, in: Capsule())
                     .shadow(color: Desvan.Palette.bulb.opacity(isHovering ? 0.55 : 0.35), radius: 8, y: 1)
             }
-            .contentShape(Capsule())
+            .desvanHitTarget()
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.95 : 1)
             .animation(Desvan.Motion.pick(Desvan.Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
             .animation(Desvan.Motion.hover, value: isHovering)

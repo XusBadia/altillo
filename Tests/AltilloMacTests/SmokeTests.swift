@@ -27,9 +27,30 @@ struct SmokeTests {
                 model.module = module
                 let chrome = NotchChrome(model: model)
                 #expect(chrome.showsDrawer)
-                #expect(chrome.size.height <= NotchLayout.panelSize.height)
+                // Room left for the shadow under the tallest face (the Drawer plus the tallest section).
+                #expect(chrome.size.height + 40 <= NotchLayout.panelSize.height)
                 #expect(chrome.size.height > chrome.contentHeight + chrome.bandHeight + NotchChrome.drawerHeight)
             }
         }
+    }
+
+    /// The widest open notch fits the panel.
+    @Test func widestOpenNotchFitsThePanel() {
+        #expect(AltilloSettings.widthRange.upperBound <= NotchLayout.panelSize.width)
+    }
+
+    /// Pointer targets never go below 28 pt, and still fit the band beside the smallest hardware notch (32 pt) and the
+    /// Drawer's navigation row.
+    @Test func notchTargetsKeepTheirMinimumSize() {
+        #expect(DesvanHitTarget.minimum >= 28)
+        #expect(DesvanHitTarget.minimum <= 32)
+        #expect(NotchChrome.drawerNavigationHeight >= DesvanHitTarget.minimum)
+    }
+
+    /// The Settings window has to fit a 13-inch MacBook Air at its "Larger Text" resolution (≈ 630 pt below the menu
+    /// bar) without clipping.
+    @Test func settingsWindowFitsASmallScreen() {
+        #expect(SettingsWindowController.contentSize.height <= 620)
+        #expect(SettingsWindowController.contentSize.width <= 600)
     }
 }

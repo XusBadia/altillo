@@ -3,22 +3,34 @@ import AltilloDesign
 import AppKit
 import SwiftUI
 
-/// Shown while a drag is near the notch: the cardboard box (≈ 75 %) and the paper plane for AirDrop (≈ 25 %).
-/// Both lie flat, text at 40 %, until the pointer is over one of them (`hovered`): only that one reacts.
+/// Shown while a drag is near the notch: the cardboard box (≈ 70 %) and the paper plane for AirDrop (≈ 30 %).
+/// Both lie flat, text at 60 % (still readable at a glance), until the pointer is over one of them (`hovered`):
+/// only that one reacts.
 /// Each zone reports its frame so the AppKit drop target knows where the pointer is.
 struct DesvanDropZones: View {
     let model: NotchModel
     let hovered: DropZone?
 
+    @State private var width: CGFloat = 0
+
+    private static let spacing: CGFloat = 8
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Self.spacing) {
             DesvanBoxZone(model: model, isHovering: hovered == .shelf)
                 .desvanDropZoneFrame(.shelf, model: model)
             DesvanAirDropZone(isHovering: hovered == .airDrop)
-                // The plane keeps a comfortable corner whatever the notch is set to; the box takes the rest.
-                .frame(minWidth: 116, idealWidth: 150, maxWidth: 168)
+                // The plane keeps a comfortable corner (≈ 30 %, 116–168 pt) whatever the notch is set to, so a
+                // narrow notch still leaves the box room for its words; the box takes the rest.
+                .frame(width: planeWidth)
                 .desvanDropZoneFrame(.airDrop, model: model)
         }
+        .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
+    }
+
+    private var planeWidth: CGFloat {
+        guard width > 0 else { return 150 }
+        return min(max((width - Self.spacing) * 0.3, 116), 168)
     }
 }
 
@@ -37,17 +49,26 @@ private struct DesvanBoxZone: View {
     let isHovering: Bool
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var width: CGFloat = 0
+
+    /// The box grows with the room it has: nearly full size on a roomy notch, smaller on a narrow one so the words
+    /// beside it (≈ 170 pt) still fit. At most 0.9, 176 × 131 pt, well inside the 160 pt tall zone.
+    private var boxScale: CGFloat {
+        guard width > 0 else { return 0.8 }
+        let room = width - 24 - 170 // leading and trailing padding, the gap, and the words
+        return min(max(room / DesvanCardboardBox.canvasSize.width, 0.5), 0.9)
+    }
 
     var body: some View {
         HStack(spacing: 8) {
-            DesvanCardboardBox(openness: isHovering ? 1 : 0, warmth: isHovering ? 1 : 0, scale: 0.66)
+            DesvanCardboardBox(openness: isHovering ? 1 : 0, warmth: isHovering ? 1 : 0, scale: boxScale)
                 .animation(
                     reduceMotion ? Desvan.Motion.fade : (isHovering ? Desvan.Motion.flaps : Desvan.Motion.flapsClose),
                     value: isHovering
                 )
                 .padding(.top, 2)
 
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 5) {
                 // Narrow notches get the short sentences instead of a truncated long one.
                 ViewThatFits(in: .horizontal) {
                     title(isHovering ? "Drop it, I'll put it up" : "Put it on the shelf")
@@ -59,18 +80,19 @@ private struct DesvanBoxZone: View {
                     subtitle(short, showsStack: false)
                 }
             }
-            .opacity(isHovering ? 1 : 0.4)
+            .opacity(isHovering ? 1 : 0.6)
         }
         .padding(.leading, 2)
         .padding(.trailing, 14)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
         .background {
             // The inside of the zone warms up under the pointer.
             RadialGradient(
                 colors: [Desvan.Palette.bulb.opacity(isHovering ? 0.16 : 0), .clear],
                 center: UnitPoint(x: 0.2, y: 0.5),
                 startRadius: 0,
-                endRadius: 180
+                endRadius: 220
             )
             .blendMode(.plusLighter)
         }
@@ -81,7 +103,7 @@ private struct DesvanBoxZone: View {
 
     private func title(_ text: LocalizedStringKey) -> some View {
         Text(text)
-            .font(Desvan.Typeface.display(16, weight: 600))
+            .font(Desvan.Typeface.display(17, weight: 600))
             .foregroundStyle(Desvan.Palette.paper)
             .contentTransition(.opacity)
             .lineLimit(1)
@@ -91,12 +113,12 @@ private struct DesvanBoxZone: View {
     private func subtitle(_ text: LocalizedStringKey, showsStack: Bool) -> some View {
         HStack(spacing: 8) {
             Text(text)
-                .font(.system(size: 11.5))
+                .font(.system(size: 13))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .lineLimit(1)
                 .fixedSize()
             if showsStack, !model.shelf.isEmpty {
-                DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 16)
+                DesvanThumbStack(items: Array(model.shelf.suffix(5)), side: 18)
             }
         }
     }
@@ -114,7 +136,7 @@ private struct DesvanBoxZone: View {
 
 // MARK: - AirDrop
 
-/// The paper plane: it rises 3 pt and leans towards the pointer when hovered, in sky.
+/// The paper plane: it rises 4 pt and leans towards the pointer when hovered, in sky.
 private struct DesvanAirDropZone: View {
     let isHovering: Bool
 
@@ -122,19 +144,19 @@ private struct DesvanAirDropZone: View {
     @State private var frame: CGRect = .zero
 
     var body: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 10) {
             plane
-                .frame(width: 44, height: 38)
-            VStack(spacing: 1) {
+                .frame(width: 60, height: 52)
+            VStack(spacing: 2) {
                 Text("AirDrop")
-                    .font(Desvan.Typeface.rounded(12, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(15, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
                 Text("to another device")
-                    .font(.system(size: 10.5))
+                    .font(.system(size: 13))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .multilineTextAlignment(.center)
             }
-            .opacity(isHovering ? 1 : 0.4)
+            .opacity(isHovering ? 1 : 0.6)
         }
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -143,7 +165,7 @@ private struct DesvanAirDropZone: View {
                 colors: [Desvan.Palette.sky.opacity(isHovering ? 0.16 : 0), .clear],
                 center: .center,
                 startRadius: 0,
-                endRadius: 90
+                endRadius: 110
             )
             .blendMode(.plusLighter)
         }
@@ -165,17 +187,17 @@ private struct DesvanAirDropZone: View {
 
     private func planeGlyph(lean: Double) -> some View {
         DesvanPaperPlane(tint: isHovering ? Desvan.Palette.sky : nil)
-            .frame(width: 34, height: 28)
+            .frame(width: 46, height: 38)
             .opacity(isHovering ? 1 : 0.5)
             .shadow(color: isHovering ? Desvan.Palette.sky.opacity(0.45) : .clear, radius: 6)
             .rotationEffect(.degrees(lean))
-            .offset(y: isHovering ? -3 : 0)
+            .offset(y: isHovering ? -4 : 0)
             .background(alignment: .bottom) {
                 Ellipse()
                     .fill(.black.opacity(isHovering ? 0.4 : 0.25))
-                    .frame(width: isHovering ? 22 : 26, height: 4)
-                    .blur(radius: isHovering ? 2.5 : 1.5)
-                    .offset(y: 7)
+                    .frame(width: isHovering ? 30 : 36, height: 5)
+                    .blur(radius: isHovering ? 3 : 2)
+                    .offset(y: 9)
             }
             .animation(Desvan.Motion.pick(.spring(duration: 0.35, bounce: 0.2), reduceMotion: reduceMotion), value: lean)
             .accessibilityHidden(true)

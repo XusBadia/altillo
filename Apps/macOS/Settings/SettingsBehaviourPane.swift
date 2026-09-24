@@ -132,6 +132,20 @@ struct SettingsBehaviourPane: View {
 
                             Divider().overlay(Desvan.Palette.hairline)
 
+                            Toggle(isOn: $settings.assistantWebSearch) {
+                                Text("Let Ask search the web")
+                                    .font(Desvan.Typeface.rounded(13, weight: .medium))
+                                    .foregroundStyle(Desvan.Palette.paper)
+                            }
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
+                            .disabled(!settings.isEnabled(.assistant))
+
+                            Text(webSearchHint)
+                                .settingsHint()
+
+                            Divider().overlay(Desvan.Palette.hairline)
+
                             Toggle(isOn: $settings.hapticsEnabled) {
                                 Text("Tap on the trackpad")
                                     .font(Desvan.Typeface.rounded(13, weight: .medium))
@@ -212,6 +226,23 @@ struct SettingsBehaviourPane: View {
         case .main: "Only the screen with the menu bar, even if another one has a notch."
         case .all: "Each screen gets its own notch. It opens on the one you're using."
         case .cursor: "The notch moves to whichever screen the pointer is on."
+        }
+    }
+
+    /// Honest about what leaves the Mac, in both states.
+    private var webSearchHint: LocalizedStringKey {
+        if settings.assistantWebSearch {
+            """
+            For live things like scores, news or prices, Ask writes a short search from your question and sends it \
+            to DuckDuckGo (Bing if DuckDuckGo is busy), then reads the top pages it finds; for the weather, only the \
+            place goes to Open-Meteo. No cookies, no account. Answers that used the web show a globe with their \
+            sources.
+            """
+        } else {
+            """
+            Nothing leaves this Mac. When a question needs something live, Ask offers to search the web for that \
+            question only, and you decide.
+            """
         }
     }
 

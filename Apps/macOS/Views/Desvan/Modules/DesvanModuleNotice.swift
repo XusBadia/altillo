@@ -11,30 +11,34 @@ struct DesvanModuleNotice: View {
     var action: (() -> Void)?
 
     var body: some View {
-        VStack(spacing: 6) {
+        // Worst case (three lines and a button): 31 + 10 + 18.5 + 4 + 46.5 + 12 + 28 = 150 pt, inside the 180 pt modules.
+        VStack(spacing: 10) {
             Image(systemName: symbol)
-                .font(.system(size: 17, weight: .medium))
+                .font(.system(size: 26, weight: .medium))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(Desvan.Palette.paperTertiary)
-            VStack(spacing: 2) {
+            VStack(spacing: 4) {
                 Text(title)
-                    .font(Desvan.Typeface.display(13, weight: 600))
+                    .font(Desvan.Typeface.display(15.5, weight: 600))
                     .foregroundStyle(Desvan.Palette.paper)
                 if let message {
                     Text(message)
-                        .font(.system(size: 11.5))
+                        .font(.system(size: 13))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                         .multilineTextAlignment(.center)
-                        .lineLimit(2)
+                        .lineLimit(3)
+                        .minimumScaleFactor(0.92)
                 }
             }
             if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .buttonStyle(DesvanButtonStyle(kind: .primary, height: 24))
-                    .padding(.top, 1)
+                Button(action: action) {
+                    Text(actionTitle).font(Desvan.Typeface.rounded(13, weight: .semibold))
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
+                .padding(.top, 2)
             }
         }
-        .padding(.horizontal, 18)
+        .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .accessibilityElement(children: .contain)
     }

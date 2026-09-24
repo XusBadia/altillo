@@ -91,6 +91,27 @@ final class AltilloSettings {
         didSet { defaults.set(earsVisibility.rawValue, forKey: Key.earsVisibility) }
     }
 
+    /// Ask may look things up on the web (sports results, news, anything live). Off by default: with it off,
+    /// nothing the user types ever leaves the Mac.
+    var assistantWebSearch: Bool {
+        didSet { defaults.set(assistantWebSearch, forKey: Key.assistantWebSearch) }
+    }
+
+    /// How the calendar section lays out its day.
+    var calendarStyle: CalendarStyle {
+        didSet { defaults.set(calendarStyle.rawValue, forKey: Key.calendarStyle) }
+    }
+
+    /// Calendars the user chose not to see in Altillo (by `EKCalendar.calendarIdentifier`).
+    var calendarHiddenIDs: Set<String> {
+        didSet { defaults.set(Array(calendarHiddenIDs).sorted(), forKey: Key.calendarHiddenIDs) }
+    }
+
+    /// Show all-day events (birthdays, holidays) in the calendar section and ears.
+    var calendarShowsAllDay: Bool {
+        didSet { defaults.set(calendarShowsAllDay, forKey: Key.calendarShowsAllDay) }
+    }
+
     /// Set when macOS refused the shortcut (another app already uses it); shown next to the picker.
     var assistantHotKeyProblem: String?
 
@@ -135,6 +156,10 @@ final class AltilloSettings {
         static let leftEar = "leftEar"
         static let rightEar = "rightEar"
         static let earsVisibility = "earsVisibility"
+        static let assistantWebSearch = "assistantWebSearch"
+        static let calendarStyle = "calendarStyle"
+        static let calendarHiddenIDs = "calendarHiddenIDs"
+        static let calendarShowsAllDay = "calendarShowsAllDay"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -177,6 +202,10 @@ final class AltilloSettings {
         leftEar = defaults.string(forKey: Key.leftEar).flatMap(EarContent.init) ?? .none
         rightEar = defaults.string(forKey: Key.rightEar).flatMap(EarContent.init) ?? .shelf
         earsVisibility = defaults.string(forKey: Key.earsVisibility).flatMap(EarsVisibility.init) ?? .withActivity
+        assistantWebSearch = defaults.object(forKey: Key.assistantWebSearch) as? Bool ?? false
+        calendarStyle = defaults.string(forKey: Key.calendarStyle).flatMap(CalendarStyle.init) ?? .monthAndAgenda
+        calendarHiddenIDs = Set(defaults.stringArray(forKey: Key.calendarHiddenIDs) ?? [])
+        calendarShowsAllDay = defaults.object(forKey: Key.calendarShowsAllDay) as? Bool ?? true
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything
@@ -365,6 +394,28 @@ enum EarsVisibility: String, CaseIterable, Identifiable, Codable, Sendable {
         switch self {
         case .withActivity: String(localized: "Only when there's something")
         case .always: String(localized: "Always")
+        }
+    }
+}
+
+// MARK: - Calendar
+
+/// Layout of the calendar section.
+enum CalendarStyle: String, CaseIterable, Identifiable, Codable, Sendable {
+    /// What's left of today (or tomorrow) as a list.
+    case agenda
+    /// The month grid; picking a day lists its events.
+    case month
+    /// A compact month on the left and the chosen day's events beside it.
+    case monthAndAgenda
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .agenda: String(localized: "Agenda")
+        case .month: String(localized: "Month")
+        case .monthAndAgenda: String(localized: "Month and agenda")
         }
     }
 }

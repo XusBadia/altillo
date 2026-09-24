@@ -1,14 +1,13 @@
 import AltilloDesign
 import SwiftUI
 
-/// The usage tab: one compact wood card per provider. The session ring with its figure, when it
-/// refills, the pace in italics ("vas 9 puntos por delante del ritmo") and the weekly bar with a notch where an even
-/// pace would be.
+/// The usage tab: one wood card per provider. The session ring with its figure, when it refills, the pace in
+/// italics ("vas 9 puntos por delante del ritmo") and the weekly bar with a notch where an even pace would be.
 struct DesvanUsageView: View {
     let demo: DemoContent
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 10) {
             ForEach(demo.usage) { usage in
                 DesvanUsageCard(usage: usage)
             }
@@ -20,25 +19,33 @@ struct DesvanUsageView: View {
 private struct DesvanUsageCard: View {
     let usage: ProviderUsage
 
-    /// The card measures itself and drops what it can't hold: the plan chip and the window length first, then the
-    /// long sentences. The notch can be as narrow as 440 pt, which leaves ~190 pt per provider.
+    /// The card measures itself and drops what it can't hold: the window length first, then the plan chip and the
+    /// long sentences, and its ring shrinks with it. The notch can be as narrow as 440 pt, which leaves ~190 pt per
+    /// provider.
     @State private var width: CGFloat = 0
     private var density: Density {
-        if width <= 0 || width >= 278 { return .full }
-        return width >= 216 ? .medium : .compact
+        if width <= 0 || width >= 310 { return .full }
+        return width >= 270 ? .medium : .compact
     }
 
     private enum Density { case full, medium, compact }
 
+    private static let inset: CGFloat = 14
+
+    /// The session ring: 100 pt when the card has room, down to 64 pt in the narrowest notch. With the week's row
+    /// under it, 100 + 10 + 17 fits the card's 132 pt inside (usage content 160 minus the insets).
+    private var ringSide: CGFloat {
+        guard width > 0 else { return 100 }
+        return min(100, max(64, ((width - 2 * Self.inset) * 0.36).rounded()))
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             session
-            Spacer(minLength: 6)
+            Spacer(minLength: 10)
             weekly
         }
-        .padding(.horizontal, 12)
-        .padding(.top, 11)
-        .padding(.bottom, 11)
+        .padding(Self.inset)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .desvanCard()
         .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
@@ -47,50 +54,51 @@ private struct DesvanUsageCard: View {
     private var session: some View {
         let window = usage.session
         let used = window.used
-        return HStack(spacing: 11) {
-            DesvanRing(value: used, lineWidth: 4, pace: window.expectedPace()) {
-                HStack(alignment: .firstTextBaseline, spacing: 0.5) {
+        let side = ringSide
+        return HStack(spacing: 14) {
+            DesvanRing(value: used, lineWidth: max(4, (side * 0.06).rounded()), pace: window.expectedPace()) {
+                HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(Int((used * 100).rounded()))")
-                        .font(Desvan.Typeface.figure(17, weight: .semibold))
+                        .font(Desvan.Typeface.figure((side * 0.28).rounded(), weight: .semibold))
                         .contentTransition(.numericText(value: used))
                     Text("%")
-                        .font(Desvan.Typeface.figure(8, weight: .medium))
+                        .font(Desvan.Typeface.figure(max(10.5, (side * 0.14).rounded()), weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                 }
                 .foregroundStyle(Desvan.Palette.paper)
                 .offset(x: 1)
             }
-            .frame(width: 46, height: 46)
+            .frame(width: side, height: side)
 
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
-                    AgentGlyph(agent: usage.agent, size: 14)
+                    AgentGlyph(agent: usage.agent, size: 18)
                     Text(usage.agent.name)
-                        .font(.system(size: 12.5, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paper)
                         .lineLimit(1)
                     if density != .compact {
                         Text(usage.plan)
-                            .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
+                            .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
                             .foregroundStyle(Desvan.Palette.paperSecondary)
-                            .padding(.horizontal, 6)
-                            .frame(height: 15)
+                            .padding(.horizontal, 7)
+                            .frame(height: 19)
                             .background(Capsule().fill(Desvan.Palette.woodRaised))
                             .overlay(Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
                             .fixedSize()
-                        Spacer(minLength: 4)
+                    }
+                    Spacer(minLength: density == .full ? 4 : 0)
+                    if density == .full {
                         Text("5 h")
-                            .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                            .font(Desvan.Typeface.rounded(12, weight: .semibold))
                             .foregroundStyle(Desvan.Palette.paperTertiary)
                             .help("5-hour session")
-                    } else {
-                        Spacer(minLength: 0)
                     }
                 }
                 Text(density == .compact
                      ? "in \(NotchFormat.countdown(to: window.resetsAt))"
                      : "refills in \(NotchFormat.countdown(to: window.resetsAt))")
-                    .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+                    .font(Desvan.Typeface.rounded(density == .compact ? 13 : 13.5, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paper.opacity(0.85))
                     .monospacedDigit()
                     .lineLimit(1)
@@ -107,19 +115,19 @@ private struct DesvanUsageCard: View {
         return HStack(spacing: 8) {
             if density != .compact {
                 Text("Week")
-                    .font(Desvan.Typeface.rounded(10, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .fixedSize()
             }
             DesvanBar(value: window.used, pace: window.expectedPace())
             Text(NotchFormat.percent(window.used))
-                .font(Desvan.Typeface.figure(12, weight: .medium))
+                .font(Desvan.Typeface.figure(14, weight: .medium))
                 .foregroundStyle(Desvan.usageTint(window.used))
                 .monospacedDigit()
                 .fixedSize()
             if density == .full {
                 Text(NotchFormat.countdown(to: window.resetsAt))
-                    .font(Desvan.Typeface.rounded(10, weight: .medium))
+                    .font(Desvan.Typeface.rounded(12.5, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .monospacedDigit()
                     .fixedSize()
@@ -141,7 +149,7 @@ private struct DesvanPace: View {
     var body: some View {
         let points = Int((abs(delta) * 100).rounded())
         Text(verbatim: long ? longText(points) : Self.shortText(delta: delta))
-            .font(.system(size: 11.5, weight: .medium, design: .rounded).italic())
+            .font(.system(size: 12.5, weight: .medium, design: .rounded).italic())
             .foregroundStyle(color)
             .monospacedDigit()
             .lineLimit(1)
@@ -182,7 +190,7 @@ private struct DesvanBar: View {
             ZStack(alignment: .leading) {
                 Capsule().fill(Desvan.Palette.plank)
                     .overlay(alignment: .top) {
-                        Capsule().fill(.black.opacity(0.35)).frame(height: 2).padding(.horizontal, 2)
+                        Capsule().fill(.black.opacity(0.35)).frame(height: 2.5).padding(.horizontal, 2)
                     }
                 Capsule()
                     .fill(LinearGradient(
@@ -190,22 +198,22 @@ private struct DesvanBar: View {
                         startPoint: .top,
                         endPoint: .bottom
                     ))
-                    .frame(width: max(6, width * clamped))
+                    .frame(width: max(8, width * clamped))
                 // The notch: where an even pace would be.
                 let x = width * min(max(pace, 0), 1)
                 VStack(spacing: 0) {
                     Triangle()
                         .fill(Desvan.Palette.paper)
-                        .frame(width: 6, height: 3.5)
+                        .frame(width: 7, height: 4)
                     Rectangle()
                         .fill(Desvan.Palette.paper)
-                        .frame(width: 1.5, height: 7)
+                        .frame(width: 1.5, height: 9)
                 }
                 .shadow(color: .black.opacity(0.7), radius: 0.75)
-                .offset(x: x - 3, y: -2.5)
+                .offset(x: x - 3.5, y: -2.5)
             }
         }
-        .frame(height: 6)
+        .frame(height: 8)
         .animation(Desvan.Motion.pick(Desvan.Motion.settle, reduceMotion: reduceMotion), value: clamped)
         .accessibilityElement(children: .ignore)
         .accessibilityValue(Text(clamped, format: .percent.precision(.fractionLength(0))))

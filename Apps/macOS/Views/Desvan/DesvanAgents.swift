@@ -17,9 +17,10 @@ struct DesvanAgentsView: View {
     @State private var width: CGFloat = 0
     private var isCompact: Bool { width > 0 && width < 470 }
 
+    /// Card 84 + 8 + row 40 + 8 + row 40 = the agents content's 180 pt: three sessions fill it, more scroll.
     var body: some View {
         ScrollView(.vertical) {
-            VStack(spacing: 4) {
+            VStack(spacing: 8) {
                 ForEach(ordered) { session in
                     if session.phase.needsUser {
                         DesvanWaitingCard(session: session, isCompact: isCompact)
@@ -41,13 +42,15 @@ private struct DesvanWaitingCard: View {
     let session: AgentSession
     var isCompact = false
 
+    static let height: CGFloat = 84
+
     /// The whole sentence when there is room, then without the elapsed time, then just who and where.
     @ViewBuilder
     private func sentence(long: Bool, showsAgo: Bool) -> some View {
         let project = Text(session.project)
-            .font(Desvan.Typeface.figure(12.5, weight: .medium).italic())
+            .font(Desvan.Typeface.figure(13.5, weight: .medium).italic())
             .foregroundStyle(Desvan.Palette.paper)
-        HStack(spacing: 6) {
+        HStack(spacing: 8) {
             Group {
                 if long {
                     Text("\(session.agent.name) wants to do something in \(project)")
@@ -55,12 +58,12 @@ private struct DesvanWaitingCard: View {
                     Text("\(session.agent.name) · \(project)")
                 }
             }
-            .font(.system(size: 11.5))
+            .font(.system(size: 13.5))
             .foregroundStyle(Desvan.Palette.paperSecondary)
             .fixedSize()
             if showsAgo {
                 Text(NotchFormat.ago(session.lastActivity))
-                    .font(Desvan.Typeface.rounded(10, weight: .medium))
+                    .font(Desvan.Typeface.rounded(11.5, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .monospacedDigit()
                     .fixedSize()
@@ -68,10 +71,29 @@ private struct DesvanWaitingCard: View {
         }
     }
 
+    /// The command on a slip of raised wood: the tool, then what it wants to run.
+    private func slip(_ request: PermissionRequest) -> some View {
+        HStack(spacing: 7) {
+            Text(request.tool)
+                .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+            Text(request.command)
+                .font(.system(size: 12.5, weight: .regular, design: .monospaced))
+                .foregroundStyle(Desvan.Palette.paper)
+                .truncationMode(.middle)
+                .textSelection(.enabled)
+        }
+        .padding(.horizontal, 8)
+        .frame(height: 26)
+        .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Desvan.Palette.woodRaised))
+        .overlay(RoundedRectangle(cornerRadius: 7, style: .continuous).strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
+    }
+
     var body: some View {
         HStack(spacing: 10) {
-            AgentGlyph(agent: session.agent, size: 16)
-            VStack(alignment: .leading, spacing: 3) {
+            AgentGlyph(agent: session.agent, size: 26)
+            // Sentence 16 + 8 + slip 26 = 50 of the card's 84.
+            VStack(alignment: .leading, spacing: 8) {
                 ViewThatFits(in: .horizontal) {
                     sentence(long: true, showsAgo: true)
                     sentence(long: true, showsAgo: false)
@@ -80,45 +102,39 @@ private struct DesvanWaitingCard: View {
                 }
                 .help("\(session.agent.name) wants to do something in \(session.project) · \(NotchFormat.ago(session.lastActivity))")
                 if let request = session.request {
-                    HStack(spacing: 6) {
-                        Text(request.tool)
-                            .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
-                            .foregroundStyle(Desvan.Palette.paperTertiary)
-                        Text(request.command)
-                            .font(.system(size: 11, weight: .regular, design: .monospaced))
-                            .foregroundStyle(Desvan.Palette.paper)
-                            .truncationMode(.middle)
-                            .textSelection(.enabled)
-                    }
+                    slip(request)
                 }
             }
             .lineLimit(1)
-            Spacer(minLength: 6)
+            Spacer(minLength: 8)
             if !isCompact {
-                DesvanKnockingHand(size: 11)
+                DesvanKnockingHand(size: 14)
                     .help("Knock, knock: waiting for your OK")
                 Button {} label: {
                     Image(systemName: "arrow.up.forward.app")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 14, weight: .medium))
                 }
-                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
                 .help("Go to the terminal")
             }
-            Button("Deny") {}
-                .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 24))
-            Button("Allow") {}
-                .buttonStyle(DesvanButtonStyle(kind: .primary, height: 24))
+            Button {} label: {
+                Text("Deny").font(Desvan.Typeface.rounded(13, weight: .semibold))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 28))
+            Button {} label: {
+                Text("Allow").font(Desvan.Typeface.rounded(13, weight: .semibold))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
         }
-        .padding(.leading, 10)
-        .padding(.trailing, 8)
-        .frame(height: 44)
+        .padding(.horizontal, 14)
+        .frame(height: Self.height)
         .background {
             // The bulb's light on the card.
-            RadialGradient(colors: [Desvan.Palette.bulb.opacity(0.10), .clear], center: .trailing, startRadius: 0, endRadius: 240)
+            RadialGradient(colors: [Desvan.Palette.bulb.opacity(0.10), .clear], center: .trailing, startRadius: 0, endRadius: 300)
                 .blendMode(.plusLighter)
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
-        .desvanCard(radius: 11, glow: Desvan.Palette.bulb.opacity(0.75))
+        .desvanCard(radius: 14, glow: Desvan.Palette.bulb.opacity(0.75))
     }
 }
 
@@ -135,35 +151,35 @@ private struct DesvanAgentRow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 9) {
-            AgentGlyph(agent: session.agent, size: 15)
+        HStack(spacing: 10) {
+            AgentGlyph(agent: session.agent, size: 22)
             Text(session.project)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 13, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paper)
             Text(verbatim: activity)
-                .font(.system(size: 11.5))
+                .font(.system(size: 12.5))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .monospacedDigit()
                 .lineLimit(1)
             Spacer(minLength: 8)
             Text(NotchFormat.ago(session.lastActivity))
-                .font(Desvan.Typeface.rounded(10, weight: .medium))
+                .font(Desvan.Typeface.rounded(11.5, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .monospacedDigit()
             status
-                .frame(minWidth: isCompact ? 0 : 84, alignment: .trailing)
+                .frame(minWidth: isCompact ? 0 : 88, alignment: .trailing)
             Button {} label: {
                 Image(systemName: "arrow.up.forward.app")
-                    .font(.system(size: 10.5, weight: .medium))
+                    .font(.system(size: 13.5, weight: .medium))
             }
-            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
             .help("Go to the terminal")
             .opacity(isHovering ? 1 : 0)
         }
-        .padding(.leading, 10)
-        .padding(.trailing, 2)
-        .frame(height: 26)
-        .desvanCard(radius: 9, fill: isHovering ? Desvan.Palette.woodRaised : Desvan.Palette.wood)
+        .padding(.leading, 14)
+        .padding(.trailing, 6)
+        .frame(height: 40)
+        .desvanCard(radius: 12, fill: isHovering ? Desvan.Palette.woodRaised : Desvan.Palette.wood)
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .onAppear {
             guard session.phase == .finished else { return }
@@ -203,7 +219,7 @@ private struct DesvanAgentRow: View {
                 DesvanWorkingDots()
                 if !isCompact {
                     Text("Working")
-                        .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                        .font(Desvan.Typeface.rounded(12, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                         .fixedSize()
                 }
@@ -211,10 +227,10 @@ private struct DesvanAgentRow: View {
             .help("Working")
         case .error:
             Label("Error", systemImage: "exclamationmark.triangle.fill")
-                .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                .font(Desvan.Typeface.rounded(12, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.critical)
         case .waitingAnswer, .waitingPermission:
-            DesvanKnockingHand(size: 11)
+            DesvanKnockingHand(size: 13)
         }
     }
 }
@@ -235,11 +251,11 @@ private struct DesvanWorkingDots: View {
     }
 
     private func dots(phase: Int) -> some View {
-        HStack(spacing: 2.5) {
+        HStack(spacing: 3) {
             ForEach(0..<3, id: \.self) { index in
                 Circle()
                     .fill(Desvan.Palette.bulb.opacity(index == phase ? 1 : 0.35))
-                    .frame(width: 4, height: 4)
+                    .frame(width: 5, height: 5)
                     .animation(Desvan.Motion.pick(.easeOut(duration: 0.2), reduceMotion: reduceMotion), value: phase)
             }
         }

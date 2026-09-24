@@ -7,7 +7,7 @@ import FoundationModels
 /// What the assistant is looking at right now, shown under the question ("Looking at your calendar…") and kept
 /// with the answer as its sources.
 enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
-    case shelf, calendar, nowPlaying, clipboard
+    case shelf, calendar, nowPlaying, clipboard, calculator, web
 
     var id: Self { self }
 
@@ -17,6 +17,8 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .calendar: "calendar"
         case .nowPlaying: "music.note"
         case .clipboard: "doc.on.clipboard"
+        case .calculator: "plus.forwardslash.minus"
+        case .web: "globe"
         }
     }
 
@@ -27,6 +29,8 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .calendar: String(localized: "Looking at your calendar…")
         case .nowPlaying: String(localized: "Listening to what's playing…")
         case .clipboard: String(localized: "Looking at what you copied…")
+        case .calculator: String(localized: "Working it out…")
+        case .web: String(localized: "Searching the web…")
         }
     }
 
@@ -37,6 +41,16 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .calendar: String(localized: "Used your calendar")
         case .nowPlaying: String(localized: "Used what's playing")
         case .clipboard: String(localized: "Used your clipboard")
+        case .calculator: String(localized: "Worked out exactly")
+        case .web: String(localized: "Searched the web")
+        }
+    }
+
+    /// Marks for the user's own things (the web and exact sums aren't tools the model calls; the store notes them).
+    var isLocalContext: Bool {
+        switch self {
+        case .shelf, .calendar, .nowPlaying, .clipboard: true
+        case .calculator, .web: false
         }
     }
 }
@@ -44,14 +58,18 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
 /// Tells the store a tool started, so the view can say so. Hops to the main actor.
 typealias AssistantActivityReport = @MainActor @Sendable (AssistantActivity) -> Void
 
-/// The assistant's tools: Altillo's own context, read on demand and only on this Mac. Descriptions are short on
-/// purpose: every word of them is paid for in the context window on every turn.
+/// The assistant's tools: Altillo's own context, read on demand and only on this Mac. Only questions about the
+/// user's things get them (`AssistantRoute.context`): handed tools, the small model calls them for anything, a haiku
+/// included, and then apologises for what it didn't find. Descriptions are short on purpose: every word of them is
+/// paid for in the context window.
 enum AssistantTools {
     static func all(
+        for route: AssistantRoute = .context,
         shelfItems: @escaping @MainActor @Sendable () -> [ShelfItem],
         report: @escaping AssistantActivityReport
     ) -> [any Tool] {
-        [
+        guard route == .context else { return [] }
+        return [
             ShelfTool(items: shelfItems, report: report),
             CalendarTool(report: report),
             NowPlayingTool(report: report),
@@ -110,7 +128,8 @@ struct CalendarTool: Tool {
         let calendar = Calendar.current
         let now = Date.now
         let day = calendar.date(byAdding: .day, value: arguments.dayOffset, to: calendar.startOfDay(for: now)) ?? now
-        let events = await AssistantCalendar.shared.events(on: day, calendar: calendar)
+        let hidden = await MainActor.run { AltilloSettings.shared.calendarHiddenIDs }
+        let events = await AssistantCalendar.shared.events(on: day, calendar: calendar, hiding: hidden)
         let answer = AssistantContent.agenda(events, day: day, now: now, calendar: calendar)
         await SpikeLog.shared.record(
             SpikeLog.Category.assistant, "tool calendar offset=\(arguments.dayOffset) → \(events.count) events"
@@ -127,13 +146,12 @@ actor AssistantCalendar {
     private var store: EKEventStore?
 
     /// The day's events, cancelled and declined ones left out.
-    func events(on day: Date, calendar: Calendar) -> [CalendarStore.Event] {
+    func events(on day: Date, calendar: Calendar, hiding hidden: Set<String> = []) -> [CalendarStore.Event] {
         let store = self.store ?? EKEventStore()
         self.store = store
         store.reset()
         guard let end = calendar.date(byAdding: .day, value: 1, to: day) else { return [] }
-        let predicate = store.predicateForEvents(withStart: day, end: end, calendars: nil)
-        return store.events(matching: predicate)
+        return CalendarVisibility.events(in: store, from: day, to: end, hiding: hidden)
             .filter { event in
                 event.status != .canceled
                     && !(event.attendees?.contains { $0.isCurrentUser && $0.participantStatus == .declined } ?? false)

@@ -59,40 +59,42 @@ struct DesvanNowPlayingView: View {
         }
     }
 
+    /// The sleeve beside a column: what it is on top, the groove in the middle, the buttons at the bottom. The
+    /// card's 24 pt inset around the 132 pt sleeve fills the module's 180 pt exactly; the column spans the sleeve.
     private func player(_ track: NowPlayingStore.Track) -> some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 18) {
             DesvanArtwork(image: store.artwork, isPlaying: track.isPlaying)
-            VStack(alignment: .leading, spacing: 4) {
-                VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 0) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(track.title)
-                        .font(.system(size: 13.5, weight: .semibold))
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paper)
                         .lineLimit(1)
                     HStack(spacing: 5) {
                         Text(track.artist.isEmpty ? track.appName : track.artist)
-                            .font(.system(size: 11.5))
+                            .font(.system(size: 13))
                             .foregroundStyle(Desvan.Palette.paperSecondary)
                             .lineLimit(1)
                         if let album = track.album, !album.isEmpty {
                             Text("·").foregroundStyle(Desvan.Palette.paperTertiary)
                             Text(album)
-                                .font(.system(size: 11))
+                                .font(.system(size: 12.5))
                                 .foregroundStyle(Desvan.Palette.paperTertiary)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
                         }
                     }
                 }
+                Spacer(minLength: 8)
                 progress(track)
+                Spacer(minLength: 8)
+                controls(track)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            controls(track)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         }
-        .padding(.leading, 10)
-        .padding(.trailing, 10)
+        .padding(24)
         .frame(maxHeight: .infinity)
-        .padding(.vertical, 8)
-        .desvanCard(radius: 13)
+        .desvanCard(radius: 16)
     }
 
     /// The groove: elapsed over duration, carried forward at 1 Hz between the store's two-second polls.
@@ -113,10 +115,10 @@ struct DesvanNowPlayingView: View {
             guard let elapsed, let duration = track.duration, duration > 0 else { return 0 }
             return min(max(elapsed / duration, 0), 1)
         }()
-        return HStack(spacing: 7) {
+        return HStack(spacing: 8) {
             DesvanGroove(fraction: fraction)
             Text(DesvanTrackFormat.position(elapsed: elapsed, duration: track.duration))
-                .font(Desvan.Typeface.figure(10.5, weight: .medium))
+                .font(Desvan.Typeface.figure(12.5, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .monospacedDigit()
                 .fixedSize()
@@ -126,28 +128,28 @@ struct DesvanNowPlayingView: View {
     }
 
     private func controls(_ track: NowPlayingStore.Track) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             Button { store.previous() } label: {
-                Image(systemName: "backward.end.fill").font(.system(size: 11))
+                Image(systemName: "backward.end.fill").font(.system(size: 16))
             }
-            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 26))
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 32))
             .help("Previous")
             .accessibilityLabel("Previous")
 
             Button { store.playPause() } label: {
                 Image(systemName: track.isPlaying ? "pause.fill" : "play.fill")
-                    .font(.system(size: 12))
+                    .font(.system(size: 18))
                     .contentTransition(.symbolEffect(.replace))
-                    .frame(width: 12)
+                    .frame(width: 18)
             }
-            .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
+            .buttonStyle(DesvanButtonStyle(kind: .primary, height: 36))
             .help(track.isPlaying ? "Pause" : "Play")
             .accessibilityLabel(track.isPlaying ? "Pause" : "Play")
 
             Button { store.next() } label: {
-                Image(systemName: "forward.end.fill").font(.system(size: 11))
+                Image(systemName: "forward.end.fill").font(.system(size: 16))
             }
-            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 26))
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 32))
             .help("Next")
             .accessibilityLabel("Next")
         }
@@ -164,8 +166,10 @@ private struct DesvanArtwork: View {
     let image: NSImage?
     let isPlaying: Bool
 
+    static let side: CGFloat = 132
+
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: 12, style: .continuous)
         Group {
             if let image {
                 Image(nsImage: image)
@@ -177,12 +181,12 @@ private struct DesvanArtwork: View {
                     .fill(Desvan.Palette.woodRaised)
                     .overlay {
                         Image(systemName: "music.note")
-                            .font(.system(size: 20, weight: .medium))
+                            .font(.system(size: 40, weight: .medium))
                             .foregroundStyle(Desvan.Palette.paperTertiary)
                     }
             }
         }
-        .frame(width: 66, height: 66)
+        .frame(width: Self.side, height: Self.side)
         .clipShape(shape)
         .overlay {
             // A lit top edge and a dark bottom one: the sleeve is leaning on the shelf.
@@ -195,8 +199,8 @@ private struct DesvanArtwork: View {
                 lineWidth: 0.75
             )
         }
-        .shadow(color: .black.opacity(0.55), radius: 6, y: 3)
-        .shadow(color: Desvan.Palette.bulb.opacity(isPlaying ? 0.16 : 0), radius: 10)
+        .shadow(color: .black.opacity(0.55), radius: 10, y: 4)
+        .shadow(color: Desvan.Palette.bulb.opacity(isPlaying ? 0.16 : 0), radius: 16)
         .accessibilityHidden(true)
     }
 }
@@ -211,7 +215,7 @@ private struct DesvanGroove: View {
                 Capsule()
                     .fill(Desvan.Palette.plank)
                     .overlay(alignment: .top) {
-                        Capsule().fill(.black.opacity(0.35)).frame(height: 2).padding(.horizontal, 2)
+                        Capsule().fill(.black.opacity(0.35)).frame(height: 2.5).padding(.horizontal, 2)
                     }
                 Capsule()
                     .fill(LinearGradient(
@@ -219,11 +223,11 @@ private struct DesvanGroove: View {
                         startPoint: .top,
                         endPoint: .bottom
                     ))
-                    .frame(width: max(4, proxy.size.width * min(max(fraction, 0), 1)))
+                    .frame(width: max(7, proxy.size.width * min(max(fraction, 0), 1)))
                     .shadow(color: Desvan.Palette.bulb.opacity(0.35), radius: 3)
             }
         }
-        .frame(height: 5)
+        .frame(height: 7)
         .accessibilityHidden(true)
     }
 }

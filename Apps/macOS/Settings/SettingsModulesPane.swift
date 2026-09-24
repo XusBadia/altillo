@@ -16,6 +16,7 @@ struct SettingsModulesPane: View {
             title: "Sections",
             subtitle: "Choose what goes up there, and in what order. Drag to reorder the tabs."
         ) {
+            ScrollViewReader { proxy in
             List {
                 Section {
                     SettingsPresetsRow(settings: settings, session: session)
@@ -43,6 +44,15 @@ struct SettingsModulesPane: View {
                         .padding(.bottom, 4)
                 }
 
+                if settings.isEnabled(.calendar) {
+                    Section {
+                        SettingsCalendarGroup(settings: settings)
+                            .id(Self.calendarAnchor)
+                    } header: {
+                        SettingsListHeader("Calendar")
+                    }
+                }
+
                 if !disabled.isEmpty {
                     Section {
                         ForEach(disabled) { module in
@@ -58,8 +68,17 @@ struct SettingsModulesPane: View {
             .environment(\.defaultMinListRowHeight, 40)
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
+            .onAppear {
+                // `-settingsSection calendar` (with `-settingsTab modules`) opens scrolled to the calendar's group.
+                if UserDefaults.standard.string(forKey: "settingsSection") == Self.calendarAnchor {
+                    proxy.scrollTo(Self.calendarAnchor, anchor: .top)
+                }
+            }
+            }
         }
     }
+
+    private static let calendarAnchor = "calendar"
 }
 
 // MARK: - Presets
@@ -117,12 +136,12 @@ private struct SettingsStarterButton: View {
                         .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                     Spacer(minLength: 0)
                     if isSelected {
-                        Image(systemName: "checkmark").font(.system(size: 9, weight: .heavy))
+                        Image(systemName: "checkmark").font(.system(size: 11, weight: .heavy))
                     }
                 }
                 HStack(spacing: 3) {
                     ForEach(preset.modules) { module in
-                        Image(systemName: module.symbol).font(.system(size: 8.5, weight: .semibold))
+                        Image(systemName: module.symbol).font(.system(size: 11, weight: .semibold))
                     }
                 }
                 .opacity(0.75)
@@ -249,17 +268,17 @@ struct SettingsModuleRow: View {
         HStack(spacing: 11) {
             if settings.isEnabled(module) {
                 Image(systemName: "line.3.horizontal")
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .accessibilityHidden(true)
             } else {
-                Color.clear.frame(width: 11, height: 1)
+                Color.clear.frame(width: 13, height: 1)
             }
 
             Image(systemName: module.symbol)
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundStyle(settings.isEnabled(module) ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
-                .frame(width: 26, height: 26)
+                .frame(width: 30, height: 30)
                 .background {
                     let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
                     shape.fill(Desvan.Palette.plank.opacity(settings.isEnabled(module) ? 0.9 : 0.45))
@@ -273,7 +292,7 @@ struct SettingsModuleRow: View {
                         .foregroundStyle(Desvan.Palette.paper)
                     if module.isAlwaysOn {
                         Text("always")
-                            .font(Desvan.Typeface.rounded(9.5, weight: .semibold))
+                            .font(Desvan.Typeface.rounded(11, weight: .semibold))
                             .foregroundStyle(Desvan.Palette.ink)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1.5)
@@ -281,9 +300,10 @@ struct SettingsModuleRow: View {
                     }
                 }
                 Text(module.explanation)
-                    .font(.system(size: 11))
+                    .font(.system(size: 11.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 8)
@@ -297,5 +317,158 @@ struct SettingsModuleRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+    }
+}
+
+// MARK: - Calendar
+
+/// The calendar section's own settings: its layout, all-day events and which calendars show. Calendars are listed
+/// by account, only once Altillo can see them; before that, the way to let it.
+private struct SettingsCalendarGroup: View {
+    @Bindable var settings: AltilloSettings
+    @State private var directory = CalendarDirectory()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 10) {
+                GridRow {
+                    label("Layout")
+                    Picker(selection: $settings.calendarStyle) {
+                        ForEach(CalendarStyle.allCases) { style in
+                            Text(style.title).tag(style)
+                        }
+                    } label: {
+                        Text("Layout")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .fixedSize()
+                }
+                GridRow {
+                    Color.clear.frame(width: 1, height: 1)
+                    Toggle(isOn: $settings.calendarShowsAllDay) {
+                        Text("Show all-day events")
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(Desvan.Palette.paper)
+                    }
+                    .toggleStyle(.checkbox)
+                }
+            }
+            Text("Right-click the calendar in the notch to switch layout from there.")
+                .settingsHint()
+
+            calendars
+        }
+        .padding(.vertical, 6)
+        .onAppear { directory.start() }
+        .onDisappear { directory.stop() }
+    }
+
+    @ViewBuilder
+    private var calendars: some View {
+        switch directory.access {
+        case .granted:
+            if directory.accounts.isEmpty {
+                if directory.hasLoaded {
+                    Text("There are no calendars on this Mac yet.")
+                        .settingsHint()
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    Text("Calendars")
+                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    ForEach(directory.accounts) { account in
+                        SettingsCalendarAccount(account: account, settings: settings)
+                    }
+                    Text("Hidden calendars leave the grid and the agenda. Nothing changes in Calendar itself.")
+                        .settingsHint()
+                }
+            }
+        case .unknown:
+            access(
+                "Altillo can't see your calendars yet. Events never leave your Mac.",
+                button: "Give Access…"
+            ) {
+                Task { await directory.requestAccess() }
+            }
+        case .denied:
+            access(
+                "Altillo isn't allowed to see your calendars. You can change that in System Settings.",
+                button: "Open Privacy Settings…"
+            ) {
+                PrivacySettings.calendars.open()
+            }
+        }
+    }
+
+    private func access(_ message: LocalizedStringKey, button: LocalizedStringKey,
+                        action: @escaping () -> Void) -> some View {
+        HStack(spacing: 10) {
+            Image(systemName: "calendar.badge.exclamationmark")
+                .font(.system(size: 15, weight: .medium))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(Desvan.Palette.bulb)
+            Text(message)
+                .settingsHint()
+            Spacer(minLength: 8)
+            Button(button, action: action)
+                .controlSize(.small)
+        }
+    }
+
+    private func label(_ text: LocalizedStringKey) -> some View {
+        Text(text)
+            .font(.system(size: 12.5))
+            .foregroundStyle(Desvan.Palette.paper)
+            .gridColumnAlignment(.trailing)
+    }
+}
+
+/// One account (iCloud, Google, On My Mac…) and a checkbox per calendar, with its colour.
+private struct SettingsCalendarAccount: View {
+    let account: CalendarAccount
+    @Bindable var settings: AltilloSettings
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(account.title)
+                .font(Desvan.Typeface.rounded(11, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperTertiary)
+                .textCase(.uppercase)
+            ForEach(account.calendars) { calendar in
+                Toggle(isOn: shows(calendar)) {
+                    HStack(spacing: 7) {
+                        RoundedRectangle(cornerRadius: 3, style: .continuous)
+                            .fill(Color(hex: calendar.colorHex))
+                            .overlay {
+                                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                                    .strokeBorder(.black.opacity(0.3), lineWidth: 0.5)
+                            }
+                            .frame(width: 11, height: 11)
+                            .accessibilityHidden(true)
+                        Text(calendar.title)
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(Desvan.Palette.paper)
+                            .lineLimit(1)
+                    }
+                }
+                .toggleStyle(.checkbox)
+            }
+        }
+        .padding(.leading, 2)
+    }
+
+    private func shows(_ calendar: CalendarInfo) -> Binding<Bool> {
+        Binding(
+            get: { !settings.calendarHiddenIDs.contains(calendar.id) },
+            set: { shows in
+                if shows {
+                    settings.calendarHiddenIDs.remove(calendar.id)
+                } else {
+                    settings.calendarHiddenIDs.insert(calendar.id)
+                }
+            }
+        )
     }
 }

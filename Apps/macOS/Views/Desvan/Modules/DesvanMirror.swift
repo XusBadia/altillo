@@ -11,9 +11,13 @@ struct DesvanMirrorView: View {
 
     private var store: MirrorStore { model.mirror }
 
+    /// The module's width: the glass grows with the notch.
+    @State private var width: CGFloat = 0
+
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
             .onAppear { store.start() }
             .onDisappear { store.stop() }
     }
@@ -59,7 +63,7 @@ struct DesvanMirrorView: View {
     }
 
     private var mirror: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 14) {
             Spacer(minLength: 0)
             frame
             controls
@@ -67,14 +71,22 @@ struct DesvanMirrorView: View {
         }
     }
 
+    /// The glass, 16:9: 256 × 144 when there is room (plus the 6 pt frame, 156 of the module's 180 pt), down to
+    /// 176 pt wide in the narrowest notch so the controls (up to 180 pt, 14 pt away) still fit beside it.
+    private var glassSize: CGSize {
+        let available = width > 0 ? width - 180 - 14 - 12 : 256
+        let side = min(256, max(176, available))
+        return CGSize(width: side, height: (side * 9 / 16).rounded())
+    }
+
     /// The looking glass: the picture set into a wooden frame, with the bulb catching its top edge.
     private var frame: some View {
         Group {
             if let session = store.session, store.isRunning {
-                DesvanCameraPreview(session: session, isMirrored: store.isMirrored, cornerRadius: 8)
+                DesvanCameraPreview(session: session, isMirrored: store.isMirrored, cornerRadius: 10)
             } else {
                 // Warming up: the glass before the image arrives.
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(Desvan.Palette.woodRaised)
                     .overlay {
                         ProgressView()
@@ -83,10 +95,10 @@ struct DesvanMirrorView: View {
                     }
             }
         }
-        .frame(width: 158, height: 88)
-        .padding(5)
-        .desvanCard(radius: 13)
-        .shadow(color: .black.opacity(0.5), radius: 8, y: 3)
+        .frame(width: glassSize.width, height: glassSize.height)
+        .padding(6)
+        .desvanCard(radius: 16)
+        .shadow(color: .black.opacity(0.5), radius: 10, y: 4)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(store.isMirrored
             ? "Mirror: the Mac's camera, flipped like a mirror"
@@ -94,14 +106,14 @@ struct DesvanMirrorView: View {
     }
 
     private var controls: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Button {
                 store.flip()
             } label: {
                 Label(store.isMirrored ? "Mirrored" : "As it is", systemImage: "arrow.left.and.right")
                     .labelStyle(.titleAndIcon)
             }
-            .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 24))
+            .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 28))
             .help("Flip the image left to right")
             .accessibilityHint("Switches between the flipped, mirror-like image and the image as it is")
 
@@ -122,13 +134,13 @@ struct DesvanMirrorView: View {
                     Label(currentCameraName, systemImage: "camera")
                 }
                 .menuStyle(.button)
-                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 24))
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
                 .menuIndicator(.hidden)
                 .fixedSize()
                 .help("Choose camera")
             } else if let name = store.cameras.first?.name {
                 Label(name, systemImage: "camera")
-                    .font(Desvan.Typeface.rounded(11, weight: .medium))
+                    .font(Desvan.Typeface.rounded(12, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .lineLimit(1)
                     .padding(.leading, 2)

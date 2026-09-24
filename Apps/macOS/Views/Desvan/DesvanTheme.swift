@@ -22,8 +22,11 @@ extension Desvan {
         static let plank = Color(hex: 0x3A3027)
         /// Text: warm paper white.
         static let paper = Color(hex: 0xF6EFE3)
+        /// ≈ 6.5:1 on wood.
         static let paperSecondary = Color(hex: 0xF6EFE3).opacity(0.62)
-        static let paperTertiary = Color(hex: 0xF6EFE3).opacity(0.38)
+        /// The quietest text. 52 % keeps small captions at ≈ 4.7–5:1 on black, wood and raised wood (WCAG AA);
+        /// at 38 % they fell to ≈ 3:1. On the plank or lighter, use `paperSecondary`.
+        static let paperTertiary = Color(hex: 0xF6EFE3).opacity(0.52)
         /// Ink for text written on kraft or on the bulb.
         static let ink = Color(hex: 0x2B241D)
         /// Text on the bulb-filled primary button.

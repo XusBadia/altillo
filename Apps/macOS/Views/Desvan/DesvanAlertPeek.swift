@@ -10,7 +10,7 @@ struct DesvanAlertSymbol: View {
 
     var body: some View {
         Image(systemName: alert.symbol)
-            .font(.system(size: 12.5, weight: .semibold))
+            .font(.system(size: 14, weight: .semibold))
             .symbolRenderingMode(.hierarchical)
             .foregroundStyle(alert.isUrgent ? Desvan.Palette.bulb : Desvan.Palette.paper)
             .shadow(color: Desvan.Palette.bulb.opacity(alert.isUrgent ? 0.55 : 0), radius: 4)
@@ -25,7 +25,7 @@ struct DesvanAlertFigure: View {
 
     var body: some View {
         Text(text)
-            .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+            .font(Desvan.Typeface.rounded(12, weight: .semibold))
             .foregroundStyle(Desvan.Palette.paperSecondary)
             .monospacedDigit()
             .lineLimit(1)

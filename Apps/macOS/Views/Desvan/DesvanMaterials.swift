@@ -389,6 +389,37 @@ struct DesvanRubberStamp: View {
 
 /// Capsule buttons for Desván. `.primary` is filled with the bulb and dark ink; `.ghost` is an outline;
 /// `.quiet` has no background until hovered. Presses scale to 0.97 on press, not on release.
+/// The smallest pointer target in the notch (PLAN §4): Apple's macOS guidance for controls is 24–28 pt.
+enum DesvanHitTarget {
+    static let minimum: CGFloat = 28
+}
+
+extension View {
+    /// Makes the whole frame clickable and, when the visual is smaller than `DesvanHitTarget.minimum`, grows the
+    /// clickable area around it without growing the drawing or its layout (the band beside the notch has no
+    /// room to spare).
+    func desvanHitTarget(_ minimum: CGFloat = DesvanHitTarget.minimum) -> some View {
+        modifier(DesvanHitTargetModifier(minimum: minimum))
+    }
+}
+
+private struct DesvanHitTargetModifier: ViewModifier {
+    let minimum: CGFloat
+    @State private var size: CGSize = .zero
+
+    func body(content: Content) -> some View {
+        let dx = max(0, (minimum - size.width) / 2)
+        let dy = max(0, (minimum - size.height) / 2)
+        content
+            .onGeometryChange(for: CGSize.self) { $0.size } action: { size = $0 }
+            .padding(.horizontal, dx)
+            .padding(.vertical, dy)
+            .contentShape(Rectangle())
+            .padding(.horizontal, -dx)
+            .padding(.vertical, -dy)
+    }
+}
+
 struct DesvanButtonStyle: ButtonStyle {
     enum Kind { case primary, ghost, quiet }
     var kind: Kind
@@ -415,7 +446,7 @@ private struct DesvanButtonBody: View {
             .frame(height: height)
             .foregroundStyle(foreground)
             .background { background }
-            .contentShape(Capsule())
+            .desvanHitTarget()
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .animation(Desvan.Motion.pick(.spring(duration: 0.2, bounce: 0), reduceMotion: reduceMotion), value: configuration.isPressed)
             .animation(Desvan.Motion.hover, value: isHovering)

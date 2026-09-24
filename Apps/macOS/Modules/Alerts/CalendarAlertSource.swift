@@ -30,7 +30,9 @@ final class CalendarAlertSource {
         self.store = store
         fetchEvents = { [weak self] in
             guard let self else { return [] }
-            return Self.fetchUpcomingEvents(store: self.store, now: self.now())
+            return Self.fetchUpcomingEvents(
+                store: self.store, now: self.now(), hiding: AltilloSettings.shared.calendarHiddenIDs
+            )
         }
     }
 
@@ -120,12 +122,11 @@ final class CalendarAlertSource {
     /// What's coming up in the next couple of days, mapped to the plain struct the scheduler works with.
     /// `store.reset()` first so a change notification's fetch never sees stale cached objects.
     private static func fetchUpcomingEvents(
-        store: EKEventStore, now: Date, calendar: Calendar = .current
+        store: EKEventStore, now: Date, hiding hidden: Set<String>, calendar: Calendar = .current
     ) -> [CalendarAlertEvent] {
         store.reset()
         guard let horizon = calendar.date(byAdding: .hour, value: 48, to: now) else { return [] }
-        let predicate = store.predicateForEvents(withStart: now, end: horizon, calendars: nil)
-        return store.events(matching: predicate)
+        return CalendarVisibility.events(in: store, from: now, to: horizon, hiding: hidden)
             .filter { $0.status != .canceled && !isDeclined($0) }
             .map(makeAlertEvent(from:))
     }

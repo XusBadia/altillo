@@ -44,8 +44,8 @@ struct DesvanExpandedFace: View {
                 ZStack {
                     if isEditing {
                         Text("Drag the tabs to reorder them, or onto an ear.")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .font(.system(size: 12))
+                            .foregroundStyle(Desvan.Palette.paperSecondary)
                             .lineLimit(1)
                             .transition(.opacity)
                     } else {
@@ -98,7 +98,7 @@ struct DesvanExpandedFace: View {
         .overlay {
             // The bulb hangs just under the notch; its light warms whatever sits below.
             // The band beside the notch stays pure black so it melts into the hardware notch.
-            DesvanBulbGlow(intensity: glow + flicker, radius: 160, originY: chrome.bandHeight)
+            DesvanBulbGlow(intensity: glow + flicker, radius: 200, originY: chrome.bandHeight)
                 .animation(Desvan.Motion.pick(.easeInOut(duration: 0.25), reduceMotion: reduceMotion), value: glow)
                 .mask {
                     VStack(spacing: 0) {
@@ -256,53 +256,126 @@ private struct DesvanPressStyle: ButtonStyle {
 /// The open notch's menu: one icon per module and, on the active one only, its name inside a raised plaque that
 /// grows and shrinks with a spring as the selection moves (PLAN §4).
 ///
-/// Beside a hardware notch there is very little room (at the narrowest width, ~105 pt for up to six modules), so the
-/// strip has four densities and `ViewThatFits` picks the roomiest one that still fits. The last one drops the name;
-/// every icon always carries the module's name as a tooltip and as its accessibility label.
+/// Beside a hardware notch there is very little room (at the narrowest width, ~105 pt a side for up to seven
+/// sections), and the targets never shrink below `DesvanHitTarget.minimum`: fewer, larger tabs beat a crammed strip.
+/// So `ViewThatFits` tries every section at two densities, then the first few with the active one always among them
+/// and the rest behind a "More" menu, and last a single menu named after the active section. Every icon carries the
+/// module's name as a tooltip and as its accessibility label.
 private struct DesvanTabs: View {
     let model: NotchModel
     @Namespace private var namespace
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
+        let count = model.settings.modules.count
         ViewThatFits(in: .horizontal) {
-            strip(.roomy)
-            strip(.snug)
-            strip(.tight)
-            strip(.cramped)
-            strip(.iconsOnly)
+            strip(.roomy, visible: count)
+            strip(.snug, visible: count)
+            // Fewer tabs with the active one's name, before any tab loses its size or the name disappears; then,
+            // in the narrowest band, icons only, still full size. (One `ForEach`: `ViewThatFits` needs unique IDs.)
+            ForEach(Self.fallbacks(count: count), id: \.self) { fallback in
+                strip(fallback.labelled ? .snug : .iconsOnly, visible: fallback.visible)
+            }
             overflowMenu(showTitle: true)
             overflowMenu(showTitle: false)
         }
         .animation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion), value: model.module)
     }
 
+    private struct Fallback: Hashable {
+        var labelled: Bool
+        var visible: Int
+    }
+
+    /// The partial strips, roomiest first: `count - 1` down to 2 named tabs plus "More", then 3 down to 1 icons.
+    private static func fallbacks(count: Int) -> [Fallback] {
+        let labelled = count > 2 ? (2..<count).reversed().map { Fallback(labelled: true, visible: $0) } : []
+        let icons = (1...max(min(count, 3), 1)).reversed().map { Fallback(labelled: false, visible: $0) }
+        return labelled + icons
+    }
+
+    /// The first `count` sections in order, with the active one swapped in for the last of them when it would be
+    /// hidden, so the strip always says where you are.
+    private func shown(_ count: Int) -> [NotchModule] {
+        let modules = model.settings.modules
+        guard count < modules.count, count > 0 else { return modules }
+        var shown = Array(modules.prefix(count))
+        if !shown.contains(model.module), modules.contains(model.module) { shown[count - 1] = model.module }
+        return shown
+    }
+
     /// Seven sections cannot fit beside a hardware notch at narrow widths.
     /// A named menu keeps every section reachable without shrinking the targets further.
     private func overflowMenu(showTitle: Bool) -> some View {
         Menu {
-            ForEach(model.settings.modules) { tab in
-                Button { model.select(tab) } label: {
-                    Label(tab.title, systemImage: tab.symbol)
-                }
-            }
+            sectionItems(model.settings.modules)
         } label: {
-            Group {
-                if showTitle { Label(model.module.title, systemImage: model.module.symbol) }
-                else { Image(systemName: model.module.symbol) }
+            HStack(spacing: 5) {
+                Image(systemName: model.module.symbol)
+                    .font(.system(size: DesvanTabMetrics.snug.icon - 1, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                if showTitle {
+                    Text(model.module.title)
+                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                        .fixedSize()
+                }
+                Image(systemName: "chevron.down")
+                    .font(.system(size: 9.5, weight: .bold))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
             }
-            .font(.system(size: 11, weight: .medium))
-            .lineLimit(1)
+            .foregroundStyle(Desvan.Palette.paper)
+            .padding(.horizontal, 9)
+            .frame(minWidth: DesvanHitTarget.minimum, minHeight: DesvanTabMetrics.height)
+            .background { DesvanTabPlaque() }
+            .contentShape(Rectangle())
         }
-        .menuStyle(.borderlessButton)
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
         .fixedSize()
         .help("Choose a section")
         .accessibilityLabel("Sections, \(model.module.title) selected")
     }
 
-    private func strip(_ metrics: DesvanTabMetrics) -> some View {
-        HStack(spacing: metrics.spacing) {
-            ForEach(model.settings.modules) { tab in
+    /// The sections that didn't fit, one click away.
+    private func moreMenu(_ hidden: [NotchModule]) -> some View {
+        Menu {
+            sectionItems(hidden)
+        } label: {
+            Image(systemName: "ellipsis")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .frame(width: DesvanTabMetrics.snug.slot, height: DesvanTabMetrics.height)
+                .contentShape(Rectangle())
+        }
+        .menuStyle(.button)
+        .buttonStyle(.plain)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("More sections")
+        .accessibilityLabel("More sections")
+    }
+
+    @ViewBuilder
+    private func sectionItems(_ modules: [NotchModule]) -> some View {
+        ForEach(modules) { tab in
+            Button { select(tab) } label: {
+                Label(tab.title, systemImage: tab.symbol)
+            }
+        }
+    }
+
+    private func select(_ tab: NotchModule) {
+        withAnimation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion)) {
+            model.select(tab)
+        }
+    }
+
+    private func strip(_ metrics: DesvanTabMetrics, visible: Int) -> some View {
+        let tabs = shown(visible)
+        let hidden = model.settings.modules.filter { !tabs.contains($0) }
+        return HStack(spacing: metrics.spacing) {
+            ForEach(tabs) { tab in
                 DesvanTabButton(
                     tab: tab,
                     isSelected: model.module == tab,
@@ -310,17 +383,17 @@ private struct DesvanTabs: View {
                     metrics: metrics,
                     namespace: namespace
                 ) {
-                    withAnimation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion)) {
-                        model.select(tab)
-                    }
+                    select(tab)
                 }
             }
+            if !hidden.isEmpty { moreMenu(hidden) }
         }
         .fixedSize()
     }
 }
 
-/// How tightly the tab strip is packed. Every density keeps the same anatomy; only the numbers shrink.
+/// How tightly the tab strip is packed. Every density keeps the same anatomy and never goes below the minimum
+/// target (28 × 28 pt) or a 13 pt icon; when even the snug one doesn't fit, sections move to a menu instead.
 private struct DesvanTabMetrics: Hashable {
     /// Point size of the module's symbol.
     var icon: CGFloat
@@ -334,14 +407,14 @@ private struct DesvanTabMetrics: Hashable {
     var gap: CGFloat
     var spacing: CGFloat
 
-    static let roomy = DesvanTabMetrics(icon: 12.5, slot: 26, label: 12, padding: 9, gap: 5, spacing: 2)
-    static let snug = DesvanTabMetrics(icon: 12, slot: 22, label: 11.5, padding: 8, gap: 4, spacing: 1)
-    static let tight = DesvanTabMetrics(icon: 11, slot: 19, label: 11, padding: 7, gap: 3.5, spacing: 0)
-    static let cramped = DesvanTabMetrics(icon: 10.5, slot: 17, label: 10.5, padding: 6, gap: 3, spacing: 0)
-    /// Last resort (six modules at the narrowest width): the name lives in the tooltip only.
-    static let iconsOnly = DesvanTabMetrics(icon: 11, slot: 17, label: nil, padding: 6, gap: 0, spacing: 0)
+    static let roomy = DesvanTabMetrics(icon: 15, slot: 32, label: 12.5, padding: 10, gap: 5, spacing: 2)
+    static let snug = DesvanTabMetrics(icon: 14, slot: 28, label: 12.5, padding: 8, gap: 4, spacing: 1)
+    /// Last strip before the menus: the name lives in the tooltip only.
+    static let iconsOnly = DesvanTabMetrics(icon: 14, slot: 28, label: nil, padding: 7, gap: 0, spacing: 1)
 
-    var height: CGFloat { 22 }
+    /// Fits the band beside the smallest hardware notch (32 pt) and the Drawer's navigation row.
+    static let height: CGFloat = DesvanHitTarget.minimum
+    var height: CGFloat { Self.height }
 }
 
 private struct DesvanTabButton: View {
@@ -371,6 +444,7 @@ private struct DesvanTabButton: View {
             .shadow(color: .black.opacity(isSelected ? 0.7 : 0), radius: 0, y: -0.5)
             .padding(.horizontal, isSelected ? metrics.padding : 0)
             .frame(width: isSelected ? nil : metrics.slot, height: metrics.height)
+            .frame(minWidth: metrics.slot)
             .background {
                 if isSelected {
                     DesvanTabPlaque()
@@ -411,9 +485,12 @@ private struct DesvanTabButton: View {
 }
 
 /// The active tab: a small plaque of lighter wood in a thin brass frame, like the label holder on an attic drawer.
-private struct DesvanTabPlaque: View {
+/// The Settings window's tab bar uses it too.
+struct DesvanTabPlaque: View {
+    var cornerRadius: CGFloat = 7
+
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         shape
             .fill(LinearGradient(colors: [Color(hex: 0x3B3026), Color(hex: 0x2B231B)], startPoint: .top, endPoint: .bottom))
             .desvanTexture(DesvanTexture.wood, opacity: 0.7, in: shape)
@@ -447,14 +524,15 @@ private struct DesvanSettingsButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: "gearshape")
-                .font(.system(size: 11, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
-                .frame(width: 20, height: 18)
+                .frame(width: DesvanHitTarget.minimum, height: DesvanHitTarget.minimum)
                 .background {
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
                         .fill(Desvan.Palette.paper.opacity(isHovering ? 0.10 : 0))
                 }
+                .contentShape(Rectangle())
         }
         .buttonStyle(DesvanPressStyle())
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
@@ -468,7 +546,7 @@ private struct DesvanHeaderAccessory: View {
     let isDropTarget: Bool
 
     var body: some View {
-        HStack(spacing: 6) {
+        HStack(spacing: 4) {
             summary
             if !isDropTarget {
                 DesvanSettingsButton { model.actions.openSettings() }
@@ -500,7 +578,7 @@ private struct DesvanHeaderAccessory: View {
         .lineLimit(1)
     }
 
-    private static let caption = Desvan.Typeface.rounded(11, weight: .medium)
+    private static let caption = Desvan.Typeface.rounded(11.5, weight: .medium)
 
     private func sampleCaption(_ text: LocalizedStringKey) -> some View {
         Text(text)
@@ -551,12 +629,13 @@ private struct DesvanHeaderAccessory: View {
             switch clear {
             case .word:
                 Button("Empty") { model.actions.clearShelf() }
-                    .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
+                    .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 26))
             case .glyph:
                 Button { model.actions.clearShelf() } label: {
-                    Image(systemName: "arrow.down.to.line").font(.system(size: 10.5, weight: .semibold))
+                    Image(systemName: "arrow.down.to.line").font(.system(size: 12.5, weight: .semibold))
                 }
-                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 22))
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 26))
+                .accessibilityLabel("Empty the shelf")
                 .help("Empty the shelf")
             }
         }
@@ -567,7 +646,7 @@ private struct DesvanHeaderAccessory: View {
     private var shelfStatusLong: some View {
         if model.selection.isEmpty {
             let figure = Text("\(model.shelf.count)")
-                .font(Desvan.Typeface.figure(12, weight: .semibold))
+                .font(Desvan.Typeface.figure(12.5, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paper)
             (model.shelf.count == 1 ? Text("\(figure) thing up there") : Text("\(figure) things up there"))
                 .font(Self.caption)
@@ -590,14 +669,14 @@ private struct DesvanHeaderAccessory: View {
     private var shelfStatusShort: some View {
         if model.selection.isEmpty {
             Text("\(model.shelf.count)")
-                .font(Desvan.Typeface.figure(12, weight: .semibold))
+                .font(Desvan.Typeface.figure(13, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .contentTransition(.numericText(value: Double(model.shelf.count)))
                 .help("\(NotchFormat.things(model.shelf.count)) on the shelf")
         } else {
             HStack(spacing: 8) {
-                Image(systemName: "space").font(.system(size: 9.5, weight: .medium))
-                Image(systemName: "delete.left").font(.system(size: 9.5, weight: .medium))
+                Image(systemName: "space").font(.system(size: 11, weight: .medium))
+                Image(systemName: "delete.left").font(.system(size: 11, weight: .medium))
             }
             .foregroundStyle(Desvan.Palette.paperTertiary)
             .help("Space: look · Delete: remove")
@@ -606,7 +685,7 @@ private struct DesvanHeaderAccessory: View {
 
     private func hint(_ symbol: String, _ text: LocalizedStringKey) -> some View {
         HStack(spacing: 4) {
-            Image(systemName: symbol).font(.system(size: 9.5, weight: .medium))
+            Image(systemName: symbol).font(.system(size: 10.5, weight: .medium))
             Text(text)
         }
     }
@@ -689,7 +768,7 @@ private struct DesvanHeaderAccessory: View {
 private struct DesvanCompactLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: 3) {
-            configuration.icon.font(.system(size: 9.5, weight: .semibold))
+            configuration.icon.font(.system(size: 10.5, weight: .semibold))
             configuration.title
         }
     }

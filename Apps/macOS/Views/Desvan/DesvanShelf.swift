@@ -14,10 +14,11 @@ struct DesvanShelfView: View {
     @FocusState private var isFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    nonisolated static let rowPadding: CGFloat = 6
+    nonisolated static let rowPadding: CGFloat = 10
 
-    /// Top of the plank (its top surface) in the card.
-    static let plankY: CGFloat = 66
+    /// Top of the plank (its top surface) in the card: 18 pt of air above the things, then the things themselves.
+    /// The empty shelf keeps its board at the same height, so the plank doesn't jump when the first thing lands.
+    static let plankY: CGFloat = 99
 
     /// How wide the card is, so the row can centre itself while everything fits and the fades know their size.
     @State private var cardWidth: CGFloat = 0
@@ -27,7 +28,7 @@ struct DesvanShelfView: View {
     @State private var position = ScrollPosition(idType: ShelfItem.ID.self)
 
     /// Width of the fade at each end of the row when there is more shelf out of sight.
-    private static let fade: CGFloat = 22
+    private static let fade: CGFloat = 28
 
     var body: some View {
         Group {
@@ -231,11 +232,13 @@ private struct DesvanShelfTile: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Things keep the same comfortable width whatever the notch is set to: the row scrolls instead of stretching.
-    static let width: CGFloat = 82
-    static let thumbnailSide: CGFloat = 50
+    static let width: CGFloat = 110
+    static let thumbnailSide: CGFloat = 76
     /// Height of the space things stand in; their base sinks 3 pt into the plank's top surface (depth).
     static let thingHeight: CGFloat = thumbnailSide + 8
     static let sink: CGFloat = 3
+    /// Wall showing between the plank's front edge and the name written under it.
+    static let wallGap: CGFloat = 5
 
     /// The name written under the plank. Files lose their extension (the thumbnail already says what it is) and
     /// truncate in the middle so the end (dates, versions) survives; notes keep their beginning.
@@ -262,9 +265,9 @@ private struct DesvanShelfTile: View {
         VStack(spacing: 0) {
             thing
                 .frame(width: Self.width, height: Self.thingHeight, alignment: .bottom)
-            Color.clear.frame(height: DesvanPlank.height - Self.sink + 3) // the plank and a little wall
+            Color.clear.frame(height: DesvanPlank.height - Self.sink + Self.wallGap) // the plank and a little wall
             Text(name)
-                .font(.system(size: 10.5, weight: isSelected ? .semibold : .medium))
+                .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
                 .foregroundStyle(isSelected ? Desvan.Palette.bulb : (isHovering ? Desvan.Palette.paper : Desvan.Palette.paperSecondary))
                 .shadow(color: isSelected ? Desvan.Palette.bulb.opacity(0.45) : .clear, radius: 5)
                 .lineLimit(1)
@@ -319,9 +322,9 @@ private struct DesvanShelfTile: View {
                 } keyframes: { _ in
                     KeyframeTrack(\.offsetY) {
                         // Falls from above the card, accelerating (≈ y = t²).
-                        MoveKeyframe(-66)
-                        LinearKeyframe(-58, duration: 0.07)
-                        LinearKeyframe(-36, duration: 0.07)
+                        MoveKeyframe(-104)
+                        LinearKeyframe(-91, duration: 0.07)
+                        LinearKeyframe(-57, duration: 0.07)
                         LinearKeyframe(0, duration: 0.07)
                     }
                     KeyframeTrack(\.rotation) {
@@ -345,9 +348,9 @@ private struct DesvanShelfTile: View {
             // Selected: the bulb's light pools on the board under it.
             Ellipse()
                 .fill(RadialGradient(colors: [Desvan.Palette.bulb.opacity(isSelected ? 0.32 : 0), .clear],
-                                     center: .center, startRadius: 0, endRadius: 30))
-                .frame(width: 64, height: 16)
-                .offset(y: 5)
+                                     center: .center, startRadius: 0, endRadius: 44))
+                .frame(width: 96, height: 20)
+                .offset(y: 6)
                 .blendMode(.plusLighter)
                 .allowsHitTesting(false)
         }
@@ -359,11 +362,11 @@ private struct DesvanShelfTile: View {
         ZStack {
             Ellipse()
                 .fill(.black.opacity(0.4 - 0.06 * lift))
-                .frame(width: 50 + 3 * lift, height: 6 + lift)
+                .frame(width: 72 + 3 * lift, height: 8 + lift)
                 .blur(radius: 2.5 + lift)
             Ellipse()
                 .fill(.black.opacity(0.8 - 0.2 * lift))
-                .frame(width: 38, height: 2.5)
+                .frame(width: 56, height: 3)
                 .blur(radius: 1 + 0.6 * lift)
         }
         .offset(y: 2.5)
@@ -556,18 +559,21 @@ struct DesvanShelfEmptyState: View {
             // The bare board, running wall to wall like the full shelf's.
             DesvanPlank()
                 .padding(.top, DesvanShelfView.plankY)
-            HStack(alignment: .center, spacing: 12) {
-                DesvanHouseMark(size: 26)
-                VStack(alignment: .leading, spacing: 2) {
+            HStack(alignment: .center, spacing: 16) {
+                DesvanHouseMark(size: 38)
+                VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: title)
-                        .font(Desvan.Typeface.display(16, weight: 600))
+                        .font(Desvan.Typeface.display(19, weight: 600))
                         .foregroundStyle(problem == nil ? Desvan.Palette.paper : Desvan.Palette.warning)
                     Text(verbatim: detail)
-                        .font(.system(size: 11.5))
+                        .font(.system(size: 13))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                         .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
+            // Clear of the card's rounded edges; a narrow notch wraps the sentence instead of running into them.
+            .padding(.horizontal, 20)
             .frame(height: DesvanShelfView.plankY)
             .padding(.top, 1)
         }

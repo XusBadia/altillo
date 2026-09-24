@@ -46,7 +46,7 @@ struct SettingsAboutPane: View {
                 }
 
                 Text("A place up top to leave things and see what matters.")
-                    .font(.system(size: 12))
+                    .font(.system(size: 12.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .multilineTextAlignment(.center)
 
@@ -87,7 +87,7 @@ struct SettingsAboutPane: View {
                 Text("MIT licence. Use it, copy it and change it freely.")
                 Text("© 2026 Xus Badia")
             }
-            .font(.system(size: 10.5))
+            .font(.system(size: 11))
             .foregroundStyle(Desvan.Palette.paperTertiary)
             .multilineTextAlignment(.center)
             .padding(.bottom, 18)

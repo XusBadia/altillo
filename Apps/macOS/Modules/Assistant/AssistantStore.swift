@@ -16,15 +16,22 @@ struct AssistantContext {
     var postAlert: (NotchAlert) -> Void = { _ in }
     /// True while the open notch is showing the assistant (so a finished answer doesn't need an alert).
     var isVisible: () -> Bool = { false }
+    /// Whether the user lets Ask search the web on its own (Settings ▸ Behaviour ▸ Ask). Off by default.
+    var webSearchAllowed: () -> Bool = { AltilloSettings.shared.assistantWebSearch }
+    /// "Always allow" under an answer: turns web lookups on for good.
+    var allowWebSearch: () -> Void = { AltilloSettings.shared.assistantWebSearch = true }
+    /// Opens a web page in the default browser (a source, or the question as a search).
+    var openURL: (URL) -> Void = { NSWorkspace.shared.open($0) }
 }
 
 /// The «Ask» section: a small on-device assistant (Apple Intelligence, Foundation Models) that can look at
 /// Altillo's own context through tools — the shelf, today's calendar, what's playing, the clipboard.
 ///
 /// Private by construction: the model runs on this Mac, the conversation lives only in memory (a new conversation,
-/// or quitting, forgets it) and nothing is ever written to disk. Nothing runs at idle either: the session is made
-/// and prewarmed the first time the section appears, and availability is re-checked on every appearance and when
-/// the system says it changed, never on a timer.
+/// or quitting, forgets it) and nothing is ever written to disk. The web is only reached when the user allows it:
+/// for good in Settings, or for one question at a time from the offer under an answer that needed it. Nothing runs
+/// at idle either: a session is made and prewarmed the first time the section appears, and availability is
+/// re-checked on every appearance and when the system says it changed, never on a timer.
 ///
 /// `start()` / `stop()` are reference counted like the other stores, because SwiftUI inserts the new view before it
 /// removes the old one. An answer on its way keeps going when the notch closes; if it finishes unseen, a peek says so.
@@ -70,15 +77,23 @@ final class AssistantStore {
         var status: Status = .thinking
         /// Tools it used, in order, for the little "from your calendar" marks.
         var sources: [AssistantActivity] = []
+        /// Pages the answer drew on when it searched the web, for the globe mark.
+        var webSources: [AssistantWebSource] = []
+        /// The answer needed something live and web lookups are off: offer to search for this one question.
+        var offersWeb = false
 
         init(id: UUID = UUID(), question: String, answer: String = "", status: Status = .thinking,
-             sources: [AssistantActivity] = []) {
+             sources: [AssistantActivity] = [], webSources: [AssistantWebSource] = [], offersWeb: Bool = false) {
             self.id = id
             self.question = question
             self.answer = answer
             self.status = status
             self.sources = sources
+            self.webSources = webSources
+            self.offersWeb = offersWeb
         }
+
+        var usedWeb: Bool { sources.contains(.web) }
 
         var isFinished: Bool {
             switch status {
@@ -120,11 +135,10 @@ final class AssistantStore {
     /// The last request the view acted on, so one made while the view wasn't there is honoured on appear.
     @ObservationIgnored private var handledFocusRequest = 0
 
-    @ObservationIgnored private var session: LanguageModelSession?
-    @ObservationIgnored private var sessionMadeAt: Date?
-    /// Set when the session can't be trusted with the next question (stopped mid-answer): the next one starts a
-    /// fresh session carrying a recap.
-    @ObservationIgnored private var sessionNeedsRecap = false
+    /// A chat session made and prewarmed ahead of the first question. Every question gets a session of its own
+    /// (with the tools its route needs and a recap of the last exchanges), so this only speeds up the first one.
+    @ObservationIgnored private var prewarmed: LanguageModelSession?
+    @ObservationIgnored private var prewarmedAt: Date?
     @ObservationIgnored private var responseTask: Task<Void, Never>?
     @ObservationIgnored private var respondingTo: UUID?
     @ObservationIgnored private var viewers = 0
@@ -164,16 +178,16 @@ final class AssistantStore {
         prepareSession()
     }
 
-    /// Makes (and prewarms) the session ahead of the first question. One without a conversation is remade when it
-    /// has aged, so the date and time in its instructions stay right.
+    /// Makes (and prewarms) a chat session ahead of the first question, remade when it has aged so the date and
+    /// time in its instructions stay right.
     private func prepareSession() {
-        guard availability == .available, !isResponding else { return }
-        let isStale = exchanges.isEmpty && sessionMadeAt.map { Date.now.timeIntervalSince($0) > 10 * 60 } ?? true
-        guard session == nil || isStale else { return }
-        let fresh = makeSession(recap: nil)
+        guard availability == .available, !isResponding, exchanges.isEmpty else { return }
+        let isStale = prewarmedAt.map { Date.now.timeIntervalSince($0) > 10 * 60 } ?? true
+        guard prewarmed == nil || isStale else { return }
+        let fresh = makeSession(route: .chat, recap: nil)
         fresh.prewarm()
-        session = fresh
-        sessionNeedsRecap = false
+        prewarmed = fresh
+        prewarmedAt = .now
     }
 
     /// `SystemLanguageModel` is observable: when Apple Intelligence is switched on or finishes downloading, this
@@ -239,8 +253,7 @@ final class AssistantStore {
         isResponding = false
         activity = nil
         exchanges = []
-        session = nil
-        sessionNeedsRecap = false
+        prewarmed = nil
         refreshAvailability()
         refreshSuggestions()
         SpikeLog.shared.record(SpikeLog.Category.assistant, "new conversation")
@@ -253,6 +266,45 @@ final class AssistantStore {
         pasteboard.setString(AssistantFormat.plainText(exchange.answer), forType: .string)
     }
 
+    /// "Search the web" under an answer that needed it: the user's consent for this one question. Looks it up and
+    /// answers again in place.
+    func searchWeb(for exchange: Exchange) {
+        guard !isResponding, exchanges.last?.id == exchange.id else { return }
+        availability = Availability(SystemLanguageModel.default.availability)
+        guard availability == .available else { return }
+        isResponding = true
+        respondingTo = exchange.id
+        activity = nil
+        update(exchange.id) {
+            $0.offersWeb = false
+            $0.sources = []
+            $0.webSources = []
+        }
+        SpikeLog.shared.record(SpikeLog.Category.assistant, "web search allowed for one question")
+        let question = exchange.question
+        responseTask = Task { [weak self] in
+            await self?.respondFromWeb(to: question, exchange: exchange.id)
+        }
+    }
+
+    /// "Always allow": web lookups on for good (the Settings toggle), and this question searched right away.
+    func alwaysAllowWeb(for exchange: Exchange) {
+        context.allowWebSearch()
+        SpikeLog.shared.record(SpikeLog.Category.assistant, "web search always allowed")
+        searchWeb(for: exchange)
+    }
+
+    /// "Open in browser": the question as a DuckDuckGo search in the default browser. Nothing is sent from here.
+    func openInBrowser(_ exchange: Exchange) {
+        guard let url = AssistantWeb.browserSearchURL(exchange.question) else { return }
+        update(exchange.id) { $0.offersWeb = false }
+        context.openURL(url)
+    }
+
+    func open(_ source: AssistantWebSource) {
+        context.openURL(source.url)
+    }
+
     /// Puts an answer on the shelf as a note, so it can be dragged out anywhere.
     func putUp(_ exchange: Exchange) {
         let text = AssistantFormat.plainText(exchange.answer)
@@ -263,22 +315,65 @@ final class AssistantStore {
 
     // MARK: - Answering
 
+    /// Routes the question (`AssistantRouter`), then answers it: from the model alone, with the local tools, or
+    /// from web results when it's about something live and the user allows the web.
     private func respond(to question: String, exchange id: UUID) async {
-        var session = currentSession(excluding: id)
+        let followsContext = exchanges.last(where: { $0.id != id && $0.isFinished })?.sources
+            .contains(where: \.isLocalContext) ?? false
+        let route = AssistantRouter.route(question, followsContext: followsContext)
+        let webAllowed = context.webSearchAllowed()
+        SpikeLog.shared.record(SpikeLog.Category.assistant, "route \(route.rawValue)")
+        if route == .live && webAllowed {
+            await respondFromWeb(to: question, exchange: id)
+            return
+        }
+
+        var prompt = route == .live
+            ? AssistantInstructions.prompt(forOfflineLive: question)
+            : AssistantInstructions.prompt(for: question)
+        if let hint = AssistantCalculator.hint(for: question) {
+            prompt += "\n\n(Exact result: \(hint))"
+            noteActivity(.calculator)
+        }
+        // Without the web, a live question is a chat one that knows it can't check.
+        let sessionRoute: AssistantRoute = route == .live ? .chat : route
         do {
-            try await stream(question, in: session, into: id)
-        } catch let error where AssistantFailure(error) == .contextFull && !Task.isCancelled {
-            // The small window is full: start afresh with a short recap of the last exchanges and try once more.
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "context full: retrying in a fresh session")
-            session = makeSession(recap: recap(excluding: id))
-            self.session = session
-            update(id) { $0.answer = ""; $0.status = .thinking }
-            do {
-                try await stream(question, in: session, into: id)
-            } catch {
-                finish(id, error: Task.isCancelled ? CancellationError() : error)
-                return
-            }
+            try await answer(prompt, route: sessionRoute, into: id)
+        } catch {
+            finish(id, error: Task.isCancelled ? CancellationError() : error)
+            return
+        }
+        // Web lookups are allowed and the model says it can't know: look it up for it.
+        if !Task.isCancelled, webAllowed,
+           let exchange = exchanges.first(where: { $0.id == id }), !exchange.usedWeb,
+           AssistantLiveness.answerAdmitsNotKnowing(AssistantFormat.plainText(exchange.answer)) {
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "the model can't know: looking it up")
+            await respondFromWeb(to: question, exchange: id)
+            return
+        }
+        finish(id, error: Task.isCancelled ? CancellationError() : nil)
+    }
+
+    /// Searches the web for the question itself and answers from the results. The search is Altillo's, not the
+    /// model's: handed a `web` tool, the small model searched for translations and haikus, and searched the same
+    /// words again and again until its context overflowed.
+    private func respondFromWeb(to question: String, exchange id: UUID) async {
+        update(id) {
+            $0.answer = ""
+            $0.status = .thinking
+        }
+        noteActivity(.web)
+        let lookup = await AssistantWeb.lookUp(question)
+        guard !Task.isCancelled else {
+            finish(id, error: CancellationError())
+            return
+        }
+        noteWebSources(lookup.sources)
+        SpikeLog.shared.record(
+            SpikeLog.Category.assistant, "web lookup → \(lookup.backend.rawValue), \(lookup.text.count) chars"
+        )
+        do {
+            try await answer(AssistantInstructions.prompt(for: question, webResults: lookup.text), route: .live, into: id)
         } catch {
             finish(id, error: Task.isCancelled ? CancellationError() : error)
             return
@@ -286,8 +381,24 @@ final class AssistantStore {
         finish(id, error: Task.isCancelled ? CancellationError() : nil)
     }
 
-    private func stream(_ question: String, in session: LanguageModelSession, into id: UUID) async throws {
-        for try await snapshot in session.streamResponse(to: AssistantInstructions.prompt(for: question)) {
+    /// One answer in a session of its own. When the small window overflows, or the model trips over itself (it
+    /// sometimes fails right after a tool call), it tries once more in a fresh session without the recap.
+    private func answer(_ prompt: String, route: AssistantRoute, into id: UUID) async throws {
+        let session = takePrewarmed(for: route, excluding: id) ?? makeSession(route: route, recap: recap(excluding: id))
+        do {
+            try await stream(prompt, in: session, into: id)
+        } catch let error where [.contextFull, .other].contains(AssistantFailure(error)) && !Task.isCancelled {
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "\(AssistantFailure(error)): retrying in a fresh session")
+            update(id) {
+                $0.answer = ""
+                $0.status = .thinking
+            }
+            try await stream(prompt, in: makeSession(route: route, recap: nil), into: id)
+        }
+    }
+
+    private func stream(_ prompt: String, in session: LanguageModelSession, into id: UUID) async throws {
+        for try await snapshot in session.streamResponse(to: prompt) {
             try Task.checkCancellation()
             activity = nil
             update(id) {
@@ -309,15 +420,20 @@ final class AssistantStore {
         switch error {
         case nil:
             exchanges[index].status = .done
+            let exchange = exchanges[index]
+            exchanges[index].offersWeb = !context.webSearchAllowed() && !exchange.usedWeb
+                && AssistantLiveness.shouldOffer(
+                    question: exchange.question,
+                    answer: AssistantFormat.plainText(exchange.answer),
+                    usedLocalTools: exchange.sources.contains(where: \.isLocalContext)
+                )
             SpikeLog.shared.record(SpikeLog.Category.assistant, "answered (\(exchanges[index].answer.count) chars)")
         case is CancellationError:
             exchanges[index].status = .stopped
-            sessionNeedsRecap = true
             return
         case let error?:
             let failure = AssistantFailure(error)
             exchanges[index].status = .failed(failure)
-            sessionNeedsRecap = true
             SpikeLog.shared.record(SpikeLog.Category.assistant, "failed: \(failure) — \(error)")
         }
 
@@ -336,14 +452,14 @@ final class AssistantStore {
 
     // MARK: - Sessions
 
-    private func currentSession(excluding id: UUID) -> LanguageModelSession {
-        if let session, !sessionNeedsRecap, !session.isResponding { return session }
-        let fresh = makeSession(recap: recap(excluding: id))
-        session = fresh
-        sessionNeedsRecap = false
-        return fresh
+    /// The prewarmed chat session, for the first question of a conversation when it's a chat one.
+    private func takePrewarmed(for route: AssistantRoute, excluding id: UUID) -> LanguageModelSession? {
+        guard route == .chat, let session = prewarmed, !session.isResponding,
+              !exchanges.contains(where: { $0.id != id })
+        else { return nil }
+        prewarmed = nil
+        return session
     }
-
 
     private func recap(excluding id: UUID) -> String {
         let earlier = exchanges
@@ -352,16 +468,16 @@ final class AssistantStore {
         return AssistantInstructions.recap(earlier)
     }
 
-    private func makeSession(recap: String?) -> LanguageModelSession {
-        sessionMadeAt = .now
+    private func makeSession(route: AssistantRoute, recap: String?) -> LanguageModelSession {
         let tools = AssistantTools.all(
+            for: route,
             shelfItems: { [weak self] in self?.context.shelfItems() ?? [] },
             report: { [weak self] activity in self?.noteActivity(activity) }
         )
         return LanguageModelSession(
             model: .default,
             tools: tools,
-            instructions: AssistantInstructions.text(recap: recap)
+            instructions: AssistantInstructions.text(recap: recap, route: route)
         )
     }
 
@@ -370,6 +486,15 @@ final class AssistantStore {
         guard let id = respondingTo else { return }
         update(id) { exchange in
             if !exchange.sources.contains(activity) { exchange.sources.append(activity) }
+        }
+    }
+
+    private func noteWebSources(_ sources: [AssistantWebSource]) {
+        guard let id = respondingTo else { return }
+        update(id) { exchange in
+            for source in sources where !exchange.webSources.contains(source) && exchange.webSources.count < 5 {
+                exchange.webSources.append(source)
+            }
         }
     }
 }

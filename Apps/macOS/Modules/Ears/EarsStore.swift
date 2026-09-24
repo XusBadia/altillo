@@ -103,7 +103,7 @@ final class EarsStore {
         } else if hasCalendarAccess() {
             let store = eventStore ?? EKEventStore()
             eventStore = store
-            events = Self.fetchUpcoming(store: store, now: moment)
+            events = Self.fetchUpcoming(store: store, now: moment, hiding: AltilloSettings.shared.calendarHiddenIDs)
         } else {
             events = []
         }
@@ -141,12 +141,11 @@ final class EarsStore {
     }
 
     /// Today's remaining events (and anything in the next hour), free of EventKit for the pure logic.
-    private static func fetchUpcoming(store: EKEventStore, now: Date) -> [EarEvent] {
+    private static func fetchUpcoming(store: EKEventStore, now: Date, hiding hidden: Set<String>) -> [EarEvent] {
         store.reset()
         let start = now.addingTimeInterval(-EarsLogic.nowGrace)
         let end = max(Calendar.current.startOfDay(for: now).addingTimeInterval(36 * 3600), now + 3600)
-        let predicate = store.predicateForEvents(withStart: start, end: end, calendars: nil)
-        return store.events(matching: predicate)
+        return CalendarVisibility.events(in: store, from: start, to: end, hiding: hidden)
             .filter { event in
                 event.status != .canceled
                     && !(event.attendees?.contains { $0.isCurrentUser && $0.participantStatus == .declined } ?? false)

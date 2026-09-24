@@ -76,7 +76,7 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
   - En iOS, los widgets y la pantalla de bloqueo van en papel claro.
 - **Tipografía:** SF Pro Rounded, la del sistema, elegida el 18-09-2026 entre 10 candidatas (muestra en `docs/design/tipografia/candidatas.png`). Se usa en títulos, cifras grandes, pestañas y botones; SF Pro / SF Mono en nombres y comandos. No se incluye ninguna fuente en la app.
 - **Materiales:** grano de papel, balda de madera en la que se apoyan las miniaturas (nombre en una línea debajo, **sin etiquetas kraft**: ocupaban demasiado), caja de cartón en la zona de soltar y el avión de papel de AirDrop. Más adelante se pueden generar texturas bitmap (madera, cartón) con IA si mejoran el resultado.
-- **Compacto:** el notch abierto mide unos 150 pt de alto (franja del notch + unos 104 pt de contenido) y el peek, 60 pt. Hay que ocupar poco espacio vertical.
+- **Que respire:** el notch abierto mide entre unos 190 y 260 pt de alto (franja del notch + 8 pt + entre 130 y 200 pt de contenido + 16 pt de margen); con el Cajón, hasta unos 360 pt. Decidido con Xus el 24-09-2026, a la manera de OmniNotch: antes medía unos 150 pt y todo quedaba apretado. El peek sigue en 60 pt. Cada sección usa solo la altura que necesita, pero con aire: miniaturas, cifras y textos más grandes, no huecos vacíos. Objetivos de puntero de 28 pt como mínimo, textos de 11 pt como mínimo (12,5 pt si son frases) y símbolos de navegación de 13 pt.
 - **Movimiento:** con peso: las cosas caen, se aplastan un poco y se asientan. Al cerrar, nunca rebotan. Los momentos firma son el ítem que aterriza en la balda, la caja que abre las solapas bajo el cursor, el "toc, toc" del agente que espera y el sello "Hecho". Con Reducir movimiento, todo son fundidos.
 - **Voz:** cálida y doméstica, de tú, con verbos del altillo: "Súbelo ↑", "Suéltalo, ya lo guardo arriba", "¿Lo bajamos?".
 - **Límite para no caer en lo cursi:** el sello solo aparece al terminar y las solapas solo en la zona de soltar. Todo lo demás es sobrio.
@@ -191,6 +191,15 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **Integración:** «Súbelo» convierte la respuesta en un texto del shelf que puedes arrastrar a cualquier app. Las sugerencias salen de lo que hay (por ejemplo, «Resume *informe.pdf*» si hay un PDF arriba).
 - **Invocación:** pestaña propia y atajo global ⌃⌥A (configurable: ⌥Espacio, ⌃⌥Espacio o ninguno), que abre el notch con el cursor en el campo. Mientras escribes o esperas respuesta, el notch no se cierra al apartar el puntero.
 - **Privacidad:** la conversación vive solo en memoria y no se guarda. Si la respuesta termina con el notch cerrado, asoma un aviso.
+- **Enrutado (24-09-2026):** el modelo pequeño usaba las tools para todo, así que Altillo clasifica cada pregunta antes de enviarla:
+  - **charla** (saber general, redacción, traducción, cuentas): sin tools. Los porcentajes y operaciones se calculan exactos y se le pasan al modelo;
+  - **tus cosas:** solo las tools locales;
+  - **en vivo:** Altillo busca en la web y le pasa los resultados.
+- **Web, opcional y desactivada por defecto:**
+  - Busca en DuckDuckGo, con Bing y Wikipedia de respaldo. El tiempo lo saca de Open-Meteo, al que solo le envía el nombre del sitio.
+  - Máximo 2.500 caracteres, sin cookies y con tiempo límite de 6 s.
+  - Con la web apagada no sale nada del Mac. Si hace falta algo en vivo, ofrece «Buscar en la web» solo para esa pregunta, «Permitir siempre» o «Abrir en el navegador».
+  - Las respuestas que han usado la web muestran sus fuentes.
 
 ### 5.8 Avisos en vivo (peeks)
 - `NotchAlert`: el notch crece a una línea unos segundos y vuelve solo. Si pasas el puntero se queda; con clic (o descansando encima) abre la sección del aviso.
@@ -249,6 +258,14 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 **Orden de ejecución (actualizado el 22-09-2026):** 11 ✓ → 2 ✓ → 3 → 4 → 12 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
 
 ### Estado
+
+- **Ronda de feedback de la 0.2.0 (24-09-2026):**
+  - El notch abierto es más alto y respira (unos 250-290 pt; el panel pasa a 780×440).
+  - Zonas de clic de 28 pt como mínimo, iconos de 13 pt como mínimo y textos de 11 pt como mínimo. El texto terciario tiene más contraste.
+  - La ventana de Ajustes tiene barra de pestañas propia, sin solaparse con el título.
+  - Calendario con vista de mes: mes, agenda, o mes y agenda. Se eligen los calendarios visibles y si se ven los eventos de todo el día, y los ocultos tampoco salen en orejas, avisos ni Pregunta.
+  - Pregunta enruta las preguntas y puede buscar en la web si lo permites (§5.7).
+  - Publicado como 0.2.1.
 
 - **Fase 2 (23-09-2026):** implementación terminada y validación automática en verde.
   - **Modo edición del notch:** clic derecho en el notch cerrado, clic derecho en la banda del abierto, el menú «Personalizar el notch…» o Ajustes › Secciones.

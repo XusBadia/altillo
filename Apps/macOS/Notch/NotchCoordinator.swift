@@ -780,7 +780,7 @@ final class NotchCoordinator {
         withObservationTracking {
             let settings = model.settings
             _ = (settings.assistantHotKey, settings.modules, settings.alertsForCalendar, settings.alertsForNowPlaying)
-            _ = (settings.leftEar, settings.rightEar)
+            _ = (settings.leftEar, settings.rightEar, settings.calendarHiddenIDs)
             _ = (settings.displayMode, settings.fullScreenBehaviour)
             _ = model.calendar.access
         } onChange: { [weak self] in

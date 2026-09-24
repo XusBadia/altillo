@@ -12,26 +12,29 @@ struct DesvanDrawerView: View {
     var body: some View {
         HStack(spacing: 8) {
             Image(systemName: "archivebox")
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .accessibilityHidden(true)
             if !isDemo && !store.hasAccess {
                 Button("Allow access to your menu bar icons") { store.requestAccess() }
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .buttonStyle(.plain)
+                    .desvanHitTarget()
             } else if !isDemo && !store.hasIconAccess {
                 Button("Allow Screen Recording to show your icons") { store.requestIconAccess() }
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
                     .buttonStyle(.plain)
+                    .desvanHitTarget()
             } else if !isDemo && store.isLoading && entries.isEmpty {
                 ProgressView("Finding menu bar icons…")
                     .controlSize(.small)
-                    .font(.system(size: 11))
+                    .font(.system(size: 12))
             } else if entries.isEmpty {
                 Button { model.actions.openDrawerSettings() } label: {
                     Label("Choose icons for Altillo", systemImage: "plus.circle")
-                        .font(.system(size: 11))
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .font(.system(size: 12))
+                        .frame(maxWidth: .infinity, minHeight: DesvanHitTarget.minimum, alignment: .leading)
+                        .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
             } else {
@@ -44,9 +47,9 @@ struct DesvanDrawerView: View {
                                     store.activate(entry, anchor: anchor)
                                 } label: {
                                     MenuBarGlyph(image: icon(for: entry))
-                                        .padding(.horizontal, 4.5)
-                                        .frame(minWidth: 27, minHeight: 27)
-                                        .contentShape(RoundedRectangle(cornerRadius: 6))
+                                        .padding(.horizontal, 6)
+                                        .frame(minWidth: Self.iconTarget, minHeight: Self.iconTarget)
+                                        .contentShape(RoundedRectangle(cornerRadius: 7))
                                 }
                                 .buttonStyle(.plain)
                                 .contextMenu {
@@ -76,13 +79,14 @@ struct DesvanDrawerView: View {
             Spacer(minLength: 0)
             if !isDemo, let problem = store.problem {
                 Image(systemName: "exclamationmark.triangle")
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(Desvan.Palette.warning)
                     .help(problem).accessibilityLabel(problem)
             }
             Button { model.actions.openDrawerSettings() } label: {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 12))
-                    .frame(width: 26, height: 30)
+                    .font(.system(size: 13.5))
+                    .frame(width: Self.iconTarget, height: Self.iconTarget)
                     .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
@@ -106,6 +110,10 @@ struct DesvanDrawerView: View {
         .onAppear { if !isDemo { store.setVisible(true, for: .notch) } }
         .onDisappear { if !isDemo { store.setVisible(false, for: .notch) } }
     }
+
+    /// Each icon is a 30 pt target (above the 28 pt minimum, `DesvanHitTarget`) around its 18 pt glyph, like the
+    /// menu bar's own spacing.
+    private static let iconTarget: CGFloat = 30
 
     private func icon(for entry: MenuBarEntry) -> NSImage {
         if !isDemo {

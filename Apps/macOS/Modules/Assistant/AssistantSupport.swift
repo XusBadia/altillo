@@ -9,31 +9,78 @@ import NaturalLanguage
 /// What the model is told before anything else. Short on purpose: it is paid for on every turn out of a context
 /// window of about 4 096 tokens.
 enum AssistantInstructions {
-    static func text(now: Date = .now, locale: Locale = .current, timeZone: TimeZone = .current, recap: String? = nil) -> String {
+    /// Each route gets only the lines it needs. `.live` means web results come with the question.
+    static func text(
+        now: Date = .now, locale: Locale = .current, timeZone: TimeZone = .current, recap: String? = nil,
+        route: AssistantRoute = .chat
+    ) -> String {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = timeZone
         formatter.dateFormat = "EEEE d MMMM yyyy, HH:mm"
         let language = Locale.preferredLanguages.first ?? locale.identifier
         var text = """
-        You are Altillo, a small assistant living in the notch of the user's Mac. Everything runs privately on this Mac.
-        Be warm, brief and plain: one to four short sentences, or a short list. Always reply in the language of the user's message, even when tool results are in English.
+        You are Altillo, a helpful assistant in the notch of the user's Mac, running privately on it.
+        Be warm and brief: one to four short sentences, or a short list. Always reply in the language of the user's message, even when tool results are in English.
         Now: \(formatter.string(from: now)) (\(timeZone.identifier)). User's language: \(language), region: \(locale.region?.identifier ?? "unknown").
-        For the shelf, the calendar, the music playing or the clipboard, always call the tool first. Never invent events, files, songs or contents. If a tool says it can't help, or you don't know, say so simply.
         """
+        switch route {
+        case .context:
+            text += """
+
+            The user is asking about their own things. Call the one tool that fits (shelf, calendar, nowPlaying or clipboard) and answer from its result. Never invent events, files, songs or contents. If the tool can't help, say so simply.
+            """
+        case .chat, .live:
+            // The small model refuses too readily: it's told plainly what it's good at and to just answer.
+            text += """
+
+            Answer directly and confidently from your own knowledge: facts, explanations, writing, translation, math, ideas, advice. Don't refuse when you know.
+            """
+            // Without results, admitting it is what makes Altillo look it up (or offer to): see `AssistantLiveness`.
+            text += route == .live
+                ? "\nWhen web results come with the question, answer from them and mention the site."
+                : "\nYou can't see today's news, scores, weather or prices. If asked, say you can't check live data, then give what you know."
+            text += "\nIf you don't know, say so simply."
+        }
         if let recap, !recap.isEmpty {
             text += "\nEarlier in this conversation:\n" + recap
         }
         return text
     }
 
+    /// The question with web results the user allowed for it (one tap, or on its own when the model didn't search
+    /// but should have): the model answers from them rather than being trusted to call the tool.
+    static func prompt(for question: String, webResults: String) -> String {
+        """
+        Question: \(question)
+
+        Web results, searched just now:
+        \(webResults)
+
+        Answer the question in one to three sentences from these results only, and name the site (no links). For "last" or "latest", go by the dates and pick the most recent one. If they don't say, say so.\(languageReminder(for: question).map { " " + $0 } ?? "")
+        """
+    }
+
     /// The question as sent to the model. The small model drifts into English after reading English tool results,
     /// so a question clearly written in another language carries a reminder of which one to answer in.
     static func prompt(for question: String) -> String {
+        guard let reminder = languageReminder(for: question) else { return question }
+        return question + "\n\n" + reminder
+    }
+
+    /// A question about something live while the web is off: without this, the small model makes up a score or a
+    /// forecast with total confidence.
+    static func prompt(forOfflineLive question: String) -> String {
+        prompt(for: question)
+            + "\n\n(You have no live data for this. Say so in one short sentence, then add only background you're sure of: no made-up results, scores, dates or numbers.)"
+    }
+
+    /// "(Reply in Spanish.)" for a question clearly in a language other than English.
+    static func languageReminder(for question: String) -> String? {
         guard let language = language(of: question), language != "en",
               let name = Locale(identifier: "en_US_POSIX").localizedString(forLanguageCode: language)
-        else { return question }
-        return question + "\n\n(Reply in \(name).)"
+        else { return nil }
+        return "(Reply in \(name).)"
     }
 
     /// The dominant language of `text`, as a code ("es"), when the recogniser is fairly sure.
@@ -188,6 +235,8 @@ enum AssistantFailure: Equatable, Sendable {
             String(localized: "I'm still busy with something else. Give me a moment and try again.")
         case .refused:
             String(localized: "I can't help with that one.")
+        case .tool("web"):
+            String(localized: "I couldn't reach the web. Try again in a moment.")
         case let .tool(name):
             String(localized: "I couldn't look at your \(AssistantFormat.toolNoun(name)). Try again in a moment.")
         case .other:

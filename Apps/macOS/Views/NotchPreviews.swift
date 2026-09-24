@@ -23,7 +23,7 @@ extension NotchModel {
     }
 }
 
-/// 760×320 slice of the top of a screen, the size of the notch panel.
+/// Slice of the top of a screen the size of the notch panel (`NotchLayout.panelSize`).
 struct NotchPreviewStage: View {
     let model: NotchModel
 
@@ -45,7 +45,7 @@ struct NotchPreviewStage: View {
             PreviewMenuBar(height: model.notchSize.height)
             NotchRootView(model: model)
         }
-        .frame(width: 760, height: 320)
+        .frame(width: NotchLayout.panelSize.width, height: NotchLayout.panelSize.height)
     }
 }
 

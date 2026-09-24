@@ -45,8 +45,9 @@ struct NotchChrome: Equatable {
     /// Height reserved for the open notch's body (0 unless `face == .expanded`).
     var contentHeight: CGFloat = 0
     var showsDrawer: Bool = false
-    static let drawerHeight: CGFloat = 42
-    static let drawerNavigationHeight: CGFloat = 28
+    static let drawerHeight: CGFloat = 46
+    /// The tab row under the Drawer: the tabs' 28 pt targets plus a little air.
+    static let drawerNavigationHeight: CGFloat = 32
 
     /// `-simulateNotch YES` draws every face as if the display had a MacBook Pro 14" notch (185×32 pt), to review the
     /// notch look on a display without one. Views only: the window and hit-testing follow the drawn shape as usual.
@@ -71,30 +72,33 @@ struct NotchChrome: Equatable {
         return RestShape(size: CGSize(width: 76, height: 5), topRadius: 3, bottomRadius: 3)
     }
 
-    /// Height of the open tabs' body, between the band and the bottom margin. Never taller than what the visible
-    /// module needs (PLAN §3: the attic takes as little vertical room as it can), so the silhouette is shorter for
-    /// an empty shelf than for the usage cards and morphs between the two.
+    /// Height of the open tabs' body, between the band and the bottom margin. Each section gets what it needs to
+    /// breathe (PLAN §3: roomier since 24-09-2026, like OmniNotch) and no more, so the silhouette is shorter for an
+    /// empty shelf than for the agents and morphs between the two.
     enum ExpandedContent {
         /// Things standing on the plank plus their names underneath.
-        static let shelf: CGFloat = 97
+        static let shelf: CGFloat = 150
         /// Just the plank with the house and one sentence above it: nothing below the board.
-        static let emptyShelf: CGFloat = 84
+        static let emptyShelf: CGFloat = 130
         /// Ring, plan, countdown and pace, with the week's bar underneath.
-        static let usage: CGFloat = 92
-        /// The one knocking on a tall card plus two slim rows.
-        static let agents: CGFloat = 104
+        static let usage: CGFloat = 160
+        /// The one knocking on a tall card plus two rows.
+        static let agents: CGFloat = 180
         /// The cardboard box and the paper plane.
-        static let drop: CGFloat = 100
+        static let drop: CGFloat = 160
         /// Calendar (next event card plus rows), mirror and now playing.
-        static let module: CGFloat = 104
+        static let module: CGFloat = 180
         /// The conversation and the prompt field: the one section that needs room to read.
-        static let assistant: CGFloat = 148
+        static let assistant: CGFloat = 200
         /// Edit mode: the sections to arrange, the ears and the presets.
-        static let editing: CGFloat = 150
+        static let editing: CGFloat = 200
+        /// The calendar with its month grid (alone, or beside the chosen day's agenda).
+        static let calendarMonth: CGFloat = 200
     }
 
-    static let expandedContentGap: CGFloat = 4
-    static let expandedBottomInset: CGFloat = 10
+    /// Room between the band (or each Drawer row) and what comes below it.
+    static let expandedContentGap: CGFloat = 8
+    static let expandedBottomInset: CGFloat = 16
     static let earWidth: CGFloat = 50
     static let peekEarWidth: CGFloat = 64
     static let peekLineHeight: CGFloat = 28
@@ -193,7 +197,9 @@ struct NotchChrome: Equatable {
         case .usage: return ExpandedContent.usage
         case .agents: return ExpandedContent.agents
         case .assistant: return ExpandedContent.assistant
-        case .calendar, .mirror, .nowPlaying: return ExpandedContent.module
+        case .calendar:
+            return model.settings.calendarStyle == .agenda ? ExpandedContent.module : ExpandedContent.calendarMonth
+        case .mirror, .nowPlaying: return ExpandedContent.module
         }
     }
 

@@ -182,7 +182,7 @@ struct SettingsDrawerPane: View {
                         .settingsHint()
                 } else {
                     Image(systemName: "hand.draw")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperTertiary)
                         .accessibilityHidden(true)
                     Text("Drag icons between areas, or within Altillo to reorder them.")
@@ -232,7 +232,7 @@ struct SettingsDrawerPane: View {
                     .foregroundStyle(Desvan.Palette.paper)
                 Spacer(minLength: 4)
                 Text(entries.count, format: .number)
-                    .font(.system(size: 10.5, weight: .medium, design: .rounded))
+                    .font(.system(size: 11.5, weight: .medium, design: .rounded))
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .accessibilityLabel("\(entries.count) icons")
             }
@@ -244,7 +244,7 @@ struct SettingsDrawerPane: View {
                         .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
                         .accessibilityHidden(true)
                     Text(isTargeted.wrappedValue ? "Drop here" : "Drag icons here")
-                        .font(.system(size: 10.5, weight: .medium))
+                        .font(.system(size: 11.5, weight: .medium))
                         .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.paper : Desvan.Palette.paperTertiary)
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
