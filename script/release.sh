@@ -36,12 +36,6 @@ set -euo pipefail
 #   ALTILLO_SPARKLE_PUBLIC_KEY     Overrides the value read from Config/Local.xcconfig.
 #   ALTILLO_SPARKLE_PRIVATE_KEY    Base64 EdDSA private key (CI secret). When set, generate_appcast signs
 #                                   with this instead of reading the key from the login keychain.
-#   ALTILLO_ICLOUD_PROFILE         Developer ID provisioning profile with iCloud (iCloud.me.badia.ailimits) for
-#                                   the legacy iPhone export. Default: ALTILLO_ICLOUD_PROFILE in
-#                                   Config/Local.xcconfig (created by script/icloud-profile.py). Relative paths
-#                                   are relative to the repo root. Without it the app is built WITHOUT iCloud (a
-#                                   warning, not an error): the legacy export then stays off in that build.
-#   ALTILLO_ICLOUD_PROFILE_BASE64  The same profile, base64-encoded (CI secret). Wins over ALTILLO_ICLOUD_PROFILE.
 #   ALTILLO_DERIVED_DATA_PATH      Default: build/dd-release (shared with the test suite — see
 #                                   CONTRIBUTING.md — to keep disk usage down on a constrained machine).
 #   ALLOW_UNNOTARIZED=1             Same effect as --dry-run's notarization skip, without forcing
@@ -111,7 +105,6 @@ TEAM_ID="${ALTILLO_TEAM_ID:-9L2TD7KVV9}"
 SIGN_IDENTITY_LINE="$(security find-identity -v -p codesigning 2>/dev/null \
   | grep "Developer ID Application:" | grep "($TEAM_ID)" | head -n1)"
 SIGN_IDENTITY="$(printf '%s' "$SIGN_IDENTITY_LINE" | sed -E 's/^[[:space:]]*[0-9]+\) [0-9A-F]+ "(.+)"$/\1/')"
-SIGN_SHA1="$(printf '%s' "$SIGN_IDENTITY_LINE" | sed -E 's/^[[:space:]]*[0-9]+\) ([0-9A-F]+) .*$/\1/')"
 if [ -z "$SIGN_IDENTITY" ]; then
   echo "No 'Developer ID Application' identity for team $TEAM_ID in the signing keychain." >&2
   echo "Check: security find-identity -v -p codesigning" >&2
@@ -130,70 +123,6 @@ if [ -z "$SPARKLE_PUBLIC_KEY" ]; then
   exit 1
 fi
 echo "    Sparkle public key: $SPARKLE_PUBLIC_KEY"
-
-# ---- iCloud (legacy iPhone export, optional) ------------------------------------------------------------
-# A Developer ID profile for $BUNDLE_ID that allows iCloud.me.badia.ailimits turns on the iCloud entitlements
-# (Apps/macOS/App/Altillo.release.entitlements), so the release can write the old TestFlight iPhone app's file
-# (docs/release.md, docs/uso-ia.md). Without one the release is exactly what it was before, minus that export.
-
-ICLOUD_CONTAINER="iCloud.me.badia.ailimits"
-RELEASE_ENTITLEMENTS="$ROOT_DIR/Apps/macOS/App/Altillo.release.entitlements"
-BUNDLE_ID="$(sed -n -E 's/^ALTILLO_BUNDLE_PREFIX[[:space:]]*=[[:space:]]*(.+)$/\1/p' "$ROOT_DIR/Config/Local.xcconfig" 2>/dev/null | tail -n1 | xargs)"
-BUNDLE_ID="${BUNDLE_ID:-dev.altillo}"
-
-ICLOUD_PROFILE="${ALTILLO_ICLOUD_PROFILE:-}"
-ICLOUD_PROFILE_TMP=""
-if [ -n "${ALTILLO_ICLOUD_PROFILE_BASE64:-}" ]; then
-  ICLOUD_PROFILE_TMP="$(mktemp -t altillo-icloud)"
-  printf '%s' "$ALTILLO_ICLOUD_PROFILE_BASE64" | base64 -D > "$ICLOUD_PROFILE_TMP"
-  ICLOUD_PROFILE="$ICLOUD_PROFILE_TMP"
-elif [ -z "$ICLOUD_PROFILE" ] && [ -f "$ROOT_DIR/Config/Local.xcconfig" ]; then
-  ICLOUD_PROFILE="$(sed -n -E 's/^ALTILLO_ICLOUD_PROFILE[[:space:]]*=[[:space:]]*(.*)$/\1/p' "$ROOT_DIR/Config/Local.xcconfig" | tail -n1 | xargs)"
-fi
-[ -n "$ICLOUD_PROFILE" ] && [[ "$ICLOUD_PROFILE" != /* ]] && ICLOUD_PROFILE="$ROOT_DIR/$ICLOUD_PROFILE"
-PROFILE_PLIST=""
-cleanup_icloud() { rm -f "$PROFILE_PLIST" "$ICLOUD_PROFILE_TMP"; }
-trap cleanup_icloud EXIT
-
-ICLOUD=0
-PROFILE_APP_ID=""
-if [ -n "$ICLOUD_PROFILE" ]; then
-  # Configured means it must be right: a broken profile fails the release instead of silently dropping iCloud.
-  [ -f "$ICLOUD_PROFILE" ] || { echo "iCloud profile not found: $ICLOUD_PROFILE (run script/icloud-profile.py)." >&2; exit 1; }
-  PROFILE_PLIST="$(mktemp -t altillo-profile)"
-  security cms -D -i "$ICLOUD_PROFILE" > "$PROFILE_PLIST" 2>/dev/null \
-    || { echo "Can't decode the iCloud profile: $ICLOUD_PROFILE" >&2; exit 1; }
-  pb() { /usr/libexec/PlistBuddy -c "Print :$1" "$PROFILE_PLIST" 2>/dev/null; }
-  PROFILE_TEAM="$(pb TeamIdentifier:0)"
-  PROFILE_APP_ID="$(pb Entitlements:com.apple.application-identifier)"
-  [ "$PROFILE_TEAM" = "$TEAM_ID" ] || { echo "iCloud profile is for team '$PROFILE_TEAM', not $TEAM_ID." >&2; exit 1; }
-  [ "$PROFILE_APP_ID" = "$TEAM_ID.$BUNDLE_ID" ] \
-    || { echo "iCloud profile is for '$PROFILE_APP_ID', not $TEAM_ID.$BUNDLE_ID." >&2; exit 1; }
-  pb Entitlements:com.apple.developer.icloud-container-identifiers | grep -Fxq "    $ICLOUD_CONTAINER" \
-    || { echo "iCloud profile doesn't allow $ICLOUD_CONTAINER (assign the container to the App ID, then rerun script/icloud-profile.py)." >&2; exit 1; }
-  if pb ProvisionedDevices:0 >/dev/null; then
-    echo "iCloud profile is a development profile (it lists devices); a release needs a Developer ID one." >&2; exit 1
-  fi
-  EXPIRES="$(plutil -extract ExpirationDate raw -o - "$PROFILE_PLIST")"
-  if [ "$(date -j -u -f '%Y-%m-%dT%H:%M:%SZ' "$EXPIRES" +%s 2>/dev/null || echo 0)" -le "$(date +%s)" ]; then
-    echo "iCloud profile expired ($EXPIRES). Rerun script/icloud-profile.py." >&2; exit 1
-  fi
-  CERT_MATCH=0
-  i=0
-  while CERT_B64="$(plutil -extract "DeveloperCertificates.$i" raw -o - "$PROFILE_PLIST" 2>/dev/null)"; do
-    if [ "$(printf '%s' "$CERT_B64" | base64 -D | shasum -a 1 | awk '{print toupper($1)}')" = "$SIGN_SHA1" ]; then
-      CERT_MATCH=1
-    fi
-    i=$((i + 1))
-  done
-  [ "$CERT_MATCH" = 1 ] \
-    || { echo "iCloud profile doesn't include the signing certificate ($SIGN_SHA1). Rerun script/icloud-profile.py." >&2; exit 1; }
-  ICLOUD=1
-  echo "    iCloud: $ICLOUD_CONTAINER via profile $(pb Name) ($(pb UUID), expires $EXPIRES)"
-else
-  echo "WARNING: no iCloud profile (ALTILLO_ICLOUD_PROFILE) — building WITHOUT iCloud: this release can't feed" >&2
-  echo "         the old iPhone app. See docs/release.md \"iCloud (transición)\"." >&2
-fi
 
 FEED_URL="${ALTILLO_FEED_URL:-https://xusbadia.github.io/altillo/appcast.xml}"
 BUILD="${ALTILLO_RELEASE_BUILD:-$(git rev-list --count HEAD)}"
@@ -291,32 +220,6 @@ rmdir "$DIST_DIR/export" 2>/dev/null || rm -rf "$DIST_DIR/export"
 # remove it to keep this disk-constrained machine's build/ directory small.
 rm -rf "$ARCHIVE_PATH"
 
-# ---- iCloud: embed the profile and re-sign the app with the release entitlements --------------------------
-# Only the outer bundle is re-signed (no --deep): Sparkle and altillo-hook keep the signatures the export gave
-# them. codesign doesn't inject the profile's identity entitlements the way Xcode does, so they're added here —
-# without them taskgated/AMFI refuses to launch an app that claims iCloud.
-
-if [ "$ICLOUD" = 1 ]; then
-  echo "==> enabling iCloud ($ICLOUD_CONTAINER)"
-  cp "$ICLOUD_PROFILE" "$APP_PATH/Contents/embedded.provisionprofile"
-  # Same declaration the bridge (and the iPhone app) use; not public, so it never shows up in iCloud Drive.
-  plutil -replace NSUbiquitousContainers -json \
-    "{\"$ICLOUD_CONTAINER\":{\"NSUbiquitousContainerIsDocumentScopePublic\":false,\"NSUbiquitousContainerName\":\"OpenUsage\",\"NSUbiquitousContainerSupportedFolderLevels\":\"None\"}}" \
-    "$APP_PATH/Contents/Info.plist"
-  RESOLVED_ENTITLEMENTS="$DERIVED_DATA_PATH/Altillo.release.resolved.entitlements"
-  mkdir -p "$DERIVED_DATA_PATH"
-  cp "$RELEASE_ENTITLEMENTS" "$RESOLVED_ENTITLEMENTS"
-  /usr/libexec/PlistBuddy \
-    -c "Add :com.apple.application-identifier string $PROFILE_APP_ID" \
-    -c "Add :com.apple.developer.team-identifier string $TEAM_ID" \
-    "$RESOLVED_ENTITLEMENTS"
-  plutil -lint "$RESOLVED_ENTITLEMENTS" >/dev/null
-  codesign --force --timestamp --options runtime \
-    --entitlements "$RESOLVED_ENTITLEMENTS" \
-    --sign "$SIGN_IDENTITY" \
-    "$APP_PATH"
-fi
-
 echo "==> verifying signature"
 codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 CODESIGN_INFO="$(codesign -dv --verbose=2 "$APP_PATH" 2>&1)"
@@ -324,14 +227,6 @@ echo "$CODESIGN_INFO" | grep -q "Authority=Developer ID Application" \
   || { echo "Signed app's authority chain does not start with Developer ID Application." >&2; echo "$CODESIGN_INFO" >&2; exit 1; }
 echo "$CODESIGN_INFO" | grep -q "flags=.*runtime" \
   || { echo "Signed app lacks the hardened runtime flag." >&2; exit 1; }
-if [ "$ICLOUD" = 1 ]; then
-  SIGNED_ENTITLEMENTS="$(codesign -d --entitlements - --xml "$APP_PATH" 2>/dev/null)"
-  for needle in "$PROFILE_APP_ID" "$ICLOUD_CONTAINER" "com.apple.developer.team-identifier" "CloudDocuments"; do
-    printf '%s' "$SIGNED_ENTITLEMENTS" | grep -Fq "$needle" \
-      || { echo "Signed entitlements are missing $needle." >&2; exit 1; }
-  done
-  echo "    iCloud entitlements + embedded profile: OK ($PROFILE_APP_ID)"
-fi
 echo "    Gatekeeper readiness (spctl) — expected to fail until notarized/stapled below:"
 spctl --assess --type execute --verbose=2 "$APP_PATH" || true
 
@@ -422,11 +317,6 @@ echo "==> done"
 echo "    App:      $APP_PATH"
 echo "    DMG:      $DMG_PATH"
 echo "    Appcast:  $DIST_DIR/appcast.xml"
-if [ "$ICLOUD" = 1 ]; then
-  echo "    iCloud:   on ($ICLOUD_CONTAINER, legacy iPhone export)"
-else
-  echo "    iCloud:   OFF (no ALTILLO_ICLOUD_PROFILE) — the old iPhone app won't get data from this build."
-fi
 [ "$NOTARIZE" = 1 ] || echo "    NOT notarized (dry run / ALLOW_UNNOTARIZED)."
 
 # ---- publish ------------------------------------------------------------------------------------------

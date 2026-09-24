@@ -5,9 +5,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = NotchCoordinator()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // `open -n Altillo.app --args -legacyMobileExportSelfTest <id>` only checks the iCloud export and quits
-        // (release verification, docs/release.md).
-        if OpenUsageMobilePublisher.runSelfTestIfRequested() { return }
         coordinator.start()
         // `open Altillo.app --args -designScenario openShelf` freezes a design-review scenario (screenshots, reviews).
         if let name = UserDefaults.standard.string(forKey: "designScenario"), let scenario = DesignScenario(rawValue: name) {

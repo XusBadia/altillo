@@ -487,10 +487,10 @@ private struct SettingsCalendarAccount: View {
 
 // MARK: - Usage
 
-/// The usage section's own settings: which providers it reads (with how each one is doing), when it peeks, and the
-/// legacy iPhone export. Altillo reads every provider itself; the list scales to many of them by showing only the
-/// ones set up on this Mac, each with its switch (on until switched off), and folding the rest into "Not set up on
-/// this Mac" with one line on how to set each up.
+/// The usage section's own settings: which providers it reads (with how each one is doing) and when it peeks.
+/// Altillo reads every provider itself; the list scales to many of them by showing only the ones set up on this
+/// Mac, each with its switch (on until switched off), and folding the rest into "Not set up on this Mac" with one
+/// line on how to set each up.
 private struct SettingsUsageGroup: View {
     @Bindable var settings: AltilloSettings
     /// The running app's store; nil only in previews.
@@ -503,7 +503,6 @@ private struct SettingsUsageGroup: View {
         VStack(alignment: .leading, spacing: 14) {
             providers
             alerts
-            iPhone
         }
         .padding(.vertical, 6)
         .onAppear { store?.refreshIfOlder(than: 60) }
@@ -632,38 +631,6 @@ private struct SettingsUsageGroup: View {
         Binding(
             get: { settings.usageAlertThresholds.contains(level) },
             set: { settings.setUsageAlertThreshold(level, enabled: $0) }
-        )
-    }
-
-    // MARK: iPhone
-
-    /// The legacy export for the user's own iPhone app (until Altillo for iOS arrives).
-    private var iPhone: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Toggle(isOn: legacyExport) {
-                Text("Also send them to the current iPhone app")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paper)
-            }
-            .toggleStyle(.checkbox)
-            .disabled(!OpenUsageMobilePublisher.hasContainerEntitlement)
-            if OpenUsageMobilePublisher.hasContainerEntitlement {
-                Text("Writes the numbers to iCloud in the format the iPhone app from before Altillo reads, so you can retire the old bridge.")
-                    .settingsHint()
-                    .padding(.leading, 20)
-            } else {
-                Text("Available in release builds signed for iCloud.")
-                    .settingsHint()
-                    .padding(.leading, 20)
-            }
-        }
-    }
-
-    /// `OpenUsageMobilePublisher` reads this key itself on every publish.
-    private var legacyExport: Binding<Bool> {
-        Binding(
-            get: { UserDefaults.standard.object(forKey: OpenUsageMobilePublisher.enabledKey) as? Bool ?? true },
-            set: { UserDefaults.standard.set($0, forKey: OpenUsageMobilePublisher.enabledKey) }
         )
     }
 }

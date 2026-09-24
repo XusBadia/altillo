@@ -107,6 +107,7 @@ struct DesvanShelfView: View {
         .scrollIndicators(.visible, axes: .horizontal)
         .scrollClipDisabled()
         .scrollPosition($position)
+        .reportsHorizontalScroll(id: "shelf.row", model: model)
         .onScrollGeometryChange(for: ShelfScroll.self) { geometry in
             ShelfScroll(
                 offset: geometry.contentOffset.x,

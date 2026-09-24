@@ -75,6 +75,7 @@ struct DesvanDrawerView: View {
                 }
                 .scrollIndicators(.hidden)
                 .scrollBounceBehavior(.basedOnSize)
+                .reportsHorizontalScroll(id: "drawer.icons", model: model)
             }
             Spacer(minLength: 0)
             if !isDemo, let problem = store.problem {

@@ -14,9 +14,4 @@ ALTILLO_XC_SLASH = /
 ALTILLO_SPARKLE_FEED_URL =
 ALTILLO_SPARKLE_PUBLIC_KEY =
 
-// Developer ID provisioning profile with iCloud (iCloud.me.badia.ailimits) for the legacy iPhone export. Read
-// only by script/release.sh (never by Xcode builds, so Debug stays profile-free); empty = release without
-// iCloud. Set it in Local.xcconfig — script/icloud-profile.py does. See docs/release.md "iCloud (transición)".
-ALTILLO_ICLOUD_PROFILE =
-
 #include? "Local.xcconfig"

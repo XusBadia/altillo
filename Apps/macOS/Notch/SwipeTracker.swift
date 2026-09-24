@@ -5,7 +5,23 @@ import AppKit
 /// The first few points decide the axis: a vertical gesture is left alone (lists scroll), a horizontal one is taken
 /// over for its whole life, momentum included, so nothing underneath scrolls sideways while the section changes.
 /// One gesture moves one section, however long the swipe.
+///
+/// Content that scrolls sideways (the usage cards, the shelf's row, the drawer's icons) owns every gesture that starts
+/// over it, edges included: the views report those regions (`NotchModel.horizontalScrollRegions`) and a gesture that
+/// begins inside one is `ignored` from start to end, momentum too. Swipes anywhere else change section.
 struct SwipeTracker {
+    /// True when a gesture starting at `point` belongs to content that scrolls sideways itself. `point` and
+    /// `regions` share one space: the hosting view's, top-left origin.
+    static func contentScrolls(at point: CGPoint, in regions: some Sequence<CGRect>) -> Bool {
+        regions.contains { !$0.isNull && !$0.isEmpty && $0.contains(point) }
+    }
+
+    /// True when content is wider than its viewport, so it really scrolls sideways (half a point of slack for
+    /// rounding: content that fits exactly doesn't scroll).
+    static func overflows(content: CGFloat, viewport: CGFloat) -> Bool {
+        viewport > 0 && content - viewport > 0.5
+    }
+
     enum Outcome: Equatable {
         /// Not ours: let the event reach the views.
         case pass

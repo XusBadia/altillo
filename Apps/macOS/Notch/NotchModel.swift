@@ -60,6 +60,10 @@ final class NotchModel {
     var dropZone: DropZone?
     /// Frames of the drop zones, in the hosting view's coordinates (top-left origin), reported by the views.
     var dropZoneFrames: [DropZone: CGRect] = [:]
+    /// Frames of the views that scroll sideways right now (their content overflows), in the hosting view's
+    /// coordinates (top-left origin), by view. A trackpad swipe that starts inside one scrolls it instead of changing
+    /// section. Reported with `reportsHorizontalScroll(id:model:)`.
+    var horizontalScrollRegions: [String: CGRect] = [:]
     /// True while a drag hovers the shelf drop zone itself (not just near the notch).
     var isDropHovering: Bool { dropZone == .shelf }
     /// How close a drag is to the notch: 1 at the notch, 0 at 300 pt or more. Lights the bulb while dragArmed.

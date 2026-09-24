@@ -15,7 +15,7 @@ struct DesvanUsageView: View {
 
     var body: some View {
         if model.scenario != nil {
-            DesvanUsageBoard(providers: model.demo.usage, retry: nil)
+            DesvanUsageBoard(model: model, providers: model.demo.usage, retry: nil)
         } else {
             live
                 .onAppear { model.usage.refreshIfOlder(than: 60) }
@@ -27,7 +27,7 @@ struct DesvanUsageView: View {
         let store = model.usage
         let providers = store.providers
         if !providers.isEmpty {
-            DesvanUsageBoard(providers: providers, retry: { store.refreshNow() })
+            DesvanUsageBoard(model: model, providers: providers, retry: { store.refreshNow() })
         } else if !store.hasChecked {
             DesvanModuleNotice(symbol: "gauge.with.needle", title: "Checking your AI tools…")
         } else {
@@ -45,6 +45,7 @@ struct DesvanUsageView: View {
 /// The cards side by side; with three or more providers they scroll sideways, two and a bit at a time, settling on
 /// a card's edge.
 private struct DesvanUsageBoard: View {
+    let model: NotchModel
     let providers: [ProviderUsage]
     let retry: (() -> Void)?
 
@@ -72,6 +73,8 @@ private struct DesvanUsageBoard: View {
                 .scrollTargetBehavior(.viewAligned)
                 .scrollIndicators(.never)
                 .scrollClipDisabled()
+                // A swipe over the cards scrolls them; it never changes section.
+                .reportsHorizontalScroll(id: "usage.cards", model: model)
             }
         }
         .frame(maxHeight: .infinity)

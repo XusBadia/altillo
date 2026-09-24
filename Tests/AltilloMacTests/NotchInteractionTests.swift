@@ -108,6 +108,53 @@ struct NotchInteractionTests {
         #expect(swipe.track(dx: -60, dy: 0, phase: .changed, momentum: []) == .pass, "the shelf's row scrolls itself")
     }
 
+    @Test func aGestureOverSidewaysContentIsTheContentsFromStartToEnd() {
+        var swipe = SwipeTracker()
+        swipe.begin(ignored: true)
+        #expect(swipe.track(dx: -4, dy: 0, phase: .began, momentum: []) == .pass)
+        #expect(swipe.track(dx: -200, dy: 0, phase: .changed, momentum: []) == .pass, "never a section change")
+        #expect(swipe.track(dx: 300, dy: 0, phase: .changed, momentum: []) == .pass, "not even back at its edge")
+        #expect(swipe.track(dx: 0, dy: 0, phase: .ended, momentum: []) == .pass)
+        #expect(swipe.track(dx: -40, dy: 0, phase: [], momentum: .began) == .pass, "its momentum scrolls too")
+        #expect(swipe.track(dx: -20, dy: 0, phase: [], momentum: .changed) == .pass)
+
+        // The next gesture, elsewhere, is a swipe again.
+        swipe.begin(ignored: false)
+        _ = swipe.track(dx: -10, dy: 0, phase: .began, momentum: [])
+        #expect(swipe.track(dx: -40, dy: 0, phase: .changed, momentum: []) == .step(1))
+    }
+
+    @Test func onlyAGestureStartingInsideAScrollingRegionIsIgnored() {
+        let cards = CGRect(x: 20, y: 90, width: 600, height: 160)
+        let drawer = CGRect(x: 20, y: 60, width: 300, height: 30)
+        let regions = [cards, drawer]
+        #expect(SwipeTracker.contentScrolls(at: CGPoint(x: 300, y: 170), in: regions), "over the cards")
+        #expect(SwipeTracker.contentScrolls(at: CGPoint(x: 100, y: 70), in: regions), "over the drawer's icons")
+        #expect(!SwipeTracker.contentScrolls(at: CGPoint(x: 300, y: 20), in: regions), "the tabs, above")
+        #expect(!SwipeTracker.contentScrolls(at: CGPoint(x: 700, y: 170), in: regions), "beside the cards")
+        #expect(!SwipeTracker.contentScrolls(at: CGPoint(x: 300, y: 170), in: [CGRect]()), "nothing scrolls")
+        #expect(!SwipeTracker.contentScrolls(at: .zero, in: [CGRect.null, .zero]), "empty frames never count")
+    }
+
+    @Test func contentScrollsSidewaysOnlyWhenWiderThanItsViewport() {
+        #expect(SwipeTracker.overflows(content: 700, viewport: 600))
+        #expect(!SwipeTracker.overflows(content: 600, viewport: 600), "fits exactly")
+        #expect(!SwipeTracker.overflows(content: 600.3, viewport: 600), "rounding")
+        #expect(!SwipeTracker.overflows(content: 400, viewport: 600))
+        #expect(!SwipeTracker.overflows(content: 400, viewport: 0), "not laid out yet")
+    }
+
+    @Test func theModelKeepsOneRegionPerScrollingView() {
+        let model = NotchModel(settings: AltilloSettings(defaults: Self.makeDefaults()))
+        #expect(model.horizontalScrollRegions.isEmpty)
+        model.horizontalScrollRegions["usage.cards"] = CGRect(x: 0, y: 100, width: 500, height: 160)
+        model.horizontalScrollRegions["usage.cards"] = CGRect(x: 0, y: 110, width: 500, height: 160)
+        #expect(model.horizontalScrollRegions.count == 1)
+        #expect(SwipeTracker.contentScrolls(at: CGPoint(x: 10, y: 260), in: model.horizontalScrollRegions.values))
+        model.horizontalScrollRegions["usage.cards"] = nil
+        #expect(!SwipeTracker.contentScrolls(at: CGPoint(x: 10, y: 260), in: model.horizontalScrollRegions.values))
+    }
+
     // MARK: Alerts
 
     @Test func anAlertPeeksAndGoesBackOnItsOwn() {

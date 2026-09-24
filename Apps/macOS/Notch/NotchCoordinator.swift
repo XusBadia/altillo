@@ -132,11 +132,6 @@ final class NotchCoordinator {
         observeSettings()
         // AI usage: last numbers from disk at once, then its own 5-minute rhythm (paused while the Mac sleeps).
         model.usage.postAlert = { [weak self] alert in self?.post(alert) }
-        // The old iPhone app (openusage.mobile.v1 in iCloud) keeps getting numbers while Altillo for iOS arrives.
-        // Only does anything in release builds signed with the iCloud profile (docs/release.md).
-        if !model.usage.publishers.contains(where: { $0 is OpenUsageMobilePublisher }) {
-            model.usage.publishers.append(OpenUsageMobilePublisher())
-        }
         model.usage.start()
         // `-openModule usage` (with `-openAltillo YES`) opens on that section: reviews of live data without a click.
         if let name = UserDefaults.standard.string(forKey: "openModule"), let module = NotchModule(rawValue: name),
@@ -686,7 +681,8 @@ final class NotchCoordinator {
     }
 
     /// Two-finger horizontal swipes on the open notch change section, one per gesture. Vertical scrolls, and
-    /// horizontal ones over the shelf's row of things (which scrolls sideways itself), pass through untouched.
+    /// horizontal ones that start over content scrolling sideways itself (`horizontalScrollRegions`: the usage cards,
+    /// the shelf's row, the drawer's icons), pass through untouched.
     private func installScrollMonitor() {
         scrollMonitor = NSEvent.addLocalMonitorForEvents(matching: .scrollWheel) { [weak self] event in
             let handled = MainActor.assumeIsolated { self?.handleScroll(event) ?? false }
@@ -700,11 +696,11 @@ final class NotchCoordinator {
         // Only real trackpad gestures (with phases); a mouse wheel scrolls content as usual. Not while editing.
         guard event.hasPreciseScrollingDeltas, !model.isEditing else { return false }
         if event.phase == .began {
-            // Over the shelf's row the gesture belongs to the row, which scrolls sideways.
+            // Over content that scrolls sideways the whole gesture belongs to it, even at its edge: it never
+            // changes section. Regions are in the hosting view's top-left coordinates, like the drop zones.
             let local = window.panel.contentView?.convert(event.locationInWindow, from: nil) ?? .zero
-            let fromTop = (window.panel.contentView?.bounds.height ?? 0) - local.y
-            let overShelfRow = model.module == .shelf && fromTop > NotchChrome(model: model).contentTop
-            swipe.begin(ignored: overShelfRow)
+            let topLeft = CGPoint(x: local.x, y: (window.panel.contentView?.bounds.height ?? 0) - local.y)
+            swipe.begin(ignored: SwipeTracker.contentScrolls(at: topLeft, in: model.horizontalScrollRegions.values))
         }
         // With natural scrolling the delta follows the fingers; otherwise it's inverted.
         let fingersDX = event.isDirectionInvertedFromDevice ? event.scrollingDeltaX : -event.scrollingDeltaX
