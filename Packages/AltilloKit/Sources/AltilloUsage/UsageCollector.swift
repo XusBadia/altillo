@@ -12,7 +12,10 @@ public protocol UsageCollector: Sendable {
     func fetch(previous: ProviderUsage?, now: Date) async -> ProviderUsage
 }
 
-/// Collectors Altillo ships with, in display order. STUB: filled in by the collectors work (phase 3).
+/// Collectors Altillo ships with, in display order. Providers it doesn't read natively can come from
+/// `OpenUsageCompatibleSource` (a separate, optional source).
 public enum UsageCollectors {
-    public static func all() -> [any UsageCollector] { [] }
+    public static func all() -> [any UsageCollector] {
+        [ClaudeCollector(), CodexCollector()]
+    }
 }

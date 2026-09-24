@@ -1,3 +1,4 @@
+import AltilloCore
 import Foundation
 import Observation
 import ServiceManagement
@@ -125,6 +126,65 @@ final class AltilloSettings {
         didSet { defaults.set(alertsForNowPlaying, forKey: Key.alertsForNowPlaying) }
     }
 
+    // MARK: AI usage (PLAN §5.2)
+
+    /// Providers the user switched off in Settings › Sections › Usage. Stored as an opt-out list so every provider
+    /// that is set up on this Mac is read by default, including ones a later version learns to read.
+    var usageDisabledProviders: Set<UsageProviderID> {
+        didSet { defaults.set(usageDisabledProviders.map(\.rawValue).sorted(), forKey: Key.usageDisabledProviders) }
+    }
+
+    /// Peek when a limit runs high, is used up, runs out early or refills (only with the usage section on).
+    var alertsForUsage: Bool {
+        didSet { defaults.set(alertsForUsage, forKey: Key.alertsForUsage) }
+    }
+
+    /// Percent-used levels that peek, ascending, each 1…99. Default 80 and 95.
+    var usageAlertThresholds: [Int] {
+        didSet {
+            let clean = Self.normaliseThresholds(usageAlertThresholds)
+            guard clean == usageAlertThresholds else { usageAlertThresholds = clean; return }
+            defaults.set(clean, forKey: Key.usageAlertThresholds)
+        }
+    }
+
+    /// Also peek when a limit that ran high refills.
+    var usageAlertsWhenRefilled: Bool {
+        didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
+    }
+
+    /// Read an OpenUsage-compatible app running on this Mac for providers Altillo doesn't read itself.
+    var usageShowsOpenUsageSource: Bool {
+        didSet { defaults.set(usageShowsOpenUsageSource, forKey: Key.usageShowsOpenUsageSource) }
+    }
+
+    func isUsageProviderEnabled(_ id: UsageProviderID) -> Bool { !usageDisabledProviders.contains(id) }
+
+    func setUsageProvider(_ id: UsageProviderID, enabled: Bool) {
+        if enabled { usageDisabledProviders.remove(id) } else { usageDisabledProviders.insert(id) }
+    }
+
+    /// Adds or removes one alert level.
+    func setUsageAlertThreshold(_ percent: Int, enabled: Bool) {
+        var levels = Set(usageAlertThresholds)
+        if enabled { levels.insert(percent) } else { levels.remove(percent) }
+        usageAlertThresholds = Array(levels)
+    }
+
+    /// What the alert evaluator needs, from the choices above.
+    var usageAlertConfiguration: UsageAlertConfiguration {
+        UsageAlertConfiguration(thresholds: usageAlertThresholds, limitReached: true,
+                                refilled: usageAlertsWhenRefilled, runningOutEarly: true)
+    }
+
+    static let defaultUsageAlertThresholds = [80, 95]
+    /// The levels offered in Settings.
+    static let usageAlertThresholdChoices = [50, 80, 90, 95]
+
+    private static func normaliseThresholds(_ values: [Int]) -> [Int] {
+        Array(Set(values.filter { (1...99).contains($0) })).sorted()
+    }
+
     static let widthRange: ClosedRange<Double> = 440...760
     static let widthPresets: [(name: String, value: Double)] = [
         (String(localized: "Narrow"), 480),
@@ -160,6 +220,11 @@ final class AltilloSettings {
         static let calendarStyle = "calendarStyle"
         static let calendarHiddenIDs = "calendarHiddenIDs"
         static let calendarShowsAllDay = "calendarShowsAllDay"
+        static let usageDisabledProviders = "usageDisabledProviders"
+        static let alertsForUsage = "alertsForUsage"
+        static let usageAlertThresholds = "usageAlertThresholds"
+        static let usageAlertsWhenRefilled = "usageAlertsWhenRefilled"
+        static let usageShowsOpenUsageSource = "usageShowsOpenUsageSource"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -206,6 +271,14 @@ final class AltilloSettings {
         calendarStyle = defaults.string(forKey: Key.calendarStyle).flatMap(CalendarStyle.init) ?? .monthAndAgenda
         calendarHiddenIDs = Set(defaults.stringArray(forKey: Key.calendarHiddenIDs) ?? [])
         calendarShowsAllDay = defaults.object(forKey: Key.calendarShowsAllDay) as? Bool ?? true
+        usageDisabledProviders = Set((defaults.stringArray(forKey: Key.usageDisabledProviders) ?? [])
+            .map(UsageProviderID.init(rawValue:)))
+        alertsForUsage = defaults.object(forKey: Key.alertsForUsage) as? Bool ?? true
+        usageAlertThresholds = Self.normaliseThresholds(
+            (defaults.array(forKey: Key.usageAlertThresholds) as? [Int]) ?? Self.defaultUsageAlertThresholds
+        )
+        usageAlertsWhenRefilled = defaults.object(forKey: Key.usageAlertsWhenRefilled) as? Bool ?? true
+        usageShowsOpenUsageSource = defaults.object(forKey: Key.usageShowsOpenUsageSource) as? Bool ?? true
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything
@@ -352,7 +425,7 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
     case nextEvent
     /// A small equaliser while music plays.
     case nowPlaying
-    /// The main AI provider's session ring (phase 3).
+    /// The main AI provider's fullest limit, as a small ring and its figure.
     case usage
     /// Agents working or knocking (phase 4).
     case agents
@@ -383,8 +456,8 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
         }
     }
 
-    /// Usage and agents only have sample data until phases 3 and 4: offered, but marked as coming.
-    var isAvailable: Bool { self != .usage && self != .agents }
+    /// Agents only have sample data until phase 4: offered, but marked as coming.
+    var isAvailable: Bool { self != .agents }
 }
 
 enum EarsVisibility: String, CaseIterable, Identifiable, Codable, Sendable {

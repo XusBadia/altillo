@@ -1,7 +1,8 @@
 import AltilloCore
 import Foundation
 
-/// Fake content for the phase 0 design review (usage, agents, shelf). Replaced module by module by the real providers.
+/// Sample content for the design-review scenarios (usage, agents, shelf). Real modules never read it: usage has
+/// `UsageStore` since phase 3; agents still show these sessions until phase 4.
 struct DemoContent {
     static let sample = DemoContent()
 
@@ -18,18 +19,24 @@ struct DemoContent {
         usageUpdatedAt = now.addingTimeInterval(-2 * 60)
         usage = [
             ProviderUsage(
-                id: "claude",
-                agent: .claude,
+                id: .claude,
+                displayName: "Claude",
                 plan: "Max 20×",
-                session: UsageWindow(used: 0.85, resetsAt: now.addingTimeInterval(72 * 60), duration: 5 * 3600),
-                weekly: UsageWindow(used: 0.41, resetsAt: now.addingTimeInterval((3 * 24 + 4) * 3600), duration: 7 * 24 * 3600)
+                windows: [
+                    Self.session(used: 0.85, resetsIn: 72 * 60, now: now),
+                    Self.week(used: 0.41, resetsIn: (3 * 24 + 4) * 3600, now: now),
+                ],
+                fetchedAt: usageUpdatedAt
             ),
             ProviderUsage(
-                id: "codex",
-                agent: .codex,
+                id: .codex,
+                displayName: "Codex",
                 plan: "Pro",
-                session: UsageWindow(used: 0.34, resetsAt: now.addingTimeInterval((3 * 60 + 5) * 60), duration: 5 * 3600),
-                weekly: UsageWindow(used: 0.58, resetsAt: now.addingTimeInterval((1 * 24 + 9) * 3600), duration: 7 * 24 * 3600)
+                windows: [
+                    Self.session(used: 0.34, resetsIn: (3 * 60 + 5) * 60, now: now),
+                    Self.week(used: 0.58, resetsIn: (1 * 24 + 9) * 3600, now: now),
+                ],
+                fetchedAt: usageUpdatedAt
             ),
         ]
         agents = [
@@ -66,14 +73,34 @@ struct DemoContent {
     /// The provider shown in the ears and in usage alerts.
     var primaryUsage: ProviderUsage { usage[0] }
 
+    /// The peek of the "Peek: usage alert" scenario, built exactly like a real one: Claude's session crossed 80 %.
+    var usageAlert: NotchAlert {
+        let provider = primaryUsage
+        let window = provider.session ?? provider.windows[0]
+        let event = UsageAlertEvent(provider: provider.id, providerName: provider.displayName, windowID: window.id,
+                                    windowLabel: window.label, kind: .threshold(80))
+        return UsageAlertPresenter.alert(for: event, window: window)
+    }
+
+    private static func session(used: Double, resetsIn seconds: TimeInterval, now: Date) -> UsageWindow {
+        UsageWindow(id: "session", kind: .session, label: String(localized: "Session"), used: used,
+                    resetsAt: now.addingTimeInterval(seconds), duration: 5 * 3600)
+    }
+
+    private static func week(used: Double, resetsIn seconds: TimeInterval, now: Date) -> UsageWindow {
+        UsageWindow(id: "weekly", kind: .weekly, label: String(localized: "Week"), used: used,
+                    resetsAt: now.addingTimeInterval(seconds), duration: 7 * 24 * 3600)
+    }
+
     /// The first agent waiting for the user, if any.
     var waitingAgent: AgentSession? { agents.first { $0.phase.needsUser } }
 
     var workingAgentsCount: Int { agents.count { $0.phase == .working } }
 }
 
-// MARK: - Usage
+// MARK: - Agents (sample only until phase 4)
 
+/// The agent behind a sample session. Usage uses `UsageProviderID` (AltilloCore) instead.
 enum AgentKind: String, Sendable {
     case claude, codex
 
@@ -84,32 +111,6 @@ enum AgentKind: String, Sendable {
         }
     }
 }
-
-struct UsageWindow: Hashable, Sendable {
-    /// 0…1.
-    var used: Double
-    var resetsAt: Date
-    var duration: TimeInterval
-
-    /// Fraction of the window already elapsed: what you'd have used by now at an even pace.
-    func expectedPace(now: Date = .now) -> Double {
-        let remaining = resetsAt.timeIntervalSince(now)
-        return min(max(1 - remaining / duration, 0), 1)
-    }
-
-    /// Positive when burning faster than the window allows, in fraction points.
-    func paceDelta(now: Date = .now) -> Double { used - expectedPace(now: now) }
-}
-
-struct ProviderUsage: Identifiable, Sendable {
-    let id: String
-    var agent: AgentKind
-    var plan: String
-    var session: UsageWindow
-    var weekly: UsageWindow
-}
-
-// MARK: - Agents
 
 enum AgentPhase: Sendable {
     case working, waitingPermission, waitingAnswer, finished, error

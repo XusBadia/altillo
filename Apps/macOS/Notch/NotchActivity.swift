@@ -14,7 +14,7 @@ enum NotchActivity: Equatable, Sendable {
     case imminentEvent(EarEvent)
     /// Music or Spotify is playing (paused doesn't count: the ear goes back to what it showed before).
     case playback(PlaybackSignal)
-    /// The main AI provider's session (phase 3 feeds it; nothing real exists yet).
+    /// The main AI provider's fullest limit, while it runs high (`UsageStore.contextualSignal`).
     case usage(UsageSignal)
     case rest
 
@@ -43,7 +43,7 @@ struct PlaybackSignal: Equatable, Sendable {
     var appName: String
 }
 
-/// The session used so far, 0…1.
+/// The main provider's fullest limit (session or week) used so far, 0…1.
 struct UsageSignal: Equatable, Sendable {
     var providerName: String
     var fraction: Double
@@ -112,7 +112,7 @@ enum NotchActivityLogic {
             if playback.artist.isEmpty { return String(localized: "Now playing: \(title)") }
             return String(localized: "Now playing: \(title) by \(playback.artist)")
         case let .usage(usage):
-            return String(localized: "\(usage.providerName): \(NotchFormat.percent(usage.fraction)) of the session")
+            return String(localized: "\(usage.providerName): \(NotchFormat.percent(usage.fraction)) used")
         case .rest:
             return String(localized: "Nothing going on")
         }

@@ -9,7 +9,7 @@ import Foundation
 enum AssistantRoute: String, Equatable, Sendable {
     /// Knowledge, writing, translation, explanations, ideas: answered from the model alone.
     case chat
-    /// The user's shelf, calendar, music or clipboard: the local tools.
+    /// The user's shelf, calendar, music, clipboard or AI usage: the local tools.
     case context
     /// News, scores, weather, prices: looked up first (when the web is allowed), then answered from the results.
     case live
@@ -32,12 +32,17 @@ enum AssistantRouter {
         // Clipboard
         "clipboard", "portapapeles", "porta-retalls", "copied", "copy", "copiado", "copiada", "copie", "copiat",
         "pasted",
+        // AI usage
+        "usage", "uso", "consumo", "quota", "cuota", "limit", "limits", "limite", "limites",
     ]
 
     /// Ways of asking about one's own day ("what do I have", "¿qué tengo?").
     static let contextPhrases = [
         "do i have", "have i got", "am i free", "my day", "tengo hoy", "tengo manana", "que tengo", "estoy libre",
         "mi dia", "tinc avui", "tinc dema", "que tinc", "el meu dia",
+        // What's left of an AI plan ("¿cuánto me queda de Claude?", "how much Codex is left?")
+        "me queda", "nos queda", "em queda", "have left", "is left", "left of my", "remaining", "refill", "resets", "session reset", "limit reset",
+        "se reinicia", "se renueva", "es renova", "como voy de", "como vamos de", "com vaig de", "how am i doing on",
     ]
 
     static func route(_ question: String, followsContext: Bool = false, now: Date = .now) -> AssistantRoute {

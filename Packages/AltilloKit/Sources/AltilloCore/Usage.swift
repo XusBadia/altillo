@@ -102,9 +102,13 @@ public struct ProviderUsage: Identifiable, Hashable, Codable, Sendable {
     public var fetchedAt: Date
     /// Set when the latest attempt failed; `windows` then hold the last good numbers (if any).
     public var problem: UsageProblem?
+    /// Optional one-sentence English explanation of `problem` from the collector (e.g. why a sign-in can't read
+    /// usage). Views may show it as secondary text; they should not parse it.
+    public var problemDetail: String?
 
     public init(id: UsageProviderID, displayName: String, plan: String?, windows: [UsageWindow],
-                balances: [UsageBalance] = [], fetchedAt: Date, problem: UsageProblem? = nil) {
+                balances: [UsageBalance] = [], fetchedAt: Date, problem: UsageProblem? = nil,
+                problemDetail: String? = nil) {
         self.id = id
         self.displayName = displayName
         self.plan = plan
@@ -112,6 +116,7 @@ public struct ProviderUsage: Identifiable, Hashable, Codable, Sendable {
         self.balances = balances
         self.fetchedAt = fetchedAt
         self.problem = problem
+        self.problemDetail = problemDetail
     }
 
     public var session: UsageWindow? { windows.first { $0.kind == .session } }

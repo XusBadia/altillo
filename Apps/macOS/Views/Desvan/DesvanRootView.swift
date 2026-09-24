@@ -271,8 +271,15 @@ struct DesvanEarContent: View {
                     DesvanEqualiser(isPlaying: active)
                         .opacity(active ? 1 : 0.4)
                 }
-            case .usage, .agents:
-                // Their modules arrive in phases 3 and 4: nothing real to show yet.
+            case .usage:
+                if style != .preview, let usage = model.usage.primary {
+                    DesvanUsageEar(usage: usage)
+                } else if style != .live {
+                    DesvanEarGlyph(symbol: content.symbol)
+                        .accessibilityLabel("No AI usage yet")
+                }
+            case .agents:
+                // Its module arrives in phase 4: nothing real to show yet.
                 if style == .preview { DesvanEarGlyph(symbol: content.symbol) }
             }
         }
@@ -378,21 +385,28 @@ struct DesvanEqualiser: View {
     }
 }
 
-/// Left ear: a tiny ring and the session figure in SF Pro Rounded.
+/// The usage ear: a tiny ring and the figure of the provider's fullest limit (session or week), in SF Pro Rounded.
+/// Paper while calm, mustard from 80 %, tomato from 95 %; dimmer when the numbers are stale.
 struct DesvanUsageEar: View {
     let usage: ProviderUsage
 
     var body: some View {
-        let used = usage.session.used
-        HStack(spacing: 5) {
-            DesvanRing(value: used, lineWidth: 2.4)
-                .frame(width: 14, height: 14)
-            Text("\(Int((used * 100).rounded()))")
-                .font(Desvan.Typeface.figure(13, weight: .medium))
-                .foregroundStyle(Desvan.Palette.paper)
+        if let window = usage.headline {
+            let used = window.used
+            HStack(spacing: 5) {
+                DesvanRing(value: used, lineWidth: 2.4)
+                    .frame(width: 14, height: 14)
+                Text("\(Int((min(max(used, 0), 1) * 100).rounded()))")
+                    .font(Desvan.Typeface.figure(13, weight: .medium))
+                    .foregroundStyle(Desvan.usageTint(used))
+                    .contentTransition(.numericText(value: used))
+            }
+            .opacity(usage.isStale(limit: UsageStore.staleAfter) ? 0.55 : 1)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(
+                "\(usage.displayName): \(NotchFormat.percent(used)) of \(UsageText.phrase(for: window)) used"
+            )
         }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(usage.agent.name): \(NotchFormat.percent(used)) of the session")
     }
 }
 
@@ -563,7 +577,7 @@ private struct DesvanPeekFace: View {
         switch kind {
         case .hint: EmptyView()
         case .shelf: DesvanHouseMark(size: 13)
-        case .usageAlert: AgentGlyph(agent: model.demo.primaryUsage.agent, size: 15)
+        case .usageAlert: DesvanAlertSymbol(alert: Self.demoUsageAlert)
         case .agentWaiting: DesvanKnockingHand(size: 14)
         case .alert: if let alert = model.alert { DesvanAlertSymbol(alert: alert) }
         }
@@ -576,12 +590,7 @@ private struct DesvanPeekFace: View {
         case .shelf:
             if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
         case .usageAlert:
-            // The alert itself: burning faster than the window allows.
-            HStack(spacing: 3) {
-                Image(systemName: "arrow.up.right").font(.system(size: 11, weight: .bold))
-                Text("fast").font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-            }
-            .foregroundStyle(Desvan.Palette.warning)
+            if let trailing = Self.demoUsageAlert.trailing { DesvanAlertFigure(text: trailing) }
         case .agentWaiting:
             if let agent = model.demo.waitingAgent { AgentGlyph(agent: agent.agent, size: 15) }
         case .alert:
@@ -600,7 +609,7 @@ private struct DesvanPeekFace: View {
         switch kind {
         case .hint: EmptyView()
         case .shelf: shelfLine
-        case .usageAlert: usageLine
+        case .usageAlert: DesvanAlertLine(alert: Self.demoUsageAlert, showsTrailing: !chrome.hasNotch)
         case .agentWaiting: agentLine
         case .alert: if let alert = model.alert { DesvanAlertLine(alert: alert, showsTrailing: !chrome.hasNotch) }
         }
@@ -632,24 +641,8 @@ private struct DesvanPeekFace: View {
         }
     }
 
-    private var usageLine: some View {
-        let usage = model.demo.primaryUsage
-        let used = usage.session.used
-        let figure = Text(NotchFormat.percent(used))
-            .font(Self.datum.italic())
-            .foregroundStyle(Desvan.usageTint(used))
-        return HStack(spacing: 0) {
-            Text("\(usage.agent.name) is at \(figure) of the session")
-                .font(Self.sentence)
-                .foregroundStyle(Desvan.Palette.paper)
-            Spacer(minLength: 10)
-            Text("refills in \(NotchFormat.countdown(to: usage.session.resetsAt))")
-                .font(Desvan.Typeface.rounded(11, weight: .medium))
-                .foregroundStyle(Desvan.Palette.paperSecondary)
-                .monospacedDigit()
-        }
-        .lineLimit(1)
-    }
+    /// "Peek: usage alert" shows the very peek a real usage alert makes (`UsageAlertPresenter`), with sample numbers.
+    private static let demoUsageAlert = DemoContent.sample.usageAlert
 
     @ViewBuilder
     private var agentLine: some View {

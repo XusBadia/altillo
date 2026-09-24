@@ -175,7 +175,7 @@ struct DesvanExpandedFace: View {
             switch model.module {
             case .shelf: DesvanShelfView(model: model)
             case .assistant: DesvanAssistantView(model: model)
-            case .usage: DesvanUsageView(demo: model.demo)
+            case .usage: DesvanUsageView(model: model)
             case .agents: DesvanAgentsView(model: model)
             case .calendar: DesvanCalendarView(model: model)
             case .mirror: DesvanMirrorView(model: model)
@@ -560,8 +560,8 @@ private struct DesvanHeaderAccessory: View {
         Group {
             if isDropTarget {
                 EmptyView()
-            } else if model.module == .usage || model.module == .agents, model.scenario == nil {
-                // Only usage and agents still show sample data, until their modules exist (phases 3 and 4).
+            } else if model.module == .agents, model.scenario == nil {
+                // Agents still show sample data, until their module exists (phase 4).
                 ViewThatFits(in: .horizontal) {
                     sampleCaption("Sample data")
                     sampleCaption("Sample")
@@ -692,27 +692,17 @@ private struct DesvanHeaderAccessory: View {
 
     // MARK: Usage
 
+    /// "Up to date · 2 min ago" (or "Stale · 20 min ago" in mustard) and the refresh button. Design scenarios show
+    /// the sample numbers' age and a button that does nothing.
+    @ViewBuilder
     private var usage: some View {
-        let ago = NotchFormat.ago(model.demo.usageUpdatedAt)
-        return ViewThatFits(in: .horizontal) {
-            usageRow(Text("Up to date · \(ago)"))
-            usageRow(Text(ago))
-            usageRow(nil)
+        if model.scenario != nil {
+            DesvanUsageStatus(freshness: .upToDate(since: model.demo.usageUpdatedAt), isRefreshing: false,
+                              refresh: {})
+        } else if !model.usage.providers.isEmpty || model.usage.isRefreshing {
+            DesvanUsageStatus(freshness: model.usage.freshness(), isRefreshing: model.usage.isRefreshing,
+                              refresh: { model.usage.refreshNow() })
         }
-    }
-
-    private func usageRow(_ text: Text?) -> some View {
-        HStack(spacing: 5) {
-            Circle().fill(Desvan.Palette.done).frame(width: 5, height: 5)
-            if let text {
-                text
-                    .font(Self.caption)
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .monospacedDigit()
-            }
-        }
-        .fixedSize()
-        .help("Up to date · \(NotchFormat.ago(model.demo.usageUpdatedAt))")
     }
 
     // MARK: Agents
@@ -761,6 +751,91 @@ private struct DesvanHeaderAccessory: View {
         if waiting > 0 { parts.append(String(localized: "\(waiting) knocking")) }
         if working > 0 { parts.append(String(localized: "\(working) working")) }
         return parts.joined(separator: " · ")
+    }
+}
+
+/// How fresh the usage numbers are, and a button to fetch them now. The text gives way before the button does, and
+/// the age ticks along (every 30 s) only while it's on screen.
+private struct DesvanUsageStatus: View {
+    let freshness: UsageStore.Freshness
+    let isRefreshing: Bool
+    let refresh: () -> Void
+
+    private static let caption = Desvan.Typeface.rounded(11.5, weight: .medium)
+
+    var body: some View {
+        TimelineView(.periodic(from: .now, by: 30)) { context in
+            HStack(spacing: 2) {
+                ViewThatFits(in: .horizontal) {
+                    row(long: true, now: context.date)
+                    row(long: false, now: context.date)
+                    dot
+                }
+                button
+            }
+            .help(help(now: context.date))
+        }
+        .fixedSize()
+    }
+
+    private func row(long: Bool, now: Date) -> some View {
+        HStack(spacing: 5) {
+            dot
+            Text(verbatim: text(long: long, now: now))
+                .font(Self.caption)
+                .foregroundStyle(isStale ? Desvan.Palette.warning : Desvan.Palette.paperTertiary)
+                .monospacedDigit()
+                .contentTransition(.opacity)
+        }
+        .fixedSize()
+    }
+
+    private var dot: some View {
+        Circle()
+            .fill(isStale ? Desvan.Palette.warning : Desvan.Palette.done)
+            .frame(width: 5, height: 5)
+            .opacity(isRefreshing ? 0.4 : 1)
+            .accessibilityHidden(true)
+    }
+
+    private var button: some View {
+        Button(action: refresh) {
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .symbolEffect(.rotate, options: .repeat(.continuous), isActive: isRefreshing)
+                .frame(width: DesvanHitTarget.minimum, height: DesvanHitTarget.minimum)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(DesvanPressStyle())
+        .disabled(isRefreshing)
+        .help("Refresh now")
+        .accessibilityLabel("Refresh AI usage")
+    }
+
+    private var isStale: Bool {
+        if case .stale = freshness { return true }
+        return false
+    }
+
+    private func text(long: Bool, now: Date) -> String {
+        if isRefreshing, long { return String(localized: "Refreshing…") }
+        switch freshness {
+        case let .upToDate(since):
+            return long ? String(localized: "Up to date · \(NotchFormat.ago(since, now: now))") : NotchFormat.ago(since, now: now)
+        case let .stale(since):
+            return long ? String(localized: "Stale · \(NotchFormat.ago(since, now: now))") : String(localized: "Stale")
+        case .nothing:
+            return isRefreshing ? String(localized: "Refreshing…") : ""
+        }
+    }
+
+    private func help(now: Date) -> String {
+        switch freshness {
+        case let .upToDate(since): String(localized: "Up to date · \(NotchFormat.ago(since, now: now))")
+        case let .stale(since): String(localized: "These numbers are from \(NotchFormat.ago(since, now: now)). Altillo keeps trying every 5 min.")
+        case .nothing: String(localized: "Refresh now")
+        }
     }
 }
 

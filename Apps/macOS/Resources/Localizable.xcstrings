@@ -120,6 +120,23 @@
         }
       }
     },
+    "%@ answered in a way Altillo doesn't understand yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ answered in a way Altillo doesn't understand yet."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ha respondido de una forma que Altillo aún no entiende."
+          }
+        }
+      }
+    },
     "%@ are open, but nothing is playing." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -133,6 +150,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ están abiertos, pero no suena nada."
+          }
+        }
+      }
+    },
+    "%@ asked to slow down. Trying again at %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ asked to slow down. Trying again at %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ha pedido ir más despacio. Vuelvo a intentarlo a las %@."
+          }
+        }
+      }
+    },
+    "%@ asked to slow down. Trying again in a few minutes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ asked to slow down. Trying again in a few minutes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ha pedido ir más despacio. Vuelvo a intentarlo en unos minutos."
           }
         }
       }
@@ -171,6 +222,23 @@
         }
       }
     },
+    "%@ has used all of %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ has used all of %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ha agotado %@"
+          }
+        }
+      }
+    },
     "%@ in %lld minutes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -184,6 +252,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ en %lld minutos"
+          }
+        }
+      }
+    },
+    "%@ is at %@ of %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is at %@ of %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ lleva el %@ de %@"
           }
         }
       }
@@ -218,6 +303,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ está abierto, pero no suena nada."
+          }
+        }
+      }
+    },
+    "%@ is ready again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is ready again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ vuelve a estar listo"
           }
         }
       }
@@ -303,6 +405,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ en el altillo"
+          }
+        }
+      }
+    },
+    "%@ refilled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ refilled"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recargado: %@"
           }
         }
       }
@@ -535,6 +654,40 @@
         }
       }
     },
+    "%@: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@"
+          }
+        }
+      }
+    },
+    "%@: %@ of %@ used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@ of %@ used"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@ de %@ usado"
+          }
+        }
+      }
+    },
     "%@: %@ of the session" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -548,6 +701,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: %@ de la sesión"
+          }
+        }
+      }
+    },
+    "%@: %@ used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@ used"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: %@ usado"
           }
         }
       }
@@ -1233,6 +1403,23 @@
         }
       }
     },
+    "A limit used up, or one running out before it refills, always peeks while this is on. Each one peeks once per window." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A limit used up, or one running out before it refills, always peeks while this is on. Each one peeks once per window."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con esto activado, un límite agotado o que se va a agotar antes de recargarse siempre asoma. Cada uno asoma una vez por ventana."
+          }
+        }
+      }
+    },
     "A place up top to leave things" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1399,6 +1586,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agentes"
+          }
+        }
+      }
+    },
+    "Agents arrive with their section. The same ear twice isn't possible: they swap." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agents arrive with their section. The same ear twice isn't possible: they swap."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los agentes llegarán con su sección. No puede ir lo mismo en las dos orejas: se intercambian."
           }
         }
       }
@@ -1624,6 +1828,40 @@
         }
       }
     },
+    "Also read an app compatible with OpenUsage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also read an app compatible with OpenUsage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leer también una app compatible con OpenUsage"
+          }
+        }
+      }
+    },
+    "Also send them to the current iPhone app" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Also send them to the current iPhone app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviarlas también a la app actual del iPhone"
+          }
+        }
+      }
+    },
     "Altillo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1811,6 +2049,23 @@
         }
       }
     },
+    "Altillo reads the sign-in your tools already have. It never signs in, refreshes or changes anything, and your numbers never leave this Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo reads the sign-in your tools already have. It never signs in, refreshes or changes anything, and your numbers never leave this Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo lee la sesión que ya tienen tus herramientas. Nunca inicia sesión, ni la renueva ni cambia nada, y tus cifras nunca salen de este Mac."
+          }
+        }
+      }
+    },
     "Altillo shows your next event up here. Events never leave your Mac." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1858,6 +2113,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo lo usa para encontrar y mover los iconos de tu barra de menús."
+          }
+        }
+      }
+    },
+    "Altillo wasn't allowed to read the %@ sign-in. Allow it when macOS asks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo wasn't allowed to read the %@ sign-in. Allow it when macOS asks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no ha podido leer la sesión de %@. Permítelo cuando macOS te lo pregunte."
           }
         }
       }
@@ -1943,6 +2215,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Y ya está por hoy."
+          }
+        }
+      }
+    },
+    "And when it refills" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "And when it refills"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Y cuando se recarga"
           }
         }
       }
@@ -2168,6 +2457,23 @@
         }
       }
     },
+    "At" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al"
+          }
+        }
+      }
+    },
     "At %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2181,6 +2487,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Va por %@"
+          }
+        }
+      }
+    },
+    "At this pace %@ runs out at %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At this pace %@ runs out at %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A este ritmo, %@ se agota a las %@"
           }
         }
       }
@@ -2232,6 +2555,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscar actualizaciones automáticamente"
+          }
+        }
+      }
+    },
+    "Available in release builds signed for iCloud." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Available in release builds signed for iCloud."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disponible en las versiones publicadas firmadas para iCloud."
           }
         }
       }
@@ -2372,6 +2712,23 @@
         }
       }
     },
+    "Can't read it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Can't read it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede leer"
+          }
+        }
+      }
+    },
     "Category" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2385,6 +2742,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Categoría"
+          }
+        }
+      }
+    },
+    "Check Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Check Again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a comprobar"
           }
         }
       }
@@ -2423,6 +2797,23 @@
         }
       }
     },
+    "Checking your AI tools…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking your AI tools…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirando tus herramientas de IA…"
+          }
+        }
+      }
+    },
     "Checking your calendar…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2436,6 +2827,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mirando la agenda…"
+          }
+        }
+      }
+    },
+    "Checking…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Checking…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comprobando…"
           }
         }
       }
@@ -2695,6 +3103,40 @@
         }
       }
     },
+    "Connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado"
+          }
+        }
+      }
+    },
+    "Connected through OpenUsage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected through OpenUsage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conectado a través de OpenUsage"
+          }
+        }
+      }
+    },
     "Copied" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2759,6 +3201,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copiar la respuesta"
+          }
+        }
+      }
+    },
+    "Couldn't reach %@. Showing the last numbers." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't reach %@. Showing the last numbers."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No he podido conectar con %@. Muestro las últimas cifras."
           }
         }
       }
@@ -4684,6 +5143,23 @@
         }
       }
     },
+    "Limit reached" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Limit reached"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Límite alcanzado"
+          }
+        }
+      }
+    },
     "Link" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4786,6 +5262,23 @@
         }
       }
     },
+    "Looking at your AI usage…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking at your AI usage…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirando tu uso de IA…"
+          }
+        }
+      }
+    },
     "Looking at your calendar…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4833,6 +5326,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscando los iconos de la barra de menús…"
+          }
+        }
+      }
+    },
+    "Looking for your AI tools…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking for your AI tools…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscando tus herramientas de IA…"
           }
         }
       }
@@ -5228,6 +5738,23 @@
         }
       }
     },
+    "Neither Claude Code nor Codex is set up on this Mac yet. Sign in to one and it shows up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neither Claude Code nor Codex is set up on this Mac yet. Sign in to one and it shows up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ni Claude Code ni Codex están configurados en este Mac. Inicia sesión en uno y aparecerá aquí."
+          }
+        }
+      }
+    },
     "Never" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5313,6 +5840,40 @@
         }
       }
     },
+    "No AI usage to show yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No AI usage to show yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay uso de IA que mostrar"
+          }
+        }
+      }
+    },
+    "No AI usage yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No AI usage yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay uso de IA"
+          }
+        }
+      }
+    },
     "No icons match your search." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5326,6 +5887,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ningún icono coincide con tu búsqueda."
+          }
+        }
+      }
+    },
+    "No limits to show for this plan." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No limits to show for this plan."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este plan no tiene límites que mostrar."
           }
         }
       }
@@ -5377,6 +5955,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ninguno"
+          }
+        }
+      }
+    },
+    "Not allowed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not allowed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin permiso"
+          }
+        }
+      }
+    },
+    "Not signed in" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not signed in"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin sesión"
+          }
+        }
+      }
+    },
+    "Not signed in on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not signed in on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin sesión en este Mac"
           }
         }
       }
@@ -5734,6 +6363,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En el altillo"
+          }
+        }
+      }
+    },
+    "On track" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On track"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A buen ritmo"
+          }
+        }
+      }
+    },
+    "Only for providers Altillo doesn't read itself, and only if that app is running on this Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only for providers Altillo doesn't read itself, and only if that app is running on this Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo para proveedores que Altillo no lee por sí mismo, y solo si esa app está abierta en este Mac."
           }
         }
       }
@@ -6350,6 +7013,40 @@
         }
       }
     },
+    "Peek at %lld%% used" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peek at %lld%% used"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asomar al %lld %% de uso"
+          }
+        }
+      }
+    },
+    "Peek when a limit runs high" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peek when a limit runs high"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asomar cuando un límite va alto"
+          }
+        }
+      }
+    },
     "Peek: agent waiting" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6486,6 +7183,23 @@
         }
       }
     },
+    "Plenty left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plenty left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Queda de sobra"
+          }
+        }
+      }
+    },
     "Plug one in, or bring your iPhone close to use it as a Continuity Camera." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6601,6 +7315,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En privado, en este Mac. Puedo mirar tu altillo, tu calendario, tu música y lo que has copiado."
+          }
+        }
+      }
+    },
+    "Providers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Providers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proveedores"
           }
         }
       }
@@ -6843,6 +7574,23 @@
         }
       }
     },
+    "Rate limited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate limited"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frenado por el proveedor"
+          }
+        }
+      }
+    },
     "Redo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6877,6 +7625,23 @@
         }
       }
     },
+    "Refresh AI usage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh AI usage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar el uso de IA"
+          }
+        }
+      }
+    },
     "Refresh menu bar icons" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6890,6 +7655,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Actualizar los iconos de la barra de menús"
+          }
+        }
+      }
+    },
+    "Refresh now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refresh now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar ahora"
+          }
+        }
+      }
+    },
+    "Refreshing…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Refreshing…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizando…"
           }
         }
       }
@@ -6962,6 +7761,23 @@
         }
       }
     },
+    "Running fast" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running fast"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vas rápido"
+          }
+        }
+      }
+    },
     "Running tests · 42 of 118" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6975,6 +7791,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ejecutando tests · 42 de 118"
+          }
+        }
+      }
+    },
+    "Runs out at %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs out at %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hasta las %@"
           }
         }
       }
@@ -7196,6 +8029,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Envía esta pregunta a DuckDuckGo, solo esta vez, y vuelve a responder"
+          }
+        }
+      }
+    },
+    "Session" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesión"
           }
         }
       }
@@ -7557,6 +8407,74 @@
         }
       }
     },
+    "Sign in to %@ on this Mac and it shows up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to %@ on this Mac and it shows up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en %@ en este Mac y aparecerá aquí."
+          }
+        }
+      }
+    },
+    "Sign in to Claude Code or Codex on this Mac and your limits show up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign in to Claude Code or Codex on this Mac and your limits show up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inicia sesión en Claude Code o Codex en este Mac y tus límites aparecerán aquí."
+          }
+        }
+      }
+    },
+    "Sign-in expired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in expired"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesión caducada"
+          }
+        }
+      }
+    },
+    "Sign-in expired: open %@ once" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign-in expired: open %@ once"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sesión caducada: abre %@ una vez"
+          }
+        }
+      }
+    },
     "Size" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7689,6 +8607,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Registro de pruebas"
+          }
+        }
+      }
+    },
+    "Stale" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stale"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactualizado"
+          }
+        }
+      }
+    },
+    "Stale · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stale · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactualizado · %@"
           }
         }
       }
@@ -8363,6 +9315,23 @@
         }
       }
     },
+    "The sign-in expired. Open %@ once and it's back." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The sign-in expired. Open %@ once and it's back."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sesión ha caducado. Abre %@ una vez y vuelve."
+          }
+        }
+      }
+    },
     "There are no calendars on this Mac yet." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8376,6 +9345,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todavía no hay calendarios en este Mac."
+          }
+        }
+      }
+    },
+    "These numbers are from %@." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These numbers are from %@."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas cifras son de %@."
+          }
+        }
+      }
+    },
+    "These numbers are from %@. Altillo keeps trying every 5 min." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These numbers are from %@. Altillo keeps trying every 5 min."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Estas cifras son de %@. Altillo sigue intentándolo cada 5 min."
           }
         }
       }
@@ -8550,6 +9553,23 @@
         }
       }
     },
+    "Try again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar"
+          }
+        }
+      }
+    },
     "Turn it on and I'll answer right here, privately, on this Mac." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8686,6 +9706,23 @@
         }
       }
     },
+    "Unreachable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unreachable"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin conexión"
+          }
+        }
+      }
+    },
     "Until you take it down." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8788,6 +9825,23 @@
         }
       }
     },
+    "Usage Settings…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage Settings…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes de uso…"
+          }
+        }
+      }
+    },
     "Usage and agents arrive with their sections. The same ear twice isn't possible: they swap." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8835,6 +9889,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ha mirado lo que suena"
+          }
+        }
+      }
+    },
+    "Used your AI usage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used your AI usage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha mirado tu uso de IA"
           }
         }
       }
@@ -9366,6 +10437,23 @@
         }
       }
     },
+    "Writes the numbers to iCloud in the format the iPhone app from before Altillo reads, so you can retire the old bridge." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Writes the numbers to iCloud in the format the iPhone app from before Altillo reads, so you can retire the old bridge."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe las cifras en iCloud en el formato que lee la app de iPhone de antes de Altillo, para que puedas retirar el puente antiguo."
+          }
+        }
+      }
+    },
     "You asked: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9791,6 +10879,23 @@
         }
       }
     },
+    "not started" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "not started"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sin empezar"
+          }
+        }
+      }
+    },
     "now" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9821,6 +10926,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "a buen ritmo"
+          }
+        }
+      }
+    },
+    "refilling now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "refilling now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "recargándose ahora"
+          }
+        }
+      }
+    },
+    "refills %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "refills %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "se recarga %@"
           }
         }
       }
@@ -9927,6 +11066,57 @@
         }
       }
     },
+    "starts with your next message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "starts with your next message"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "empieza con tu próximo mensaje"
+          }
+        }
+      }
+    },
+    "the month" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the month"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "este mes"
+          }
+        }
+      }
+    },
+    "the session" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la sesión"
+          }
+        }
+      }
+    },
     "the start" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9940,6 +11130,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "el principio"
+          }
+        }
+      }
+    },
+    "the week" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the week"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "la semana"
           }
         }
       }

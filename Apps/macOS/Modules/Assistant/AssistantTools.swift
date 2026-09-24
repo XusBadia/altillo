@@ -7,7 +7,7 @@ import FoundationModels
 /// What the assistant is looking at right now, shown under the question ("Looking at your calendar…") and kept
 /// with the answer as its sources.
 enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
-    case shelf, calendar, nowPlaying, clipboard, calculator, web
+    case shelf, calendar, nowPlaying, clipboard, usage, calculator, web
 
     var id: Self { self }
 
@@ -17,6 +17,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .calendar: "calendar"
         case .nowPlaying: "music.note"
         case .clipboard: "doc.on.clipboard"
+        case .usage: "gauge.with.needle"
         case .calculator: "plus.forwardslash.minus"
         case .web: "globe"
         }
@@ -29,6 +30,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .calendar: String(localized: "Looking at your calendar…")
         case .nowPlaying: String(localized: "Listening to what's playing…")
         case .clipboard: String(localized: "Looking at what you copied…")
+        case .usage: String(localized: "Looking at your AI usage…")
         case .calculator: String(localized: "Working it out…")
         case .web: String(localized: "Searching the web…")
         }
@@ -41,6 +43,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .calendar: String(localized: "Used your calendar")
         case .nowPlaying: String(localized: "Used what's playing")
         case .clipboard: String(localized: "Used your clipboard")
+        case .usage: String(localized: "Used your AI usage")
         case .calculator: String(localized: "Worked out exactly")
         case .web: String(localized: "Searched the web")
         }
@@ -49,7 +52,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
     /// Marks for the user's own things (the web and exact sums aren't tools the model calls; the store notes them).
     var isLocalContext: Bool {
         switch self {
-        case .shelf, .calendar, .nowPlaying, .clipboard: true
+        case .shelf, .calendar, .nowPlaying, .clipboard, .usage: true
         case .calculator, .web: false
         }
     }
@@ -66,6 +69,7 @@ enum AssistantTools {
     static func all(
         for route: AssistantRoute = .context,
         shelfItems: @escaping @MainActor @Sendable () -> [ShelfItem],
+        usage: @escaping @MainActor @Sendable () -> AssistantUsage.Reading = { AssistantUsage.liveReading() },
         report: @escaping AssistantActivityReport
     ) -> [any Tool] {
         guard route == .context else { return [] }
@@ -74,6 +78,7 @@ enum AssistantTools {
             CalendarTool(report: report),
             NowPlayingTool(report: report),
             ClipboardTool(report: report),
+            UsageTool(reading: usage, report: report),
         ]
     }
 }
@@ -268,5 +273,121 @@ struct ClipboardTool: Tool {
         let answer = await MainActor.run { AssistantContent.readClipboard() }
         await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool clipboard → \(answer.count) chars")
         return answer
+    }
+}
+
+// MARK: - AI usage
+
+struct UsageTool: Tool {
+    let name = "usage"
+    let description = "The user's AI limits (Claude, Codex…): how much is used, when each refills and the pace."
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "One provider, like Claude or Codex. Omit for all.")
+        var provider: String?
+    }
+
+    let reading: @MainActor @Sendable () -> AssistantUsage.Reading
+    let report: AssistantActivityReport
+
+    func call(arguments: Arguments) async throws -> String {
+        await report(.usage)
+        // Never the network: the numbers Altillo already has (refreshed every 5 min by `UsageStore`).
+        let reading = await reading()
+        let answer = AssistantUsage.answer(reading, provider: arguments.provider, now: .now)
+        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool usage → \(answer.count) chars")
+        return answer
+    }
+}
+
+/// What Ask's `usage` tool says, in plain English for the model: one line per limit with its figure, when it
+/// refills and the pace, and how old the numbers are.
+enum AssistantUsage {
+    struct Reading: Sendable {
+        /// The usage section is on (with it off, nothing is read).
+        var isEnabled: Bool
+        var providers: [ProviderUsage]
+    }
+
+    /// The running app's latest numbers, as `UsageStore` has them.
+    @MainActor
+    static func liveReading() -> Reading {
+        guard let store = UsageStore.live else { return Reading(isEnabled: false, providers: []) }
+        return Reading(isEnabled: store.settings.isEnabled(.usage), providers: store.providers)
+    }
+
+    static func answer(_ reading: Reading, provider: String?, now: Date,
+                       calendar: Calendar = .current) -> String {
+        guard reading.isEnabled else {
+            return "The Usage section is turned off in Altillo, so it isn't reading any AI limits. Tell the user they can turn it on in Settings › Sections."
+        }
+        guard !reading.providers.isEmpty else {
+            return "Altillo isn't reading any AI limits yet: neither Claude Code nor Codex is signed in on this Mac."
+        }
+        var providers = reading.providers
+        if let wanted = provider.map(AssistantHTML.fold), !wanted.isEmpty {
+            let matches = providers.filter {
+                AssistantHTML.fold($0.displayName).contains(wanted) || wanted.contains(AssistantHTML.fold($0.displayName))
+                    || $0.id.rawValue == wanted
+            }
+            if matches.isEmpty {
+                let names = providers.map(\.displayName).joined(separator: ", ")
+                return "Altillo doesn't read \(provider ?? "that provider"). It reads: \(names)."
+            }
+            providers = matches
+        }
+        return providers.map { describe($0, now: now, calendar: calendar) }.joined(separator: "\n\n")
+    }
+
+    private static func describe(_ usage: ProviderUsage, now: Date, calendar: Calendar) -> String {
+        var lines: [String] = []
+        let plan = usage.plan.map { " (\($0) plan)" } ?? ""
+        lines.append("\(usage.displayName)\(plan):")
+        if usage.windows.isEmpty {
+            if let problem = usage.problem {
+                lines.append("- No numbers: \(UsageText.sentence(for: problem, provider: usage.id, displayName: usage.displayName, now: now))")
+            } else {
+                lines.append("- No limits reported.")
+            }
+            return lines.joined(separator: "\n")
+        }
+        for window in usage.windows {
+            let used = Int((window.used * 100).rounded())
+            var line = "- \(UsageText.name(for: window)): \(used)% used, \(max(0, 100 - used))% left"
+            if let resetsAt = window.resetsAt, resetsAt > now {
+                line += ", refills in \(NotchFormat.countdown(to: resetsAt, now: now)) (\(time(resetsAt, now: now, calendar: calendar)))"
+            } else if window.resetsAt == nil, window.kind == .session {
+                line += ", starts with the next message"
+            }
+            switch UsagePace.evaluate(window, now: now) {
+            case let .behind(runsOutAt?):
+                line += ". At this pace it runs out at \(time(runsOutAt, now: now, calendar: calendar)), before it refills"
+            case .behind(nil) where window.used >= 1:
+                line += ". The limit is reached"
+            case .ahead:
+                line += ". Plenty left at this pace"
+            case .onTrack:
+                line += ". On track to last until it refills"
+            default:
+                break
+            }
+            lines.append(line + ".")
+        }
+        let age = NotchFormat.ago(usage.fetchedAt, now: now)
+        if let problem = usage.problem {
+            lines.append("- These numbers are from \(age): \(UsageText.sentence(for: problem, provider: usage.id, displayName: usage.displayName, now: now))")
+        } else {
+            lines.append("- Read \(age).")
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    /// "16:10" today, "Friday 09:00" another day.
+    private static func time(_ date: Date, now: Date, calendar: Calendar) -> String {
+        if calendar.isDate(date, inSameDayAs: now) {
+            return date.formatted(date: .omitted, time: .shortened)
+        }
+        return date.formatted(.dateTime.weekday(.wide).hour().minute())
     }
 }

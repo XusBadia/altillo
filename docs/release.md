@@ -15,6 +15,10 @@ y desarrollar Altillo no necesitas nada de esto — ver
   entitlements (`Apps/macOS/App/Altillo.entitlements`) solo piden lo que
   hardened runtime bloquearía por defecto: cámara (Espejo), Apple Events a
   Música/Spotify (Now Playing) y Calendario — nada de sandboxing real.
+- Las releases añaden además **iCloud** (solo si hay perfil, ver
+  [iCloud (transición)](#icloud-transición)): `Altillo.release.entitlements`
+  + el perfil Developer ID embebido, para que la app escriba el fichero que
+  lee la app antigua de iPhone. Las builds de desarrollo no cambian.
 - Las actualizaciones usan **[Sparkle 2](https://sparkle-project.org/)**: la
   app comprueba un feed (`appcast.xml`) publicado en GitHub Pages
   (`https://xusbadia.github.io/altillo/appcast.xml`, rama `gh-pages`) y
@@ -105,6 +109,7 @@ variables → Actions:
 | `ALTILLO_NOTARY_TEAM_ID` | `9L2TD7KVV9`. |
 | `ALTILLO_SPARKLE_PUBLIC_KEY` | La clave pública EdDSA (no es secreta, pero así queda junto a las demás). |
 | `ALTILLO_SPARKLE_PRIVATE_KEY` | La clave privada EdDSA exportada en base64 (paso 1). **Esta sí es secreta de verdad.** |
+| `ALTILLO_ICLOUD_PROFILE_BASE64` | Opcional. El perfil Developer ID con iCloud en base64 (`base64 -i Config/Provisioning/Altillo_DeveloperID_iCloud.provisionprofile \| pbcopy`, ver [iCloud (transición)](#icloud-transición)). Sin él, CI publica una release sin iCloud (con un aviso en el log). |
 
 Cuando estén todos, crea la variable de repositorio `ALTILLO_CI_RELEASE` con valor `true`
 (Settings → Secrets and variables → Actions → Variables). Sin ella, empujar una etiqueta no lanza el
@@ -113,6 +118,91 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
 
 `GITHUB_TOKEN` lo proporciona GitHub Actions automáticamente (con permiso
 `contents: write` declarado en el workflow) — no hay que crearlo.
+
+## iCloud (transición)
+
+Mientras no exista Altillo para iOS, las releases escriben también el formato
+antiguo `openusage.mobile.v1` en el contenedor **existente**
+`iCloud.me.badia.ailimits`, para que la app de TestFlight (`me.badia.ailimits`)
+siga recibiendo datos y se pueda retirar el bridge
+([uso-ia.md](uso-ia.md#transición-altillo-escribe-el-formato-antiguo-fase-3)).
+
+Usar iCloud fuera del sandbox con Developer ID exige un **perfil de
+aprovisionamiento Developer ID** embebido en la app. Sin él, una app que pide
+entitlements de iCloud ni siquiera arranca. Por eso:
+
+- **Debug/desarrollo:** nada cambia. `Altillo.entitlements`, firma Apple
+  Development, sin perfil y sin iCloud. El exportador se queda inactivo.
+- **Release con perfil:** `script/release.sh` exporta la app como siempre
+  y después:
+  1. copia el perfil a `Contents/embedded.provisionprofile`;
+  2. añade `NSUbiquitousContainers` al `Info.plist`, igual que el bridge
+     (no es público, así que no aparece en iCloud Drive). Solo se añade en
+     release: sin entitlement no sirve para nada, y así el `Info.plist` de
+     desarrollo y el de los forks no mencionan un contenedor ajeno;
+  3. vuelve a firmar solo el bundle exterior (`codesign --force --timestamp
+     --options runtime`, sin `--deep`: Sparkle y `altillo-hook` conservan su
+     firma). Usa `Altillo.release.entitlements` más
+     `com.apple.application-identifier` y `com.apple.developer.team-identifier`
+     sacados del perfil. Xcode los inyectaría solo, pero `codesign` no, y sin
+     ellos taskgated no deja arrancar la app;
+  4. comprueba que `codesign -d --entitlements -` muestra el application
+     identifier, el team, el contenedor y `CloudDocuments`.
+
+  Antes de compilar valida el perfil: equipo, application identifier
+  (`9L2TD7KVV9.<ALTILLO_BUNDLE_PREFIX>`), que permita el contenedor, que no
+  sea de desarrollo, que no haya caducado y que incluya el certificado con el
+  que se firma. Si el perfil está configurado pero algo falla, **la release
+  se para**: no se cae a una build sin iCloud sin avisar.
+- **Release sin perfil:** se compila exactamente como antes, sin iCloud, con
+  un `WARNING` al principio y al final del log.
+
+### Configuración (una vez)
+
+1. **Asignar el contenedor al App ID (a mano).** La API de App Store Connect
+   no puede asignar contenedores de iCloud (ni siquiera leerlos con una clave
+   de API), así que este paso se hace en la web:
+   1. <https://developer.apple.com/account/resources/identifiers/list> →
+      `me.badia.altillo` (Altillo).
+   2. En *Capabilities*, iCloud ya está marcado: pulsa **Edit/Configure** a
+      su lado.
+   3. Marca **solo** el contenedor existente `iCloud.me.badia.ailimits` y
+      pulsa *Continue* → *Save*. **No pulses "+"**: crear un contenedor nuevo
+      es irreversible.
+   4. Acepta el aviso de que cambiar las capacidades invalida los perfiles.
+2. **Crear y descargar el perfil:**
+
+   ```sh
+   script/icloud-profile.py
+   ```
+
+   Usa la clave de la API de App Store Connect (`ASC_ISSUER`, `ASC_KEY_ID`,
+   `ASC_P8`, del entorno o de `~/.config/aurio/asc/env`; nunca las imprime).
+   Busca o crea el bundle ID `me.badia.altillo`, activa iCloud, busca el
+   certificado Developer ID del llavero, borra el perfil anterior con el mismo
+   nombre y crea "Altillo Developer ID iCloud" (`MAC_APP_DIRECT`). Lo guarda
+   en `Config/Provisioning/Altillo_DeveloperID_iCloud.provisionprofile`
+   (ignorado por git) y lo apunta en `Config/Local.xcconfig` como
+   `ALTILLO_ICLOUD_PROFILE`. Si el perfil nuevo no incluye el contenedor (el
+   paso 1 no está hecho), lo borra y te dice qué pulsar. Vuelve a ejecutarlo
+   si cambias de certificado o si el perfil caduca.
+3. **Probar una build firmada** (sin notarizar):
+
+   ```sh
+   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
+   script/release.sh 0.3.0-rc --dry-run
+   codesign -d --entitlements - dist/Altillo.app          # application-identifier, team, iCloud
+   open -g -n dist/Altillo.app --args -legacyMobileExportSelfTest altillo-selftest
+   cat ~/Library/Logs/Altillo/legacy-mobile-export-selftest.json   # "result": "written", containerURL
+   ls ~/Library/Mobile\ Documents/iCloud~me~badia~ailimits/OpenUsage/Mobile/v1/
+   open -g -n dist/Altillo.app --args -legacyMobileExportSelfTestDelete altillo-selftest
+   ```
+
+   El segundo `open` borra el documento de prueba, para que el iPhone no
+   muestre un Mac fantasma. La app de autoprueba se cierra sola y no toca el
+   Altillo que tengas abierto.
+4. **CI (opcional):** secreto `ALTILLO_ICLOUD_PROFILE_BASE64` (tabla de
+   arriba).
 
 ## Publicar una release
 

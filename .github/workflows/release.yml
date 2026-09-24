@@ -88,5 +88,8 @@ jobs:
           ALTILLO_NOTARY_TEAM_ID: ${{ secrets.ALTILLO_NOTARY_TEAM_ID }}
           ALTILLO_SPARKLE_PUBLIC_KEY: ${{ secrets.ALTILLO_SPARKLE_PUBLIC_KEY }}
           ALTILLO_SPARKLE_PRIVATE_KEY: ${{ secrets.ALTILLO_SPARKLE_PRIVATE_KEY }}
+          # Optional: Developer ID profile with iCloud (base64) for the legacy iPhone export. Empty → the
+          # release is built without iCloud and script/release.sh logs a warning (docs/release.md).
+          ALTILLO_ICLOUD_PROFILE_BASE64: ${{ secrets.ALTILLO_ICLOUD_PROFILE_BASE64 }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: script/release.sh "${{ steps.meta.outputs.version }}" --publish

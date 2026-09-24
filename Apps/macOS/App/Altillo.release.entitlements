@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	Release-only superset of Altillo.entitlements, used by script/release.sh and ONLY when a Developer ID
+	provisioning profile with iCloud is configured (ALTILLO_ICLOUD_PROFILE, docs/release.md). Debug/dev builds
+	keep Altillo.entitlements: they're signed without a profile, and an iCloud entitlement there would stop the
+	app from launching.
+
+	The iCloud keys let the notarized app write the legacy openusage.mobile.v1 file into the EXISTING container
+	iCloud.me.badia.ailimits, which the old TestFlight iPhone app reads (docs/uso-ia.md, "transición opcional").
+	script/release.sh adds com.apple.application-identifier and com.apple.developer.team-identifier from the
+	profile when it signs (Xcode would inject them; the script signs with codesign directly).
+
+	Keep the first three keys identical to Altillo.entitlements.
+	-->
+	<key>com.apple.security.device.camera</key>
+	<true/>
+	<key>com.apple.security.automation.apple-events</key>
+	<true/>
+	<key>com.apple.security.personal-information.calendars</key>
+	<true/>
+	<key>com.apple.developer.icloud-container-identifiers</key>
+	<array>
+		<string>iCloud.me.badia.ailimits</string>
+	</array>
+	<key>com.apple.developer.ubiquity-container-identifiers</key>
+	<array>
+		<string>iCloud.me.badia.ailimits</string>
+	</array>
+	<key>com.apple.developer.icloud-services</key>
+	<array>
+		<string>CloudDocuments</string>
+	</array>
+	<key>com.apple.developer.icloud-container-environment</key>
+	<string>Production</string>
+</dict>
+</plist>

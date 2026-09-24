@@ -94,9 +94,11 @@ struct EditModeTests {
     @Test func comingSoonEarsAreRefused() {
         let settings = Self.makeSettings()
         let session = NotchEditSession()
-        #expect(!session.assign(.usage, to: .left, in: settings))
         #expect(!session.assign(.agents, to: .right, in: settings))
         #expect(settings.leftEar == .automatic && settings.rightEar == .shelf, "the defaults stay")
+        // Usage is real since phase 3: it can go in an ear.
+        #expect(session.assign(.usage, to: .left, in: settings))
+        #expect(settings.leftEar == .usage)
     }
 
     @Test func aTabDroppedOnAnEarShowsWhatItMeans() {

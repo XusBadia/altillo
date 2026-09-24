@@ -63,8 +63,8 @@ struct PresetSettingsTests {
     }
 
     @Test func earsThatArentReadyYetAreMarked() {
-        #expect(!EarContent.usage.isAvailable)
+        #expect(EarContent.usage.isAvailable, "real usage since phase 3")
         #expect(!EarContent.agents.isAvailable)
-        #expect(EarContent.allCases.filter(\.isAvailable) == [.none, .automatic, .shelf, .nextEvent, .nowPlaying])
+        #expect(EarContent.allCases.filter(\.isAvailable) == [.none, .automatic, .shelf, .nextEvent, .nowPlaying, .usage])
     }
 }

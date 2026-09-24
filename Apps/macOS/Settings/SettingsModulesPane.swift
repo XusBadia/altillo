@@ -1,3 +1,4 @@
+import AltilloCore
 import SwiftUI
 
 /// Which sections the open notch shows, in what order, and what sits in the ears beside it. Everything here changes
@@ -53,6 +54,15 @@ struct SettingsModulesPane: View {
                     }
                 }
 
+                if settings.isEnabled(.usage) {
+                    Section {
+                        SettingsUsageGroup(settings: settings, store: UsageStore.live)
+                            .id(Self.usageAnchor)
+                    } header: {
+                        SettingsListHeader("Usage")
+                    }
+                }
+
                 if !disabled.isEmpty {
                     Section {
                         ForEach(disabled) { module in
@@ -69,9 +79,10 @@ struct SettingsModulesPane: View {
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
             .onAppear {
-                // `-settingsSection calendar` (with `-settingsTab modules`) opens scrolled to the calendar's group.
-                if UserDefaults.standard.string(forKey: "settingsSection") == Self.calendarAnchor {
-                    proxy.scrollTo(Self.calendarAnchor, anchor: .top)
+                // `-settingsSection calendar|usage` (with `-settingsTab modules`) opens scrolled to that group.
+                if let anchor = UserDefaults.standard.string(forKey: "settingsSection"),
+                   [Self.calendarAnchor, Self.usageAnchor].contains(anchor) {
+                    proxy.scrollTo(anchor, anchor: .top)
                 }
             }
             }
@@ -79,6 +90,7 @@ struct SettingsModulesPane: View {
     }
 
     private static let calendarAnchor = "calendar"
+    private static let usageAnchor = "usage"
 }
 
 // MARK: - Presets
@@ -199,7 +211,7 @@ private struct SettingsEarsRow: View {
                     .fixedSize()
                 }
             }
-            Text("Usage and agents arrive with their sections. The same ear twice isn't possible: they swap.")
+            Text("Agents arrive with their section. The same ear twice isn't possible: they swap.")
                 .settingsHint()
         }
         .padding(.vertical, 6)
@@ -470,5 +482,203 @@ private struct SettingsCalendarAccount: View {
                 }
             }
         )
+    }
+}
+
+// MARK: - Usage
+
+/// The usage section's own settings: which providers it reads (with how each one is doing), when it peeks, and
+/// whether an OpenUsage-compatible app fills in the providers Altillo doesn't read itself.
+private struct SettingsUsageGroup: View {
+    @Bindable var settings: AltilloSettings
+    /// The running app's store; nil only in previews.
+    let store: UsageStore?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            providers
+            alerts
+            openUsage
+        }
+        .padding(.vertical, 6)
+        .onAppear { store?.refreshIfOlder(than: 60) }
+    }
+
+    // MARK: Providers
+
+    @ViewBuilder
+    private var providers: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Providers")
+                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paper)
+                Spacer(minLength: 8)
+                if let store {
+                    Button(store.isRefreshing ? "Checking…" : "Check Again") { store.refreshNow() }
+                        .controlSize(.small)
+                        .disabled(store.isRefreshing)
+                }
+            }
+            let entries = store?.entries ?? []
+            if entries.isEmpty {
+                Text(store?.hasChecked == true
+                     ? "Neither Claude Code nor Codex is set up on this Mac yet. Sign in to one and it shows up here."
+                     : "Looking for your AI tools…")
+                    .settingsHint()
+            } else {
+                ForEach(entries) { entry in
+                    SettingsUsageProviderRow(entry: entry, settings: settings)
+                }
+                Text("Altillo reads the sign-in your tools already have. It never signs in, refreshes or changes anything, and your numbers never leave this Mac.")
+                    .settingsHint()
+            }
+        }
+    }
+
+    // MARK: Alerts
+
+    private var alerts: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Toggle(isOn: $settings.alertsForUsage) {
+                Text("Peek when a limit runs high")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paper)
+            }
+            .toggleStyle(.checkbox)
+            HStack(spacing: 12) {
+                Text("At")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                ForEach(AltilloSettings.usageAlertThresholdChoices, id: \.self) { level in
+                    Toggle(isOn: threshold(level)) {
+                        Text("\(level)%")
+                            .font(.system(size: 12.5))
+                            .foregroundStyle(Desvan.Palette.paper)
+                            .monospacedDigit()
+                    }
+                    .toggleStyle(.checkbox)
+                    .accessibilityLabel(String(localized: "Peek at \(level)% used"))
+                }
+            }
+            .padding(.leading, 20)
+            .disabled(!settings.alertsForUsage)
+            Toggle(isOn: $settings.usageAlertsWhenRefilled) {
+                Text("And when it refills")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paper)
+            }
+            .toggleStyle(.checkbox)
+            .padding(.leading, 20)
+            .disabled(!settings.alertsForUsage)
+            Text("A limit used up, or one running out before it refills, always peeks while this is on. Each one peeks once per window.")
+                .settingsHint()
+        }
+    }
+
+    private func threshold(_ level: Int) -> Binding<Bool> {
+        Binding(
+            get: { settings.usageAlertThresholds.contains(level) },
+            set: { settings.setUsageAlertThreshold(level, enabled: $0) }
+        )
+    }
+
+    // MARK: OpenUsage
+
+    private var openUsage: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Toggle(isOn: $settings.usageShowsOpenUsageSource) {
+                Text("Also read an app compatible with OpenUsage")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paper)
+            }
+            .toggleStyle(.checkbox)
+            Text("Only for providers Altillo doesn't read itself, and only if that app is running on this Mac.")
+                .settingsHint()
+                .padding(.leading, 20)
+
+            Toggle(isOn: legacyExport) {
+                Text("Also send them to the current iPhone app")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paper)
+            }
+            .toggleStyle(.checkbox)
+            .disabled(!OpenUsageMobilePublisher.hasContainerEntitlement)
+            .padding(.top, 6)
+            if OpenUsageMobilePublisher.hasContainerEntitlement {
+                Text("Writes the numbers to iCloud in the format the iPhone app from before Altillo reads, so you can retire the old bridge.")
+                    .settingsHint()
+                    .padding(.leading, 20)
+            } else {
+                Text("Available in release builds signed for iCloud.")
+                    .settingsHint()
+                    .padding(.leading, 20)
+            }
+        }
+    }
+
+    /// `OpenUsageMobilePublisher` reads this key itself on every publish.
+    private var legacyExport: Binding<Bool> {
+        Binding(
+            get: { UserDefaults.standard.object(forKey: OpenUsageMobilePublisher.enabledKey) as? Bool ?? true },
+            set: { UserDefaults.standard.set($0, forKey: OpenUsageMobilePublisher.enabledKey) }
+        )
+    }
+}
+
+/// One provider: its mark, its name, how it's doing ("Connected · Max 20x", "Sign-in expired: open Claude Code
+/// once") and the switch that puts it in the notch.
+private struct SettingsUsageProviderRow: View {
+    let entry: UsageStore.Entry
+    @Bindable var settings: AltilloSettings
+
+    private var isOn: Binding<Bool> {
+        Binding(
+            get: { settings.isUsageProviderEnabled(entry.id) },
+            set: { settings.setUsageProvider(entry.id, enabled: $0) }
+        )
+    }
+
+    private var hasProblem: Bool { !entry.isAvailable || entry.usage?.problem != nil }
+
+    var body: some View {
+        HStack(spacing: 10) {
+            AgentGlyph(provider: entry.id, name: entry.displayName, size: 24)
+                .opacity(entry.isAvailable ? 1 : 0.5)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(entry.displayName)
+                    .font(Desvan.Typeface.rounded(13, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paper)
+                HStack(spacing: 4) {
+                    if hasProblem {
+                        Image(systemName: entry.isAvailable ? "exclamationmark.triangle.fill" : "person.crop.circle.badge.questionmark")
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .accessibilityHidden(true)
+                    }
+                    Text(UsageText.status(for: entry))
+                        .font(.system(size: 11.5))
+                        .lineLimit(1)
+                }
+                .foregroundStyle(entry.isAvailable && entry.usage?.problem != nil
+                                 ? Desvan.Palette.warning : Desvan.Palette.paperSecondary)
+                .help(help)
+            }
+            Spacer(minLength: 8)
+            Toggle(entry.displayName, isOn: isOn)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+    }
+
+    private var help: String {
+        guard entry.isAvailable else {
+            return UsageText.sentence(for: .notSignedIn, provider: entry.id, displayName: entry.displayName)
+        }
+        guard let usage = entry.usage, let problem = usage.problem else { return "" }
+        let sentence = UsageText.sentence(for: problem, provider: entry.id, displayName: entry.displayName)
+        return usage.problemDetail.map { "\(sentence) \($0)" } ?? sentence
     }
 }

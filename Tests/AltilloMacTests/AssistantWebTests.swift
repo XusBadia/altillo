@@ -227,7 +227,7 @@ struct AssistantWebTests {
         let live = AssistantInstructions.text(now: now, route: .live)
         #expect(chat.contains("can't check live data"), "admitting it is what triggers the web offer")
         #expect(chat.contains("Don't refuse"))
-        #expect(context.contains("shelf, calendar, nowPlaying or clipboard"))
+        #expect(context.contains("shelf, calendar, nowPlaying, clipboard or usage"))
         #expect(live.contains("web results"))
         for text in [chat, context, live] {
             #expect(text.count < 800, "instructions are paid for on every question")
@@ -236,7 +236,7 @@ struct AssistantWebTests {
         #expect(AssistantTools.all(for: .chat, shelfItems: { [] }, report: { _ in }).isEmpty)
         #expect(AssistantTools.all(for: .live, shelfItems: { [] }, report: { _ in }).isEmpty)
         #expect(AssistantTools.all(for: .context, shelfItems: { [] }, report: { _ in }).map(\.name)
-            == ["shelf", "calendar", "nowPlaying", "clipboard"])
+            == ["shelf", "calendar", "nowPlaying", "clipboard", "usage"])
     }
 
     @Test func webResultsTravelWithTheQuestion() {

@@ -130,6 +130,19 @@ final class NotchCoordinator {
         installKeyMonitor()
         installScrollMonitor()
         observeSettings()
+        // AI usage: last numbers from disk at once, then its own 5-minute rhythm (paused while the Mac sleeps).
+        model.usage.postAlert = { [weak self] alert in self?.post(alert) }
+        // The old iPhone app (openusage.mobile.v1 in iCloud) keeps getting numbers while Altillo for iOS arrives.
+        // Only does anything in release builds signed with the iCloud profile (docs/release.md).
+        if !model.usage.publishers.contains(where: { $0 is OpenUsageMobilePublisher }) {
+            model.usage.publishers.append(OpenUsageMobilePublisher())
+        }
+        model.usage.start()
+        // `-openModule usage` (with `-openAltillo YES`) opens on that section: reviews of live data without a click.
+        if let name = UserDefaults.standard.string(forKey: "openModule"), let module = NotchModule(rawValue: name),
+           model.settings.modules.contains(module) {
+            model.jump(to: module)
+        }
 
         let center = NotificationCenter.default
         let workspace = NSWorkspace.shared.notificationCenter
@@ -186,6 +199,7 @@ final class NotchCoordinator {
         calendarAlerts.update(enabled: false)
         nowPlayingAlerts.update(enabled: false)
         model.nowPlaying.watchInBackground(false)
+        model.usage.stop()
         input.stop()
         dragDetector.stop()
         model.drawer.stop()
@@ -832,6 +846,7 @@ final class NotchCoordinator {
             _ = (settings.assistantHotKey, settings.modules, settings.alertsForCalendar, settings.alertsForNowPlaying)
             _ = (settings.leftEar, settings.rightEar, settings.calendarHiddenIDs)
             _ = (settings.displayMode, settings.fullScreenBehaviour)
+            _ = (settings.usageDisabledProviders, settings.usageShowsOpenUsageSource)
             _ = model.calendar.access
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
@@ -857,6 +872,9 @@ final class NotchCoordinator {
         model.nowPlaying.watchInBackground(
             EarsLogic.watchesPlayback(left: settings.leftEar, right: settings.rightEar, modules: settings.modules)
         )
+        // Usage refreshes while its section is on, or while something publishes the numbers (the iPhone).
+        model.usage.setSectionEnabled(settings.modules.contains(.usage))
+        model.usage.providersMayHaveChanged()
         if appliedScreenSettings?.mode != settings.displayMode
             || appliedScreenSettings?.fullScreen != settings.fullScreenBehaviour {
             appliedScreenSettings = (settings.displayMode, settings.fullScreenBehaviour)

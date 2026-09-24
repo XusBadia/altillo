@@ -30,13 +30,21 @@ tracks every case where Altillo actually does.
 
 ## Reused code
 
-_Empty for now — Altillo hasn't reused any third-party code yet. Fill in a row
-below whenever a PR reuses or adapts MIT/Apache/BSD code, and keep it
-accurate as code changes._
+Fill in a row whenever a PR reuses or adapts MIT/Apache/BSD code, and keep
+it accurate as code changes. Adapted files carry a header comment pointing
+back to the source.
 
 | Source project | License | What was reused | Where in Altillo | PR / commit |
 |---|---|---|---|---|
-| _none yet_ | | | | |
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Claude usage mapping (windows, `limits[]` weekly_scoped entries, extra usage in cents, plan formatting, `Retry-After` parsing), keychain lookup order / `CLAUDE_CONFIG_DIR` service suffix / hex-encoded value fallback | `Packages/AltilloKit/Sources/AltilloUsage/ClaudeCollector.swift`, `ClaudeCredentials.swift` | phase 3 (usage collectors) |
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Codex window classification by duration, plan naming, `wham/usage` mapping | `Packages/AltilloKit/Sources/AltilloUsage/CodexCollector.swift` | phase 3 |
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Alert rules from `MobileQuotaNotificationEvaluator` and `PaceNotificationLogic` (baseline, once per window, highest crossed threshold, reset jitter tolerance, inferred reset) | `Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift` | phase 3 |
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Pace projection (`UsagePace`) | `Packages/AltilloKit/Sources/AltilloCore/Usage.swift` | 2c906af |
+| [ai-limits](https://github.com/XusBadia/ai-limits) (© 2026 Xus Badia) | MIT | `codex app-server` JSON-RPC handshake and rate-limit result mapping | `Packages/AltilloKit/Sources/AltilloUsage/CodexAppServer.swift`, `CodexCollector.swift` | phase 3 |
+
+The optional local source in `OpenUsageCompatibleSource.swift` only reads the
+public `openusage.limits.v1` API; no code is copied. It is presented to users
+as "compatible with OpenUsage", never under the OpenUsage name.
 
 Planned reuse (per [PLAN.md](../PLAN.md)), to be filled in as it lands:
 

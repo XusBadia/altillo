@@ -13,6 +13,8 @@ struct NotchAlert: Identifiable, Equatable, Sendable {
         case nowPlaying
         /// An answer finished while the notch was closed.
         case assistant
+        /// An AI limit running high, used up, running out early or refilled (PLAN §5.2).
+        case usage
     }
 
     let id = UUID()

@@ -28,7 +28,7 @@ enum AssistantInstructions {
         case .context:
             text += """
 
-            The user is asking about their own things. Call the one tool that fits (shelf, calendar, nowPlaying or clipboard) and answer from its result. Never invent events, files, songs or contents. If the tool can't help, say so simply.
+            The user is asking about their own things. Call the one tool that fits (shelf, calendar, nowPlaying, clipboard or usage) and answer from its result. Never invent events, files, songs or contents. If the tool can't help, say so simply.
             """
         case .chat, .live:
             // The small model refuses too readily: it's told plainly what it's good at and to just answer.

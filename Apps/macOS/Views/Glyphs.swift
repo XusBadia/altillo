@@ -1,15 +1,39 @@
+import AltilloCore
 import AltilloDesign
 import SwiftUI
 
-/// Small app-icon-like badge for an agent / provider (squircle at 22 %).
+/// Small app-icon-like badge for an agent or an AI provider (squircle at 22 %). Providers Altillo has no mark for
+/// (the ones an OpenUsage-compatible app reports) get their initial on kraft.
 struct AgentGlyph: View {
-    let agent: AgentKind
+    enum Brand: Hashable {
+        case claude, codex
+        case other(initial: String)
+    }
+
+    let brand: Brand
+    let name: String
     var size: CGFloat = 18
+
+    init(agent: AgentKind, size: CGFloat = 18) {
+        brand = agent == .claude ? .claude : .codex
+        name = agent.name
+        self.size = size
+    }
+
+    init(provider: UsageProviderID, name: String, size: CGFloat = 18) {
+        switch provider {
+        case .claude: brand = .claude
+        case .codex: brand = .codex
+        default: brand = .other(initial: String(name.prefix(1)).uppercased())
+        }
+        self.name = name
+        self.size = size
+    }
 
     var body: some View {
         let shape = RoundedRectangle(cornerRadius: Tokens.Radius.squircle(side: size) * 1.2, style: .continuous)
         ZStack {
-            switch agent {
+            switch brand {
             case .claude:
                 shape.fill(Color(hex: 0xD97757))
                 ClaudeMark()
@@ -21,11 +45,16 @@ struct AgentGlyph: View {
                     .font(.system(size: size * 0.46, weight: .bold, design: .monospaced))
                     .foregroundStyle(Color(hex: 0x1C1917))
                     .offset(y: -size * 0.02)
+            case let .other(initial):
+                shape.fill(Desvan.Palette.kraft)
+                Text(verbatim: initial)
+                    .font(.system(size: size * 0.55, weight: .bold, design: .rounded))
+                    .foregroundStyle(Desvan.Palette.ink)
             }
         }
         .frame(width: size, height: size)
         .overlay(shape.strokeBorder(.white.opacity(0.12), lineWidth: 0.5))
-        .accessibilityLabel(Text(agent.name))
+        .accessibilityLabel(Text(name))
     }
 }
 
@@ -82,6 +111,7 @@ struct AirDropMark: Shape {
         AgentGlyph(agent: .claude, size: 28)
         AgentGlyph(agent: .codex, size: 28)
         AgentGlyph(agent: .claude)
+        AgentGlyph(provider: UsageProviderID(rawValue: "cursor"), name: "Cursor", size: 28)
         AirDropMark().fill(.white).frame(width: 36, height: 36)
     }
     .padding(24)

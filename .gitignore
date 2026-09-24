@@ -27,6 +27,7 @@ Config/Local.xcconfig
 *.certSigningRequest
 *.mobileprovision
 *.provisionprofile
+Config/Provisioning/
 .env
 .env.*
 secrets/

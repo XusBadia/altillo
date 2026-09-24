@@ -255,9 +255,28 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **12. Utilidades del altillo (M)** | Temporizador (un reloj de cocina que asoma al sonar), nota rápida, portapapeles de solo texto (opt-in, excluye contraseñas), lanzador de Atajos. Pregunta aprende a usarlos («pon 10 min», «apunta esto») | 11 | 1,5 semanas |
 | **13. Pregunta con todo el contexto (K+M)** | Tools de uso de IA y agentes cuando existan («¿cuánto me queda de Claude?», «¿qué hace Codex?»), arrastrar un archivo a Pregunta para preguntarle por él y respuestas guardables | 3, 4, 11 | 1 semana |
 
-**Orden de ejecución (actualizado el 22-09-2026):** 11 ✓ → 2 ✓ → 3 → 4 → 12 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
+**Orden de ejecución (actualizado el 22-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 → 12 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
 
 ### Estado
+
+- **Fase 3 (24-09-2026):** implementación terminada y validación automática en verde.
+  - **`AltilloUsage`:**
+    - **Claude:** llavero leído con `/usr/bin/security`, sin diálogos, y el fichero como respaldo. Nunca refresca ni escribe tokens; si la sesión caduca, pide abrir Claude Code una vez.
+    - **Codex:** `codex app-server` por JSON-RPC, con `wham/usage` de respaldo en solo lectura.
+    - **Fuente compatible con OpenUsage:** la API local, solo para los proveedores que Altillo no lee por sí mismo (Grok, por ejemplo).
+    - **Verificado en vivo contra la app oficial:** las cifras coinciden al punto (Claude Max 5x sesión 64 %/semana 57 %/Fable 10 %; Codex Pro 5x semana 100 %; Grok 0 %).
+  - **En el notch:**
+    - Pestaña Uso con anillos, ritmo («Hasta las 13:22», «Límite alcanzado») y estados de problema en una frase.
+    - Estado en la cabecera («Al día · hace 2 min», desactualizado a los 15 min) y botón de actualizar.
+    - La oreja de uso, y la oreja contextual solo cuando un límite pasa del primer umbral.
+  - **Avisos:** umbrales 80/95 % configurables, límite agotado, se agota antes de recargarse y recargado. Nunca en la primera lectura y uno por ventana.
+  - **Refresco:** cada 5 min, en pausa mientras el Mac duerme y una vez al despertar. La última instantánea se guarda en disco y la CPU en reposo es 0 %.
+  - **Pregunta:** tiene tool `usage` («¿cuánto me queda de Claude?»).
+  - **Transición al iPhone:** `OpenUsageMobilePublisher` escribe `openusage.mobile.v1` en `iCloud.me.badia.ailimits` con el mismo id de dispositivo que el puente. Probado de extremo a extremo con una build notarizada.
+    - Solo se activa en releases firmadas con el perfil de iCloud.
+    - **Falta un paso manual:** asignar el contenedor al App ID en developer.apple.com, porque la API no lo permite ([docs/release.md](docs/release.md)).
+  - 405 tests en macOS y 102 en `AltilloKit`, todos en verde.
+  - **Pendiente, que haces tú:** el paso de iCloud, y después retirar el puente con los comandos de [docs/uso-ia.md](docs/uso-ia.md).
 
 - **Ronda de feedback de la 0.2.0 (24-09-2026):**
   - El notch abierto es más alto y respira (unos 250-290 pt; el panel pasa a 780×440).

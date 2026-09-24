@@ -10,3 +10,6 @@ ALTILLO_MAC_SIGN_IDENTITY = Apple Development
 // ALTILLO_SPARKLE_FEED_URL = https:$(ALTILLO_XC_SLASH)$(ALTILLO_XC_SLASH)example.github.io/altillo/appcast.xml
 // ALTILLO_SPARKLE_PUBLIC_KEY = <EdDSA public key from `generate_keys --account altillo`>
 
+// Optional, release only: Developer ID profile with iCloud for the legacy iPhone export. Created (and this line
+// written) by script/icloud-profile.py; path relative to the repo root. See docs/release.md.
+// ALTILLO_ICLOUD_PROFILE = Config/Provisioning/Altillo_DeveloperID_iCloud.provisionprofile

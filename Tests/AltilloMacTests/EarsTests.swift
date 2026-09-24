@@ -38,9 +38,11 @@ struct EarsTests {
         #expect(!EarsLogic.showsEars(left: .none, right: .none, visibility: .always) { _ in true })
     }
 
-    @Test func usageAndAgentsNeverGrowEarsBeforeTheirModulesExist() {
-        #expect(!EarsLogic.showsEars(left: .usage, right: .agents, visibility: .always) { _ in true })
-        #expect(!EarsLogic.showsEars(left: .usage, right: .agents, visibility: .withActivity) { _ in true })
+    @Test func agentsNeverGrowEarsBeforeTheirModuleExists() {
+        #expect(!EarsLogic.showsEars(left: .none, right: .agents, visibility: .always) { _ in true })
+        #expect(!EarsLogic.showsEars(left: .none, right: .agents, visibility: .withActivity) { _ in true })
+        // Usage is real since phase 3.
+        #expect(EarsLogic.showsEars(left: .usage, right: .agents, visibility: .withActivity) { $0 == .usage })
     }
 
     @Test func theStoreShowsEarsForThingsOnTheShelfOnlyWhenTheShelfIsChosen() {
