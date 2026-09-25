@@ -2,7 +2,7 @@ import Foundation
 
 /// A section of the open notch. The shelf is always present; the rest are opt-in and reorderable (PLAN §4).
 enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
-    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying
+    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts
 
     var id: Self { self }
 
@@ -16,6 +16,10 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .calendar: String(localized: "Calendar")
         case .mirror: String(localized: "Mirror")
         case .nowPlaying: String(localized: "Now playing")
+        case .timer: String(localized: "Timer")
+        case .note: String(localized: "Note")
+        case .clipboard: String(localized: "Clipboard")
+        case .shortcuts: String(localized: "Shortcuts")
         }
     }
 
@@ -28,6 +32,10 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .calendar: "calendar"
         case .mirror: "person.crop.square"
         case .nowPlaying: "music.note"
+        case .timer: "timer"
+        case .note: "note.text"
+        case .clipboard: "list.clipboard"
+        case .shortcuts: "square.2.layers.3d"
         }
     }
 
@@ -41,9 +49,22 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .calendar: String(localized: "Your day and your month, with a button to join calls.")
         case .mirror: String(localized: "The Mac's camera, to check yourself before a call.")
         case .nowPlaying: String(localized: "What's playing, with its controls.")
+        case .timer: String(localized: "A kitchen timer that peeks when it rings.")
+        case .note: String(localized: "A quick note you can drag out anywhere.")
+        case .clipboard: String(localized: "The last things you copied, text only. Passwords are never kept.")
+        case .shortcuts: String(localized: "Your favourite Shortcuts, one click away.")
         }
     }
 
     /// The shelf is the product: it can't be turned off or moved out of first place.
     var isAlwaysOn: Bool { self == .shelf }
+
+    /// Utilities (phase 12) are opt-in: they never arrive switched on, neither on a fresh install nor after an
+    /// update, so the tab strip stays calm. The user adds them from edit mode or Settings.
+    var isOptIn: Bool {
+        switch self {
+        case .timer, .note, .clipboard, .shortcuts: true
+        default: false
+        }
+    }
 }

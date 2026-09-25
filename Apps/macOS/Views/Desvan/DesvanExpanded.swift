@@ -180,6 +180,10 @@ struct DesvanExpandedFace: View {
             case .calendar: DesvanCalendarView(model: model)
             case .mirror: DesvanMirrorView(model: model)
             case .nowPlaying: DesvanNowPlayingView(model: model)
+            case .timer: DesvanTimerView(model: model)
+            case .note: DesvanNoteView(model: model)
+            case .clipboard: DesvanClipboardView(model: model)
+            case .shortcuts: DesvanShortcutsView(model: model)
             }
         }
     }
@@ -565,7 +569,7 @@ private struct DesvanHeaderAccessory: View {
                 case .shelf: shelf
                 case .usage: usage
                 case .agents: agents
-                case .assistant, .calendar, .mirror, .nowPlaying: EmptyView()
+                case .assistant, .calendar, .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts: EmptyView()
                 }
             }
         }

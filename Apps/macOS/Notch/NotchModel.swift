@@ -43,6 +43,11 @@ final class NotchModel {
     let assistant = AssistantStore()
     let ears = EarsStore()
     let agentHub = AgentHub()
+    // Utilities (phase 12). Each works only while its section is on (and, for the clipboard, only when enabled).
+    let timers = TimerStore()
+    let note = NoteStore()
+    let clipboard = ClipboardStore()
+    let shortcuts = ShortcutsStore()
     let drawer = MenuBarDrawerStore.shared
     /// AI usage: the numbers behind the usage section, its ear and alerts, and Ask's `usage` tool.
     let usage: UsageStore

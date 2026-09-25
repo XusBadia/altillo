@@ -199,7 +199,7 @@ final class AltilloSettings {
         (String(localized: "Wide"), 680),
     ]
     /// Everything on by default: sections are easier to discover in the notch than in Settings.
-    static let defaultModules: [NotchModule] = NotchModule.allCases
+    static let defaultModules: [NotchModule] = NotchModule.allCases.filter { !$0.isOptIn }
 
     private let defaults: UserDefaults
     private let loginItem: LoginItem
@@ -249,7 +249,7 @@ final class AltilloSettings {
         // Settings), placed where they belong in the default order. Ones the user already knew keep their choice.
         let known = (defaults.array(forKey: Key.knownModules) as? [String])?.compactMap(NotchModule.init)
             ?? (stored == nil ? NotchModule.allCases : Self.legacyModules)
-        let arrivals = NotchModule.allCases.filter { !known.contains($0) && !modules.contains($0) }
+        let arrivals = NotchModule.allCases.filter { !known.contains($0) && !modules.contains($0) && !$0.isOptIn }
         for module in arrivals {
             let defaultIndex = NotchModule.allCases.firstIndex(of: module) ?? modules.endIndex
             modules.insert(module, at: min(defaultIndex, modules.endIndex))

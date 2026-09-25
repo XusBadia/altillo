@@ -32,7 +32,7 @@ struct NotchInteractionTests {
 
     @Test func aFreshInstallGetsEverySectionInTheDefaultOrder() {
         let settings = AltilloSettings(defaults: Self.makeDefaults())
-        #expect(settings.modules == NotchModule.allCases)
+        #expect(settings.modules == NotchModule.allCases.filter { !$0.isOptIn }, "utilities are opt-in")
         #expect(settings.modules.prefix(2) == [.shelf, .assistant])
     }
 
