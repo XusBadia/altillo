@@ -222,6 +222,40 @@
         }
       }
     },
+    "%@ failed in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ failed in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ha fallado en %@"
+          }
+        }
+      }
+    },
+    "%@ finished in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ finished in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ ha terminado en %@"
+          }
+        }
+      }
+    },
     "%@ has used all of %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -239,6 +273,23 @@
         }
       }
     },
+    "%@ in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ en %@"
+          }
+        }
+      }
+    },
     "%@ in %lld minutes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -252,6 +303,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ en %lld minutos"
+          }
+        }
+      }
+    },
+    "%@ is asking you something in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is asking you something in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ te pregunta algo en %@"
           }
         }
       }
@@ -371,6 +439,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ te espera en %@"
+          }
+        }
+      }
+    },
+    "%@ is waiting for your answer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ is waiting for your answer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ espera tu respuesta"
+          }
+        }
+      }
+    },
+    "%@ isn't set up on this Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ isn't set up on this Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ no está configurado en este Mac."
           }
         }
       }
@@ -511,6 +613,74 @@
         }
       }
     },
+    "%@ wants to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere %@"
+          }
+        }
+      }
+    },
+    "%@ wants to %@ %@ in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to %@ %@ in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere %@ %@ en %@"
+          }
+        }
+      }
+    },
+    "%@ wants to %@ something in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to %@ something in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere %@ algo en %@"
+          }
+        }
+      }
+    },
+    "%@ wants to change a file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to change a file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere cambiar un fichero"
+          }
+        }
+      }
+    },
     "%@ wants to do something in %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -545,6 +715,40 @@
         }
       }
     },
+    "%@ wants to go online" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to go online"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere conectarse a internet"
+          }
+        }
+      }
+    },
+    "%@ wants to read a file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to read a file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere leer un fichero"
+          }
+        }
+      }
+    },
     "%@ wants to run" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -558,6 +762,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ quiere hacer"
+          }
+        }
+      }
+    },
+    "%@ wants to run a command" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to run a command"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere ejecutar un comando"
+          }
+        }
+      }
+    },
+    "%@ wants to use %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants to use %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ quiere usar %@"
+          }
+        }
+      }
+    },
+    "%@ wants your OK" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants your OK"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ te pide permiso"
+          }
+        }
+      }
+    },
+    "%@ wants your OK in %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ wants your OK in %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ te pide permiso en %@"
           }
         }
       }
@@ -820,6 +1092,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld"
+          }
+        }
+      }
+    },
+    "%lld agents waiting for you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld agents waiting for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld agentes esperándote"
+          }
+        }
+      }
+    },
+    "%lld agents working" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld agents working"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld agentes trabajando"
+          }
+        }
+      }
+    },
+    "%lld agents working, %lld waiting for you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld agents working, %lld waiting for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld agentes trabajando, %lld esperándote"
           }
         }
       }
@@ -1260,6 +1583,23 @@
         }
       }
     },
+    "%lld seconds left to answer here" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld seconds left to answer here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quedan %lld segundos para responder aquí"
+          }
+        }
+      }
+    },
     "%lld things" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1369,6 +1709,23 @@
         }
       }
     },
+    "2 min (default)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 min (default)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 min (por defecto)"
+          }
+        }
+      }
+    },
     "5 h" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1416,6 +1773,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Una copia marcada como propia está fuera del Inbox de Altillo."
+          }
+        }
+      }
+    },
+    "A copy of the file goes to %@ first." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A copy of the file goes to %@ first."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Antes se guarda una copia del fichero en %@."
           }
         }
       }
@@ -1624,6 +1998,23 @@
         }
       }
     },
+    "After this, it asks in the terminal instead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After this, it asks in the terminal instead"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Después, lo pregunta en la terminal"
+          }
+        }
+      }
+    },
     "Agenda" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1654,6 +2045,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Agentes"
+          }
+        }
+      }
+    },
+    "Agents Settings…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agents Settings…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes de agentes…"
           }
         }
       }
@@ -1705,6 +2113,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todas"
+          }
+        }
+      }
+    },
+    "All done." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All done."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todo listo."
           }
         }
       }
@@ -1773,6 +2198,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permitir"
+          }
+        }
+      }
+    },
+    "Allow (Return)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow (Return)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir (Retorno)"
           }
         }
       }
@@ -1892,6 +2334,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permite el acceso a los iconos de tu barra de menús"
+          }
+        }
+      }
+    },
+    "Allow for this session" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow for this session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir en esta sesión"
+          }
+        }
+      }
+    },
+    "Allow, and don't ask again for this in this session (⌥Return)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow, and don't ask again for this in this session (⌥Return)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir y no volver a preguntar por esto en esta sesión (⌥Retorno)"
+          }
+        }
+      }
+    },
+    "Allow, dangerous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow, dangerous"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir, peligroso"
+          }
+        }
+      }
+    },
+    "Allow: activate again to confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow: activate again to confirm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir: actívalo otra vez para confirmar"
           }
         }
       }
@@ -2032,6 +2542,23 @@
         }
       }
     },
+    "Altillo created this file for its hooks and nothing else is in it, so it will be deleted." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo created this file for its hooks and nothing else is in it, so it will be deleted."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo creó este fichero para sus hooks y no contiene nada más, así que se borrará."
+          }
+        }
+      }
+    },
     "Altillo doesn't have permission to use it. Turn it on in System Settings and open the notch again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2045,6 +2572,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo no tiene permiso para usarla. Actívalo en Ajustes del Sistema y vuelve a abrir el notch."
+          }
+        }
+      }
+    },
+    "Altillo follows Claude Code and Codex: when one works, asks for your OK or finishes, it shows up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo follows Claude Code and Codex: when one works, asks for your OK or finishes, it shows up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo sigue a Claude Code y Codex: cuando uno trabaja, te pide permiso o termina, aparece aquí."
           }
         }
       }
@@ -2066,6 +2610,23 @@
         }
       }
     },
+    "Altillo is running from a temporary copy. Move it to Applications." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo is running from a temporary copy. Move it to Applications."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo se está ejecutando desde una copia temporal. Muévelo a Aplicaciones."
+          }
+        }
+      }
+    },
     "Altillo isn't allowed to see your calendars. You can change that in System Settings." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2079,6 +2640,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo no tiene permiso para ver tus calendarios. Puedes cambiarlo en Ajustes del Sistema."
+          }
+        }
+      }
+    },
+    "Altillo left the file alone: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo left the file alone: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no ha tocado el fichero: %@"
           }
         }
       }
@@ -2113,6 +2691,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo necesita permiso para hablar con Música y Spotify. Actívalo en Ajustes del Sistema › Privacidad › Automatización."
+          }
+        }
+      }
+    },
+    "Altillo never approves anything on its own. If Altillo is closed or you don't answer in time, the agent asks in the terminal as usual." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo never approves anything on its own. If Altillo is closed or you don't answer in time, the agent asks in the terminal as usual."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo nunca aprueba nada por su cuenta. Si Altillo está cerrado o no respondes a tiempo, el agente pregunta en la terminal como siempre."
           }
         }
       }
@@ -2185,6 +2780,23 @@
         }
       }
     },
+    "Altillo stopped before writing: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo stopped before writing: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo se ha parado antes de escribir: %@"
+          }
+        }
+      }
+    },
     "Altillo takes off the shelf anything that's been there longer than you choose. Your original files are never touched." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2232,6 +2844,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo no ha podido leer la sesión de %@. Permítelo cuando macOS te lo pregunte."
+          }
+        }
+      }
+    },
+    "Altillo will change this file exactly as shown. Your other settings and hooks stay as they are." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo will change this file exactly as shown. Your other settings and hooks stay as they are."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo cambiará este fichero exactamente como ves. Tus demás ajustes y hooks se quedan como están."
+          }
+        }
+      }
+    },
+    "Altillo's hook isn't available: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo's hook isn't available: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El hook de Altillo no está disponible: %@"
+          }
+        }
+      }
+    },
+    "Altillo's install record couldn't be saved (%@)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo's install record couldn't be saved (%@)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha podido guardar el registro de instalación de Altillo (%@)"
           }
         }
       }
@@ -2351,6 +3014,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Otra app ya usa este atajo. Elige otro."
+          }
+        }
+      }
+    },
+    "Answer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responder"
+          }
+        }
+      }
+    },
+    "Answer it in the terminal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer it in the terminal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Respóndelo en la terminal"
           }
         }
       }
@@ -2831,6 +3528,57 @@
         }
       }
     },
+    "Cancel" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        }
+      }
+    },
+    "Careful:" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Careful:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuidado:"
+          }
+        }
+      }
+    },
+    "Careful: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Careful: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuidado: %@"
+          }
+        }
+      }
+    },
     "Category" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2844,6 +3592,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Categoría"
+          }
+        }
+      }
+    },
+    "Changes to the file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Changes to the file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambios en el fichero"
           }
         }
       }
@@ -3052,6 +3817,23 @@
         }
       }
     },
+    "Claude Code has every hook turned off (\"disableAllHooks\" in settings.json)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code has every hook turned off (\"disableAllHooks\" in settings.json)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Claude Code tiene todos los hooks desactivados («disableAllHooks» en settings.json)."
+          }
+        }
+      }
+    },
     "Clear" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3167,6 +3949,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clínica Sol"
+          }
+        }
+      }
+    },
+    "Codex runs new or changed hooks only once you trust them: in Codex, type /hooks and trust Altillo's." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codex runs new or changed hooks only once you trust them: in Codex, type /hooks and trust Altillo's."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codex solo ejecuta hooks nuevos o cambiados cuando confías en ellos: en Codex, escribe /hooks y confía en los de Altillo."
           }
         }
       }
@@ -3375,6 +4174,23 @@
         }
       }
     },
+    "Couldn't write the file: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't write the file: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha podido escribir el fichero: %@"
+          }
+        }
+      }
+    },
     "Customize" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3443,6 +4259,40 @@
         }
       }
     },
+    "Dangerous" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dangerous"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peligroso"
+          }
+        }
+      }
+    },
+    "Dangerous: press and hold for a second to allow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dangerous: press and hold for a second to allow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peligroso: mantén pulsado un segundo para permitir"
+          }
+        }
+      }
+    },
     "Dentist" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3473,6 +4323,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Denegar"
+          }
+        }
+      }
+    },
+    "Deny (⌘.)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deny (⌘.)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Denegar (⌘.)"
           }
         }
       }
@@ -4293,6 +5160,23 @@
         }
       }
     },
+    "For this session" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For this session"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En esta sesión"
+          }
+        }
+      }
+    },
     "Free" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4446,6 +5330,23 @@
         }
       }
     },
+    "Go to terminal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to terminal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ir a la terminal"
+          }
+        }
+      }
+    },
     "Go to the terminal" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4459,6 +5360,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ir a la terminal"
+          }
+        }
+      }
+    },
+    "Go to the terminal (⌘T)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go to the terminal (⌘T)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ir a la terminal (⌘T)"
           }
         }
       }
@@ -4650,6 +5568,40 @@
         }
       }
     },
+    "Hold Allow to confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold Allow to confirm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén Permitir para confirmar"
+          }
+        }
+      }
+    },
+    "Hold to allow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold to allow"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mantén para permitir"
+          }
+        }
+      }
+    },
     "Home" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4663,6 +5615,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Casa"
+          }
+        }
+      }
+    },
+    "Hooks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks"
+          }
+        }
+      }
+    },
+    "Hooks are turned off in Codex's config.toml ([features] hooks = false)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks are turned off in Codex's config.toml ([features] hooks = false)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los hooks están desactivados en el config.toml de Codex ([features] hooks = false)."
+          }
+        }
+      }
+    },
+    "Hooks installed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks installed."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks instalados."
+          }
+        }
+      }
+    },
+    "Hooks let an agent tell Altillo what it's doing and ask you for permission in the notch. Without them Altillo still shows your sessions from the agents' own session files, but can't approve anything." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks let an agent tell Altillo what it's doing and ask you for permission in the notch. Without them Altillo still shows your sessions from the agents' own session files, but can't approve anything."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los hooks permiten que un agente le cuente a Altillo qué hace y te pida permiso en el notch. Sin ellos, Altillo sigue mostrando tus sesiones a partir de los ficheros de sesión de los agentes, pero no puede aprobar nada."
+          }
+        }
+      }
+    },
+    "Hooks removed. Everything else is as it was." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks removed. Everything else is as it was."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks quitados. Todo lo demás está como estaba."
           }
         }
       }
@@ -5007,6 +6044,91 @@
         }
       }
     },
+    "Install" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar"
+          }
+        }
+      }
+    },
+    "Install Altillo's hooks for %@?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install Altillo's hooks for %@?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Instalar los hooks de Altillo en %@?"
+          }
+        }
+      }
+    },
+    "Install hooks to answer from here" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install hooks to answer from here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instala los hooks para responder desde aquí"
+          }
+        }
+      }
+    },
+    "Installed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Installed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalados"
+          }
+        }
+      }
+    },
+    "Install…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instalar…"
+          }
+        }
+      }
+    },
     "It stays up there until you take it down somewhere else." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5020,6 +6142,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se queda arriba hasta que lo bajes a otro sitio."
+          }
+        }
+      }
+    },
+    "It's asking in the terminal now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It's asking in the terminal now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora lo pregunta en la terminal"
           }
         }
       }
@@ -5109,6 +6248,23 @@
         }
       }
     },
+    "Keep holding" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep holding"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue pulsando"
+          }
+        }
+      }
+    },
     "Keep menu bar icons out of sight, then open them from Altillo." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5156,6 +6312,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toc, toc:"
+          }
+        }
+      }
+    },
+    "Knock, knock: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knock, knock: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toc, toc: %@"
+          }
+        }
+      }
+    },
+    "Knock, knock: waiting for you" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Knock, knock: waiting for you"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toc, toc: te espera"
           }
         }
       }
@@ -5224,6 +6414,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Dejar vacía"
+          }
+        }
+      }
+    },
+    "Left alone: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Left alone: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin tocar: %@"
           }
         }
       }
@@ -5445,6 +6652,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mirando tu uso de IA…"
+          }
+        }
+      }
+    },
+    "Looking at your agents…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking at your agents…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirando tus agentes…"
           }
         }
       }
@@ -5925,6 +7149,57 @@
         }
       }
     },
+    "Needs an update: written by another version, or with another wait" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs an update: written by another version, or with another wait"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay que actualizarlos: los escribió otra versión o con otra espera"
+          }
+        }
+      }
+    },
+    "Needs repair: the hooks can't find Altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs repair: the hooks can't find Altillo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay que repararlos: los hooks no encuentran Altillo"
+          }
+        }
+      }
+    },
+    "Needs two activations" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Needs two activations"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Necesita dos activaciones"
+          }
+        }
+      }
+    },
     "Neither Claude Code nor Codex is set up on this Mac yet. Sign in to one and it shows up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6061,6 +7336,23 @@
         }
       }
     },
+    "No agents working" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No agents working"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ningún agente trabajando"
+          }
+        }
+      }
+    },
     "No icons match your search." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6129,6 +7421,23 @@
         }
       }
     },
+    "Nobody's working upstairs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nobody's working upstairs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nadie trabaja ahí arriba"
+          }
+        }
+      }
+    },
     "None" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6176,6 +7485,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sin permiso"
+          }
+        }
+      }
+    },
+    "Not installed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not installed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin instalar"
           }
         }
       }
@@ -6605,6 +7931,23 @@
         }
       }
     },
+    "Only Altillo's hooks come out. Your other settings and hooks stay as they are." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only Altillo's hooks come out. Your other settings and hooks stay as they are."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo se quitan los hooks de Altillo. Tus demás ajustes y hooks se quedan como están."
+          }
+        }
+      }
+    },
     "Only for providers Altillo doesn't read itself, and only if that app is running on this Mac." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6771,6 +8114,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir Calendario"
+          }
+        }
+      }
+    },
+    "Open File" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open File"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir el fichero"
           }
         }
       }
@@ -7128,6 +8488,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abre %@"
+          }
+        }
+      }
+    },
+    "Opens Settings › Sections, where Altillo can add its hooks to Claude Code and Codex" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Settings › Sections, where Altillo can add its hooks to Claude Code and Codex"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Ajustes › Secciones, donde Altillo puede añadir sus hooks a Claude Code y Codex"
           }
         }
       }
@@ -7829,6 +9206,40 @@
         }
       }
     },
+    "Read from its session file" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read from its session file"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leído de su fichero de sesión"
+          }
+        }
+      }
+    },
+    "Read from its session file: install hooks to answer from here" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read from its session file: install hooks to answer from here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leído de su fichero de sesión: instala los hooks para responder desde aquí"
+          }
+        }
+      }
+    },
     "Redo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7944,6 +9355,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitar"
+          }
+        }
+      }
+    },
+    "Remove Altillo's hooks from %@?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove Altillo's hooks from %@?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Quitar los hooks de Altillo de %@?"
+          }
+        }
+      }
+    },
+    "Remove…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar…"
           }
         }
       }
@@ -8288,6 +9733,23 @@
         }
       }
     },
+    "Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to Claude Code and Codex." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to Claude Code and Codex."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las sesiones con una lupa solo se leen de sus ficheros. En Ajustes › Secciones puedes añadir los hooks de Altillo a Claude Code y Codex."
+          }
+        }
+      }
+    },
     "Set it up on this Mac and it shows up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8492,6 +9954,23 @@
         }
       }
     },
+    "Show Backup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show Backup"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar la copia"
+          }
+        }
+      }
+    },
     "Show all-day events" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8543,6 +10022,23 @@
         }
       }
     },
+    "Show less" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show less"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar menos"
+          }
+        }
+      }
+    },
     "Show menu bar icons" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8556,6 +10052,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar los iconos de la barra de menús"
+          }
+        }
+      }
+    },
+    "Show more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show more"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar más"
           }
         }
       }
@@ -8662,6 +10175,23 @@
         }
       }
     },
+    "Show what it's asking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show what it's asking"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar lo que pide"
+          }
+        }
+      }
+    },
     "Shows the day's events" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8675,6 +10205,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muestra los eventos del día"
+          }
+        }
+      }
+    },
+    "Shows the whole request" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shows the whole request"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra la petición completa"
           }
         }
       }
@@ -9315,6 +10862,23 @@
         }
       }
     },
+    "Terminal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terminal"
+          }
+        }
+      }
+    },
     "Test Quick Look" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9468,6 +11032,23 @@
         }
       }
     },
+    "The file changed since you reviewed it. Nothing was written; review the new changes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The file changed since you reviewed it. Nothing was written; review the new changes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El fichero ha cambiado desde que lo revisaste. No se ha escrito nada; revisa los cambios nuevos."
+          }
+        }
+      }
+    },
     "The mirror shows the Mac's camera up here. The image never leaves your Mac and is never recorded." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9481,6 +11062,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El espejo enseña la cámara del Mac aquí arriba. La imagen no sale de tu Mac ni se graba."
+          }
+        }
+      }
+    },
+    "The new home page is live and the RSS feed validates again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The new home page is live and the RSS feed validates again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La nueva portada ya está publicada y el feed RSS vuelve a validar."
           }
         }
       }
@@ -9876,6 +11474,23 @@
         }
       }
     },
+    "This one could be hard to undo. Hold Allow for a second to confirm." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This one could be hard to undo. Hold Allow for a second to confirm."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esto puede ser difícil de deshacer. Mantén pulsado Permitir un segundo para confirmar."
+          }
+        }
+      }
+    },
     "Today" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10199,6 +11814,40 @@
         }
       }
     },
+    "Up to date. Nothing in the file had to change." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Up to date. Nothing in the file had to change."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al día. No hacía falta cambiar nada en el fichero."
+          }
+        }
+      }
+    },
+    "Update…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar…"
+          }
+        }
+      }
+    },
     "Usage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10297,6 +11946,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ha mirado tu uso de IA"
+          }
+        }
+      }
+    },
+    "Used your agents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used your agents"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha mirado tus agentes"
           }
         }
       }
@@ -10420,6 +12086,23 @@
         }
       }
     },
+    "Wait for my answer up to" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wait for my answer up to"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperar mi respuesta hasta"
+          }
+        }
+      }
+    },
     "Waiting for permission" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10450,6 +12133,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esperando tu respuesta"
+          }
+        }
+      }
+    },
+    "Waiting for your next message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for your next message"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Esperando tu próximo mensaje"
           }
         }
       }
@@ -11066,6 +12766,23 @@
         }
       }
     },
+    "change" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "change"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "cambiar"
+          }
+        }
+      }
+    },
     "clipboard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11164,6 +12881,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "en 5 min"
+          }
+        }
+      }
+    },
+    "it can't be read (%@)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "it can't be read (%@)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no se puede leer (%@)."
+          }
+        }
+      }
+    },
+    "it doesn't hold a JSON object." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "it doesn't hold a JSON object."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no contiene un objeto JSON."
+          }
+        }
+      }
+    },
+    "it isn't UTF-8 text." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "it isn't UTF-8 text."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no es texto UTF-8."
+          }
+        }
+      }
+    },
+    "it isn't valid JSON (%@)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "it isn't valid JSON (%@)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no es JSON válido (%@)."
+          }
+        }
+      }
+    },
+    "its \"hooks\" isn't an object." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "its \"hooks\" isn't an object."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "su «hooks» no es un objeto."
+          }
+        }
+      }
+    },
+    "its hooks for %@ aren't a list." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "its hooks for %@ aren't a list."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sus hooks de %@ no son una lista."
           }
         }
       }
@@ -11406,6 +13225,40 @@
         }
       }
     },
+    "open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "open"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "abrir"
+          }
+        }
+      }
+    },
+    "read" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "read"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "leer"
+          }
+        }
+      }
+    },
     "refilling now" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11525,6 +13378,23 @@
         }
       }
     },
+    "run" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "run"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ejecutar"
+          }
+        }
+      }
+    },
     "shelf" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11576,6 +13446,74 @@
         }
       }
     },
+    "the backup couldn't be saved (%@)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the backup couldn't be saved (%@)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "no se ha podido guardar la copia (%@)"
+          }
+        }
+      }
+    },
+    "the change would touch more than Altillo's hooks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the change would touch more than Altillo's hooks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el cambio tocaría algo más que los hooks de Altillo."
+          }
+        }
+      }
+    },
+    "the change wouldn't do what it says." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the change wouldn't do what it says."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el cambio no haría lo que dice."
+          }
+        }
+      }
+    },
+    "the file didn't read back as written" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the file didn't read back as written"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el fichero no se ha leído igual que se escribió"
+          }
+        }
+      }
+    },
     "the month" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11589,6 +13527,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "este mes"
+          }
+        }
+      }
+    },
+    "the new file wouldn't be valid JSON." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the new file wouldn't be valid JSON."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el fichero nuevo no sería JSON válido."
           }
         }
       }
@@ -11661,6 +13616,23 @@
         }
       }
     },
+    "this copy of Altillo has no altillo-hook inside." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "this copy of Altillo has no altillo-hook inside."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "esta copia de Altillo no lleva altillo-hook dentro."
+          }
+        }
+      }
+    },
     "to another device" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11708,6 +13680,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "mañana"
+          }
+        }
+      }
+    },
+    "use" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "use"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "usar"
           }
         }
       }

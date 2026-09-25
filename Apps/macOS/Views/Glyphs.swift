@@ -19,8 +19,10 @@ struct AgentGlyph: View {
     let name: String
     var size: CGFloat = 18
 
+    /// A coding agent's mark: the same as its provider's (Claude Code is Claude's, Codex is Codex's), so an agent
+    /// Altillo learns later gets the tile its usage would.
     init(agent: AgentKind, size: CGFloat = 18) {
-        brand = agent == .claude ? .claude : .codex
+        brand = Self.brand(for: UsageProviderID(rawValue: agent.rawValue), name: agent.name)
         name = agent.name
         self.size = size
     }

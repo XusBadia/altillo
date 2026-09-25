@@ -12,6 +12,7 @@ import Observation
 /// - **Music**: `NowPlayingStore`'s background listening (the players' own broadcasts, no polling), shared with the
 ///   contextual ear so the players are only ever listened to once.
 /// - **AI usage**: `UsageStore`'s latest numbers (its own 5-minute rhythm), nothing extra.
+/// - **Agents**: `AgentHub`'s sessions (hook events and session files), nothing extra.
 /// - **What matters now** (`.automatic`): `NotchActivityLogic` over the sources above, only for sections that are on.
 ///
 /// Ears set to nothing cost nothing.
@@ -53,7 +54,8 @@ final class EarsStore {
     /// Whether an ear showing `content` has something to say right now.
     func hasActivity(_ content: EarContent, in model: NotchModel) -> Bool {
         switch content {
-        case .none, .agents: false
+        case .none: false
+        case .agents: model.settings.isEnabled(.agents) && AgentsLogic.counts(model.agentHub.sessions).active > 0
         case .usage: model.usage.primary != nil
         case .shelf: !model.shelf.isEmpty
         case .nextEvent: nextEvent != nil
@@ -194,7 +196,7 @@ enum EarsLogic {
     }
 
     /// Whether the resting notch grows ears: with `.always`, as soon as an ear is chosen; with `.withActivity`,
-    /// only while a chosen ear has something to say. Agents don't exist yet, so they never count.
+    /// only while a chosen ear has something to say. An ear that isn't available yet never counts.
     static func showsEars(left: EarContent, right: EarContent, visibility: EarsVisibility,
                           hasActivity: (EarContent) -> Bool) -> Bool {
         let chosen = [left, right].filter { $0 != .none && $0.isAvailable }

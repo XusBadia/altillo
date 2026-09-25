@@ -219,7 +219,7 @@ private struct DesvanEarsFace: View {
             }
         } trailing: {
             if model.scenario != nil {
-                // Design review: real data only; the knocking hand arrives with live agents (phase 4).
+                // Design review: the shelf's sample count (the agents ear is reviewed live).
                 if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
             } else {
                 DesvanEarContent(content: model.settings.rightEar, model: model, style: restingStyle)
@@ -279,8 +279,12 @@ struct DesvanEarContent: View {
                         .accessibilityLabel("No AI usage yet")
                 }
             case .agents:
-                // Its module arrives in phase 4: nothing real to show yet.
-                if style == .preview { DesvanEarGlyph(symbol: content.symbol) }
+                if active, style != .preview {
+                    DesvanAgentsEar(counts: AgentsLogic.counts(model.agentHub.sessions))
+                } else if style != .live {
+                    DesvanEarGlyph(symbol: content.symbol)
+                        .accessibilityLabel("No agents working")
+                }
             }
         }
         .transition(.opacity)
@@ -578,8 +582,15 @@ private struct DesvanPeekFace: View {
         case .hint: EmptyView()
         case .shelf: DesvanHouseMark(size: 13)
         case .usageAlert: DesvanAlertSymbol(alert: Self.demoUsageAlert)
-        case .agentWaiting: DesvanKnockingHand(size: 14)
-        case .alert: if let alert = model.alert { DesvanAlertSymbol(alert: alert) }
+        case .agentWaiting: if let alert = Self.demoAgentAlert { DesvanAgentAlertSymbol(alert: alert) }
+        case .alert:
+            if let alert = model.alert {
+                if alert.agent != nil {
+                    DesvanAgentAlertSymbol(alert: alert)
+                } else {
+                    DesvanAlertSymbol(alert: alert)
+                }
+            }
         }
     }
 
@@ -592,10 +603,14 @@ private struct DesvanPeekFace: View {
         case .usageAlert:
             if let trailing = Self.demoUsageAlert.trailing { DesvanAlertFigure(text: trailing) }
         case .agentWaiting:
-            if let agent = model.demo.waitingAgent { AgentGlyph(agent: agent.agent, size: 15) }
+            if let context = Self.demoAgentAlert?.agent { DesvanAgentAlertFigure(context: context) }
         case .alert:
             ZStack {
-                if let trailing = model.alert?.trailing {
+                if let context = model.alert?.agent, model.alert?.trailing == nil {
+                    DesvanAgentAlertFigure(context: context)
+                        .id(model.alert?.id)
+                        .transition(.contentSwap(shift: 3, reduceMotion: reduceMotion))
+                } else if let trailing = model.alert?.trailing {
                     DesvanAlertFigure(text: trailing)
                         .id(model.alert?.id)
                         .transition(.contentSwap(shift: 3, reduceMotion: reduceMotion))
@@ -610,8 +625,16 @@ private struct DesvanPeekFace: View {
         case .hint: EmptyView()
         case .shelf: shelfLine
         case .usageAlert: DesvanAlertLine(alert: Self.demoUsageAlert, showsTrailing: !chrome.hasNotch)
-        case .agentWaiting: agentLine
-        case .alert: if let alert = model.alert { DesvanAlertLine(alert: alert, showsTrailing: !chrome.hasNotch) }
+        case .agentWaiting:
+            if let alert = Self.demoAgentAlert { DesvanAgentAlertLine(alert: alert, showsAgent: !chrome.hasNotch) }
+        case .alert:
+            if let alert = model.alert {
+                if alert.agent != nil {
+                    DesvanAgentAlertLine(alert: alert, showsAgent: !chrome.hasNotch)
+                } else {
+                    DesvanAlertLine(alert: alert, showsTrailing: !chrome.hasNotch)
+                }
+            }
         }
     }
 
@@ -644,37 +667,8 @@ private struct DesvanPeekFace: View {
     /// "Peek: usage alert" shows the very peek a real usage alert makes (`UsageAlertPresenter`), with sample numbers.
     private static let demoUsageAlert = DemoContent.sample.usageAlert
 
-    @ViewBuilder
-    private var agentLine: some View {
-        if let agent = model.demo.waitingAgent {
-            HStack(spacing: 5) {
-                Text("Knock, knock:")
-                    .font(.system(size: 12.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.bulb)
-                Text("\(agent.agent.name) wants to run")
-                    .font(Self.sentence)
-                    .foregroundStyle(Desvan.Palette.paper)
-                if let request = agent.request {
-                    Text(request.command.split(separator: " ").prefix(2).joined(separator: " "))
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Desvan.Palette.paper)
-                        .padding(.horizontal, 6)
-                        .frame(height: 19)
-                        .background(RoundedRectangle(cornerRadius: 5, style: .continuous).fill(Desvan.Palette.woodRaised))
-                        .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
-                }
-                Text("in \(Text(agent.project).font(Self.datum.italic()))")
-                    .font(Self.sentence)
-                    .foregroundStyle(Desvan.Palette.paper)
-                Spacer(minLength: 8)
-                Text(NotchFormat.ago(agent.lastActivity))
-                    .font(Desvan.Typeface.rounded(11, weight: .medium))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .monospacedDigit()
-            }
-            .lineLimit(1)
-        }
-    }
+    /// "Peek: agent waiting" shows the very peek a real permission request makes (`AgentAlerts`), with sample data.
+    private static let demoAgentAlert = DemoContent.sample.agentAlert
 }
 
 /// The peek's line sharpening in once the silhouette has dropped: out of focus and a touch high until then.

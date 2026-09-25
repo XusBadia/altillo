@@ -156,6 +156,15 @@ final class AltilloSettings {
         didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
     }
 
+    // MARK: Live agents (PLAN §5.3)
+
+    /// How long a coding agent's permission request waits for your answer in the notch before the agent asks in
+    /// the terminal as usual, in seconds (one of `AgentHookCommand.waitChoices`; 2 minutes by default). It's part
+    /// of the installed hooks' command line, so changing it asks to update them.
+    var agentPermissionWait: Int {
+        didSet { defaults.set(agentPermissionWait, forKey: Key.agentPermissionWait) }
+    }
+
     func isUsageProviderEnabled(_ id: UsageProviderID) -> Bool { !usageDisabledProviders.contains(id) }
 
     func setUsageProvider(_ id: UsageProviderID, enabled: Bool) {
@@ -222,6 +231,7 @@ final class AltilloSettings {
         static let alertsForUsage = "alertsForUsage"
         static let usageAlertThresholds = "usageAlertThresholds"
         static let usageAlertsWhenRefilled = "usageAlertsWhenRefilled"
+        static let agentPermissionWait = "agentPermissionWait"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -275,6 +285,8 @@ final class AltilloSettings {
             (defaults.array(forKey: Key.usageAlertThresholds) as? [Int]) ?? Self.defaultUsageAlertThresholds
         )
         usageAlertsWhenRefilled = defaults.object(forKey: Key.usageAlertsWhenRefilled) as? Bool ?? true
+        agentPermissionWait = (defaults.object(forKey: Key.agentPermissionWait) as? Int)
+            .flatMap { AgentHookCommand.waitChoices.contains($0) ? $0 : nil } ?? AgentHookCommand.defaultWait
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything
@@ -423,7 +435,7 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
     case nowPlaying
     /// The main AI provider's fullest limit, as a small ring and its figure.
     case usage
-    /// Agents working or knocking (phase 4).
+    /// How many agents are working, and the knocking hand when one waits (phase 4).
     case agents
 
     var id: Self { self }
@@ -452,8 +464,8 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
         }
     }
 
-    /// Agents only have sample data until phase 4: offered, but marked as coming.
-    var isAvailable: Bool { self != .agents }
+    /// Every ear has real data (agents since phase 4). Kept so a future ear can be offered before it's ready.
+    var isAvailable: Bool { true }
 }
 
 enum EarsVisibility: String, CaseIterable, Identifiable, Codable, Sendable {

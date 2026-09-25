@@ -7,7 +7,7 @@ import FoundationModels
 /// What the assistant is looking at right now, shown under the question ("Looking at your calendar…") and kept
 /// with the answer as its sources.
 enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
-    case shelf, calendar, nowPlaying, clipboard, usage, calculator, web
+    case shelf, calendar, nowPlaying, clipboard, usage, agents, calculator, web
 
     var id: Self { self }
 
@@ -18,6 +18,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .nowPlaying: "music.note"
         case .clipboard: "doc.on.clipboard"
         case .usage: "gauge.with.needle"
+        case .agents: "hand.raised"
         case .calculator: "plus.forwardslash.minus"
         case .web: "globe"
         }
@@ -31,6 +32,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .nowPlaying: String(localized: "Listening to what's playing…")
         case .clipboard: String(localized: "Looking at what you copied…")
         case .usage: String(localized: "Looking at your AI usage…")
+        case .agents: String(localized: "Looking at your agents…")
         case .calculator: String(localized: "Working it out…")
         case .web: String(localized: "Searching the web…")
         }
@@ -44,6 +46,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .nowPlaying: String(localized: "Used what's playing")
         case .clipboard: String(localized: "Used your clipboard")
         case .usage: String(localized: "Used your AI usage")
+        case .agents: String(localized: "Used your agents")
         case .calculator: String(localized: "Worked out exactly")
         case .web: String(localized: "Searched the web")
         }
@@ -52,7 +55,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
     /// Marks for the user's own things (the web and exact sums aren't tools the model calls; the store notes them).
     var isLocalContext: Bool {
         switch self {
-        case .shelf, .calendar, .nowPlaying, .clipboard, .usage: true
+        case .shelf, .calendar, .nowPlaying, .clipboard, .usage, .agents: true
         case .calculator, .web: false
         }
     }
@@ -70,6 +73,7 @@ enum AssistantTools {
         for route: AssistantRoute = .context,
         shelfItems: @escaping @MainActor @Sendable () -> [ShelfItem],
         usage: @escaping @MainActor @Sendable () -> AssistantUsage.Reading = { AssistantUsage.liveReading() },
+        agents: @escaping @MainActor @Sendable () -> AssistantAgents.Reading = { AssistantAgents.liveReading() },
         report: @escaping AssistantActivityReport
     ) -> [any Tool] {
         guard route == .context else { return [] }
@@ -79,6 +83,7 @@ enum AssistantTools {
             NowPlayingTool(report: report),
             ClipboardTool(report: report),
             UsageTool(reading: usage, report: report),
+            AgentsTool(reading: agents, report: report),
         ]
     }
 }
@@ -392,5 +397,110 @@ enum AssistantUsage {
             return date.formatted(date: .omitted, time: .shortened)
         }
         return date.formatted(.dateTime.weekday(.wide).hour().minute())
+    }
+}
+
+// MARK: - Agents
+
+struct AgentsTool: Tool {
+    let name = "agents"
+    let description = "The user's coding agents (Claude Code, Codex): what each is doing and what it waits for."
+
+    @Generable
+    struct Arguments {
+        @Guide(description: "One agent or project, like Codex or altillo. Omit for all.")
+        var agent: String?
+    }
+
+    let reading: @MainActor @Sendable () -> AssistantAgents.Reading
+    let report: AssistantActivityReport
+
+    func call(arguments: Arguments) async throws -> String {
+        await report(.agents)
+        // Never the network: the sessions Altillo already follows (`AgentHub`).
+        let reading = await reading()
+        let answer = AssistantAgents.answer(reading, agent: arguments.agent, now: .now)
+        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool agents → \(answer.count) chars")
+        return answer
+    }
+}
+
+/// What Ask's `agents` tool says, in plain English for the model: one line per session with where it runs, what
+/// it's doing or waiting for, and since when. It only reads; answering a permission is the notch's job.
+enum AssistantAgents {
+    struct Reading: Sendable {
+        /// The agents section is on (with it off, nothing is read).
+        var isEnabled: Bool
+        var sessions: [AgentSession]
+    }
+
+    /// The running app's model, set when it's created.
+    @MainActor static weak var live: NotchModel?
+
+    /// The sessions `AgentHub` follows right now.
+    @MainActor
+    static func liveReading() -> Reading {
+        guard let model = live else { return Reading(isEnabled: false, sessions: []) }
+        return Reading(isEnabled: model.settings.isEnabled(.agents), sessions: model.agentHub.sessions)
+    }
+
+    static func answer(_ reading: Reading, agent: String?, now: Date) -> String {
+        guard reading.isEnabled else {
+            return "The Agents section is turned off in Altillo, so it isn't following any coding agents. Tell the user they can turn it on in Settings › Sections."
+        }
+        guard !reading.sessions.isEmpty else {
+            return "No coding agent sessions right now. Altillo follows Claude Code and Codex on this Mac; when one works, asks for permission or finishes, it shows up in the notch."
+        }
+        var sessions = AgentsLogic.ordered(reading.sessions)
+        if let wanted = agent.map(AssistantHTML.fold)?.trimmingCharacters(in: .whitespaces), !wanted.isEmpty {
+            let matches = sessions.filter { session in
+                let names = [session.agent.name, session.agent.rawValue, session.project].map(AssistantHTML.fold)
+                    .filter { !$0.isEmpty }
+                return names.contains { $0 == wanted || $0.contains(wanted) || wanted.contains($0) }
+            }
+            if matches.isEmpty {
+                let names = Set(sessions.map(\.agent.name)).sorted().joined(separator: ", ")
+                return "No \(agent ?? "such") session right now. Sessions Altillo follows: \(names)."
+            }
+            sessions = matches
+        }
+        var lines = sessions.map { describe($0, now: now) }
+        let waiting = sessions.count { $0.phase.needsUser }
+        if waiting > 0 {
+            lines.append("The user can answer from the Agents section of the notch or in the terminal.")
+        }
+        return lines.joined(separator: "\n")
+    }
+
+    static func describe(_ session: AgentSession, now: Date) -> String {
+        var line = "- \(session.agent.name) in \(session.project): "
+        switch session.phase {
+        case .waitingPermission:
+            if let request = session.pendingRequest {
+                line += "waiting for permission to use \(request.toolName) (\(request.summary))"
+                if request.isDangerous { line += ", a dangerous one" }
+                line += ", asked \(NotchFormat.ago(request.requestedAt, now: now))"
+                if AgentsLogic.isExpired(request, now: now) { line += " (it's asking in the terminal now)" }
+            } else {
+                line += "waiting for permission, since \(NotchFormat.ago(session.lastActivity, now: now))"
+            }
+        case .waitingAnswer:
+            line += "waiting for the user's answer, since \(NotchFormat.ago(session.lastActivity, now: now))"
+            if let message = AgentsLogic.excerpt(session.lastMessage, limit: 160) { line += ". It said: \"\(message)\"" }
+        case .working:
+            line += "working"
+            if let activity = session.activity, !activity.isEmpty { line += " (\(activity))" }
+            line += ", started \(NotchFormat.ago(session.startedAt, now: now))"
+        case .idle:
+            line += "idle, last active \(NotchFormat.ago(session.lastActivity, now: now))"
+        case .finished:
+            line += "finished \(NotchFormat.ago(session.lastActivity, now: now))"
+            if let message = AgentsLogic.excerpt(session.lastMessage, limit: 160) { line += ". Its last words: \"\(message)\"" }
+        case .failed:
+            line += "failed \(NotchFormat.ago(session.lastActivity, now: now))"
+            if let message = AgentsLogic.excerpt(session.lastMessage, limit: 160) { line += ": \"\(message)\"" }
+        }
+        if session.source == .sessionFile { line += " (read from its session file, so approximate)" }
+        return line + "."
     }
 }

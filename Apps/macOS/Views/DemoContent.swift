@@ -2,7 +2,7 @@ import AltilloCore
 import Foundation
 
 /// Sample content for the design-review scenarios (usage, agents, shelf). Real modules never read it: usage has
-/// `UsageStore` since phase 3; agents still show these sessions until phase 4.
+/// `UsageStore` since phase 3 and agents `AgentHub` since phase 4.
 struct DemoContent {
     static let sample = DemoContent()
 
@@ -41,33 +41,90 @@ struct DemoContent {
         ]
         agents = [
             AgentSession(
-                id: "claude-altillo",
                 agent: .claude,
-                project: "altillo",
+                sessionID: "demo-altillo",
+                cwd: "/Users/demo/Code/altillo",
                 phase: .waitingPermission,
                 activity: String(localized: "Wants to run a command"),
+                startedAt: now.addingTimeInterval(-14 * 60),
                 lastActivity: now.addingTimeInterval(-8),
-                request: PermissionRequest(tool: "Bash", command: "git push origin feat/notch-design")
+                pendingRequest: AgentPermissionRequest(
+                    id: "demo-request",
+                    toolName: "Bash",
+                    summary: "git push origin feat/notch-design",
+                    detail: "git push origin feat/notch-design\n\nPush the notch design branch so the review can start.",
+                    canAllowForSession: true,
+                    requestedAt: now.addingTimeInterval(-8),
+                    expiresAt: now.addingTimeInterval(112)
+                ),
+                source: .hooks
             ),
             AgentSession(
-                id: "codex-openusage",
                 agent: .codex,
-                project: "openusage",
+                sessionID: "demo-openusage",
+                cwd: "/Users/demo/Code/openusage",
                 phase: .working,
                 activity: String(localized: "Running tests · 42 of 118"),
+                startedAt: now.addingTimeInterval(-6 * 60),
                 lastActivity: now.addingTimeInterval(-3),
-                request: nil
+                source: .hooks
             ),
             AgentSession(
-                id: "claude-badia",
                 agent: .claude,
-                project: "badia.me",
+                sessionID: "demo-badia",
+                cwd: "/Users/demo/Code/badia.me",
                 phase: .finished,
                 activity: String(localized: "Took 6 min 12 s"),
+                startedAt: now.addingTimeInterval(-10 * 60),
                 lastActivity: now.addingTimeInterval(-4 * 60),
-                request: nil
+                lastMessage: String(localized: "The new home page is live and the RSS feed validates again."),
+                source: .hooks
+            ),
+            AgentSession(
+                agent: .codex,
+                sessionID: "demo-notes",
+                cwd: "/Users/demo/Code/notes",
+                phase: .idle,
+                activity: String(localized: "Waiting for your next message"),
+                startedAt: now.addingTimeInterval(-50 * 60),
+                lastActivity: now.addingTimeInterval(-12 * 60),
+                source: .sessionFile
             ),
         ]
+        agents = Self.agentsVariant(agents, now: now)
+    }
+
+    /// `-demoAgents dangerous|question|readOnly|expired|rows|empty` swaps the waiting sample for another state to review
+    /// in the agents scenarios (a dangerous command, a question, a session only read from its file, a request the
+    /// hook gave up on, only the rows, nobody at all).
+    static func agentsVariant(_ agents: [AgentSession], now: Date,
+                              variant: String? = UserDefaults.standard.string(forKey: "demoAgents")) -> [AgentSession] {
+        guard let variant, var first = agents.first else { return agents }
+        switch variant {
+        case "empty":
+            return []
+        case "rows":
+            return Array(agents.dropFirst())
+        case "dangerous":
+            first.pendingRequest = AgentPermissionRequest(
+                id: "demo-dangerous", toolName: "Bash", summary: "rm -rf build/ && git push --force origin main",
+                detail: "rm -rf build/ && git push --force origin main\n\nClean the build folder and overwrite main with the rebased history.",
+                isDangerous: true, canAllowForSession: true, requestedAt: now.addingTimeInterval(-20),
+                expiresAt: now.addingTimeInterval(100))
+        case "question":
+            first.phase = .waitingAnswer
+            first.pendingRequest = nil
+            first.lastMessage = "I've moved the settings into their own pane. Should I also migrate the old keys, or leave them for a release?"
+        case "readOnly":
+            first.source = .sessionFile
+        case "expired":
+            first.pendingRequest?.requestedAt = now.addingTimeInterval(-130)
+            first.pendingRequest?.expiresAt = now.addingTimeInterval(-10)
+            first.pendingRequest?.isExpired = true
+        default:
+            return agents
+        }
+        return [first] + agents.dropFirst()
     }
 
     /// The provider shown in the ears and in usage alerts.
@@ -93,52 +150,10 @@ struct DemoContent {
     }
 
     /// The first agent waiting for the user, if any.
-    var waitingAgent: AgentSession? { agents.first { $0.phase.needsUser } }
+    var waitingAgent: AgentSession? { AgentsLogic.featured(in: agents) }
 
-    var workingAgentsCount: Int { agents.count { $0.phase == .working } }
-}
-
-// MARK: - Agents (sample only until phase 4)
-
-/// The agent behind a sample session. Usage uses `UsageProviderID` (AltilloCore) instead.
-enum AgentKind: String, Sendable {
-    case claude, codex
-
-    var name: String {
-        switch self {
-        case .claude: "Claude"
-        case .codex: "Codex"
-        }
+    /// The peek of the "Peek: agent waiting" scenario, built exactly like a real one (`AgentAlerts`).
+    var agentAlert: NotchAlert? {
+        waitingAgent.flatMap { AgentAlerts.alert(from: nil, to: $0, now: $0.lastActivity) }
     }
-}
-
-enum AgentPhase: Sendable {
-    case working, waitingPermission, waitingAnswer, finished, error
-
-    var title: String {
-        switch self {
-        case .working: String(localized: "Working")
-        case .waitingPermission: String(localized: "Waiting for permission")
-        case .waitingAnswer: String(localized: "Waiting for your answer")
-        case .finished: String(localized: "Finished")
-        case .error: String(localized: "Error")
-        }
-    }
-
-    var needsUser: Bool { self == .waitingPermission || self == .waitingAnswer }
-}
-
-struct PermissionRequest: Hashable, Sendable {
-    var tool: String
-    var command: String
-}
-
-struct AgentSession: Identifiable, Sendable {
-    let id: String
-    var agent: AgentKind
-    var project: String
-    var phase: AgentPhase
-    var activity: String
-    var lastActivity: Date
-    var request: PermissionRequest?
 }

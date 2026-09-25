@@ -63,6 +63,15 @@ struct SettingsModulesPane: View {
                     }
                 }
 
+                // Always here, even with the agents section put away: hooks Altillo installed must stay one
+                // click from removal.
+                Section {
+                    SettingsAgentsGroup(settings: settings)
+                        .id(Self.agentsAnchor)
+                } header: {
+                    SettingsListHeader("Agents")
+                }
+
                 if !disabled.isEmpty {
                     Section {
                         ForEach(disabled) { module in
@@ -79,9 +88,9 @@ struct SettingsModulesPane: View {
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
             .onAppear {
-                // `-settingsSection calendar|usage` (with `-settingsTab modules`) opens scrolled to that group.
+                // `-settingsSection calendar|usage|agents` (with `-settingsTab modules`) opens scrolled to that group.
                 if let anchor = UserDefaults.standard.string(forKey: "settingsSection"),
-                   [Self.calendarAnchor, Self.usageAnchor].contains(anchor) {
+                   [Self.calendarAnchor, Self.usageAnchor, Self.agentsAnchor].contains(anchor) {
                     proxy.scrollTo(anchor, anchor: .top)
                 }
             }
@@ -91,6 +100,7 @@ struct SettingsModulesPane: View {
 
     private static let calendarAnchor = "calendar"
     private static let usageAnchor = "usage"
+    private static let agentsAnchor = "agents"
 }
 
 // MARK: - Presets

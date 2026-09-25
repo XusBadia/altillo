@@ -8,7 +8,7 @@ import Foundation
 /// and real data take part: design scenarios and sample content never reach here, and the mirror never does (the
 /// camera only ever runs while its section is on screen).
 enum NotchActivity: Equatable, Sendable {
-    /// An agent is waiting for the user's answer (phase 4 feeds it; nothing real exists yet).
+    /// An agent is waiting for the user: a permission or an answer (`AgentsLogic.requestSignal`).
     case agentRequest(AgentRequestSignal)
     /// A timed event starting within `NotchActivityLogic.imminentWindow`, or that has just started.
     case imminentEvent(EarEvent)

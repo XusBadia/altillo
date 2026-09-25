@@ -46,6 +46,8 @@ targets:
         product: AltilloDesign
       - package: AltilloKit
         product: AltilloUsage
+      - package: AltilloKit
+        product: AltilloAgents
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook
@@ -110,6 +112,9 @@ targets:
     platform: macOS
     sources:
       - Apps/Hook
+    dependencies:
+      - package: AltilloKit
+        product: AltilloAgents
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).hook

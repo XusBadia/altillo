@@ -75,9 +75,11 @@ public struct AgentPermissionRequest: Identifiable, Hashable, Codable, Sendable 
     public var requestedAt: Date
     /// When the hook gives up and the agent falls back to asking in the terminal.
     public var expiresAt: Date?
+    /// The hook stopped waiting (timed out): the agent asks in the terminal now and the notch can't answer it.
+    public var isExpired: Bool
 
     public init(id: String, toolName: String, summary: String, detail: String? = nil, isDangerous: Bool = false,
-                canAllowForSession: Bool = false, requestedAt: Date, expiresAt: Date? = nil) {
+                canAllowForSession: Bool = false, requestedAt: Date, expiresAt: Date? = nil, isExpired: Bool = false) {
         self.id = id
         self.toolName = toolName
         self.summary = summary
@@ -86,6 +88,7 @@ public struct AgentPermissionRequest: Identifiable, Hashable, Codable, Sendable 
         self.canAllowForSession = canAllowForSession
         self.requestedAt = requestedAt
         self.expiresAt = expiresAt
+        self.isExpired = isExpired
     }
 }
 

@@ -62,9 +62,9 @@ struct PresetSettingsTests {
         #expect(NotchPreset.everything.modules == NotchModule.allCases)
     }
 
-    @Test func earsThatArentReadyYetAreMarked() {
+    @Test func everyEarIsReady() {
         #expect(EarContent.usage.isAvailable, "real usage since phase 3")
-        #expect(!EarContent.agents.isAvailable)
-        #expect(EarContent.allCases.filter(\.isAvailable) == [.none, .automatic, .shelf, .nextEvent, .nowPlaying, .usage])
+        #expect(EarContent.agents.isAvailable, "live agents since phase 4")
+        #expect(EarContent.allCases.filter(\.isAvailable) == EarContent.allCases)
     }
 }

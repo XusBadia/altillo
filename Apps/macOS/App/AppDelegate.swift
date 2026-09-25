@@ -5,6 +5,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = NotchCoordinator()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Installed agent hooks call a stable path in Application Support; point it at this copy of the app.
+        AgentHookInstaller.refreshStableHookPath()
         coordinator.start()
         // `open Altillo.app --args -designScenario openShelf` freezes a design-review scenario (screenshots, reviews).
         if let name = UserDefaults.standard.string(forKey: "designScenario"), let scenario = DesignScenario(rawValue: name) {

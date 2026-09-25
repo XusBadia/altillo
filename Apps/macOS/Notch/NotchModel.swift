@@ -85,6 +85,8 @@ final class NotchModel {
     init(settings: AltilloSettings = .shared) {
         self.settings = settings
         usage = UsageStore(settings: settings)
+        // Ask's `agents` tool reads the live sessions from here.
+        AssistantAgents.live = self
     }
 
     /// While true the notch doesn't close when the pointer wanders off: the user is typing or waiting for an
@@ -116,12 +118,12 @@ final class NotchModel {
     }
 
     /// What the contextual left ear is about (PLAN §4): real, enabled sources only, never a design scenario.
-    /// Agents have no live source yet (phase 4), so they don't take part until they do. AI usage takes part while
-    /// its main limit runs high (`UsageStore.contextualSignal`).
+    /// An agent waiting for the user comes first (`AgentHub`); AI usage takes part while its main limit runs high
+    /// (`UsageStore.contextualSignal`).
     var contextualActivity: NotchActivity {
         guard scenario == nil else { return .rest }
         let inputs = NotchActivityInputs(
-            agentRequest: nil,
+            agentRequest: AgentsLogic.requestSignal(in: agentHub.sessions),
             nextEvent: ears.nextEvent,
             playback: nowPlaying.playbackSignal,
             usage: usage.contextualSignal

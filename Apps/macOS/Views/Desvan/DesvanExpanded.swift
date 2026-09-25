@@ -379,7 +379,7 @@ private struct DesvanTabs: View {
                 DesvanTabButton(
                     tab: tab,
                     isSelected: model.module == tab,
-                    knocks: tab == .agents && model.scenario != nil && model.demo.waitingAgent != nil,
+                    knocks: tab == .agents && model.agentSessions.contains { $0.phase.needsUser },
                     metrics: metrics,
                     namespace: namespace
                 ) {
@@ -560,12 +560,6 @@ private struct DesvanHeaderAccessory: View {
         Group {
             if isDropTarget {
                 EmptyView()
-            } else if model.module == .agents, model.scenario == nil {
-                // Agents still show sample data, until their module exists (phase 4).
-                ViewThatFits(in: .horizontal) {
-                    sampleCaption("Sample data")
-                    sampleCaption("Sample")
-                }
             } else {
                 switch model.module {
                 case .shelf: shelf
@@ -579,13 +573,6 @@ private struct DesvanHeaderAccessory: View {
     }
 
     private static let caption = Desvan.Typeface.rounded(11.5, weight: .medium)
-
-    private func sampleCaption(_ text: LocalizedStringKey) -> some View {
-        Text(text)
-            .font(Self.caption)
-            .foregroundStyle(Desvan.Palette.paperTertiary)
-            .fixedSize()
-    }
 
     // MARK: Shelf
 
@@ -707,34 +694,39 @@ private struct DesvanHeaderAccessory: View {
 
     // MARK: Agents
 
+    /// "1 knocking · 2 working" (the sample sessions' in a design review); nothing when nobody is at work.
+    @ViewBuilder
     private var agents: some View {
-        let waiting = model.demo.agents.count { $0.phase.needsUser }
-        let working = model.demo.workingAgentsCount
-        return ViewThatFits(in: .horizontal) {
-            agentsRow(waiting: waiting, working: working, long: true)
-            agentsRow(waiting: waiting, working: working, long: false)
+        let counts = AgentsLogic.counts(model.agentSessions)
+        if let summary = AgentsLogic.summary(counts) {
+            ViewThatFits(in: .horizontal) {
+                agentsRow(counts, long: true)
+                agentsRow(counts, long: false)
+            }
+            .help(summary)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(summary)
         }
-        .help(agentsSummary(waiting: waiting, working: working))
     }
 
-    private func agentsRow(waiting: Int, working: Int, long: Bool) -> some View {
+    private func agentsRow(_ counts: AgentsLogic.Counts, long: Bool) -> some View {
         HStack(spacing: long ? 10 : 8) {
-            if waiting > 0 {
+            if counts.waiting > 0 {
                 Group {
                     if long {
-                        Text("\(waiting) knocking")
+                        Text("\(counts.waiting) knocking")
                     } else {
-                        Label("\(waiting)", systemImage: "hand.raised")
+                        Label("\(counts.waiting)", systemImage: "hand.raised")
                     }
                 }
                 .foregroundStyle(Desvan.Palette.bulb)
             }
-            if working > 0 {
+            if counts.working > 0 {
                 Group {
                     if long {
-                        Text("\(working) working")
+                        Text("\(counts.working) working")
                     } else {
-                        Label("\(working)", systemImage: "gearshape")
+                        Label("\(counts.working)", systemImage: "gearshape")
                     }
                 }
                 .foregroundStyle(Desvan.Palette.paperTertiary)
@@ -744,13 +736,7 @@ private struct DesvanHeaderAccessory: View {
         .labelStyle(.desvanCompact)
         .monospacedDigit()
         .fixedSize()
-    }
-
-    private func agentsSummary(waiting: Int, working: Int) -> String {
-        var parts: [String] = []
-        if waiting > 0 { parts.append(String(localized: "\(waiting) knocking")) }
-        if working > 0 { parts.append(String(localized: "\(working) working")) }
-        return parts.joined(separator: " · ")
+        .padding(.trailing, 4)
     }
 }
 

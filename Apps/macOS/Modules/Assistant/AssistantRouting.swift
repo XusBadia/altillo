@@ -34,6 +34,8 @@ enum AssistantRouter {
         "pasted",
         // AI usage
         "usage", "uso", "consumo", "quota", "cuota", "limit", "limits", "limite", "limites",
+        // Coding agents (plural: "what is an agent?" is a general question)
+        "agents", "agentes",
     ]
 
     /// Ways of asking about one's own day ("what do I have", "¿qué tengo?").
@@ -43,6 +45,12 @@ enum AssistantRouter {
         // What's left of an AI plan ("¿cuánto me queda de Claude?", "how much Codex is left?")
         "me queda", "nos queda", "em queda", "have left", "is left", "left of my", "remaining", "refill", "resets", "session reset", "limit reset",
         "se reinicia", "se renueva", "es renova", "como voy de", "como vamos de", "com vaig de", "how am i doing on",
+        // What an agent is up to ("¿qué está haciendo Codex?", "what's Claude doing?", "is Codex done?"), always with
+        // its name: "¿qué tiempo está haciendo?" is about the weather.
+        "claude doing", "codex doing", "claude up to", "codex up to", "claude done", "codex done", "claude finished",
+        "codex finished", "claude working", "codex working", "claude waiting", "codex waiting", "hace claude",
+        "hace codex", "haciendo claude", "haciendo codex", "claude termin", "codex termin", "claude acab",
+        "codex acab", "terminado claude", "terminado codex", "acabado claude", "acabado codex", "fa claude", "fa codex", "fent claude", "fent codex", "my agent", "mi agente", "el meu agent",
     ]
 
     static func route(_ question: String, followsContext: Bool = false, now: Date = .now) -> AssistantRoute {

@@ -1,0 +1,8 @@
+{
+ "session_id": "fc6f9b07-c1a0-497d-96c8-94c48f710cb1",
+ "transcript_path": "/Users/me/.claude/projects/-Users-me-Projects-demo/fc6f9b07-c1a0-497d-96c8-94c48f710cb1.jsonl",
+ "cwd": "/Users/me/Projects/demo",
+ "prompt_id": "dda3ace1-0019-4341-a8b7-be64eafa5d24",
+ "hook_event_name": "SessionEnd",
+ "reason": "other"
+}

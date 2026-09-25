@@ -265,7 +265,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **14. Más agentes (K+M)** | Gemini CLI y Copilot CLI (hooks), OpenCode (SSE de `opencode serve`) y Cursor CLI (ACP); responder desde el notch cuando un agente espera tu respuesta | 4 | 1 semana |
 | **15. Primer arranque (M)** | Bienvenida adelantada de la fase 10, ahora que ya hay releases públicas: plantilla, permisos explicados uno a uno (calendario, Automatización, Accesibilidad) solo cuando hacen falta, ofrecer los hooks y detectar qué proveedores de IA hay en el Mac | 4 | 3-4 días |
 
-**Orden de ejecución (actualizado el 24-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 → 15 → 12 → 14 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
+**Orden de ejecución (actualizado el 24-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 ✓ → 15 → 12 → 14 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
 
 ### Estado
 
@@ -284,6 +284,19 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - **Pregunta:** tiene tool `usage` («¿cuánto me queda de Claude?»).
   - 405 tests en macOS y 102 en `AltilloKit`, todos en verde.
   - **Retirado el 24-09-2026 (decisión tuya):** el escritor del formato antiguo `openusage.mobile.v1` (`OpenUsageMobilePublisher`) y toda la máquina de release para firmarlo con el perfil de iCloud de `iCloud.me.badia.ailimits`. La companion de iPhone/iPad es una app de Altillo desde cero, por definir contigo (fase 5, §6); no hay transición ni puente que mantener. Puedes retirar el bridge y su watchdog cuando quieras, como limpieza opcional ([docs/uso-ia.md](docs/uso-ia.md)).
+
+- **Fase 4 (25-09-2026, 0.4.0):** implementación terminada y validación automática en verde.
+  - **Sin configurar nada:** Altillo muestra las sesiones de Claude Code y Codex leyendo solo el final de sus ficheros de sesión, cuando cambian y sin sondeo.
+  - **Con hooks:** `altillo-hook` tarda unos 5 ms en arrancar.
+    - Si Altillo está cerrado, sale al instante sin escribir nada. Si Altillo está congelado, pierde como mucho unos 3 s.
+    - Permitir, Denegar y Permitir en esta sesión funcionan desde el notch; se probaron en vivo con Claude.
+    - Nunca aprueba por su cuenta. Los comandos peligrosos se aprueban manteniendo pulsado el botón.
+  - **Instalador:** enseña el diff, hace copia de seguridad, se puede repetir sin duplicar nada y se desinstala con un clic. Se probó sobre copias de los ficheros reales. Codex exige confiar en los hooks con `/hooks`.
+  - **En el notch y en Pregunta:** ir a la terminal exacta, avisos (toc, toc, pregunta, terminado con resumen, fallo), oreja de agentes, oreja contextual y tool `agents` en Pregunta.
+  - **Revisión independiente:** no encontró ningún camino que envíe una decisión que el usuario no haya tomado. Se corrigieron la espera sin límite al escribir en el socket, que otra instancia de Altillo pudiera quitarle el socket, y una carrera con `umask`.
+  - 459 tests en macOS y 305 en `AltilloKit`, todos en verde.
+  - **Pendiente, que haces tú:** instalar los hooks desde Ajustes › Secciones › Agentes, confiar en ellos en Codex con `/hooks`, y probar aprobar desde el notch con un trackpad real.
+  - **Sin verificar en vivo:** los payloads de herramientas y permisos de Codex, porque la cuenta estaba en su límite de uso; se cubren con fixtures del esquema publicado.
 
 - **Independencia del uso de IA (24-09-2026, 0.3.1):**
   - Fuera la lectura de otras apps.
