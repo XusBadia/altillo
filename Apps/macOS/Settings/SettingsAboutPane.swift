@@ -83,6 +83,9 @@ struct SettingsAboutPane: View {
 
             Spacer(minLength: 0)
 
+            SettingsSupportCard()
+                .padding(.bottom, 14)
+
             VStack(spacing: 3) {
                 Text("MIT licence. Use it, copy it and change it freely.")
                 Text("© 2026 Xus Badia")
@@ -95,5 +98,70 @@ struct SettingsAboutPane: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 24)
         .padding(.top, 16)
+    }
+}
+
+/// "Help us keep building Altillo": the same invitation as the website's, to try our other app, Aurio. Altillo is
+/// free and open source; trying Aurio is how people can support it.
+private struct SettingsSupportCard: View {
+    private static let aurio = URL(string: "https://www.aurioapp.com")!
+
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Link(destination: Self.aurio) {
+            HStack(spacing: 14) {
+                // Aurio, the dragon, winks when you come close (like on the website).
+                ZStack {
+                    Image("AurioMascot")
+                        .resizable()
+                        .scaledToFit()
+                        .opacity(isHovering ? 0 : 1)
+                    Image("AurioMascotWink")
+                        .resizable()
+                        .scaledToFit()
+                        .opacity(isHovering ? 1 : 0)
+                }
+                .frame(width: 104, height: 78)
+                .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Help us keep building Altillo")
+                        .font(Desvan.Typeface.display(14, weight: 650))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    Text("Altillo is free. Support it by trying our other app, Aurio: track expenses, share accounts and follow your net worth.")
+                        .font(.system(size: 11.5))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Label("Meet Aurio", systemImage: "arrow.up.right")
+                        .labelStyle(.titleAndIcon)
+                        .font(Desvan.Typeface.rounded(12, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.bulb)
+                        .padding(.top, 2)
+                }
+                Spacer(minLength: 0)
+            }
+            .padding(12)
+            .background {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Desvan.Palette.paper.opacity(isHovering ? 0.07 : 0.04))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.75)
+                    }
+            }
+            .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+        .buttonStyle(.plain)
+        .pointerStyle(.link)
+        .onHover { hovering in
+            withAnimation(Desvan.Motion.pick(.easeInOut(duration: 0.18), reduceMotion: reduceMotion)) {
+                isHovering = hovering
+            }
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Help us keep building Altillo: meet Aurio, our personal finance app")
+        .accessibilityAddTraits(.isLink)
     }
 }

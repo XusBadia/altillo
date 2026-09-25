@@ -2049,6 +2049,23 @@
         }
       }
     },
+    "Altillo is free. Support it by trying our other app, Aurio: track expenses, share accounts and follow your net worth." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo is free. Support it by trying our other app, Aurio: track expenses, share accounts and follow your net worth."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo es gratis. Apóyalo probando nuestra otra app, Aurio: lleva tus gastos, comparte cuentas y sigue tu patrimonio."
+          }
+        }
+      }
+    },
     "Altillo isn't allowed to see your calendars. You can change that in System Settings." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4480,6 +4497,40 @@
         }
       }
     },
+    "Help us keep building Altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help us keep building Altillo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayúdanos a seguir construyendo Altillo"
+          }
+        }
+      }
+    },
+    "Help us keep building Altillo: meet Aurio, our personal finance app" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Help us keep building Altillo: meet Aurio, our personal finance app"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ayúdanos a seguir construyendo Altillo: conoce Aurio, nuestra app de finanzas personales"
+          }
+        }
+      }
+    },
     "Hidden calendars leave the grid and the agenda. Nothing changes in Calendar itself." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5496,6 +5547,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Medio"
+          }
+        }
+      }
+    },
+    "Meet Aurio" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meet Aurio"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conocer Aurio"
           }
         }
       }
