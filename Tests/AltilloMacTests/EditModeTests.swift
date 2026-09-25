@@ -7,6 +7,7 @@ import Testing
 @MainActor
 struct EditModeTests {
     private static func makeSettings(_ name: String = #function) -> AltilloSettings {
+        TestDefaultsJanitor.purgeStale()
         let suite = "me.badia.altillo.tests.edit.\(name.replacingOccurrences(of: "()", with: ""))-\(UUID().uuidString)"
         UserDefaults.standard.removePersistentDomain(forName: suite)
         return AltilloSettings(defaults: UserDefaults(suiteName: suite)!)

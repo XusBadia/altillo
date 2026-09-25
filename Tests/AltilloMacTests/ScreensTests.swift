@@ -267,6 +267,7 @@ struct ScreensTests {
 
     @MainActor
     @Test func screenSettingsDefaultToTheNotchAndOnlyWhenDragging() {
+        TestDefaultsJanitor.purgeStale()
         let suite = "me.badia.altillo.tests.screens-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }

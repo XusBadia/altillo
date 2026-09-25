@@ -8,6 +8,10 @@ import FoundationModels
 /// with the answer as its sources.
 enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
     case shelf, calendar, nowPlaying, clipboard, usage, agents, calculator, web
+    // Phase 12: the first tools that act (a timer set, a line added to the note).
+    case timer, note
+    // Phase 12: runs one of the user's Shortcuts, only when asked for it by name (`AssistantRoute.shortcut`).
+    case shortcuts
 
     var id: Self { self }
 
@@ -21,6 +25,9 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .agents: "hand.raised"
         case .calculator: "plus.forwardslash.minus"
         case .web: "globe"
+        case .timer: "timer"
+        case .note: "note.text"
+        case .shortcuts: "square.2.layers.3d"
         }
     }
 
@@ -35,6 +42,9 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .agents: String(localized: "Looking at your agents…")
         case .calculator: String(localized: "Working it out…")
         case .web: String(localized: "Searching the web…")
+        case .timer: String(localized: "Setting your timer…")
+        case .note: String(localized: "Opening your note…")
+        case .shortcuts: String(localized: "Running your shortcut…")
         }
     }
 
@@ -49,6 +59,9 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .agents: String(localized: "Used your agents")
         case .calculator: String(localized: "Worked out exactly")
         case .web: String(localized: "Searched the web")
+        case .timer: String(localized: "Used your timer")
+        case .note: String(localized: "Used your note")
+        case .shortcuts: String(localized: "Ran a shortcut")
         }
     }
 
@@ -56,6 +69,8 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
     var isLocalContext: Bool {
         switch self {
         case .shelf, .calendar, .nowPlaying, .clipboard, .usage, .agents: true
+        case .timer, .note: true
+        case .shortcuts: true
         case .calculator, .web: false
         }
     }
@@ -74,16 +89,23 @@ enum AssistantTools {
         shelfItems: @escaping @MainActor @Sendable () -> [ShelfItem],
         usage: @escaping @MainActor @Sendable () -> AssistantUsage.Reading = { AssistantUsage.liveReading() },
         agents: @escaping @MainActor @Sendable () -> AssistantAgents.Reading = { AssistantAgents.liveReading() },
+        timer: @escaping @MainActor @Sendable (TimerAssistant.Request) -> String = { TimerAssistant.live($0) },
+        note: @escaping @MainActor @Sendable (NoteAssistant.Request) -> String = { NoteAssistant.live($0) },
         report: @escaping AssistantActivityReport
     ) -> [any Tool] {
+        // Asked explicitly to run a shortcut: that tool alone (`ShortcutsAskIntent`).
+        if route == .shortcut { return [RunShortcutTool(report: report)] }
         guard route == .context else { return [] }
         return [
             ShelfTool(items: shelfItems, report: report),
             CalendarTool(report: report),
             NowPlayingTool(report: report),
             ClipboardTool(report: report),
+            ClipboardHistoryTool(report: report),
             UsageTool(reading: usage, report: report),
             AgentsTool(reading: agents, report: report),
+            TimerTool(perform: timer, report: report),
+            NoteTool(perform: note, report: report),
         ]
     }
 }

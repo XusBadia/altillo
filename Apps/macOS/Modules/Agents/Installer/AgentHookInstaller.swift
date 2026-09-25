@@ -605,7 +605,19 @@ extension AgentHookInstaller {
         guard FileManager.default.isExecutableFile(atPath: target.path) else {
             return .unavailable(String(localized: "this copy of Altillo has no altillo-hook inside."))
         }
+        // A development build launching (Xcode, tests, reviews) must not steal the link from the installed app:
+        // its build folder comes and goes, and the user's installed hooks would break with it.
+        if isDevelopmentBuild(target.path),
+           let existing = try? FileManager.default.destinationOfSymbolicLink(atPath: environment.hookLink.path),
+           FileManager.default.isExecutableFile(atPath: existing), !isDevelopmentBuild(existing) {
+            return .unchanged
+        }
         return linkStableHook(to: target, environment: environment)
+    }
+
+    /// A copy built by Xcode or `xcodebuild` (derived data), not an installed app.
+    static func isDevelopmentBuild(_ path: String) -> Bool {
+        path.contains("/Build/Products/") || path.contains("/DerivedData/")
     }
 
     static func linkStableHook(to target: URL, environment: AgentHookEnvironment) -> LinkResult {

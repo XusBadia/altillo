@@ -265,7 +265,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **14. Más agentes (K+M)** | Gemini CLI y Copilot CLI (hooks), OpenCode (SSE de `opencode serve`) y Cursor CLI (ACP); responder desde el notch cuando un agente espera tu respuesta | 4 | 1 semana |
 | **15. Primer arranque (M)** | Bienvenida adelantada de la fase 10, ahora que ya hay releases públicas: plantilla, permisos explicados uno a uno (calendario, Automatización, Accesibilidad) solo cuando hacen falta, ofrecer los hooks y detectar qué proveedores de IA hay en el Mac | 4 | 3-4 días |
 
-**Orden de ejecución (actualizado el 24-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 ✓ → 15 → 12 → 14 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
+**Orden de ejecución (actualizado el 24-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 ✓ → 15 ✓ → 12 ✓ → 14 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
 
 ### Estado
 
@@ -284,6 +284,17 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - **Pregunta:** tiene tool `usage` («¿cuánto me queda de Claude?»).
   - 405 tests en macOS y 102 en `AltilloKit`, todos en verde.
   - **Retirado el 24-09-2026 (decisión tuya):** el escritor del formato antiguo `openusage.mobile.v1` (`OpenUsageMobilePublisher`) y toda la máquina de release para firmarlo con el perfil de iCloud de `iCloud.me.badia.ailimits`. La companion de iPhone/iPad es una app de Altillo desde cero, por definir contigo (fase 5, §6); no hay transición ni puente que mantener. Puedes retirar el bridge y su watchdog cuando quieras, como limpieza opcional ([docs/uso-ia.md](docs/uso-ia.md)).
+
+- **Fases 15 y 12 (25-09-2026, 0.5.0):**
+  - **Bienvenida (15):** seis pasos. Abrir el notch de verdad para seguir, plantilla con vista previa, herramientas de IA detectadas con la oferta de hooks (siempre con el diff), solo los permisos que pide lo activado, trucos y abrir al iniciar sesión, y tu primer archivo. Se vuelve a abrir desde el menú y desde Acerca de.
+  - **Utilidades (12), opt-in y nunca activadas solas:**
+    - **Temporizador:** reloj de cocina que se gira arrastrando, varios a la vez, sin sondeo; asoma y suena al terminar y sale en la oreja contextual.
+    - **Nota:** se guarda sola, se arrastra fuera o se sube al altillo, y guarda un historial de 5.
+    - **Portapapeles:** solo texto, nunca contraseñas ni nada copiado desde un gestor de contraseñas. El historial se guarda en memoria por defecto. La CPU pasa de 0,11 a 0,14 %.
+    - **Atajos:** favoritos y buscador; solo se ejecutan con clic.
+  - **Pregunta actúa:** pone temporizadores, apunta en la nota, lee el historial del portapapeles y ejecuta un atajo solo si se lo pides por su nombre. Siempre confirma qué ha hecho y se puede deshacer.
+  - Las builds de desarrollo ya no le quitan el enlace del hook a la app instalada.
+  - 539 tests en macOS y 305 en `AltilloKit`, todos en verde.
 
 - **Fase 4 (25-09-2026, 0.4.0):** implementación terminada y validación automática en verde.
   - **Sin configurar nada:** Altillo muestra las sesiones de Claude Code y Codex leyendo solo el final de sus ficheros de sesión, cuando cambian y sin sondeo.

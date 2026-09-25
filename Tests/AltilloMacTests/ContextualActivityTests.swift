@@ -9,6 +9,7 @@ import AltilloCore
 @MainActor
 struct ContextualActivityTests {
     private static func makeDefaults(_ name: String = #function) -> UserDefaults {
+        TestDefaultsJanitor.purgeStale()
         let suite = "me.badia.altillo.tests.activity.\(name.replacingOccurrences(of: "()", with: ""))-\(UUID().uuidString)"
         UserDefaults.standard.removePersistentDomain(forName: suite)
         return UserDefaults(suiteName: suite)!

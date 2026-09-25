@@ -38,6 +38,7 @@ struct AppMenu: View {
         Button("Settings…") { SettingsWindowController.shared.show() }
             .keyboardShortcut(",", modifiers: .command)
         Button("Drawer Settings…") { SettingsWindowController.shared.show(tab: .drawer) }
+        Button("Welcome to Altillo…") { OnboardingWindowController.shared.show() }
         Button("Check for Updates…") { Updater.shared.checkForUpdates() }
             .disabled(!Updater.shared.canCheckForUpdates)
             .help(

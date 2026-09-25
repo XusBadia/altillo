@@ -7,6 +7,7 @@ import Testing
 @MainActor
 struct DrawerGeometryTests {
     private static func makeDefaults() -> (defaults: UserDefaults, suite: String) {
+        TestDefaultsJanitor.purgeStale()
         let suite = "me.badia.altillo.tests.drawer-\(UUID().uuidString)"
         UserDefaults.standard.removePersistentDomain(forName: suite)
         return (UserDefaults(suiteName: suite)!, suite)

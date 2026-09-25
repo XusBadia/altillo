@@ -92,11 +92,18 @@ final class NotchModel {
         usage = UsageStore(settings: settings)
         // Ask's `agents` tool reads the live sessions from here.
         AssistantAgents.live = self
+        // The clipboard watches the pasteboard only while its section is on.
+        clipboard.follow(settings)
     }
 
     /// While true the notch doesn't close when the pointer wanders off: the user is typing or waiting for an
     /// answer. Esc or a click outside still close it.
-    var holdsOpen: Bool { state == .open && (isEditing || (module == .assistant && assistant.holdsOpen)) }
+    var holdsOpen: Bool {
+        guard state == .open else { return false }
+        return isEditing || (module == .assistant && assistant.holdsOpen) || (module == .note && note.holdsOpen)
+            || (module == .timer && timers.holdsOpen)
+            || (module == .clipboard && clipboard.holdsOpen) || (module == .shortcuts && shortcuts.holdsOpen)
+    }
 
     /// Switches section, remembering the direction for the content's slide.
     func select(_ target: NotchModule) {
@@ -131,7 +138,8 @@ final class NotchModel {
             agentRequest: AgentsLogic.requestSignal(in: agentHub.sessions),
             nextEvent: ears.nextEvent,
             playback: nowPlaying.playbackSignal,
-            usage: usage.contextualSignal
+            usage: usage.contextualSignal,
+            timer: timers.contextualSignal
         )
         return NotchActivityLogic.resolve(inputs, enabled: Set(settings.modules), now: ears.clock)
     }

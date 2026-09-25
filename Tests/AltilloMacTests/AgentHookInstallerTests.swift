@@ -641,3 +641,9 @@ struct AgentHookInstallerPartsTests {
         #expect(diff.hunks[1].header == "@@ -16,5 +16,5 @@")
     }
 }
+
+@Test func developmentBuildsAreRecognisedSoTheyNeverStealTheHookLink() {
+    #expect(AgentHookInstaller.isDevelopmentBuild("/Users/x/altillo/build/dd/Build/Products/Debug/Altillo.app/Contents/MacOS/altillo-hook"))
+    #expect(AgentHookInstaller.isDevelopmentBuild("/Users/x/Library/Developer/Xcode/DerivedData/Altillo-abc/Build/Products/Debug/Altillo.app"))
+    #expect(!AgentHookInstaller.isDevelopmentBuild("/Applications/Altillo.app/Contents/MacOS/altillo-hook"))
+}

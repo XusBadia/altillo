@@ -47,6 +47,8 @@ struct DesvanContextualEar: View {
                     .font(Desvan.Typeface.figure(13, weight: .medium))
                     .foregroundStyle(Desvan.Palette.paper)
             }
+        case let .timer(timer):
+            DesvanTimerEar(signal: timer)
         case .rest:
             if style != .live { DesvanEarGlyph(symbol: EarContent.automatic.symbol) }
         }
@@ -54,7 +56,7 @@ struct DesvanContextualEar: View {
 
     /// Which view is showing: a new song or a minute ticking by updates in place, a new kind of thing swaps.
     private enum Kind: Hashable {
-        case agent, event, playback, usage, rest
+        case agent, event, playback, usage, timer, rest
 
         init(_ activity: NotchActivity) {
             switch activity {
@@ -62,6 +64,7 @@ struct DesvanContextualEar: View {
             case .imminentEvent: self = .event
             case .playback: self = .playback
             case .usage: self = .usage
+            case .timer: self = .timer
             case .rest: self = .rest
             }
         }

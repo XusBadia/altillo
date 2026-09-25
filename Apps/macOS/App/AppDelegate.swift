@@ -20,6 +20,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         if UserDefaults.standard.bool(forKey: "openAltillo") {
             coordinator.model.actions.send(.click)
         }
+        // The welcome (phase 15): once for everyone, never in the test host or while a review drives the app.
+        // `-showWelcome YES -welcomeStep <n>` opens it on a page for reviews.
+        OnboardingWindowController.shared.model = coordinator.model
+        OnboardingWindowController.shared.showAtLaunchIfNeeded()
     }
 
     func applicationWillTerminate(_ notification: Notification) {

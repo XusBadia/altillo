@@ -64,8 +64,12 @@ struct SettingsAboutPane: View {
                 .accessibilityLabel("View Altillo's code on GitHub")
 
                 VStack(spacing: 6) {
-                    Button("Check for Updates…") { updater.checkForUpdates() }
-                        .disabled(!updater.canCheckForUpdates)
+                    HStack(spacing: 8) {
+                        Button("Check for Updates…") { updater.checkForUpdates() }
+                            .disabled(!updater.canCheckForUpdates)
+                        Button("Show the Welcome Again") { OnboardingWindowController.shared.show() }
+                            .help("The first-run tour: starting points, AI tools, permissions and tricks.")
+                    }
 
                     if updater.isConfigured {
                         Toggle("Automatically check for updates", isOn: automaticallyChecksForUpdates)

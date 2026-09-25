@@ -18,6 +18,8 @@ struct NotchAlert: Identifiable, Equatable, Sendable {
         case usage
         /// A coding agent asking for permission or an answer, finishing or failing (PLAN §5.3).
         case agents
+        /// A kitchen timer ringing (phase 12).
+        case timer
     }
 
     let id = UUID()

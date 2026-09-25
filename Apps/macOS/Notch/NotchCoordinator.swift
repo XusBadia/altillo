@@ -136,6 +136,9 @@ final class NotchCoordinator {
         // Live agents: hook events over the socket plus the agents' own session files (phase 4).
         model.agentHub.postAlert = { [weak self] alert in self?.post(alert) }
         model.agentHub.start()
+        // Kitchen timers (phase 12): running ones come back from disk and ring with the notch closed.
+        model.timers.postAlert = { [weak self] alert in self?.post(alert) }
+        model.timers.start()
         // `-openModule usage` (with `-openAltillo YES`) opens on that section: reviews of live data without a click.
         if let name = UserDefaults.standard.string(forKey: "openModule"), let module = NotchModule(rawValue: name),
            model.settings.modules.contains(module) {
@@ -199,6 +202,7 @@ final class NotchCoordinator {
         model.nowPlaying.watchInBackground(false)
         model.usage.stop()
         model.agentHub.stop()
+        model.timers.stop()
         input.stop()
         dragDetector.stop()
         model.drawer.stop()

@@ -189,9 +189,13 @@ private struct DesvanAssistantWelcome: View {
                     Text("Ask the attic")
                         .font(Desvan.Typeface.display(15, weight: 600))
                         .foregroundStyle(Desvan.Palette.paper)
-                    Text(searchesTheWeb
-                        ? "Privately, on this Mac. I can look at your shelf, calendar, music and clipboard, and search the web."
-                        : "Privately, on this Mac. I can look at your shelf, calendar, music and clipboard.")
+                    Group {
+                        if searchesTheWeb {
+                            Text("Privately, on this Mac. I know your shelf, calendar, music, AI usage and agents, set timers, take notes and search the web.")
+                        } else {
+                            Text("Privately, on this Mac. I know your shelf, calendar, music, AI usage and agents, set timers and take notes.")
+                        }
+                    }
                         .font(.system(size: 12))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
                         .lineLimit(2)

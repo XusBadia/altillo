@@ -126,6 +126,11 @@ final class AltilloSettings {
         didSet { defaults.set(alertsForNowPlaying, forKey: Key.alertsForNowPlaying) }
     }
 
+    /// A timer ringing plays a soft sound as well as peeking (the bell in the Timer section). On by default.
+    var timerSound: Bool {
+        didSet { defaults.set(timerSound, forKey: Key.timerSound) }
+    }
+
     // MARK: AI usage (PLAN §5.2)
 
     /// Providers the user switched off in Settings › Sections › Usage. Stored as an opt-out list so every provider
@@ -163,6 +168,14 @@ final class AltilloSettings {
     /// of the installed hooks' command line, so changing it asks to update them.
     var agentPermissionWait: Int {
         didSet { defaults.set(agentPermissionWait, forKey: Key.agentPermissionWait) }
+    }
+
+    // MARK: First run (phase 15)
+
+    /// The welcome was finished or skipped. Off by default, so people who installed Altillo before the welcome
+    /// existed see it once too.
+    var hasCompletedOnboarding: Bool {
+        didSet { defaults.set(hasCompletedOnboarding, forKey: Key.hasCompletedOnboarding) }
     }
 
     func isUsageProviderEnabled(_ id: UsageProviderID) -> Bool { !usageDisabledProviders.contains(id) }
@@ -218,6 +231,7 @@ final class AltilloSettings {
         static let assistantHotKey = "assistantHotKey"
         static let alertsForCalendar = "alertsForCalendar"
         static let alertsForNowPlaying = "alertsForNowPlaying"
+        static let timerSound = "timerSound"
         static let displayMode = "displayMode"
         static let fullScreenBehaviour = "fullScreenBehaviour"
         static let leftEar = "leftEar"
@@ -232,6 +246,7 @@ final class AltilloSettings {
         static let usageAlertThresholds = "usageAlertThresholds"
         static let usageAlertsWhenRefilled = "usageAlertsWhenRefilled"
         static let agentPermissionWait = "agentPermissionWait"
+        static let hasCompletedOnboarding = "hasCompletedOnboarding"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -268,6 +283,7 @@ final class AltilloSettings {
         assistantHotKey = defaults.string(forKey: Key.assistantHotKey).flatMap(AssistantHotKey.init) ?? .controlOptionA
         alertsForCalendar = defaults.object(forKey: Key.alertsForCalendar) as? Bool ?? true
         alertsForNowPlaying = defaults.object(forKey: Key.alertsForNowPlaying) as? Bool ?? false
+        timerSound = defaults.object(forKey: Key.timerSound) as? Bool ?? true
         displayMode = defaults.string(forKey: Key.displayMode).flatMap(DisplayMode.init) ?? .notch
         fullScreenBehaviour = defaults.string(forKey: Key.fullScreenBehaviour).flatMap(FullScreenBehaviour.init)
             ?? .dragOnly
@@ -287,6 +303,7 @@ final class AltilloSettings {
         usageAlertsWhenRefilled = defaults.object(forKey: Key.usageAlertsWhenRefilled) as? Bool ?? true
         agentPermissionWait = (defaults.object(forKey: Key.agentPermissionWait) as? Int)
             .flatMap { AgentHookCommand.waitChoices.contains($0) ? $0 : nil } ?? AgentHookCommand.defaultWait
+        hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything

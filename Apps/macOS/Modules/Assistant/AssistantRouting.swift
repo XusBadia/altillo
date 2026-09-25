@@ -13,6 +13,9 @@ enum AssistantRoute: String, Equatable, Sendable {
     case context
     /// News, scores, weather, prices: looked up first (when the web is allowed), then answered from the results.
     case live
+    /// "Run my Coffee shortcut", "ejecuta el atajo Café": an explicit request to run one of the user's Shortcuts
+    /// (`ShortcutsAskIntent`). The only route with the `runShortcut` tool.
+    case shortcut
 }
 
 enum AssistantRouter {
@@ -36,6 +39,9 @@ enum AssistantRouter {
         "usage", "uso", "consumo", "quota", "cuota", "limit", "limits", "limite", "limites",
         // Coding agents (plural: "what is an agent?" is a general question)
         "agents", "agentes",
+        // Timer and note (phase 12): the first things Ask does rather than reads
+        "timer", "timers", "temporizador", "temporizadores", "temporitzador", "temporitzadors", "pomodoro",
+        "apunta", "apuntame", "apuntalo", "anota", "anotame", "anotalo", "jot",
     ]
 
     /// Ways of asking about one's own day ("what do I have", "¿qué tengo?").
@@ -51,12 +57,31 @@ enum AssistantRouter {
         "codex finished", "claude working", "codex working", "claude waiting", "codex waiting", "hace claude",
         "hace codex", "haciendo claude", "haciendo codex", "claude termin", "codex termin", "claude acab",
         "codex acab", "terminado claude", "terminado codex", "acabado claude", "acabado codex", "fa claude", "fa codex", "fent claude", "fent codex", "my agent", "mi agente", "el meu agent",
+        // Writing something down ("write down that …"; "note" and «nota» are words above)
+        "write down", "write this down", "write that down",
     ]
 
+    /// Verbs that, with a duration ("pon 10 min", "avísame en media hora", "start 25 minutes"), ask for a timer.
+    static let timerVerbs: Set<String> = [
+        "pon", "ponme", "poner", "set", "start", "remind", "avisame", "avisa", "posa", "posam", "avisam",
+        "countdown",
+    ]
+
+    /// "pon 10 min": a timer verb and a duration, without the word "timer".
+    static func asksForTimer(_ question: String) -> Bool {
+        let folded = AssistantHTML.fold(question).replacingOccurrences(of: "'", with: "")
+        let words = folded.split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        guard words.contains(where: timerVerbs.contains) else { return false }
+        return TimerDurationParser.seconds(in: question, bareNumbersAreMinutes: false) != nil
+    }
+
     static func route(_ question: String, followsContext: Bool = false, now: Date = .now) -> AssistantRoute {
+        // Before anything else: "run my clipboard shortcut" is a request to run, not a question about the clipboard.
+        if ShortcutsAskIntent.isExplicitRun(question) { return .shortcut }
         let folded = AssistantHTML.fold(question)
         let words = folded.split { !$0.isLetter && !$0.isNumber && $0 != "-" }.map(String.init)
-        if words.contains(where: contextWords.contains) || contextPhrases.contains(where: folded.contains) {
+        if words.contains(where: contextWords.contains) || contextPhrases.contains(where: folded.contains)
+            || asksForTimer(question) {
             return .context
         }
         // "And tomorrow?" right after a calendar answer is still about the calendar.

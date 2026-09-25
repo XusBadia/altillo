@@ -28,7 +28,17 @@ enum AssistantInstructions {
         case .context:
             text += """
 
-            The user is asking about their own things. Call the one tool that fits (shelf, calendar, nowPlaying, clipboard, usage or agents) and answer from its result. Never invent events, files, songs or contents. If the tool can't help, say so simply.
+            The user is asking about their own things. Call the one tool that fits (shelf, calendar, nowPlaying, clipboard, clipboardHistory, usage or agents) and answer from its result. Never invent events, files, songs or contents. If the tool can't help, say so simply.
+            """
+            // Phase 12: the first tools that act. The small model likes to say "done" without doing it.
+            text += """
+
+            To start a timer call timer; to write something down or read the note call note. Never say a timer is set or a line is added unless the tool said so, and repeat what it did in one sentence.
+            """
+        case .shortcut:
+            text += """
+
+            The user asked you to run one of their Shortcuts. Call runShortcut once with the shortcut's name as the user wrote it, then say in one sentence what ran and how it went, from the tool's result. Never claim something ran unless the tool said so, and never run anything else.
             """
         case .chat, .live:
             // The small model refuses too readily: it's told plainly what it's good at and to just answer.
@@ -325,7 +335,10 @@ enum AssistantFormat {
         case "shelf": String(localized: "shelf")
         case "calendar": String(localized: "calendar")
         case "nowPlaying": String(localized: "music")
-        case "clipboard": String(localized: "clipboard")
+        case "clipboard", "clipboardHistory": String(localized: "clipboard")
+        case "runShortcut": String(localized: "shortcuts")
+        case "timer": String(localized: "timer")
+        case "note": String(localized: "note")
         default: String(localized: "things")
         }
     }

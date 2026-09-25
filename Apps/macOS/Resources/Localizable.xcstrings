@@ -545,6 +545,23 @@
         }
       }
     },
+    "%@ rings at %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ rings at %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ suena a las %@"
+          }
+        }
+      }
+    },
     "%@ thing up there" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -851,6 +868,23 @@
         }
       }
     },
+    "%@ · paused" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · paused"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · en pausa"
+          }
+        }
+      }
+    },
     "%@ · refills in %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -868,6 +902,23 @@
         }
       }
     },
+    "%@ · rings at %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · rings at %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · suena a las %@"
+          }
+        }
+      }
+    },
     "%@ – %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -881,6 +932,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ – %@"
+          }
+        }
+      }
+    },
+    "%@, %@ left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, %@ left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, quedan %@"
           }
         }
       }
@@ -956,6 +1024,91 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "%@, didn't finish: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, didn't finish: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, no ha terminado: %@"
+          }
+        }
+      }
+    },
+    "%@, done" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, done"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, hecho"
+          }
+        }
+      }
+    },
+    "%@, paused" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, paused"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, en pausa"
+          }
+        }
+      }
+    },
+    "%@, running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, running"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, ejecutándose"
+          }
+        }
+      }
+    },
+    "%@, time's up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, time's up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, se acabó el tiempo"
           }
         }
       }
@@ -1075,6 +1228,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@: toca para la oreja %@ o arrástralo a una"
+          }
+        }
+      }
+    },
+    "%@: time's up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: time's up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@: se acabó el tiempo"
           }
         }
       }
@@ -1290,6 +1460,23 @@
         }
       }
     },
+    "%lld found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld found"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld encontrados"
+          }
+        }
+      }
+    },
     "%lld h" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1450,6 +1637,23 @@
         }
       }
     },
+    "%lld minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld minutos"
+          }
+        }
+      }
+    },
     "%lld points ahead of pace" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1600,6 +1804,23 @@
         }
       }
     },
+    "%lld sections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld sections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld secciones"
+          }
+        }
+      }
+    },
     "%lld things" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1675,6 +1896,57 @@
         }
       }
     },
+    "%lldh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldh"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld h"
+          }
+        }
+      }
+    },
+    "%lldh%lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldh%lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld h %lld"
+          }
+        }
+      }
+    },
+    "%lldm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lldm"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld min"
+          }
+        }
+      }
+    },
     "1 event" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1688,6 +1960,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1 evento"
+          }
+        }
+      }
+    },
+    "1 found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 found"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 encontrado"
+          }
+        }
+      }
+    },
+    "1 section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 section"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 sección"
           }
         }
       }
@@ -1794,6 +2100,57 @@
         }
       }
     },
+    "A few tricks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A few tricks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unos cuantos trucos"
+          }
+        }
+      }
+    },
+    "A file being dragged up into the notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A file being dragged up into the notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un archivo siendo arrastrado hacia el notch"
+          }
+        }
+      }
+    },
+    "A kitchen timer that peeks when it rings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A kitchen timer that peeks when it rings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Un temporizador de cocina que asoma cuando suena."
+          }
+        }
+      }
+    },
     "A light tap when you swipe between sections or something lands on the shelf." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1824,6 +2181,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Con esto activado, un límite agotado o que se va a agotar antes de recargarse siempre asoma. Cada uno asoma una vez por ventana."
+          }
+        }
+      }
+    },
+    "A notch app is best when it's always there. It uses next to nothing while you don't need it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A notch app is best when it's always there. It uses next to nothing while you don't need it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una app de notch es mejor cuanto más presente está. Casi no gasta nada mientras no la necesitas."
           }
         }
       }
@@ -1862,6 +2236,40 @@
         }
       }
     },
+    "A quick note you can drag out anywhere." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A quick note you can drag out anywhere."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Una nota rápida que puedes arrastrar a donde quieras."
+          }
+        }
+      }
+    },
+    "AI tools" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AI tools"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Herramientas de IA"
+          }
+        }
+      }
+    },
     "AI usage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1892,6 +2300,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Acerca de"
+          }
+        }
+      }
+    },
+    "Accessibility" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accessibility"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accesibilidad"
           }
         }
       }
@@ -2011,6 +2436,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Después, lo pregunta en la terminal"
+          }
+        }
+      }
+    },
+    "Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otra vez"
           }
         }
       }
@@ -2198,6 +2640,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Permitir"
+          }
+        }
+      }
+    },
+    "Allow %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitir %@"
           }
         }
       }
@@ -2406,6 +2865,23 @@
         }
       }
     },
+    "Allowed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allowed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permitido"
+          }
+        }
+      }
+    },
     "Also read an app compatible with OpenUsage" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2508,6 +2984,40 @@
         }
       }
     },
+    "Altillo already shows what your agents are doing. With its hooks they can also ask for your permission right in the notch. It never approves anything on its own." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo already shows what your agents are doing. With its hooks they can also ask for your permission right in the notch. It never approves anything on its own."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo ya te muestra qué hacen tus agentes. Con sus hooks también pueden pedirte permiso ahí mismo, en el notch. Nunca aprueba nada por su cuenta."
+          }
+        }
+      }
+    },
+    "Altillo can't read the clipboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo can't read the clipboard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no puede leer el portapapeles"
+          }
+        }
+      }
+    },
     "Altillo can't see your calendar. Give it access in System Settings and open the notch again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2572,6 +3082,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo no tiene permiso para usarla. Actívalo en Ajustes del Sistema y vuelve a abrir el notch."
+          }
+        }
+      }
+    },
+    "Altillo finds them by itself, right here on your Mac. Nothing leaves it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo finds them by itself, right here on your Mac. Nothing leaves it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo las encuentra solo, aquí mismo en tu Mac. Nada sale de él."
           }
         }
       }
@@ -2780,6 +3307,23 @@
         }
       }
     },
+    "Altillo stays out of the way until you want it. These bring it to you." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo stays out of the way until you want it. These bring it to you."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no molesta hasta que lo necesitas. Estos trucos te lo acercan."
+          }
+        }
+      }
+    },
     "Altillo stopped before writing: %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2810,6 +3354,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo quita de la balda lo que lleve ahí más tiempo del que elijas. Tus archivos originales no se tocan nunca."
+          }
+        }
+      }
+    },
+    "Altillo turns the notch into a place up top: leave things there for a moment, and see what matters without leaving what you're doing." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo turns the notch into a place up top: leave things there for a moment, and see what matters without leaving what you're doing."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo convierte el notch en un sitio arriba: deja cosas ahí un momento y ve lo importante sin dejar lo que estás haciendo."
           }
         }
       }
@@ -3052,6 +3613,23 @@
         }
       }
     },
+    "Answer your agents from the notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Answer your agents from the notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde a tus agentes desde el notch"
+          }
+        }
+      }
+    },
     "Apple Intelligence is off" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3184,6 +3762,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pregunta por tu día, tu altillo, lo que sea…"
+          }
+        }
+      }
+    },
+    "Ask added “%@”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask added “%@”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregunta ha añadido “%@”"
+          }
+        }
+      }
+    },
+    "Ask anything" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask anything"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregunta lo que sea"
           }
         }
       }
@@ -3375,6 +3987,23 @@
         }
       }
     },
+    "Back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atrás"
+          }
+        }
+      }
+    },
     "Back to normal" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3439,6 +4068,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sala grande"
+          }
+        }
+      }
+    },
+    "Blank text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blank text"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Texto en blanco"
+          }
+        }
+      }
+    },
+    "Bring back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recuperar"
           }
         }
       }
@@ -3817,6 +4480,23 @@
         }
       }
     },
+    "Choose what lives up there. Each one sets the sections of the open notch and what sits beside it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose what lives up there. Each one sets the sections of the open notch and what sits beside it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige qué vive ahí arriba. Cada uno fija las secciones del notch abierto y lo que hay a su lado."
+          }
+        }
+      }
+    },
     "Claude Code has every hook turned off (\"disableAllHooks\" in settings.json)." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3851,6 +4531,74 @@
         }
       }
     },
+    "Clear History" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear History"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaciar el historial"
+          }
+        }
+      }
+    },
+    "Clear the history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the history"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaciar el historial"
+          }
+        }
+      }
+    },
+    "Clear the history (pinned slips stay)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the history (pinned slips stay)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vaciar el historial (los papelitos fijados se quedan)"
+          }
+        }
+      }
+    },
+    "Clear the search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear the search"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar la búsqueda"
+          }
+        }
+      }
+    },
     "Clear the shelf on its own" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3864,6 +4612,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Vaciar el altillo solo"
+          }
+        }
+      }
+    },
+    "Click a shortcut to run it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click a shortcut to run it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic en un atajo para ejecutarlo."
+          }
+        }
+      }
+    },
+    "Click the notch and Altillo opens. Try it now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click the notch and Altillo opens. Try it now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic en el notch y Altillo se abre. Pruébalo ahora."
+          }
+        }
+      }
+    },
+    "Click to copy · ⌥-click to throw away · drag it out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Click to copy · ⌥-click to throw away · drag it out"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic para copiar · ⌥-clic para tirarlo · arrástralo fuera"
           }
         }
       }
@@ -3919,6 +4718,91 @@
         }
       }
     },
+    "Clipboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Portapapeles"
+          }
+        }
+      }
+    },
+    "Clipboard options" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clipboard options"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opciones del portapapeles"
+          }
+        }
+      }
+    },
+    "Close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cerrar"
+          }
+        }
+      }
+    },
+    "Close the welcome. You can open it again from Altillo's menu or Settings › About." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close the welcome. You can open it again from Altillo's menu or Settings › About."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cierra la bienvenida. Puedes volver a abrirla desde el menú de Altillo o Ajustes › Acerca de."
+          }
+        }
+      }
+    },
+    "Closes the welcome. Open it again from Altillo's menu." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Closes the welcome. Open it again from Altillo's menu."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cierra la bienvenida. Ábrela otra vez desde el menú de Altillo."
+          }
+        }
+      }
+    },
     "Cloud drive" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3949,6 +4833,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clínica Sol"
+          }
+        }
+      }
+    },
+    "Codex also asks you to trust them: type /hooks in Codex." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codex also asks you to trust them: type /hooks in Codex."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Codex también te pide que confíes en ellos: escribe /hooks en Codex."
           }
         }
       }
@@ -4055,6 +4956,23 @@
         }
       }
     },
+    "Continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continuar"
+          }
+        }
+      }
+    },
     "Copied" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4068,6 +4986,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copiado"
+          }
+        }
+      }
+    },
+    "Copies it again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copies it again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo copia otra vez."
           }
         }
       }
@@ -4106,6 +5041,23 @@
         }
       }
     },
+    "Copy some text and it lands here, ready to copy again. Text only; passwords are never kept." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy some text and it lands here, ready to copy again. Text only; passwords are never kept."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copia algo de texto y aterriza aquí, listo para copiarlo otra vez. Solo texto; las contraseñas nunca se guardan."
+          }
+        }
+      }
+    },
     "Copy the answer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4119,6 +5071,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Copiar la respuesta"
+          }
+        }
+      }
+    },
+    "Couldn't list your shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't list your shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se han podido listar tus atajos"
+          }
+        }
+      }
+    },
+    "Couldn't prepare the input." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't prepare the input."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha podido preparar la entrada."
           }
         }
       }
@@ -4548,6 +5534,23 @@
         }
       }
     },
+    "Drag it to the notch and let go. Drag it out when you need it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag it to the notch and let go. Drag it out when you need it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrástralo al notch y suéltalo. Sácalo arrastrando cuando lo necesites."
+          }
+        }
+      }
+    },
     "Drag menu bar icons between Altillo and the menu bar." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4565,6 +5568,23 @@
         }
       }
     },
+    "Drag round the dial, or type the minutes, then press the knob to start." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag round the dial, or type the minutes, then press the knob to start."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gira el dial, o escribe los minutos, y pulsa la rueda para empezar."
+          }
+        }
+      }
+    },
     "Drag spike log…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4578,6 +5598,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Registro de pruebas de arrastre…"
+          }
+        }
+      }
+    },
+    "Drag the note out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag the note out"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra la nota fuera"
+          }
+        }
+      }
+    },
+    "Drag the note out anywhere" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drag the note out anywhere"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra la nota fuera, donde quieras"
           }
         }
       }
@@ -4837,6 +5891,23 @@
         }
       }
     },
+    "Edit in Shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit in Shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar en Atajos"
+          }
+        }
+      }
+    },
     "Empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4918,6 +5989,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todas las secciones, con lo que importa ahora junto al notch."
+          }
+        }
+      }
+    },
+    "Every shortcut is pinned." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Every shortcut is pinned."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todos los atajos están fijados."
           }
         }
       }
@@ -5143,6 +6231,23 @@
         }
       }
     },
+    "For Now playing: to show what's on and play, pause or skip from the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For Now playing: to show what's on and play, pause or skip from the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para Sonando: para mostrar qué suena y reproducir, pausar o saltar desde el notch."
+          }
+        }
+      }
+    },
     "For live things like scores, news or prices, Ask writes a short search from your question and sends it to DuckDuckGo (Bing if DuckDuckGo is busy), then reads the top pages it finds; for the weather, only the place goes to Open-Meteo. No cookies, no account. Answers that used the web show a globe with their sources." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5160,6 +6265,40 @@
         }
       }
     },
+    "For the Drawer: to reach the menu bar icons the notch hides, and open their menus." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For the Drawer: to reach the menu bar icons the notch hides, and open their menus."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para el cajón: para llegar a los iconos de la barra de menús que esconde el notch, y abrir sus menús."
+          }
+        }
+      }
+    },
+    "For the mirror, to check yourself before a call. The image never leaves your Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For the mirror, to check yourself before a call. The image never leaves your Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para el espejo, para verte antes de una llamada. La imagen nunca sale de tu Mac."
+          }
+        }
+      }
+    },
     "For this session" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5173,6 +6312,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En esta sesión"
+          }
+        }
+      }
+    },
+    "For your next event beside the notch and your day in Calendar. Events never leave your Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For your next event beside the notch and your day in Calendar. Events never leave your Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para tu próximo evento junto al notch y tu día en Calendario. Los eventos nunca salen de tu Mac."
+          }
+        }
+      }
+    },
+    "Found" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontrado"
+          }
+        }
+      }
+    },
+    "Found on this Mac. Sessions already show up." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Found on this Mac. Sessions already show up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encontrado en este Mac. Las sesiones ya aparecen."
           }
         }
       }
@@ -5377,6 +6567,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ir a la terminal (⌘T)"
+          }
+        }
+      }
+    },
+    "Hello" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hello"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hola"
           }
         }
       }
@@ -5653,6 +6860,40 @@
         }
       }
     },
+    "Hooks from another version: worth an update." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks from another version: worth an update."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks de otra versión: conviene actualizarlos."
+          }
+        }
+      }
+    },
+    "Hooks in. It can ask you from the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks in. It can ask you from the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hooks instalados. Puede preguntarte desde el notch."
+          }
+        }
+      }
+    },
     "Hooks installed." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5717,6 +6958,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuánto te queda de Claude, Codex y compañía."
+          }
+        }
+      }
+    },
+    "How much you have left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How much you have left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuánto te queda"
           }
         }
       }
@@ -6129,6 +7387,23 @@
         }
       }
     },
+    "It stays up there until you drag it out, wherever you want it. You'll find this welcome again in Altillo's menu and in Settings › About." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It stays up there until you drag it out, wherever you want it. You'll find this welcome again in Altillo's menu and in Settings › About."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se queda ahí arriba hasta que lo sacas arrastrando, donde tú quieras. Encontrarás esta bienvenida otra vez en el menú de Altillo y en Ajustes › Acerca de."
+          }
+        }
+      }
+    },
     "It stays up there until you take it down somewhere else." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6142,6 +7417,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se queda arriba hasta que lo bajes a otro sitio."
+          }
+        }
+      }
+    },
+    "It stopped with an error (%d)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It stopped with an error (%d)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se ha parado con un error (%d)."
+          }
+        }
+      }
+    },
+    "It took too long and was stopped." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It took too long and was stopped."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha tardado demasiado y se ha parado."
           }
         }
       }
@@ -6231,6 +7540,40 @@
         }
       }
     },
+    "Jot something down…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jot something down…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apunta algo…"
+          }
+        }
+      }
+    },
+    "Jump to a section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jump to a section"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Salta a una sección"
+          }
+        }
+      }
+    },
     "Just the shelf. The notch stays out of sight." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6248,6 +7591,40 @@
         }
       }
     },
+    "Keep History After Quitting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep History After Quitting"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conservar el historial al salir"
+          }
+        }
+      }
+    },
+    "Keep a file up there" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep a file up there"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda un archivo ahí arriba"
+          }
+        }
+      }
+    },
     "Keep holding" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6261,6 +7638,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sigue pulsando"
+          }
+        }
+      }
+    },
+    "Keep it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conservarlo"
           }
         }
       }
@@ -6363,6 +7757,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Toc, toc: espera tu permiso"
+          }
+        }
+      }
+    },
+    "Later" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más tarde"
+          }
+        }
+      }
+    },
+    "Later, then. Calendar asks the first time you open it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later, then. Calendar asks the first time you open it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vale, más tarde. Calendario pregunta la primera vez que lo abras."
+          }
+        }
+      }
+    },
+    "Later, then. Now playing asks the first time you open it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later, then. Now playing asks the first time you open it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vale, más tarde. Sonando pregunta la primera vez que lo abras."
+          }
+        }
+      }
+    },
+    "Later, then. The Drawer asks when you open it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later, then. The Drawer asks when you open it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vale, más tarde. El cajón pregunta cuando lo abras."
+          }
+        }
+      }
+    },
+    "Later, then. The mirror asks the first time you open it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later, then. The mirror asks the first time you open it."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vale, más tarde. El espejo pregunta la primera vez que lo abras."
+          }
+        }
+      }
+    },
+    "Later: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Later: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Más tarde: %@"
           }
         }
       }
@@ -6622,6 +8118,23 @@
         }
       }
     },
+    "Looking around your Mac…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking around your Mac…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mirando en tu Mac…"
+          }
+        }
+      }
+    },
     "Looking at what you copied…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6741,6 +8254,23 @@
         }
       }
     },
+    "Looking for your shortcuts…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Looking for your shortcuts…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscando tus atajos…"
+          }
+        }
+      }
+    },
     "MIT licence. Use it, copy it and change it freely." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6754,6 +8284,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Licencia MIT. Puedes usarlo, copiarlo y modificarlo libremente."
+          }
+        }
+      }
+    },
+    "Make it yours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make it yours"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hazlo tuyo"
+          }
+        }
+      }
+    },
+    "Make one in the Shortcuts app and it shows up here, one click away." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make one in the Shortcuts app and it shows up here, one click away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crea uno en la app Atajos y aparecerá aquí, a un clic."
           }
         }
       }
@@ -7030,6 +8594,40 @@
         }
       }
     },
+    "Move the pointer to the top of the screen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the pointer to the top of the screen"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sube el puntero hasta arriba del todo de la pantalla"
+          }
+        }
+      }
+    },
+    "Move the pointer up to the notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Move the pointer up to the notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sube el puntero hasta el notch"
+          }
+        }
+      }
+    },
     "Move to Altillo" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7098,6 +8696,23 @@
         }
       }
     },
+    "Music and Spotify" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Music and Spotify"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Música y Spotify"
+          }
+        }
+      }
+    },
     "Music paused" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7128,6 +8743,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Música sonando"
+          }
+        }
+      }
+    },
+    "Name, or “10 pasta”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name, or “10 pasta”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre, o “10 pasta”"
           }
         }
       }
@@ -7217,6 +8849,23 @@
         }
       }
     },
+    "Neither Music nor Spotify is open. Altillo asks the first time you play something with Now playing open." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neither Music nor Spotify is open. Altillo asks the first time you play something with Now playing open."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ni Música ni Spotify están abiertos. Altillo pregunta la primera vez que reproduces algo con Sonando abierto."
+          }
+        }
+      }
+    },
     "Never" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7247,6 +8896,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nueva conversación"
+          }
+        }
+      }
+    },
+    "New note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New note"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota nueva"
+          }
+        }
+      }
+    },
+    "New note (hold for earlier ones)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New note (hold for earlier ones)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota nueva (mantén pulsado para ver anteriores)"
+          }
+        }
+      }
+    },
+    "New timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New timer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nuevo temporizador"
           }
         }
       }
@@ -7302,6 +9002,23 @@
         }
       }
     },
+    "No AI accounts on this Mac yet. Sign in to Claude Code, Codex, Cursor or another one and it shows up in the notch by itself." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No AI accounts on this Mac yet. Sign in to Claude Code, Codex, Cursor or another one and it shows up in the notch by itself."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no hay cuentas de IA en este Mac. Inicia sesión en Claude Code, Codex, Cursor o cualquier otra y aparecerá sola en el notch."
+          }
+        }
+      }
+    },
     "No AI usage to show yet" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7336,6 +9053,23 @@
         }
       }
     },
+    "No Claude Code or Codex on this Mac yet. Once you have one, Settings › Sections › Agents sets it up." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No Claude Code or Codex on this Mac yet. Once you have one, Settings › Sections › Agents sets it up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no hay Claude Code ni Codex en este Mac. En cuanto tengas uno, Ajustes › Secciones › Agentes lo configura."
+          }
+        }
+      }
+    },
     "No agents working" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7349,6 +9083,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ningún agente trabajando"
+          }
+        }
+      }
+    },
+    "No camera connected. The mirror asks when you use one." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No camera connected. The mirror asks when you use one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay cámara conectada. El espejo pregunta cuando uses una."
           }
         }
       }
@@ -7417,6 +9168,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No hay más eventos hoy"
+          }
+        }
+      }
+    },
+    "No shortcut called “%@”." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No shortcut called “%@”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ningún atajo llamado “%@”."
+          }
+        }
+      }
+    },
+    "No shortcuts yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No shortcuts yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no hay atajos"
+          }
+        }
+      }
+    },
+    "No slips with “%@”." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No slips with “%@”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ningún papelito con “%@”."
           }
         }
       }
@@ -7574,6 +9376,40 @@
         }
       }
     },
+    "Note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota"
+          }
+        }
+      }
+    },
+    "Notes you put away appear here" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes you put away appear here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las notas que guardas aparecen aquí"
+          }
+        }
+      }
+    },
     "Notes · notch review (18-09)\n\n- Idle has to disappear on the hardware notch.\n- Ears only if there's something to show.\n- Peek: one line, never two.\n- Drop: show where it'll land before you drop it.\n- AI usage: pace as well as the percentage.\n- Agents: Allow / Deny without going to the terminal." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7604,6 +9440,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nada"
+          }
+        }
+      }
+    },
+    "Nothing copied yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing copied yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Todavía no has copiado nada"
           }
         }
       }
@@ -7727,6 +9580,23 @@
         }
       }
     },
+    "Nothing picked: your sections stay as they are. You can change everything later: right-click the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing picked: your sections stay as they are. You can change everything later: right-click the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nada elegido: tus secciones se quedan como están. Puedes cambiarlo todo después: clic derecho en el notch."
+          }
+        }
+      }
+    },
     "Nothing playing up here" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7757,6 +9627,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No hay nada guardado. Toca − en una pestaña."
+          }
+        }
+      }
+    },
+    "Nothing to allow for this setup. If you turn on a section that needs something, it asks then." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to allow for this setup. If you turn on a section that needs something, it asks then."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay nada que permitir con esta configuración. Si activas una sección que necesita algo, te lo pedirá entonces."
           }
         }
       }
@@ -7808,6 +9695,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sonando: %@, de %@"
+          }
+        }
+      }
+    },
+    "Off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado"
+          }
+        }
+      }
+    },
+    "On" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activado"
           }
         }
       }
@@ -7978,6 +9899,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Solo la pantalla con la barra de menús, aunque otra tenga notch."
+          }
+        }
+      }
+    },
+    "Only what your setup needs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only what your setup needs"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo lo que necesita tu configuración"
           }
         }
       }
@@ -8199,6 +10137,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abrir Ajustes"
+          }
+        }
+      }
+    },
+    "Open Shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Atajos"
           }
         }
       }
@@ -8475,6 +10430,23 @@
         }
       }
     },
+    "Opening your note…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opening your note…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abriendo tu nota…"
+          }
+        }
+      }
+    },
     "Opens %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8488,6 +10460,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abre %@"
+          }
+        }
+      }
+    },
+    "Opens Ask from any app, ready to type." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Ask from any app, ready to type."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Pregunta desde cualquier app, listo para escribir."
           }
         }
       }
@@ -8560,6 +10549,23 @@
         }
       }
     },
+    "Other…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Otro…"
+          }
+        }
+      }
+    },
     "Out of sight entirely. The Ask shortcut still opens it." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8624,6 +10630,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pausa"
+          }
+        }
+      }
+    },
+    "Paused" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paused"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En pausa"
           }
         }
       }
@@ -8747,6 +10770,40 @@
         }
       }
     },
+    "Permissions" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissions"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permisos"
+          }
+        }
+      }
+    },
+    "Pick a starting point" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a starting point"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige un punto de partida"
+          }
+        }
+      }
+    },
     "Pick what it shows from the ear chips below" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8760,6 +10817,91 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Elige qué muestra en las fichas de abajo"
+          }
+        }
+      }
+    },
+    "Pin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fijar"
+          }
+        }
+      }
+    },
+    "Pin a shortcut from the list and it becomes a big tag here, one click away." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin a shortcut from the list and it becomes a big tag here, one click away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fija un atajo de la lista y se convierte en una etiqueta grande aquí, a un clic."
+          }
+        }
+      }
+    },
+    "Pin to the Favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin to the Favourites"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fijar en los favoritos"
+          }
+        }
+      }
+    },
+    "Pin to the favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pin to the favourites"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fijar en los favoritos"
+          }
+        }
+      }
+    },
+    "Pinned slips stay." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pinned slips stay."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los papelitos fijados se quedan."
           }
         }
       }
@@ -8934,6 +11076,40 @@
         }
       }
     },
+    "Privately, on this Mac. I know your shelf, calendar, music, AI usage and agents, set timers and take notes." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privately, on this Mac. I know your shelf, calendar, music, AI usage and agents, set timers and take notes."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En privado, en este Mac. Conozco tu altillo, tu calendario, tu música, tu uso de IA y tus agentes, pongo temporizadores y tomo notas."
+          }
+        }
+      }
+    },
+    "Privately, on this Mac. I know your shelf, calendar, music, AI usage and agents, set timers, take notes and search the web." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privately, on this Mac. I know your shelf, calendar, music, AI usage and agents, set timers, take notes and search the web."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En privado, en este Mac. Conozco tu altillo, tu calendario, tu música, tu uso de IA y tus agentes, pongo temporizadores, tomo notas y busco en la web."
+          }
+        }
+      }
+    },
     "Providers" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9104,6 +11280,23 @@
         }
       }
     },
+    "Put on the shelf" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put on the shelf"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Poner en el altillo"
+          }
+        }
+      }
+    },
     "Put the answer on the shelf, to drag it anywhere" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9117,6 +11310,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sube la respuesta al altillo para arrastrarla a donde quieras"
+          }
+        }
+      }
+    },
+    "Put the history back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put the history back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recuperar el historial"
+          }
+        }
+      }
+    },
+    "Put the slip back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Put the slip back"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recuperar el papelito"
+          }
+        }
+      }
+    },
+    "Puts this note away. Its menu brings back an earlier one." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puts this note away. Its menu brings back an earlier one."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda esta nota. Su menú recupera una anterior."
           }
         }
       }
@@ -9189,6 +11433,23 @@
         }
       }
     },
+    "Ran a shortcut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ran a shortcut"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha ejecutado un atajo"
+          }
+        }
+      }
+    },
     "Rate limited" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9236,6 +11497,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Leído de su fichero de sesión: instala los hooks para responder desde aquí"
+          }
+        }
+      }
+    },
+    "Ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listo"
           }
         }
       }
@@ -9376,6 +11654,23 @@
         }
       }
     },
+    "Remove this timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove this timer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar este temporizador"
+          }
+        }
+      }
+    },
     "Remove…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9389,6 +11684,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitar…"
+          }
+        }
+      }
+    },
+    "Reset" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reset"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reiniciar"
+          }
+        }
+      }
+    },
+    "Rest it there for a moment and Altillo opens. Try it now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest it there for a moment and Altillo opens. Try it now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déjalo ahí un momento y Altillo se abre. Pruébalo ahora."
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reanudar"
           }
         }
       }
@@ -9444,6 +11790,142 @@
         }
       }
     },
+    "Right-click the notch to rearrange sections and ears." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Right-click the notch to rearrange sections and ears."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic derecho en el notch para reordenar secciones y orejas."
+          }
+        }
+      }
+    },
+    "Rings silently. Click to ring with a sound." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rings silently. Click to ring with a sound."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suena en silencio. Haz clic para que suene con sonido."
+          }
+        }
+      }
+    },
+    "Rings with a sound. Click to ring silently." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rings with a sound. Click to ring silently."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suena con sonido. Haz clic para que suene en silencio."
+          }
+        }
+      }
+    },
+    "Run" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar"
+          }
+        }
+      }
+    },
+    "Run with the Clipboard’s Text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run with the Clipboard’s Text"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar con el texto del portapapeles"
+          }
+        }
+      }
+    },
+    "Run with “%@”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run with “%@”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar con “%@”"
+          }
+        }
+      }
+    },
+    "Run with…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run with…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar con…"
+          }
+        }
+      }
+    },
+    "Run “%@”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Run “%@”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutar “%@”"
+          }
+        }
+      }
+    },
     "Running fast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9478,6 +11960,40 @@
         }
       }
     },
+    "Running your shortcut…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running your shortcut…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutando tu atajo…"
+          }
+        }
+      }
+    },
+    "Running “%@”…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Running “%@”…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecutando “%@”…"
+          }
+        }
+      }
+    },
     "Runs out at %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9491,6 +12007,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hasta las %@"
+          }
+        }
+      }
+    },
+    "Runs the shortcut." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Runs the shortcut."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ejecuta el atajo."
           }
         }
       }
@@ -9614,6 +12147,23 @@
         }
       }
     },
+    "Search the clipboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search the clipboard"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Buscar en el portapapeles"
+          }
+        }
+      }
+    },
     "Search the web" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9627,6 +12177,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Buscar en la web"
+          }
+        }
+      }
+    },
+    "Search what you copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search what you copied"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca lo que has copiado"
+          }
+        }
+      }
+    },
+    "Search your shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search your shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Busca tus atajos"
           }
         }
       }
@@ -9750,6 +12334,40 @@
         }
       }
     },
+    "Set Up…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set Up…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurar…"
+          }
+        }
+      }
+    },
+    "Set by Ask" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set by Ask"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurado por Pregunta"
+          }
+        }
+      }
+    },
     "Set it up on this Mac and it shows up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9801,6 +12419,23 @@
         }
       }
     },
+    "Set up hooks for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set up hooks for %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurar hooks en %@"
+          }
+        }
+      }
+    },
     "Set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9814,6 +12449,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configura en este Mac las herramientas de IA que usas (Claude Code, Codex, Cursor…) y sus límites aparecerán aquí."
+          }
+        }
+      }
+    },
+    "Setting your timer…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setting your timer…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Configurando tu temporizador…"
           }
         }
       }
@@ -9933,6 +12585,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Atajo para preguntar"
+          }
+        }
+      }
+    },
+    "Shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajos"
+          }
+        }
+      }
+    },
+    "Shortcuts isn't here" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Shortcuts isn't here"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajos no está aquí"
           }
         }
       }
@@ -10086,6 +12772,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muestra o esconde los iconos a la izquierda del separador del cajón"
+          }
+        }
+      }
+    },
+    "Show the Welcome Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show the Welcome Again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a ver la bienvenida"
           }
         }
       }
@@ -10430,6 +13133,23 @@
         }
       }
     },
+    "Skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saltar"
+          }
+        }
+      }
+    },
     "Some controls aren't available in this menu." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10494,6 +13214,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Algo ha fallado aquí arriba. Vuelve a probar."
+          }
+        }
+      }
+    },
+    "Sound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sound"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sonido"
           }
         }
       }
@@ -10600,6 +13337,57 @@
         }
       }
     },
+    "Start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empezar"
+          }
+        }
+      }
+    },
+    "Start %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empezar %@"
+          }
+        }
+      }
+    },
+    "Start again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empezar de nuevo"
+          }
+        }
+      }
+    },
     "Start from" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10617,6 +13405,23 @@
         }
       }
     },
+    "Starting point" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting point"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Punto de partida"
+          }
+        }
+      }
+    },
     "Stay as usual" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10630,6 +13435,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Como siempre"
+          }
+        }
+      }
+    },
+    "Step %lld of %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Step %lld of %lld"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paso %lld de %lld"
           }
         }
       }
@@ -10719,6 +13541,23 @@
         }
       }
     },
+    "Swipe between sections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Swipe between sections"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desliza entre secciones"
+          }
+        }
+      }
+    },
     "Switches between the flipped, mirror-like image and the image as it is" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10732,6 +13571,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cambia entre la imagen invertida, como un espejo, y la imagen tal cual"
+          }
+        }
+      }
+    },
+    "System Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System Settings"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustes del Sistema"
           }
         }
       }
@@ -10824,6 +13680,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Bajar del altillo"
+          }
+        }
+      }
+    },
+    "Take back the timer Ask set" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Take back the timer Ask set"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar el temporizador que puso Pregunta"
           }
         }
       }
@@ -10930,6 +13803,23 @@
         }
       }
     },
+    "Text only. Passwords and anything marked private are never kept." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text only. Passwords and anything marked private are never kept."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Solo texto. Las contraseñas y todo lo marcado como privado nunca se guardan."
+          }
+        }
+      }
+    },
     "That's more than I can keep in my head at once. Start a new conversation and ask again." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10943,6 +13833,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Es más de lo que puedo tener en la cabeza a la vez. Empieza una conversación nueva y vuelve a preguntar."
+          }
+        }
+      }
+    },
+    "That's your altillo. It's always up there, one move away." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "That's your altillo. It's always up there, one move away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ese es tu altillo. Siempre está ahí arriba, a un gesto de distancia."
           }
         }
       }
@@ -10977,6 +13884,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "La cámara del Mac, para verte antes de una llamada."
+          }
+        }
+      }
+    },
+    "The Shortcuts command isn't on this Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Shortcuts command isn't on this Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El comando shortcuts no está en este Mac."
           }
         }
       }
@@ -11045,6 +13969,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "El fichero ha cambiado desde que lo revisaste. No se ha escrito nada; revisa los cambios nuevos."
+          }
+        }
+      }
+    },
+    "The first-run tour: starting points, AI tools, permissions and tricks." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The first-run tour: starting points, AI tools, permissions and tricks."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El recorrido inicial: puntos de partida, herramientas de IA, permisos y trucos."
+          }
+        }
+      }
+    },
+    "The last things you copied, text only. Passwords are never kept." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The last things you copied, text only. Passwords are never kept."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo último que has copiado, solo texto. Las contraseñas nunca se guardan."
           }
         }
       }
@@ -11321,6 +14279,23 @@
         }
       }
     },
+    "Their limits show in Usage, and beside the notch when they run high. Sign in to others and they join in." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Their limits show in Usage, and beside the notch when they run high. Sign in to others and they join in."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sus límites se ven en Uso, y junto al notch cuando van altos. Inicia sesión en más y se suman."
+          }
+        }
+      }
+    },
     "There are no calendars on this Mac yet." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11334,6 +14309,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Todavía no hay calendarios en este Mac."
+          }
+        }
+      }
+    },
+    "There it is." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There it is."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahí está."
+          }
+        }
+      }
+    },
+    "There's nothing to hand over any more, so it didn't run." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's nothing to hand over any more, so it didn't run."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ya no hay nada que entregar, así que no se ha ejecutado."
           }
         }
       }
@@ -11423,6 +14432,23 @@
         }
       }
     },
+    "This Mac doesn't have the shortcuts command, so there's nothing to run from the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac doesn't have the shortcuts command, so there's nothing to run from the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este Mac no tiene el comando shortcuts, así que no hay nada que ejecutar desde el notch."
+          }
+        }
+      }
+    },
     "This build has no update feed configured, so it can't check for updates." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11487,6 +14513,142 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esto puede ser difícil de deshacer. Mantén pulsado Permitir un segundo para confirmar."
+          }
+        }
+      }
+    },
+    "Throw away" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Throw away"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tirar"
+          }
+        }
+      }
+    },
+    "Throw away (⌥-click)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Throw away (⌥-click)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tirar (⌥-clic)"
+          }
+        }
+      }
+    },
+    "Time's up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time's up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se acabó el tiempo"
+          }
+        }
+      }
+    },
+    "Time's up · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Time's up · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Se acabó el tiempo · %@"
+          }
+        }
+      }
+    },
+    "Timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Temporizador"
+          }
+        }
+      }
+    },
+    "Timer dial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer dial"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dial del temporizador"
+          }
+        }
+      }
+    },
+    "Timer name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer name"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del temporizador"
+          }
+        }
+      }
+    },
+    "Timer name, or a time to start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer name, or a time to start"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nombre del temporizador, o un tiempo para empezar"
           }
         }
       }
@@ -11559,6 +14721,40 @@
         }
       }
     },
+    "Tricks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tricks"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trucos"
+          }
+        }
+      }
+    },
+    "Try Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try Again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reintentar"
+          }
+        }
+      }
+    },
     "Try again" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11576,6 +14772,40 @@
         }
       }
     },
+    "Try it: drag any file up to the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try it: drag any file up to the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pruébalo: arrastra cualquier archivo hasta el notch."
+          }
+        }
+      }
+    },
+    "Try it: drag any file up to the top of the screen." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try it: drag any file up to the top of the screen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pruébalo: arrastra cualquier archivo hasta arriba del todo de la pantalla."
+          }
+        }
+      }
+    },
     "Turn it on and I'll answer right here, privately, on this Mac." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11589,6 +14819,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Actívalo y te responderé aquí mismo, en privado, en este Mac."
+          }
+        }
+      }
+    },
+    "Turn on Altillo in Privacy & Security › Accessibility. This page notices when you do." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn on Altillo in Privacy & Security › Accessibility. This page notices when you do."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa Altillo en Privacidad y seguridad › Accesibilidad. Esta página se entera cuando lo hagas."
           }
         }
       }
@@ -11640,6 +14887,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Encender la cámara"
+          }
+        }
+      }
+    },
+    "Turn the dial or pick a time. Several can run at once." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turn the dial or pick a time. Several can run at once."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gira el dial o elige un tiempo. Pueden ir varios a la vez."
+          }
+        }
+      }
+    },
+    "Turned off in System Settings › Privacy & Security." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Turned off in System Settings › Privacy & Security."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desactivado en Ajustes del Sistema › Privacidad y seguridad."
+          }
+        }
+      }
+    },
+    "Twelve favourites at most" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twelve favourites at most"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doce favoritos, como máximo"
+          }
+        }
+      }
+    },
+    "Twenty pins at most" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Twenty pins at most"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Veinte fijados, como máximo"
+          }
+        }
+      }
+    },
+    "Two fingers sideways on the open notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Two fingers sideways on the open notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dos dedos hacia los lados, con el notch abierto."
+          }
+        }
+      }
+    },
+    "Type a time and a name, like “1h 30 bread”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type a time and a name, like “1h 30 bread”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe un tiempo y un nombre, como “1h 30 pan”"
           }
         }
       }
@@ -11708,6 +15057,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Deshacer (⌘Z)"
+          }
+        }
+      }
+    },
+    "Undo clear" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undo clear"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deshacer el borrado"
+          }
+        }
+      }
+    },
+    "Unpin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unpin"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dejar de fijar"
           }
         }
       }
@@ -11831,6 +15214,23 @@
         }
       }
     },
+    "Update hooks for %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update hooks for %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Actualizar hooks en %@"
+          }
+        }
+      }
+    },
     "Update…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11878,6 +15278,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajustes de uso…"
+          }
+        }
+      }
+    },
+    "Usage and Agents are off in this setup. Turn them on any time: right-click the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usage and Agents are off in this setup. Turn them on any time: right-click the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uso y Agentes están desactivados en esta configuración. Actívalos cuando quieras: clic derecho en el notch."
           }
         }
       }
@@ -12001,6 +15418,23 @@
         }
       }
     },
+    "Used your note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used your note"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha usado tu nota"
+          }
+        }
+      }
+    },
     "Used your shelf" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12014,6 +15448,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ha mirado tu altillo"
+          }
+        }
+      }
+    },
+    "Used your timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used your timer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha usado tu temporizador"
           }
         }
       }
@@ -12235,6 +15686,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Repaso semanal"
+          }
+        }
+      }
+    },
+    "Welcome to Altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to Altillo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenida a Altillo"
+          }
+        }
+      }
+    },
+    "Welcome to Altillo…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to Altillo…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenida a Altillo…"
+          }
+        }
+      }
+    },
+    "Welcome to your altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to your altillo"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenido a tu altillo"
           }
         }
       }
@@ -12477,6 +15979,57 @@
         }
       }
     },
+    "With the notch open, in the order of its tabs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "With the notch open, in the order of its tabs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con el notch abierto, en el orden de sus pestañas."
+          }
+        }
+      }
+    },
+    "Without a notch, Altillo lives in a small island at the top centre. Click it to open it. Try it now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without a notch, Altillo lives in a small island at the top centre. Click it to open it. Try it now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin notch, Altillo vive en una isla pequeña en el centro superior. Haz clic en ella para abrirla. Pruébalo ahora."
+          }
+        }
+      }
+    },
+    "Without a notch, Altillo lives in a small island at the top centre. Rest the pointer on it to open it. Try it now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Without a notch, Altillo lives in a small island at the top centre. Rest the pointer on it to open it. Try it now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin notch, Altillo vive en una isla pequeña en el centro superior. Deja el puntero encima para abrirlo. Pruébalo ahora."
+          }
+        }
+      }
+    },
     "Worked out exactly" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12562,6 +16115,40 @@
         }
       }
     },
+    "You can change everything later: right-click the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can change everything later: right-click the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Puedes cambiarlo todo después: clic derecho en el notch."
+          }
+        }
+      }
+    },
+    "You chose not to let it paste from other apps. Allow it in System Settings to keep a history here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You chose not to let it paste from other apps. Allow it in System Settings to keep a history here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegiste no dejar que pegue desde otras apps. Permítelo en Ajustes del Sistema para guardar un historial aquí."
+          }
+        }
+      }
+    },
     "You have **Notch design with Marta** at 10:30 and the **weekly review** at 17:00; the evening is free.\nYou copied a tracking number for a parcel arriving on Thursday." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12575,6 +16162,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tienes **Diseño del notch con Marta** a las 10:30 y la **revisión semanal** a las 17:00; la tarde está libre.\nHas copiado un número de seguimiento de un paquete que llega el jueves."
+          }
+        }
+      }
+    },
+    "You'll see exactly what changes before anything is written, and Settings takes it out in one click." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You'll see exactly what changes before anything is written, and Settings takes it out in one click."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verás exactamente qué cambia antes de escribir nada, y Ajustes lo quita en un clic."
+          }
+        }
+      }
+    },
+    "Your AI tools" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your AI tools"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus herramientas de IA"
+          }
+        }
+      }
+    },
+    "Your altillo is ready" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your altillo is ready"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tu altillo está listo"
           }
         }
       }
@@ -12626,6 +16264,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tu agenda está limpia. Baja la persiana cuando quieras."
+          }
+        }
+      }
+    },
+    "Your favourite Shortcuts, one click away." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your favourite Shortcuts, one click away."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus atajos favoritos, a un clic."
+          }
+        }
+      }
+    },
+    "Your favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your favourites"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tus favoritos"
           }
         }
       }
@@ -12830,6 +16502,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "rápido"
+          }
+        }
+      }
+    },
+    "from %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "from %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "de %@"
           }
         }
       }
@@ -13072,6 +16761,23 @@
         }
       }
     },
+    "macOS asks once for each. Altillo uses them only for the sections you chose, and you can change them any time in System Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS asks once for each. Altillo uses them only for the sections you chose, and you can change them any time in System Settings."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "macOS pregunta una vez por cada uno. Altillo los usa solo para las secciones que elegiste, y puedes cambiarlos cuando quieras en Ajustes del Sistema."
+          }
+        }
+      }
+    },
     "meeting-notes.txt" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13174,6 +16880,23 @@
         }
       }
     },
+    "note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "note"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nota"
+          }
+        }
+      }
+    },
     "now" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13238,6 +16961,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "abrir"
+          }
+        }
+      }
+    },
+    "paused, %@ left" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "paused, %@ left"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "en pausa, quedan %@"
+          }
+        }
+      }
+    },
+    "pinned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "pinned"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "fijado"
           }
         }
       }
@@ -13412,6 +17169,23 @@
         }
       }
     },
+    "shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "atajos"
+          }
+        }
+      }
+    },
     "soon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13493,6 +17267,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "el cambio no haría lo que dice."
+          }
+        }
+      }
+    },
+    "the clipboard’s text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "the clipboard’s text"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "el texto del portapapeles"
           }
         }
       }
@@ -13629,6 +17420,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "esta copia de Altillo no lleva altillo-hook dentro."
+          }
+        }
+      }
+    },
+    "time's up" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "time's up"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "se acabó el tiempo"
+          }
+        }
+      }
+    },
+    "timer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "timer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "temporizador"
           }
         }
       }
@@ -13799,6 +17624,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "·"
+          }
+        }
+      }
+    },
+    "“%@” didn't finish: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” didn't finish: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” no ha terminado: %@"
+          }
+        }
+      }
+    },
+    "“%@” ran." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ran."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” se ha ejecutado."
+          }
+        }
+      }
+    },
+    "“%@” ran: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” ran: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "“%@” se ha ejecutado: %@"
           }
         }
       }

@@ -267,7 +267,7 @@ private struct SettingsAgentHookRow: View {
 }
 
 /// The review before any write: what will change, as a unified diff, and the promise of what won't.
-private struct AgentHookReviewSheet: View {
+struct AgentHookReviewSheet: View {
     let plan: AgentHookPlan
     let path: String
     let backups: String
@@ -386,6 +386,8 @@ private struct AgentHookDiffView: View {
             .padding(.vertical, 6)
             .textSelection(.enabled)
         }
+        // Short diffs start at the left edge like any code listing, rather than centred in the scroll view.
+        .defaultScrollAnchor(.topLeading)
         .background {
             let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
             shape.fill(Color.black.opacity(0.35))
