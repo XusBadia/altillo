@@ -24,13 +24,43 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private var window: NSWindow?
     private let navigation = SettingsNavigation()
+    private var menuBarRefocusTask: Task<Void, Never>?
+
     /// Opens the window, activating Altillo first so it really takes focus from a menu bar app.
     func show(tab: SettingsTab? = nil) {
+        menuBarRefocusTask?.cancel()
+        menuBarRefocusTask = nil
         if let tab { navigation.tab = tab }
         AltilloSettings.shared.refreshLaunchAtLogin()
         let window = window ?? makeWindow()
         self.window = window
-        NSApp.activate()
+        bringToFront(window)
+    }
+
+    /// A synthetic menu-bar drag can finish transferring focus after the move itself has returned.
+    /// Restore the already-visible Settings window immediately, then check once more after AppKit
+    /// has settled instead of leaving the user to activate it again by hand.
+    func restoreAfterMenuBarInteraction(tab: SettingsTab? = nil) {
+        if let tab { navigation.tab = tab }
+        guard let window, window.isVisible else { return }
+
+        menuBarRefocusTask?.cancel()
+        bringToFront(window)
+        menuBarRefocusTask = Task { [weak self, weak window] in
+            try? await Task.sleep(for: .milliseconds(220))
+            guard !Task.isCancelled, let self, let window, window.isVisible else { return }
+            if !NSApp.isActive || !window.isKeyWindow {
+                self.bringToFront(window)
+            }
+            if !Task.isCancelled { self.menuBarRefocusTask = nil }
+        }
+    }
+
+    private func bringToFront(_ window: NSWindow) {
+        // Altillo is an LSUIElement app. Plain `activate()` is only advisory after a
+        // menu-bar interaction; ignoring the previous app is required to reclaim focus.
+        NSApp.activate(ignoringOtherApps: true)
+        window.orderFrontRegardless()
         window.makeKeyAndOrderFront(nil)
     }
 

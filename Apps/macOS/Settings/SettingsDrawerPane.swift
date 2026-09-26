@@ -52,7 +52,7 @@ struct SettingsDrawerPane: View {
             // A native Command-drag necessarily activates the menu bar. Once macOS has
             // finished it, return the window the user was arranging to the foreground.
             guard previous != nil, current == nil else { return }
-            SettingsWindowController.shared.show(tab: .drawer)
+            SettingsWindowController.shared.restoreAfterMenuBarInteraction(tab: .drawer)
         }
     }
 
