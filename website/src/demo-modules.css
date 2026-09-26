@@ -1,10 +1,10 @@
 /* The daily tools share the shelf's material and stay inside the same notch. */
 .ad-module-surface {
-  border: 1px solid #c6aa7930;
-  border-radius: 10px;
-  background: repeating-linear-gradient(2deg, transparent 0 3px, #a28c6112 3.4px, transparent 4px 9px), linear-gradient(105deg, #29241c, #1e1d18 65%, #27231a);
-  box-shadow: inset 0 1px 0 #ead4a10c;
-  color: #e8dfcd;
+  border: 1px solid #f6efe31f;
+  border-radius: 14px;
+  background: radial-gradient(ellipse at 18% -20%, #ffffff0b, transparent 45%), linear-gradient(105deg, #2a231c, #1e1914 65%, #241e18);
+  box-shadow: inset 0 1px #ffffff12, inset 0 -12px 28px #0002;
+  color: var(--ad-paper);
 }
 .ad-module-surface button {
   display: inline-flex;
@@ -19,19 +19,18 @@
   font-size: 10px;
 }
 .ad-module-surface button:hover { background: #e4c38b20; border-color: #b7a27580; }
-.ad-drawer-surface { padding: 16px; }
-.ad-drawer-intro { display: flex; align-items: center; gap: 13px; }
-.ad-drawer-intro > span { color: #d7bc88; }
-.ad-drawer-intro strong { font-size: 12px; font-weight: 550; }
-.ad-drawer-intro p { font-size: 10px; color: #b6ac99; margin: 4px 0 0; }
-.ad-drawer-bar { display: flex; align-items: center; gap: 11px; min-height: 48px; border-top: 1px solid #dcc3911a; margin-top: 14px; padding-top: 9px; }
-.ad-drawer-bar-label { color: #9e9583; font-size: 9px; margin-right: auto; }
+.ad-drawer-stage { position: relative; min-height: 126px; overflow: hidden; }
+.ad-drawer-live { display: flex; align-items: center; justify-content: flex-end; gap: 11px; min-height: 48px; padding: 7px 12px; border: 1px solid #f6efe31f; border-radius: 11px; background: #2a231ce6; box-shadow: inset 0 1px #ffffff12; }
 .ad-drawer-icons { display: flex; align-items: center; gap: 10px; }
 .ad-drawer-icons[hidden] { display: none; }
-.ad-drawer-icons button { padding: 6px; min-width: 34px; }
+.ad-drawer-icons button,.ad-drawer-live > button { display:grid;place-items:center; min-width:30px;min-height:30px;padding:5px;border:0;border-radius:7px;background:transparent;color:#e7decd; }
+.ad-drawer-icons button:hover,.ad-drawer-live > button:hover { background:#f6efe312; }
 .ad-drawer-divider { height: 18px; width: 1px; background: #b7a27535; }
-.ad-drawer-bar > button { margin-left: auto; white-space: nowrap; }
-.ad-drawer-menu { display: flex; align-items: center; gap: 10px; border-top: 1px solid #dcc3911a; padding: 12px 2px 0; }
+.ad-drawer-copy { display:flex;align-items:center;gap:10px;padding:14px 7px;color:#d7bc88; }
+.ad-drawer-copy strong,.ad-drawer-copy p { display:block;margin:0; }
+.ad-drawer-copy strong { color:var(--ad-paper);font-size:11px; }
+.ad-drawer-copy p { margin-top:3px;color:#9f988c;font-size:9px; }
+.ad-drawer-menu { position:absolute;right:46px;top:40px;z-index:2;display: flex; align-items: center; gap: 10px; min-width:180px;padding:10px 11px;border:1px solid #f6efe32b;border-radius:9px;background:#2a231cf7;box-shadow:0 12px 24px #0007; }
 .ad-drawer-menu > svg:first-child { color: #c5cfbd; }
 .ad-drawer-menu > svg:last-child { margin-left: auto; color: #b7cb9b; }
 .ad-drawer-menu strong, .ad-drawer-menu small { display: block; }
@@ -39,29 +38,24 @@
 .ad-drawer-menu small { color: #a6a08f; font-size: 9px; margin-top: 3px; }
 .ad-drawer-staircase { position: absolute; right: 18px; bottom: 8px; width: 82px; height: 46px; perspective: 120px; pointer-events: none; opacity: 0; }
 .ad-drawer-staircase i { position: absolute; right: calc(var(--step) * 8px); bottom: calc(var(--step) * 5px); width: 28px; height: 9px; border: 1px solid #c9a86f80; background: linear-gradient(90deg,#35291f,#b78b51); transform: rotateX(62deg); box-shadow: 0 2px 5px #0009; }
-.ad-drawer-surface.is-secret { position: relative; overflow: hidden; }
-.ad-drawer-surface.is-secret .ad-drawer-staircase { animation: ad-stairs-unfold 700ms cubic-bezier(.2,.75,.25,1) both; }
+.ad-drawer-stage.is-secret .ad-drawer-staircase { animation: ad-stairs-unfold 700ms cubic-bezier(.2,.75,.25,1) both; }
 @keyframes ad-stairs-unfold { from { opacity: 0; transform: translate(16px,12px) scale(.72); } to { opacity: 1; transform: none; } }
-.ad-calendar-surface { display: flex; padding: 14px; gap: 19px; }
-.ad-calendar-date { width: 59px; flex-shrink: 0; border-right: 1px solid #c6aa792a; text-align: center; padding-right: 14px; padding-top: 8px; }
-.ad-calendar-date > span, .ad-calendar-date > small { display: block; font-size: 9px; color: #c1ad8b; }
-.ad-calendar-date > strong { display: block; font-size: 35px; font-weight: 350; letter-spacing: -2px; line-height: 1.2; margin: 4px 0; }
-.ad-agenda { flex: 1; min-width: 0; }
-.ad-agenda-heading { display: flex; align-items: center; justify-content: space-between; margin: 0 0 3px; }
-.ad-agenda-heading strong { font-size: 10px; font-weight: 500; color: #c7b797; }
+.ad-calendar-surface { display: grid; gap: 6px; }
+.ad-agenda-heading { display: flex; align-items: center; gap:8px; margin: 0 2px 2px; }
+.ad-agenda-heading strong { font-size: 11px; font-weight: 650; color: #ffbf57; }
 .ad-agenda-heading > span { font-size: 9px; color: #9e9583; }
-.ad-event { display: flex; align-items: center; gap: 11px; padding: 9px 0; }
-.ad-event + .ad-event { border-top: 1px solid #c6aa791b; }
-.ad-event time { font-size: 11px; font-variant-numeric: tabular-nums; }
-.ad-event time small { display: block; margin-top: 4px; font-size: 8px; color: #918a7c; }
-.ad-event-copy { flex: 1; min-width: 0; border-left: 2px solid #bba573; padding-left: 10px; }
-.ad-event:nth-child(3) .ad-event-copy { border-color: #88a39b; }
+.ad-event { position:relative;display: flex; align-items: center; gap: 8px; min-height:36px;padding:6px 8px;border:1px solid #f6efe313;border-radius:9px;background:linear-gradient(105deg,#2a231c,#1e1914);box-shadow:inset 0 1px #ffffff09; }
+.ad-event.is-next { min-height:52px;border-color:#ffb54738;background:radial-gradient(circle at 90% 0,#ffb54715,transparent 40%),linear-gradient(105deg,#2a231c,#1e1914); }
+.ad-event-spine { width:3px;align-self:stretch;border-radius:3px;background:#d18d57; }
+.ad-event:nth-of-type(3) .ad-event-spine { background:#86b6d9; }
+.ad-event-copy { flex: 1; min-width: 0; }
 .ad-event-copy > strong, .ad-event-copy > span { display: block; }
-.ad-event-copy > strong { font-size: 11px; font-weight: 500; line-height: 1.3; }
+.ad-event-copy > strong { font-size: 11px; font-weight: 650; line-height: 1.3; }
 .ad-event-copy > span { font-size: 8px; color: #aea48f; margin-top: 4px; }
-.ad-event > button { color: #efcd8b; }
+.ad-event-countdown { color:#ffbf57;font-size:9px;white-space:nowrap; }
+.ad-event > button { display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:28px;padding:5px 9px;color:#2b1a05;border:1px solid #ffca715c;border-radius:7px;background:linear-gradient(#ffc45c,#e8a93f);font-size:9px;font-weight:650; }
 .ad-meeting-status { font-size: 9px; color: #bacc9d; margin: 8px 4px 0; }
-.ad-calendar-convergence { position: absolute; inset: 34px 14px 14px 87px; z-index: 3; display: flex; align-items: center; gap: 13px; padding: 10px 13px; border: 1px solid #9f82b780; border-radius: 8px; background: linear-gradient(100deg,#211a26f2,#35283bf2); box-shadow: 0 0 28px #9f82b744, inset 0 1px #fff1; opacity: 0; transform: scale(.84); pointer-events: none; }
+.ad-calendar-convergence { position: absolute; inset: 32px 6px 6px; z-index: 3; display: flex; align-items: center; gap: 13px; padding: 10px 13px; border: 1px solid #9f82b780; border-radius: 8px; background: linear-gradient(100deg,#211a26f2,#35283bf2); box-shadow: 0 0 28px #9f82b744, inset 0 1px #fff1; opacity: 0; transform: scale(.84); pointer-events: none; }
 .ad-calendar-convergence time { font: 12px ui-monospace,monospace; color: #d9bded; }
 .ad-calendar-convergence strong,.ad-calendar-convergence span { display: block; }
 .ad-calendar-convergence strong { font-size: 11px; color: #e4d8eb; }
@@ -88,19 +82,23 @@
 .ad-album-2::after { width: 27%; height: 27%; right: 15%; top: 28%; border-radius: 50%; background: #f0d8b3; }
 .ad-album-1::before { width: 100%; height: 130%; left: -55%; bottom: -60%; border-radius: 50%; border: 16px solid #583b4238; box-shadow: 0 0 0 13px #583b4220, 0 0 0 28px #583b4218; }
 .ad-album-art > span { position: absolute; left: 12px; top: 11px; font-size: 10px; letter-spacing: .11em; font-weight: 600; line-height: 1.2; color: #f2e7c9; }
-.ad-music-body { flex: 1; min-width: 0; }
+.ad-album-art > b { position:absolute;right:7px;bottom:7px;display:grid;place-items:center;width:22px;height:22px;border-radius:6px;background:#17130fd9;color:#f6efe3;box-shadow:0 2px 6px #0005; }
+.ad-music-body { flex: 1; min-width: 0; align-self:stretch;display:flex;flex-direction:column;justify-content:center; }
 .ad-music-source { display: flex; align-items: center; gap: 5px; font-size: 8px; color: #c7bda7; margin-bottom: 9px; }
 .ad-music-source > small { margin-left: auto; font-size: 8px; color: #8f887b; }
 .ad-track-title { display: block; font-size: 15px; font-weight: 550; letter-spacing: -.2px; }
 .ad-track-artist { display: block; color: #b4aa98; font-size: 10px; margin-top: 4px; }
-.ad-music-controls { display: flex; justify-content: center; gap: 9px; margin: 7px 0; }
+.ad-track-row { display:flex;align-items:center;gap:8px;margin:18px 0 10px; }
+.ad-track-row > span { color:#9e9583;font-size:8px;font-variant-numeric:tabular-nums;white-space:nowrap; }
+.ad-music-controls { display: flex; justify-content: flex-start; gap: 7px; margin: 0; }
 .ad-music-controls > button { border: 0; background: transparent; min-width: 38px; }
 .ad-music-controls > .ad-music-play { background: #e8d5ad16; border-radius: 50%; width: 38px; height: 38px; padding: 0; }
 .ad-track-progress { width: 100%; height: 3px; border-radius: 3px; background: #d0b88528; overflow: hidden; }
 .ad-track-progress > i { display: block; width: 100%; height: 100%; background: #e5c18c; transform-origin: left; }
 .ad-track-time { display: flex; justify-content: space-between; font-size: 8px; font-variant-numeric: tabular-nums; color: #9e9583; margin-top: 5px; }
-.ad-mirror-surface { overflow: hidden; padding: 9px; }
-.ad-mirror-art { position: relative; width: 100%; height: 154px; overflow: hidden; border-radius: 7px; background: #5b554b; box-shadow: inset 0 0 0 1px #fff2; transition: filter 360ms ease,box-shadow 360ms ease; }
+.ad-mirror-surface { display:grid;grid-template-columns:minmax(0,1.7fr) minmax(118px,.7fr);align-items:center;gap:13px;overflow: hidden; padding: 10px; }
+.ad-mirror-frame { padding:6px;border-radius:12px;background:linear-gradient(145deg,#5b4938,#30261e);box-shadow:inset 0 1px #ffffff18,0 6px 14px #0005; }
+.ad-mirror-art { position: relative; width: 100%; aspect-ratio:16/9; overflow: hidden; border-radius: 8px; background: #5b554b; box-shadow: inset 0 0 0 1px #fff2; transition: filter 360ms ease,box-shadow 360ms ease; }
 .ad-mirror-scene { display:block; width:100%; height:100%; object-fit:cover; }
 .ad-mirror-room { transform-origin:center; transition:transform 420ms cubic-bezier(.2,.75,.25,1); }
 .ad-mirror-art[data-flipped=true] .ad-mirror-room { transform:scaleX(-1); transform-box:fill-box; }
@@ -110,8 +108,11 @@
 .ad-mirror-art.is-haunted .ad-mirror-self { animation:ad-reflection-lag 900ms cubic-bezier(.2,.75,.25,1) both; }
 @keyframes ad-presence-arrive { to { opacity:.92; transform:none; } }
 @keyframes ad-reflection-lag { 0%,28% { transform:translateX(0); } 48% { transform:translateX(11px); } 72% { transform:translateX(-3px); } 100% { transform:none; } }
-.ad-mirror-controls { display: flex; justify-content: space-between; gap: 8px; align-items: center; padding-top: 7px; }
-.ad-mirror-controls > span { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #bfb39b; }
+.ad-mirror-controls { display: flex;flex-direction:column;justify-content:center;align-items:stretch; gap: 12px; }
+.ad-mirror-controls > span { display: flex; align-items: center; gap: 8px; font-size: 10px; color: #bfb39b; }
+.ad-mirror-controls strong,.ad-mirror-controls small { display:block; }
+.ad-mirror-controls strong { color:var(--ad-paper);font-size:10px;line-height:1.35; }
+.ad-mirror-controls small { color:#8f887b;font-size:8px;margin-top:3px; }
 .ad-mirror-controls > button { padding: 4px 9px; min-height: 34px; }
 .ad-mirror-controls > button[aria-pressed=true] { color: #edca8d; background: #bda47520; }
 @media (max-width: 700px) {
@@ -127,15 +128,9 @@
   .ad-event > button { padding: 6px; min-width: 36px; font-size: 9px; }
   .ad-event > button > svg { display: none; }
   .ad-agenda-heading strong { font-size: 9px; }
-  .ad-drawer-surface { padding: 12px; }
-  .ad-drawer-intro { gap: 9px; }
-  .ad-drawer-intro strong { font-size: 11px; }
-  .ad-drawer-intro p { font-size: 9px; line-height: 1.4; }
-  .ad-drawer-bar { gap: 8px; }
+  .ad-drawer-live { gap: 7px;padding-inline:9px; }
   .ad-drawer-icons { gap: 5px; }
-  .ad-drawer-bar-label { display: none; }
-  .ad-drawer-bar > button { font-size: 9px; padding: 6px; }
-  .ad-drawer-bar > svg { width: 15px; }
+  .ad-drawer-copy p { max-width:230px;line-height:1.35; }
   .ad-music-surface { gap: 13px; padding: 12px; }
   .ad-album-stack,.ad-album-art { width: 90px; }
   .ad-album-art > span { font-size: 8px; left: 9px; top: 9px; }
@@ -146,11 +141,11 @@
   .ad-music-controls { gap: 2px; margin: 5px 0; }
   .ad-music-controls > button { min-width: 34px; min-height: 34px; padding: 6px; }
   .ad-music-controls > .ad-music-play { width: 34px; height: 34px; }
-  .ad-mirror-art { height: 129px; }
+  .ad-mirror-surface { grid-template-columns:minmax(0,1.6fr) minmax(96px,.65fr);gap:8px;padding:8px; }
   .ad-mirror-controls > span { font-size: 8px; }
 }
 @media (prefers-reduced-motion:reduce) {
-  .ad-drawer-surface.is-secret .ad-drawer-staircase,.ad-calendar-surface.is-secret .ad-event,.ad-calendar-surface.is-secret .ad-calendar-convergence,.ad-mirror-art.is-haunted .ad-mirror-presence,.ad-mirror-art.is-haunted .ad-mirror-self { animation:none; }
-  .ad-drawer-surface.is-secret .ad-drawer-staircase,.ad-calendar-surface.is-secret .ad-calendar-convergence,.ad-mirror-art.is-haunted .ad-mirror-presence { opacity:1;transform:none; }
+  .ad-drawer-stage.is-secret .ad-drawer-staircase,.ad-calendar-surface.is-secret .ad-event,.ad-calendar-surface.is-secret .ad-calendar-convergence,.ad-mirror-art.is-haunted .ad-mirror-presence,.ad-mirror-art.is-haunted .ad-mirror-self { animation:none; }
+  .ad-drawer-stage.is-secret .ad-drawer-staircase,.ad-calendar-surface.is-secret .ad-calendar-convergence,.ad-mirror-art.is-haunted .ad-mirror-presence { opacity:1;transform:none; }
   .ad-calendar-surface.is-secret .ad-event { opacity:.13; }
 }

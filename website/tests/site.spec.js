@@ -14,8 +14,10 @@ test('explains the product, offers a download and links to Aurio without overflo
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/es/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
+  await expect(page.locator('.hero .eyebrow')).toContainText('UNA APP PARA EL NOTCH DE TU MAC');
   await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
   await expect(page.locator('.hero-proof')).toHaveText('Gratis para siempre. Código abierto.');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /gratis para siempre.*código abierto.*notch/i);
   await expect(page.locator('#proyecto')).toContainText('firmada y notarizada');
   await expect(page.locator('[data-module="music"] small')).toHaveText('Controles multimedia del Mac');
   const staleSpanishClaims = /función en desarro[l]lo|Apple Music y Spotif[y]/;
@@ -35,7 +37,9 @@ test('explains the product, offers a download and links to Aurio without overflo
 
 test('English product claims match the shipped macOS app', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('.hero .eyebrow')).toContainText('AN APP FOR YOUR MAC’S NOTCH');
   await expect(page.locator('.hero-proof')).toHaveText('Free forever. Open source.');
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /free forever.*open-source.*notch/i);
   await expect(page.locator('[data-module="music"] small')).toHaveText('Mac media controls');
   const staleEnglishClaims = /feature in developmen[t]|Apple Music and Spotif[y]/;
   await expect(page.locator('main')).not.toContainText(staleEnglishClaims);
