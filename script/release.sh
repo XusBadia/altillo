@@ -265,7 +265,7 @@ create-dmg \
   --background "$ROOT_DIR/packaging/dmg/background.tiff" \
   --window-pos 200 120 \
   --window-size 660 400 \
-  --text-size 13 \
+  --text-size 12 \
   --icon-size 120 \
   --icon "$APP_NAME.app" 165 215 \
   --hide-extension "$APP_NAME.app" \

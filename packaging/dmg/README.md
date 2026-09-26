@@ -8,8 +8,8 @@ and `(495, 215)`.
 `background.tiff` is the production asset. It contains 1x and 2x
 representations so Finder stays crisp on Retina displays. The PNG files are
 reviewable previews, and `attic-source.png` is the generated source artwork.
-The pale plates deliberately sit behind Finder's black icon labels so both
-names remain legible on the dark background.
+A soft band of warm floor light sits behind Finder's black icon labels so both
+names remain legible without adding card-like UI to the illustrated scene.
 
 To regenerate the composited assets after changing the source:
 

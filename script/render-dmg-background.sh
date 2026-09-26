@@ -29,11 +29,8 @@ TIFF_2X="$ASSET_DIR/.background-2x.tiff"
 magick "$SOURCE" \
   -resize '1320x840^' -gravity center -extent 1320x800 \
   \( +clone -fill '#171411' -colorize 14 \) -compose over -composite \
-  \( -size 1320x800 xc:none -fill '#00000066' -stroke none \
-     -draw 'roundrectangle 172,536 488,620 28,28 roundrectangle 832,536 1148,620 28,28' \
-     -blur 0x16 \) -compose over -composite \
-  -fill '#F6EFE3F2' -stroke '#FFB54799' -strokewidth 2 \
-  -draw 'roundrectangle 180,528 480,612 24,24 roundrectangle 840,528 1140,612 24,24' \
+  \( -size 1320x370 gradient:'#00000000-#D8BD91B8' \) \
+  -gravity south -geometry +0+0 -compose over -composite \
   \( -size 1320x800 xc:none -stroke '#FFB54788' -strokewidth 24 -fill none \
      -draw "path 'M 520,434 L 800,434 M 756,390 L 800,434 L 756,478'" -blur 0x18 \) \
   -compose over -composite \
