@@ -269,4 +269,61 @@ struct MenuBarIconCaptureTests {
         await capture.refresh(entries: [cacheEntry()])
         #expect(capture.images.isEmpty)
     }
+    // MARK: - macOS 27: one shared menu-bar window
+
+    @Test func onlyMenuBarAgentsMainMenuWindowIsAHost() {
+        let bar = CGRect(x: 0, y: 0, width: 1920, height: 30)
+        let menuLevel = Int(CGWindowLevelForKey(.mainMenuWindow))
+        #expect(MenuBarIconCapture.isMenuBarHost(frame: bar, ownerBundleID: "com.apple.MenuBarAgent", layer: menuLevel))
+        // An app's own (offscreen) menu-bar windows, other layers and tall panels are not.
+        #expect(!MenuBarIconCapture.isMenuBarHost(frame: bar, ownerBundleID: "com.apple.Safari", layer: 0))
+        #expect(!MenuBarIconCapture.isMenuBarHost(frame: bar, ownerBundleID: "com.apple.MenuBarAgent", layer: 0))
+        #expect(!MenuBarIconCapture.isMenuBarHost(frame: CGRect(x: 0, y: 0, width: 400, height: 300),
+                                                  ownerBundleID: "com.apple.MenuBarAgent", layer: menuLevel))
+    }
+
+    @Test func hostCropIsTheItemsFrameInsideTheSharedWindow() {
+        let host = CGRect(x: 0, y: 0, width: 1920, height: 30)
+        let item = CGRect(x: 1125, y: 3, width: 24, height: 24)
+        #expect(MenuBarIconCapture.hostCrop(hostFrame: host, item: item, others: []) == item)
+        // A second display's bar is offset; the crop is relative to that window.
+        let secondary = CGRect(x: 1920, y: -200, width: 2560, height: 30)
+        #expect(MenuBarIconCapture.hostCrop(hostFrame: secondary, item: CGRect(x: 2000, y: -197, width: 24, height: 24),
+                                            others: []) == CGRect(x: 80, y: 3, width: 24, height: 24))
+    }
+
+    @Test func itemsOutsideTheBarOrStackedInTheOverflowAreNotCaptured() {
+        let host = CGRect(x: 0, y: 0, width: 1920, height: 30)
+        #expect(MenuBarIconCapture.hostCrop(hostFrame: host, item: CGRect(x: -40, y: 3, width: 24, height: 24), others: []) == nil)
+        #expect(MenuBarIconCapture.hostCrop(hostFrame: host, item: .zero, others: []) == nil)
+        // Folded into the system overflow menu, two items report nearly the same frame (measured on 27.0).
+        let folded = CGRect(x: 1077, y: 3, width: 34, height: 24)
+        #expect(MenuBarIconCapture.hostCrop(hostFrame: host, item: folded,
+                                            others: [CGRect(x: 1079, y: 3, width: 24, height: 24)]) == nil)
+        // Neighbours whose frames touch by a couple of points are still captured (OpenUsage / Claude on 27.0).
+        #expect(MenuBarIconCapture.hostCrop(hostFrame: host, item: CGRect(x: 1347, y: 2, width: 42, height: 26),
+                                            others: [CGRect(x: 1231, y: 3, width: 118, height: 24)]) != nil)
+    }
+
+    @Test func hostSourceRectSnapsToWholeBackingPixels() {
+        let host = CGRect(x: 0, y: 0, width: 1512, height: 33)
+        let crop = MenuBarIconCapture.hostSourceRect(hostFrame: host, itemFrame: CGRect(x: 100.25, y: 4.5, width: 21.5, height: 22),
+                                                     scale: 2)
+        #expect(crop == CGRect(x: 100, y: 4.5, width: 22, height: 22))
+        let oneX = MenuBarIconCapture.hostSourceRect(hostFrame: host, itemFrame: CGRect(x: 100.5, y: 3, width: 24, height: 24),
+                                                     scale: 1)
+        #expect(oneX == CGRect(x: 100, y: 3, width: 25, height: 24))
+        // Clamped to the window.
+        let edge = MenuBarIconCapture.hostSourceRect(hostFrame: host, itemFrame: CGRect(x: 1500, y: 20, width: 20, height: 20),
+                                                     scale: 2)
+        #expect(edge.maxX == 1512 && edge.maxY == 33)
+    }
+
+    @Test @MainActor func withoutAccessNothingIsMarkedFailed() async {
+        let capture = MenuBarIconCapture(preflightAccess: { false }, requestSystemAccess: { false },
+                                         probeSystemAccess: {}, openPermissionSettings: {})
+        await capture.refresh(entries: [cacheEntry()])
+        #expect(capture.failedIDs.isEmpty)
+        #expect(!capture.isCapturing)
+    }
 }

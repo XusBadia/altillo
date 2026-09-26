@@ -233,7 +233,8 @@ struct DesvanAssistantView: View {
                 .font(.system(size: isResponding ? 10 : 12, weight: .bold))
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: 32, height: 32)
-                .foregroundStyle(Desvan.Palette.bulbInk)
+                // Empty, the disc is a dim amber: dark ink would vanish on it, so the arrow stays visible, dimmed.
+                .foregroundStyle(isEmpty && !isResponding ? Desvan.Palette.paper.opacity(0.45) : Desvan.Palette.bulbInk)
                 .background {
                     Circle()
                         .fill(Desvan.Palette.bulb.opacity(isEmpty && !isResponding ? 0.35 : 0.95))
@@ -390,15 +391,15 @@ private struct DesvanAssistantConversation: View {
                     }
                     Color.clear.frame(height: 1).id(Self.bottom)
                 }
-                .padding(.top, 8)
+                .padding(.top, 12)
                 .padding(.horizontal, 4)
             }
             .scrollIndicators(.automatic)
             .scrollBounceBehavior(.basedOnSize)
-            // The top edge fades into the tabs instead of cutting a line of text in half.
+            // The top edge fades into the tabs instead of cutting a line of text (or a question slip) in half.
             .mask {
                 VStack(spacing: 0) {
-                    LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 10)
+                    LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 18)
                     Color.black
                 }
             }
@@ -434,7 +435,8 @@ private struct DesvanExchangeView: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
             answer
             ForEach(exchange.receipts) { receipt in
-                DesvanReceiptRow(receipt: receipt) {
+                DesvanReceiptRow(receipt: receipt,
+                                 spokenAs: receipt.isAgentReply ? AssistantFormat.plainText(exchange.answer) : nil) {
                     model.actions.haptic(.snap)
                     model.assistant.undo(receipt, in: exchange)
                 } accept: {
@@ -460,11 +462,15 @@ private struct DesvanExchangeView: View {
         .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion), value: exchange.offersWeb)
     }
 
+    /// A message sent to an agent: its card already shows the message, the agent and the project, so the sentence
+    /// ("Sent to Claude in altillo: …") isn't drawn above it too. It stays the answer for Copy, Save and VoiceOver.
+    private var cardIsTheAnswer: Bool { exchange.receipts.contains(where: \.isAgentReply) }
+
     @ViewBuilder
     private var answer: some View {
         if exchange.status == .thinking {
             DesvanThinkingLine(activity: activity)
-        } else if !exchange.answer.isEmpty {
+        } else if !exchange.answer.isEmpty && !cardIsTheAnswer {
             Text(AssistantFormat.rendered(exchange.answer))
                 .font(.system(size: 13))
                 .lineSpacing(3)

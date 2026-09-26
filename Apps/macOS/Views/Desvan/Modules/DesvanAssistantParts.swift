@@ -147,11 +147,24 @@ struct DesvanLevelMeter: View {
 /// Under an answer that made something: what it made, whatever the model wrote, with Undo.
 struct DesvanReceiptRow: View {
     let receipt: AssistantActionReceipt
+    /// What VoiceOver reads for the whole card instead of its parts: the answer it stands for (an agent reply).
+    var spokenAs: String?
     let undo: () -> Void
     /// The one-click follow-up ("Tomorrow at 9:00") when nothing was made.
     var accept: () -> Void = {}
 
     var body: some View {
+        if let spokenAs {
+            card
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: spokenAs))
+        } else {
+            card
+                .accessibilityElement(children: .contain)
+        }
+    }
+
+    private var card: some View {
         HStack(spacing: 7) {
             Image(systemName: receipt.isUndone ? "arrow.uturn.backward" : receipt.symbol)
                 .font(.system(size: 11.5, weight: .semibold))
@@ -200,7 +213,6 @@ struct DesvanReceiptRow: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .desvanCard(radius: 10, fill: Desvan.Palette.wood, grain: 0.5)
-        .accessibilityElement(children: .contain)
     }
 }
 
@@ -239,14 +251,14 @@ struct DesvanSavedAnswers: View {
                         DesvanSavedRow(answer: answer, model: model)
                     }
                 }
-                .padding(.top, 6)
+                .padding(.top, 10)
                 .padding(.horizontal, 2)
             }
             .scrollIndicators(.automatic)
             .scrollBounceBehavior(.basedOnSize)
             .mask {
                 VStack(spacing: 0) {
-                    LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 8)
+                    LinearGradient(colors: [.clear, .black], startPoint: .top, endPoint: .bottom).frame(height: 16)
                     Color.black
                 }
             }

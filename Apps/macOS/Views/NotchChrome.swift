@@ -176,7 +176,8 @@ struct NotchChrome: Equatable {
             // Beside a hardware notch the band is exactly the notch; the island keeps room for the tabs.
             let band = hasNotch ? notch.height : max(notch.height, 28)
             bandHeight = band
-            showsDrawer = model.drawer.enabled || model.scenario == .openDrawer
+            // Only a Drawer that works on this macOS; an unsupported one would render an empty or broken strip.
+            showsDrawer = model.drawer.showsStrip || model.scenario == .openDrawer
             let content = Self.expandedContentHeight(for: model)
             contentHeight = content
             size = CGSize(

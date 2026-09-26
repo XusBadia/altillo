@@ -44,7 +44,7 @@ trap '[[ -n $launched ]] && kill $pid 2>/dev/null || true' EXIT
 print "Altillo pid $pid: settling ${settle}s, then sampling ${seconds}s…"
 sleep $settle
 # top's first sample has no delta to compare with, so take one more and drop it.
-samples=(${(f)"$(top -l $((seconds + 1)) -s 1 -pid $pid -stats cpu | awk '/^[0-9.]+$/ { print }' | tail -n +2)"})
+samples=(${(f)"$(top -l $((seconds + 1)) -s 1 -pid $pid -stats cpu | awk '/^[0-9.]+[[:space:]]*$/ { print $1 }' | tail -n +2)"})
 if (( ${#samples} == 0 )); then
   print -u2 "top returned no samples."
   exit 2

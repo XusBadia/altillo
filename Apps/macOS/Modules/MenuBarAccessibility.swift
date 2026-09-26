@@ -88,7 +88,7 @@ actor MenuBarAccessibility {
                 continue
             }
 
-            for (ordinal, element) in children.enumerated() {
+            for (ordinal, element) in Self.statusItemCandidates(in: children) {
                 guard !Task.isCancelled else { break applicationLoop }
                 Self.limitMessaging(on: element)
 
@@ -141,6 +141,31 @@ actor MenuBarAccessibility {
         failedApplicationPIDs = failures
         pruneObservers(liveIDs: Set(refreshedItems.keys), livePIDs: Set(applications.map(\.pid)))
         return entries
+    }
+
+    /// The extras menu bar's direct children, with one level of `AXGroup` unwrapped. macOS 27 hosts the
+    /// system items (Wi-Fi, Focus, Control Center, Clock) in MenuBarAgent, which wraps each `AXMenuBarItem`
+    /// in a group. A direct child keeps its own index as ordinal (identities are unchanged on macOS 26); a
+    /// grouped item takes its group's index. Roles are checked by the caller.
+    nonisolated static func statusItemCandidates<Element>(
+        in children: [Element],
+        role: (Element) -> String?,
+        nested: (Element) -> [Element]
+    ) -> [(ordinal: Int, element: Element)] {
+        children.enumerated().flatMap { ordinal, element -> [(ordinal: Int, element: Element)] in
+            guard role(element) == kAXGroupRole as String else { return [(ordinal, element)] }
+            return nested(element).map { (ordinal, $0) }
+        }
+    }
+
+    private static func statusItemCandidates(in children: [AXUIElement]) -> [(ordinal: Int, element: AXUIElement)] {
+        statusItemCandidates(in: children, role: { element in
+            limitMessaging(on: element)
+            return stringAttribute(kAXRoleAttribute, of: element)
+        }, nested: { group in
+            let result: AttributeResult<[AXUIElement]> = attribute(kAXChildrenAttribute, of: group)
+            return result.value ?? []
+        })
     }
 
     // MARK: - Change notifications
@@ -334,14 +359,30 @@ actor MenuBarAccessibility {
 
     // MARK: - Stable identity
 
+    /// Owners of macOS's own status items. On macOS 27 MenuBarAgent hosts Wi-Fi, Focus, Control Center and
+    /// the clock, and `com.apple.campo` owns Spotlight.
+    nonisolated static let systemOwners: Set<String> = [
+        "com.apple.controlcenter", "com.apple.systemuiserver", "com.apple.Spotlight",
+        menuBarAgentBundleID, "com.apple.campo",
+    ]
+    nonisolated static let menuBarAgentBundleID = "com.apple.MenuBarAgent"
+    nonisolated static let controlCenterBundleID = "com.apple.controlcenter"
+
+    /// The process whose windows present an item's panel. MenuBarAgent only hosts the system items on
+    /// macOS 27; Control Center still owns their panels (verified with Wi-Fi), so placement and the
+    /// open-panel session must watch Control Center.
+    nonisolated static func panelOwnerBundleID(forItemOwner bundleID: String) -> String {
+        bundleID == menuBarAgentBundleID ? controlCenterBundleID : bundleID
+    }
+
     /// System controls share a single application icon. Distinguish their exposed names
     /// without capturing pixels or requiring Screen Recording access.
     nonisolated static func systemSymbol(for entry: MenuBarEntry) -> String? {
-        guard ["com.apple.controlcenter", "com.apple.systemuiserver", "com.apple.Spotlight"]
-            .contains(entry.application.bundleID) else { return nil }
+        guard systemOwners.contains(entry.application.bundleID) else { return nil }
         let name = "\(entry.id) \(entry.title)".lowercased()
         let symbols: [(keywords: [String], symbol: String)] = [
-            (["wifi", "wi-fi", "wi fi"], "wifi"),
+            // macOS writes "Wi‑Fi" with a non-breaking hyphen (U+2011).
+            (["wifi", "wi-fi", "wi\u{2011}fi", "wi fi"], "wifi"),
             (["bluetooth"], "antenna.radiowaves.left.and.right"),
             (["battery", "batería"], "battery.100percent"),
             (["sound", "volume", "sonido", "volumen"], "speaker.wave.2.fill"),

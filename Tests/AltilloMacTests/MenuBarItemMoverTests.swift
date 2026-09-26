@@ -90,4 +90,27 @@ struct MenuBarItemMoverTests {
                                      title: "Wi-Fi", frame: .zero)
         #expect(MenuBarAccessibility.systemSymbol(for: thirdParty) == nil)
     }
+    @Test func macOS27SystemItemsKeepTheirSymbolsAndControlCenterOwnsTheirPanels() {
+        let agent = MenuBarApplication(pid: 0, bundleID: "com.apple.MenuBarAgent", name: "Control Center")
+        let wifi = MenuBarEntry(id: "22:com.apple.MenuBarAgent|identifier:24:com.apple.menuextra.wifi",
+                                application: agent, title: "Wi‑Fi, connected, 3 bars", frame: .zero)
+        #expect(MenuBarAccessibility.systemSymbol(for: wifi) == "wifi")
+        #expect(MenuBarAccessibility.panelOwnerBundleID(forItemOwner: "com.apple.MenuBarAgent") == "com.apple.controlcenter")
+        #expect(MenuBarAccessibility.panelOwnerBundleID(forItemOwner: "io.tailscale.ipn.macsys") == "io.tailscale.ipn.macsys")
+    }
+
+    @Test func groupedStatusItemsAreUnwrappedAndDirectOnesKeepTheirOrdinal() {
+        struct Node { let role: String; var children: [Node] = [] }
+        let item = Node(role: "AXMenuBarItem")
+        // macOS 26 and third-party apps: items are direct children.
+        let direct = MenuBarAccessibility.statusItemCandidates(in: [item, item], role: { $0.role }, nested: { $0.children })
+        #expect(direct.map(\.ordinal) == [0, 1])
+        // macOS 27 MenuBarAgent: each system item sits inside an AXGroup.
+        let grouped = [Node(role: "AXGroup", children: [item]), Node(role: "AXGroup", children: [item]), item]
+        let unwrapped = MenuBarAccessibility.statusItemCandidates(in: grouped, role: { $0.role }, nested: { $0.children })
+        #expect(unwrapped.map(\.ordinal) == [0, 1, 2])
+        #expect(unwrapped.allSatisfy { $0.element.role == "AXMenuBarItem" })
+        #expect(MenuBarAccessibility.statusItemCandidates(in: [Node(role: "AXGroup")], role: { $0.role },
+                                                          nested: { $0.children }).isEmpty)
+    }
 }

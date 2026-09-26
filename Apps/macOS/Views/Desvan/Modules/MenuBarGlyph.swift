@@ -105,3 +105,37 @@ struct MenuBarGlyphGrid: Layout {
         }
     }
 }
+
+/// What stands in for an item's captured glyph. The Drawer never shows a placeholder shape: an item whose
+/// pixels can't be read is drawn with a symbol (macOS's own items) or its app's icon, or left out.
+enum MenuBarGlyphFallback {
+    enum Source: Equatable {
+        case captured
+        case systemSymbol(String)
+        case applicationIcon
+        /// Nothing to show yet (capture pending) or at all: skip the item.
+        case none
+    }
+
+    /// `captureFailed` is true once a capture pass tried this item and couldn't read it; until then a missing
+    /// capture is only pending, and the strip waits rather than flashing a fallback that is replaced a moment later.
+    static func source(for entry: MenuBarEntry, hasCapture: Bool, captureFailed: Bool,
+                       hasApplicationIcon: Bool) -> Source {
+        if hasCapture { return .captured }
+        guard captureFailed else { return .none }
+        if let symbol = MenuBarAccessibility.systemSymbol(for: entry) { return .systemSymbol(symbol) }
+        return hasApplicationIcon ? .applicationIcon : .none
+    }
+
+    /// An app icon redrawn at the strip's optical box. The drawing handler keeps it resolution independent,
+    /// so `MenuBarGlyph` sizes it like a vector symbol (the 18 pt box) instead of a native capture.
+    static func glyph(fromApplicationIcon icon: NSImage) -> NSImage {
+        let side = MenuBarGlyph.box
+        let glyph = NSImage(size: CGSize(width: side, height: side), flipped: false) { rect in
+            icon.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
+            return true
+        }
+        glyph.isTemplate = false
+        return glyph
+    }
+}

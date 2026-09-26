@@ -30,15 +30,20 @@ struct AssistantActionReceipt: Identifiable, Equatable, Sendable {
     /// Undo was tried and the reminder couldn't be removed.
     var undoFailed = false
     var offer: Offer?
+    /// A message sent to a coding agent ("tell Claude to …"). Its card shows all the answer says (the message, the
+    /// agent, the project), so the view draws the card alone and lets VoiceOver read the answer on it; the answer
+    /// itself stays whole for Copy and Save.
+    var isAgentReply: Bool
 
     init(id: UUID = UUID(), symbol: String, title: String, detail: String? = nil, undo: Undo? = nil,
-         offer: Offer? = nil) {
+         offer: Offer? = nil, isAgentReply: Bool = false) {
         self.id = id
         self.symbol = symbol
         self.title = title
         self.detail = detail
         self.undo = undo
         self.offer = offer
+        self.isAgentReply = isAgentReply
     }
 }
 

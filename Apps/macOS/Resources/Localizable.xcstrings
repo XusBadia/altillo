@@ -3120,6 +3120,23 @@
         }
       }
     },
+    "Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En esta versión de macOS, Altillo no puede ocultar iconos de la barra de menús, así que los que guardes en Altillo también seguirán en la barra. Aun así, puedes abrir sus menús desde el Cajón."
+          }
+        }
+      }
+    },
     "Altillo can't read the clipboard" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5224,6 +5241,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continuar"
+          }
+        }
+      }
+    },
+    "Control Center" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Control Center"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Centro de control"
           }
         }
       }
@@ -7723,6 +7757,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Aún estoy con otra cosa. Dame un momento y vuelve a probar."
+          }
+        }
+      }
+    },
+    "Icons can't be moved from here. Hold Command and drag them in the menu bar instead." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Icons can't be moved from here. Hold Command and drag them in the menu bar instead."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desde aquí no se pueden mover los iconos. Mantén pulsada la tecla Comando y arrástralos en la barra de menús."
           }
         }
       }
@@ -14251,6 +14302,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saltar"
+          }
+        }
+      }
+    },
+    "Some Drawer features aren't available on this version of macOS" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some Drawer features aren't available on this version of macOS"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Algunas funciones del Cajón no están disponibles en esta versión de macOS"
           }
         }
       }

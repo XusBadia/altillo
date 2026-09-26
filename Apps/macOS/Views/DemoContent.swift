@@ -255,7 +255,8 @@ extension DemoContent {
                 receipts: [
                     AssistantActionReceipt(symbol: "paperplane",
                                            title: "Also migrate the old keys and keep a backup of the file",
-                                           detail: String(localized: "Sent to \("Claude") · \("altillo")")),
+                                           detail: String(localized: "Sent to \("Claude") · \("altillo")"),
+                                           isAgentReply: true),
                 ]
             ),
         ]

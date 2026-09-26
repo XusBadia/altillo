@@ -3,12 +3,19 @@ import CoreGraphics
 import Observation
 import ScreenCaptureKit
 
-/// Reads only the individual status-item windows, never a whole application or display.
+/// Reads only status-item pixels, never a whole application or display. macOS 26 gives every status item its
+/// own window, captured individually. macOS 27 draws the whole bar in one MenuBarAgent window; there the
+/// capture is cropped to the item's frame. The path is chosen per item at run time, not by OS version.
 /// Images stay in memory and are retained while a status item is temporarily offscreen.
 @MainActor @Observable
 final class MenuBarIconCapture {
     private(set) var hasAccess: Bool
     private(set) var images: [String: NSImage] = [:]
+    /// Items a capture pass tried and couldn't read (no window, hidden, blank). They get a fallback glyph
+    /// instead of a placeholder; a later successful capture removes them.
+    private(set) var failedIDs: Set<String> = []
+    /// A capture pass is reading pixels (the strip shows its progress rather than an empty shelf).
+    private(set) var isCapturing = false
 
     @ObservationIgnored private var windowIDs: [String: CGWindowID] = [:]
     @ObservationIgnored private var cache = MenuBarGlyphCache()
@@ -97,6 +104,7 @@ final class MenuBarIconCapture {
 
     private func forgetImages() {
         if !images.isEmpty { images.removeAll() }
+        if !failedIDs.isEmpty { failedIDs.removeAll() }
         windowIDs.removeAll()
         cache.removeAll()
     }
@@ -119,6 +127,7 @@ final class MenuBarIconCapture {
             images = images.filter { liveIDs.contains($0.key) }
         }
         windowIDs = windowIDs.filter { liveIDs.contains($0.key) }
+        if !failedIDs.isSubset(of: liveIDs) { failedIDs.formIntersection(liveIDs) }
         cache.retain(liveIDs)
         let pending = cache.entriesNeedingCapture(entries, appearance: appearance, now: .now,
                                                   maxAge: maxAge, force: force)
@@ -126,8 +135,10 @@ final class MenuBarIconCapture {
         // Nothing changed: no window enumeration, no capture, no pixel scan.
         guard !pending.isEmpty else { return }
         refreshing = true
+        isCapturing = true
         defer {
             refreshing = false
+            isCapturing = false
             let waiters = refreshWaiters
             refreshWaiters.removeAll()
             waiters.forEach { $0.resume() }
@@ -152,6 +163,16 @@ final class MenuBarIconCapture {
              isSystemStatusProxy: window.owningApplication?.bundleIdentifier == "com.apple.controlcenter"
                 && statusWindowIDs.contains(window.windowID))
         }
+        // macOS 27: one window per display draws the whole menu bar, owned by MenuBarAgent.
+        let barHosts = content.windows.filter {
+            Self.isMenuBarHost(frame: $0.frame, ownerBundleID: $0.owningApplication?.bundleIdentifier,
+                               layer: $0.windowLayer)
+        }
+        var failed = failedIDs
+        defer {
+            let settled = hasAccess ? failed : []
+            if failedIDs != settled { failedIDs = settled }
+        }
         for entry in pending {
             guard !Task.isCancelled, hasAccess else { return }
             let candidates = windows.filter {
@@ -161,9 +182,16 @@ final class MenuBarIconCapture {
             let window = candidates.first {
                 Self.matchesPosition(windowFrame: $0.frame, itemFrame: entry.frame)
             } ?? candidates.first { $0.windowID == windowIDs[entry.id] }
-            guard let window else { continue }
+            let others = entries.lazy.filter { $0.id != entry.id }.map(\.frame)
+            let host = window == nil
+                ? barHosts.first { Self.hostCrop(hostFrame: $0.frame, item: entry.frame, others: Array(others)) != nil }
+                : nil
+            guard let source = window ?? host else {
+                failed.insert(entry.id)
+                continue
+            }
 
-            let filter = SCContentFilter(desktopIndependentWindow: window)
+            let filter = SCContentFilter(desktopIndependentWindow: source)
             let configuration = SCStreamConfiguration()
             configuration.showsCursor = false
             configuration.capturesAudio = false
@@ -175,7 +203,9 @@ final class MenuBarIconCapture {
             // origin or a larger output size would make ScreenCaptureKit resample (blur) the glyph.
             // The backing store holds no more detail than `pointPixelScale`, so asking for more only upscales.
             let scale = CGFloat(max(filter.pointPixelScale, 1))
-            let crop = Self.sourceRect(windowFrame: window.frame, itemFrame: entry.frame, scale: scale)
+            let crop = window != nil
+                ? Self.sourceRect(windowFrame: source.frame, itemFrame: entry.frame, scale: scale)
+                : Self.hostSourceRect(hostFrame: source.frame, itemFrame: entry.frame, scale: scale)
             configuration.sourceRect = crop
             configuration.width = max(1, Int((crop.width * scale).rounded()))
             configuration.height = max(1, Int((crop.height * scale).rounded()))
@@ -184,15 +214,21 @@ final class MenuBarIconCapture {
                 captured = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
             } catch {
                 handleCaptureError(error)
+                failed.insert(entry.id)
                 continue
             }
             guard !Task.isCancelled, hasAccess else { continue }
             let actualScale = CGFloat(captured.height) / crop.height
-            guard let image = Self.normalizedGlyph(from: captured, scale: actualScale) else { continue }
+            guard let image = Self.normalizedGlyph(from: captured, scale: actualScale) else {
+                // Blank pixels: the item is covered, folded into the system overflow, or not drawn yet.
+                failed.insert(entry.id)
+                continue
+            }
             MenuBarDrawerStore.log.debug("glyph \(entry.title, privacy: .public) crop=\(crop.debugDescription, privacy: .public) px=\(captured.width)x\(captured.height) scale=\(actualScale) pt=\(image.size.debugDescription, privacy: .public) template=\(image.isTemplate)")
             // These are the actual colored/template pixels provided by the owner, not its bundle icon.
             images[entry.id] = image
-            windowIDs[entry.id] = window.windowID
+            failed.remove(entry.id)
+            if window != nil { windowIDs[entry.id] = source.windowID }
             cache.record(entry, appearance: appearance, at: .now)
         }
         MenuBarDrawerStore.log.debug("glyphs captured, cached=\(self.cache.count)")
@@ -289,6 +325,38 @@ final class MenuBarIconCapture {
               frame.width >= entry.frame.width - 4, frame.width <= entry.frame.width + 20,
               frame.height >= entry.frame.height - 4, frame.height <= entry.frame.height + 12 else { return false }
         return true
+    }
+
+    /// The macOS 27 menu-bar window: MenuBarAgent's main-menu-level window along a display's top edge.
+    nonisolated static func isMenuBarHost(frame: CGRect, ownerBundleID: String?, layer: Int) -> Bool {
+        ownerBundleID == MenuBarAccessibility.menuBarAgentBundleID
+            && layer == Int(CGWindowLevelForKey(.mainMenuWindow))
+            && frame.width > 64 && frame.height > 0 && frame.height <= 64
+    }
+
+    /// The item's rectangle inside a shared menu-bar window, or nil when that window can't show exactly this
+    /// item: it lies outside the window (another display, pushed offscreen) or overlaps another item. macOS 27
+    /// stacks the frames of items folded into its overflow menu at the overflow control, so an overlap means
+    /// the pixels there belong to something else.
+    nonisolated static func hostCrop(hostFrame: CGRect, item: CGRect, others: [CGRect]) -> CGRect? {
+        guard item.width > 0, item.height > 0, hostFrame.contains(item) else { return nil }
+        guard !others.contains(where: { other in
+            let overlap = other.intersection(item)
+            // Neighbours' AX frames can touch by a point or two; stacked items overlap by half or more.
+            return !overlap.isNull && overlap.height > 2 && overlap.width >= min(item.width, other.width) / 2
+        }) else { return nil }
+        return item.offsetBy(dx: -hostFrame.minX, dy: -hostFrame.minY)
+    }
+
+    /// `hostCrop`, grown outwards to whole backing pixels and clamped to the window.
+    nonisolated static func hostSourceRect(hostFrame: CGRect, itemFrame: CGRect, scale: CGFloat = 1) -> CGRect {
+        let local = itemFrame.offsetBy(dx: -hostFrame.minX, dy: -hostFrame.minY)
+        guard scale.isFinite, scale > 0 else { return local }
+        let minX = max(0, (local.minX * scale).rounded(.down) / scale)
+        let minY = max(0, (local.minY * scale).rounded(.down) / scale)
+        let maxX = min((local.maxX * scale).rounded(.up) / scale, hostFrame.width)
+        let maxY = min((local.maxY * scale).rounded(.up) / scale, hostFrame.height)
+        return CGRect(x: minX, y: minY, width: max(0, maxX - minX), height: max(0, maxY - minY))
     }
 
     nonisolated static func matchesPosition(windowFrame: CGRect, itemFrame: CGRect) -> Bool {

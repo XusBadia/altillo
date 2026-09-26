@@ -87,13 +87,80 @@ struct DrawerGeometryTests {
         ))
     }
 
-    @Test func legacyHidingIsGatedToMacOS26() {
+    // MARK: - Capabilities per macOS version
+
+    @Test func macOS26KeepsEveryVerifiedFeature() {
+        #expect(DrawerSupport.decide(majorVersion: 26) == .full)
+        #expect(!DrawerSupport.decide(majorVersion: 26).isPartial)
+    }
+
+    @Test func macOS27KeepsTheStripMenusAndMovesButNotHiding() {
+        let support = DrawerSupport.decide(majorVersion: 27)
+        #expect(support.catalog)
+        #expect(support.arranging)
+        #expect(!support.hiding)
+        #expect(support.isPartial)
+    }
+
+    @Test func laterVersionsStayConservative() {
+        for version in [28, 29, 40] {
+            let support = DrawerSupport.decide(majorVersion: version)
+            // Read-only catalog and self-verifying moves; never the unverified divider trick.
+            #expect(support.catalog)
+            #expect(support.arranging)
+            #expect(!support.hiding)
+        }
+    }
+
+    @Test func olderVersionsHaveNoDrawer() {
+        #expect(DrawerSupport.decide(majorVersion: 25) == .unavailable)
+        #expect(!DrawerSupport.unavailable.isPartial)
+    }
+
+    @Test func storeSupportFollowsTheDecision() {
         let storage = Self.makeDefaults()
         defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
 
         #expect(!MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25).isSupported)
         #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26).isSupported)
-        #expect(!MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).isSupported)
+        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).isSupported)
+        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).support == .decide(majorVersion: 27))
+    }
+
+    @Test func stripShowsOnlyForAnEnabledDrawerThatWorksHere() {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+
+        #expect(!MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).showsStrip)
+        storage.defaults.set(true, forKey: "drawer.enabled")
+        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26).showsStrip)
+        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).showsStrip)
+        // The owner's case before this fix: enabled in defaults on a macOS without support.
+        let unsupported = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25)
+        #expect(unsupported.enabled)
+        #expect(!unsupported.showsStrip)
+        #expect(unsupported.drawerEntries.isEmpty)
+    }
+
+    @Test func unsupportedDrawerCannotBeTurnedOnOrHidden() {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+
+        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25)
+        store.setEnabled(true)
+        #expect(!store.enabled)
+        #expect(!storage.defaults.bool(forKey: "drawer.enabled"))
+    }
+
+    @Test func hidingIsANoOpWhereTheDividerCannotHide() {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+        storage.defaults.set(true, forKey: "drawer.enabled")
+
+        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27)
+        store.hide()
+        #expect(!store.isHidden)
+        #expect(!store.isLoading)
     }
 
     @Test func naturallyOverflowingIconsCannotOpenAnOffscreenMenu() {

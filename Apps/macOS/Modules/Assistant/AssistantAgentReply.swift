@@ -149,7 +149,8 @@ enum AssistantAgentReply {
             receipt: AssistantActionReceipt(
                 symbol: "paperplane",
                 title: request.message,
-                detail: String(localized: "Sent to \(session.agent.name) · \(session.project)")
+                detail: String(localized: "Sent to \(session.agent.name) · \(session.project)"),
+                isAgentReply: true
             )
         )
     }

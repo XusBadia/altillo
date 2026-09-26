@@ -9,7 +9,19 @@ struct DesvanDrawerView: View {
     private var isDemo: Bool { model.scenario == .openDrawer }
     private var entries: [MenuBarEntry] { isDemo ? Self.demoEntries : store.drawerEntries }
 
+    /// Only items with something real to draw: a captured glyph, a system symbol or the owner's icon.
+    private var items: [StripItem] {
+        entries.compactMap { entry in icon(for: entry).map { StripItem(entry: entry, icon: $0) } }
+    }
+
+    private struct StripItem: Identifiable {
+        let entry: MenuBarEntry
+        let icon: NSImage
+        var id: String { entry.id }
+    }
+
     var body: some View {
+        let items = items
         HStack(spacing: 8) {
             Image(systemName: "archivebox")
                 .font(.system(size: 13, weight: .medium))
@@ -25,11 +37,11 @@ struct DesvanDrawerView: View {
                     .font(.system(size: 12))
                     .buttonStyle(.plain)
                     .desvanHitTarget()
-            } else if !isDemo && store.isLoading && entries.isEmpty {
+            } else if !isDemo && items.isEmpty && (store.isLoading || (!entries.isEmpty && store.iconCapture.isCapturing)) {
                 ProgressView("Finding menu bar icons…")
                     .controlSize(.small)
                     .font(.system(size: 12))
-            } else if entries.isEmpty {
+            } else if items.isEmpty {
                 Button { model.actions.openDrawerSettings() } label: {
                     Label("Choose icons for Altillo", systemImage: "plus.circle")
                         .font(.system(size: 12))
@@ -40,14 +52,15 @@ struct DesvanDrawerView: View {
             } else {
                 ScrollView(.horizontal) {
                     HStack(spacing: 4) {
-                        ForEach(entries) { entry in
+                        ForEach(items) { item in
+                            let entry = item.entry
                             MenuBarPopupAnchorReader { anchor in
                                 Button {
                                     guard !isDemo else { return }
                                     store.activate(entry, anchor: anchor)
                                 } label: {
                                     // Template (single-colour) captures take the paper tone; colour icons stay as captured.
-                                    MenuBarGlyph(image: icon(for: entry))
+                                    MenuBarGlyph(image: item.icon)
                                         .foregroundStyle(Desvan.Palette.paper)
                                         .padding(.horizontal, 6)
                                         .frame(minWidth: Self.iconTarget, minHeight: Self.iconTarget)
@@ -118,12 +131,8 @@ struct DesvanDrawerView: View {
     /// menu-bar size (up to 24 pt), like the menu bar's own spacing.
     private static let iconTarget: CGFloat = 30
 
-    private func icon(for entry: MenuBarEntry) -> NSImage {
-        if !isDemo {
-            return store.statusIcon(for: entry)
-                ?? NSImage(systemSymbolName: "square.dashed", accessibilityDescription: nil)
-                ?? NSImage()
-        }
+    private func icon(for entry: MenuBarEntry) -> NSImage? {
+        if !isDemo { return store.stripIcon(for: entry) }
         let symbol = switch entry.id {
         case "demo-cloud": "icloud"
         case "demo-vpn": "lock.shield"

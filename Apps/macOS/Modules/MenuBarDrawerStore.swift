@@ -22,10 +22,15 @@ final class MenuBarDrawerStore: NSObject {
     var isPerformingMenuBarInteraction: Bool {
         activationTask != nil || movementTask != nil || menuSessionTask != nil
     }
-    /// Only the legacy status-item layout is supported. New OS versions fail open.
-    let isSupported: Bool
+    /// What this macOS can do, feature by feature (see `DrawerSupport.decide`).
+    let support: DrawerSupport
+    /// The Drawer can be used at all: its catalog and strip work on this macOS.
+    var isSupported: Bool { support.catalog }
+    /// The strip above the tabs shows only for an enabled Drawer that works on this macOS. Without it the
+    /// catalog is empty and every icon would be a placeholder.
+    var showsStrip: Bool { enabled && support.catalog }
     var drawerEntries: [MenuBarEntry] {
-        guard enabled && isSupported else { return entries }
+        guard enabled && support.catalog else { return [] }
         return DrawerOrder.sort(entries.filter { selectedIDs.contains($0.id) }, preferredIDs: drawerOrder)
     }
     var menuBarEntries: [MenuBarEntry] {
@@ -64,6 +69,7 @@ final class MenuBarDrawerStore: NSObject {
     @ObservationIgnored private let scheduledRefresh = MenuBarRefreshDebouncer()
     @ObservationIgnored private var accessRecheckTask: Task<Void, Never>?
     @ObservationIgnored private var applicationCache = MenuBarApplicationCache()
+    @ObservationIgnored private var applicationIcons: [Int32: NSImage] = [:]
     /// A visible catalog older than this is rescanned when the Drawer appears. Scans are cheap AX reads;
     /// pixels are only recaptured when an item's glyph key changes or it is older than `glyphMaxAge`.
     static let catalogMaxAge: Duration = .seconds(30)
@@ -80,7 +86,7 @@ final class MenuBarDrawerStore: NSObject {
     init(defaults: UserDefaults = .standard,
          majorVersion: Int = ProcessInfo.processInfo.operatingSystemVersion.majorVersion) {
         self.defaults = defaults
-        self.isSupported = majorVersion == 26
+        self.support = DrawerSupport.decide(majorVersion: majorVersion)
         self.enabled = defaults.bool(forKey: "drawer.enabled")
         self.chosenIDs = Set(defaults.stringArray(forKey: "drawer.chosenIDs") ?? [])
         self.drawerOrder = defaults.stringArray(forKey: "drawer.order") ?? []
@@ -92,14 +98,14 @@ final class MenuBarDrawerStore: NSObject {
         started = true
         hasAccess = AXIsProcessTrusted()
         Self.log.debug("start enabled=\(self.enabled) ax=\(self.hasAccess) capture=\(self.hasIconAccess)")
-        if enabled, isSupported, hasAccess {
+        if enabled, support.catalog, hasAccess {
             installSection()
             // Allow status-item positions to settle before discovering the user's section.
             scanTask = Task { [weak self] in
                 try? await Task.sleep(for: .seconds(2))
                 guard !Task.isCancelled, let self else { return }
                 self.scanTask = nil
-                if self.hasIconAccess, !self.chosenIDs.isEmpty { self.hide() }
+                if self.support.hiding, self.hasIconAccess, !self.chosenIDs.isEmpty { self.hide() }
                 else { self.refresh() }
             }
         }
@@ -111,7 +117,10 @@ final class MenuBarDrawerStore: NSObject {
                 let pid = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.processIdentifier
                 MainActor.assumeIsolated {
                     guard let self else { return }
-                    if let pid { self.applicationCache.forget(pid: pid) }
+                    if let pid {
+                        self.applicationCache.forget(pid: pid)
+                        self.applicationIcons[pid] = nil
+                    }
                     self.catalogIsStale = true
                     guard self.enabled else { return }
                     // Opening a command can launch another app. Refresh the catalog without
@@ -256,7 +265,7 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     func setEnabled(_ value: Bool) {
-        guard !value || isSupported else { return }
+        guard !value || support.catalog else { return }
         hideAfterScan = false
         enabled = value
         defaults.set(value, forKey: "drawer.enabled")
@@ -357,7 +366,7 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     func hide() {
-        guard enabled, isSupported, hasAccess, hasIconAccess, separator != nil,
+        guard enabled, support.hiding, hasAccess, hasIconAccess, separator != nil,
               movementTask == nil, activationTask == nil else { return }
         guard !isHidden else { return }
         // A scan begun before the user finished dragging may contain the old layout.
@@ -379,6 +388,50 @@ final class MenuBarDrawerStore: NSObject {
 
     func statusIcon(for entry: MenuBarEntry) -> NSImage? {
         iconCapture.images[entry.id]
+    }
+
+    /// The image the strip shows for an item, never a placeholder: its captured glyph; once a capture pass
+    /// couldn't read it, a symbol for macOS's own items or the owning app's icon; otherwise nil (skip it).
+    /// Items whose capture is still pending are skipped too, so the strip doesn't flash a fallback.
+    func stripIcon(for entry: MenuBarEntry) -> NSImage? {
+        let source = MenuBarGlyphFallback.source(
+            for: entry, hasCapture: iconCapture.images[entry.id] != nil,
+            captureFailed: iconCapture.failedIDs.contains(entry.id),
+            hasApplicationIcon: applicationIcon(for: entry) != nil
+        )
+        return image(for: entry, source: source)
+    }
+
+    /// Settings must list every item so it can be arranged, so pending captures fall back immediately
+    /// and an item without any icon of its own gets the generic application icon.
+    func settingsIcon(for entry: MenuBarEntry) -> NSImage {
+        let source = MenuBarGlyphFallback.source(
+            for: entry, hasCapture: iconCapture.images[entry.id] != nil, captureFailed: true,
+            hasApplicationIcon: applicationIcon(for: entry) != nil
+        )
+        return image(for: entry, source: source) ?? MenuBarGlyphFallback.glyph(
+            fromApplicationIcon: NSWorkspace.shared.icon(for: .application)
+        )
+    }
+
+    private func image(for entry: MenuBarEntry, source: MenuBarGlyphFallback.Source) -> NSImage? {
+        switch source {
+        case .captured: iconCapture.images[entry.id]
+        case .systemSymbol(let name):
+            NSImage(systemSymbolName: name, accessibilityDescription: nil)
+        case .applicationIcon: applicationIcon(for: entry)
+        case .none: nil
+        }
+    }
+
+    /// The owner's icon, drawn once per process at the strip's glyph size.
+    private func applicationIcon(for entry: MenuBarEntry) -> NSImage? {
+        let pid = entry.application.pid
+        if let cached = applicationIcons[pid] { return cached }
+        guard pid > 0, let icon = NSRunningApplication(processIdentifier: pid)?.icon else { return nil }
+        let glyph = MenuBarGlyphFallback.glyph(fromApplicationIcon: icon)
+        applicationIcons[pid] = glyph
+        return glyph
     }
 
     func requestIconAccess() {
@@ -441,7 +494,7 @@ final class MenuBarDrawerStore: NSObject {
     /// macOS persists status-item positions; a failed gesture leaves all icons visible.
     func move(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry? = nil) {
         checkAccess()
-        guard enabled, isSupported, hasAccess, movementTask == nil, activationTask == nil else { return }
+        guard enabled, support.arranging, hasAccess, movementTask == nil, activationTask == nil else { return }
         scanTask?.cancel()
         scanTask = nil
         movingEntryID = entry.id
@@ -461,7 +514,7 @@ final class MenuBarDrawerStore: NSObject {
                 self.movingEntryID = nil
                 self.isLoading = false
             }
-            let openMenu = self.currentMenuSession ?? MenuBarMenuSession(pid: entry.application.pid)
+            let openMenu = self.currentMenuSession ?? MenuBarMenuSession(pid: Self.panelOwnerPID(for: entry))
             guard await self.dismissMenu(openMenu, entryID: self.currentMenuEntryID ?? entry.id) else {
                 self.problem = "Close the open menu, then try moving this icon again."
                 return
@@ -574,7 +627,8 @@ final class MenuBarDrawerStore: NSObject {
         scanTask = nil
         isLoading = false
         problem = nil
-        let needsHiddenIcon = selectedIDs.contains(entry.id)
+        // Only where hiding works: elsewhere the item stays visible in the menu bar and opens from there.
+        let needsHiddenIcon = support.hiding && selectedIDs.contains(entry.id)
         if needsHiddenIcon, !isHidden { hide() }
         let pendingHide = scanTask
         activationTask = Task { [weak self, accessibility] in
@@ -611,8 +665,9 @@ final class MenuBarDrawerStore: NSObject {
             }
             // Custom popovers have no NSMenu tree. Open the owner's panel with AX
             // while its status item remains hidden, then move the actual window.
-            let placement = MenuBarPopoverPlacement(pid: entry.application.pid)
-            let session = MenuBarMenuSession(pid: entry.application.pid)
+            let panelOwner = Self.panelOwnerPID(for: entry)
+            let placement = MenuBarPopoverPlacement(pid: panelOwner)
+            let session = MenuBarMenuSession(pid: panelOwner)
             let outcome = await accessibility.perform(id: entry.id, showMenu: false)
             guard !Task.isCancelled else { return }
             if case .unavailable = outcome {
@@ -684,6 +739,16 @@ final class MenuBarDrawerStore: NSObject {
         }
     }
 
+    /// macOS 27's MenuBarAgent hosts the system items, but Control Center presents their panels.
+    private static func panelOwnerPID(for entry: MenuBarEntry) -> Int32 {
+        let owner = MenuBarAccessibility.panelOwnerBundleID(forItemOwner: entry.application.bundleID)
+        guard owner != entry.application.bundleID,
+              let app = NSRunningApplication.runningApplications(withBundleIdentifier: owner).first else {
+            return entry.application.pid
+        }
+        return app.processIdentifier
+    }
+
     /// `NSRunningApplication` properties are LaunchServices lookups. Resolve each process once.
     private func runningApplications() -> [MenuBarApplication] {
         let ownPID = ProcessInfo.processInfo.processIdentifier
@@ -693,8 +758,12 @@ final class MenuBarDrawerStore: NSObject {
             guard app.processIdentifier != ownPID else { return .ineligible }
             guard app.isFinishedLaunching else { return .pending }
             guard app.bundleURL?.pathExtension == "app", let bundleID = app.bundleIdentifier else { return .ineligible }
-            return .application(MenuBarApplication(pid: app.processIdentifier, bundleID: bundleID,
-                                                   name: app.localizedName ?? bundleID))
+            // MenuBarAgent (macOS 27) is an implementation detail; people know these items as Control Center's.
+            let name = bundleID == MenuBarAccessibility.menuBarAgentBundleID
+                ? NSRunningApplication.runningApplications(withBundleIdentifier: MenuBarAccessibility.controlCenterBundleID)
+                    .first?.localizedName ?? String(localized: "Control Center")
+                : app.localizedName ?? bundleID
+            return .application(MenuBarApplication(pid: app.processIdentifier, bundleID: bundleID, name: name))
         }
     }
 
@@ -714,7 +783,7 @@ final class MenuBarDrawerStore: NSObject {
             problem = "Accessibility access was turned off. Your menu bar icons are visible again."
         } else {
             problem = nil
-            if enabled, isSupported { installSection() }
+            if enabled, support.catalog { installSection() }
             // Accessibility can be granted while Settings owns focus. Rebuild the catalog
             // on the permission transition instead of waiting for another user action.
             Task { [weak self] in self?.refresh() }
@@ -762,8 +831,9 @@ final class MenuBarDrawerStore: NSObject {
         updateControl()
     }
 
+    /// The show/hide button only exists where hiding works.
     private func installControl() {
-        guard control == nil else { return }
+        guard control == nil, support.hiding else { return }
         let control = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         control.autosaveName = "Altillo.Drawer.Control"
         control.button?.target = self
@@ -801,7 +871,7 @@ final class MenuBarDrawerStore: NSObject {
     private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
 
     private func collapseSection() {
-        guard enabled, isSupported, hasAccess, hasIconAccess, separator != nil else { return }
+        guard enabled, support.hiding, hasAccess, hasIconAccess, separator != nil else { return }
         guard !selectedIDs.isEmpty else {
             reveal()
             problem = "Drag an icon into Altillo in Drawer settings."
@@ -844,6 +914,37 @@ final class MenuBarDrawerStore: NSObject {
     @objc private func toggleSection() {
         if isHidden { beginArranging() } else { hide() }
     }
+}
+
+/// What the Drawer can do on this macOS, per feature, so a partial platform degrades one feature instead of
+/// disabling everything. Everything else is decided at run time: the catalog reads whatever Accessibility
+/// exposes, icon capture picks the path the system offers, and every move is verified by re-reading positions.
+struct DrawerSupport: Equatable, Sendable {
+    /// Read menu-bar items through Accessibility, show the strip and open items' menus from it.
+    var catalog: Bool
+    /// Rearrange items with the native Command-drag. Each move is re-read through Accessibility and only
+    /// counts once confirmed, so an unverified macOS fails safely.
+    var arranging: Bool
+    /// Hide the chosen group by widening Altillo's divider (only verified on macOS 26).
+    var hiding: Bool
+
+    static let unavailable = DrawerSupport(catalog: false, arranging: false, hiding: false)
+    static let full = DrawerSupport(catalog: true, arranging: true, hiding: true)
+
+    /// macOS 26: everything, as verified. macOS 27: the catalog, menus and Command-drag moves work (verified on
+    /// 27.0), but the divider no longer hides anything: MenuBarAgent folds items that don't fit into its own
+    /// overflow menu, and a divider wider than the free space is dropped itself while the icons stay visible.
+    /// Later versions keep the parts that verify themselves at run time and leave hiding off.
+    static func decide(majorVersion: Int) -> DrawerSupport {
+        switch majorVersion {
+        case ..<26: .unavailable
+        case 26: .full
+        default: DrawerSupport(catalog: true, arranging: true, hiding: false)
+        }
+    }
+
+    /// Some of the Drawer works, but not all of it; Settings explains what's missing.
+    var isPartial: Bool { catalog && !(arranging && hiding) }
 }
 
 enum DrawerOrder {

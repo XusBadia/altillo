@@ -11,7 +11,7 @@ struct SettingsDrawerPane: View {
     @FocusState private var focusedEntryID: String?
 
     private var canMove: Bool {
-        store.enabled && store.hasAccess && store.isSupported && store.movingEntryID == nil
+        store.enabled && store.hasAccess && store.support.arranging && store.movingEntryID == nil
     }
 
     private var movingEntry: MenuBarEntry? {
@@ -97,7 +97,33 @@ struct SettingsDrawerPane: View {
         } else if !store.hasIconAccess {
             iconPermissionCard
         } else {
+            if store.support.isPartial { partialSupportCard }
             arrangementContent
+        }
+    }
+
+    /// What this version of macOS doesn't allow, so the missing part isn't mistaken for a fault.
+    private var partialSupportCard: some View {
+        SettingsCard {
+            Label {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Some Drawer features aren't available on this version of macOS")
+                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    if !store.support.hiding {
+                        Text("Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer.")
+                            .settingsHint()
+                    }
+                    if !store.support.arranging {
+                        Text("Icons can't be moved from here. Hold Command and drag them in the menu bar instead.")
+                            .settingsHint()
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "info.circle")
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+            }
         }
     }
 
@@ -448,16 +474,15 @@ struct SettingsDrawerPane: View {
 
     private func displayName(for entry: MenuBarEntry) -> String {
         let title = entry.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        if entry.application.bundleID == "com.apple.controlcenter" {
+        if [MenuBarAccessibility.controlCenterBundleID, MenuBarAccessibility.menuBarAgentBundleID]
+            .contains(entry.application.bundleID) {
             return title.components(separatedBy: ",").first ?? title
         }
         return title.isEmpty ? entry.application.name : title
     }
 
     private func icon(for entry: MenuBarEntry) -> NSImage {
-        store.statusIcon(for: entry)
-            ?? NSImage(systemSymbolName: "square.dashed", accessibilityDescription: nil)
-            ?? NSImage()
+        store.settingsIcon(for: entry)
     }
 
     private enum Destination: Equatable {

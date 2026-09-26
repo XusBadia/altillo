@@ -161,14 +161,16 @@ struct SettingsAgentsGroup: View {
                                          path: model.displayPath(report.configFile),
                                          replies: Binding(
                                             get: { model.replyTargets.contains(report.target) },
-                                            set: { model.setReply($0, for: report.target, wait: settings.agentPermissionWait) }),
-                                         wait: Self.waitTitle(settings.agentPermissionWait)) { action in
+                                            set: { model.setReply($0, for: report.target, wait: settings.agentPermissionWait) })) { action in
                         model.prepare(action, for: report.target, wait: settings.agentPermissionWait)
                     }
                 }
                 SettingsOpenCodeRow()
                 Text("Hooks let an agent tell Altillo what it's doing and ask you for permission in the notch. Without them Altillo still shows your sessions from the agents' own session files, but can't approve anything.")
                     .settingsHint()
+                if showsReplySwitch {
+                    replyFootnote
+                }
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -205,6 +207,23 @@ struct SettingsAgentsGroup: View {
         }
     }
 
+    /// Some agent row has "Let me reply from the notch".
+    private var showsReplySwitch: Bool {
+        model.reports.contains { SettingsAgentHookRow.showsReplySwitch(for: $0) }
+    }
+
+    /// What "Let me reply from the notch" does, said once for every agent that has the switch.
+    private var replyFootnote: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text("Let me reply from the notch")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+            Text("When it finishes a turn and you're not looking at its terminal, the agent waits up to \(Self.waitTitle(settings.agentPermissionWait)) for your reply before it stops. Switching to the terminal lets it stop at once, so you can type there. On by default for new Claude Code and Codex installs.")
+                .settingsHint()
+        }
+        .accessibilityElement(children: .combine)
+    }
+
     static func waitTitle(_ seconds: Int) -> String {
         switch seconds {
         case 120: String(localized: "2 min (default)")
@@ -239,11 +258,13 @@ private struct SettingsAgentHookRow: View {
     let report: AgentHookReport
     let feedback: AgentHooksModel.Feedback?
     let path: String
-    /// "Let me reply from the notch" for this agent.
+    /// "Let me reply from the notch" for this agent (what it does is the group's footnote, said once).
     @Binding var replies: Bool
-    /// "2 min (default)": how long the agent waits.
-    let wait: String
     let perform: (AgentHookPlan.Action) -> Void
+
+    static func showsReplySwitch(for report: AgentHookReport) -> Bool {
+        report.status != .agentNotFound && report.target.replyEvent != nil
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
@@ -283,15 +304,11 @@ private struct SettingsAgentHookRow: View {
                 ForEach(notes, id: \.self) { note in
                     Text(note).settingsHint()
                 }
-                if report.status != .agentNotFound, report.target.replyEvent != nil {
+                if Self.showsReplySwitch(for: report) {
                     Toggle(isOn: $replies) {
-                        VStack(alignment: .leading, spacing: 1) {
-                            Text("Let me reply from the notch")
-                                .font(.system(size: 11.5, weight: .medium))
-                                .foregroundStyle(Desvan.Palette.paper)
-                            Text("When it finishes a turn and you're not looking at its terminal, the agent waits up to \(wait) for your reply before it stops. Switching to the terminal lets it stop at once, so you can type there. On by default for new Claude Code and Codex installs.")
-                                .settingsHint()
-                        }
+                        Text("Let me reply from the notch")
+                            .font(.system(size: 11.5, weight: .medium))
+                            .foregroundStyle(Desvan.Palette.paper)
                     }
                     .toggleStyle(.switch)
                     .controlSize(.mini)

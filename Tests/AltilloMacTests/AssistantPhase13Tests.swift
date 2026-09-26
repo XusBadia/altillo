@@ -273,6 +273,7 @@ struct AssistantPhase13Tests {
         #expect(result.answer.contains("\"Call Ana\""))
         #expect(result.answer.contains("tomorrow (Saturday 26 September) at 10:00"))
         #expect(result.receipt?.undo == .reminder("r1"))
+        #expect(result.receipt?.isAgentReply == false, "a reminder's answer is the model's own words, still shown")
         #expect(result.receipt?.title == "Call Ana")
 
         #expect(await AssistantReminders.undo(identifier: "r1", store: store))
@@ -672,6 +673,7 @@ struct AssistantAgentReplyTests {
         #expect(result.answer.contains("altillo"))
         #expect(result.receipt?.title == "go ahead")
         #expect(result.receipt?.undo == nil, "a message can't be unsent")
+        #expect(result.receipt?.isAgentReply == true, "its card stands for the answer, which isn't drawn above it")
     }
 
     @Test func nothingIsSentWhenItCantBeClear() {
