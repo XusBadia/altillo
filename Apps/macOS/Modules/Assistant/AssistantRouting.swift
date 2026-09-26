@@ -16,6 +16,15 @@ enum AssistantRoute: String, Equatable, Sendable {
     /// "Run my Coffee shortcut", "ejecuta el atajo Café": an explicit request to run one of the user's Shortcuts
     /// (`ShortcutsAskIntent`). The only route with the `runShortcut` tool.
     case shortcut
+    /// "Remind me to call Ana tomorrow at 10", «recuérdame comprar pan a las 7» (phase 13): a reminder in the
+    /// Reminders app. The only route with the `reminders` tool.
+    case reminder
+    /// "Tell Claude to run the tests", «dile a Codex que siga» (phase 13): the words go to a waiting agent as
+    /// typed (`AgentReplyIntent`, `AssistantAgentReply`). No model and no tools: Altillo does it and says so.
+    case agentReply
+
+    /// Routes that do something rather than answer: no web lookups, no retries once done, no attachment detour.
+    var acts: Bool { self == .reminder || self == .shortcut || self == .agentReply }
 }
 
 enum AssistantRouter {
@@ -75,9 +84,102 @@ enum AssistantRouter {
         return TimerDurationParser.seconds(in: question, bareNumbersAreMinutes: false) != nil
     }
 
+    /// A reminder named as such ("create a reminder", «pon un recordatorio»), folded prefixes.
+    static let reminderNouns = ["reminder", "recordatorio", "recordatori"]
+    /// Imperatives that make one, when they start the sentence.
+    static let reminderMakingWords: Set<String> = [
+        "create", "add", "set", "make", "crea", "crear", "creame", "anade", "anademe", "anadir", "pon", "ponme",
+        "poner", "haz", "hazme", "fes", "fes-me", "afegeix", "afegir", "posa", "posa'm", "new", "nuevo", "nou",
+    ]
+    /// Words a question starts with (folded). "Can you remind me…" is a request, so modal verbs aren't here.
+    static let questionWords: Set<String> = [
+        "how", "what", "what's", "whats", "which", "where", "when", "why", "who", "is", "are", "do", "does", "did",
+        "como", "que", "cual", "cuales", "donde", "cuando", "quien", "com", "quin", "quina", "quan",
+    ]
+    /// Polite openers skipped before the first word.
+    private static let openers: Set<String> = ["please", "hey", "porfa", "porfavor", "si", "siusplau", "ok", "vale"]
+    /// Accented question words that may follow «recuérdame» ("recuérdame qué es un monad" is a question).
+    private static let accentedQuestionWords: Set<String> = [
+        "qué", "cómo", "cuál", "cuándo", "dónde", "quién", "què", "com", "quan", "on", "quin", "quina",
+    ]
+    private static let clitics = ["mela", "melo", "sela", "selo", "les", "los", "las", "nos", "me", "te", "se", "le",
+                                  "la", "lo"]
+
+    /// The sentence's words, lowercased with their accents (`raw`) and folded (`folded`), openers skipped.
+    private static func words(_ question: String) -> (raw: [String], folded: [String]) {
+        let raw = question.lowercased().replacingOccurrences(of: "’", with: "'")
+            .split { !$0.isLetter && !$0.isNumber && $0 != "'" && $0 != "-" }.map(String.init)
+        var index = 0
+        while index < raw.count, openers.contains(AssistantHTML.fold(raw[index])) { index += 1 }
+        if index < raw.count - 1, raw[index] == "por", raw[index + 1] == "favor" { index += 2 }
+        let kept = Array(raw[index...])
+        return (kept, kept.map(AssistantHTML.fold))
+    }
+
+    /// An infinitive, maybe with pronouns on the end: «llamar», «llamarla», «comprárselo», «trucar».
+    private static func isInfinitive(_ folded: String) -> Bool {
+        var word = folded
+        for _ in 0..<2 {
+            if let clitic = clitics.first(where: { word.count > $0.count + 2 && word.hasSuffix($0) }),
+               !["ar", "er", "ir", "re"].contains(where: { word.hasSuffix($0) }) {
+                word = String(word.dropLast(clitic.count))
+            }
+        }
+        return ["ar", "er", "ir", "re"].contains { word.hasSuffix($0) } && word.count >= 3
+    }
+
+    /// An explicit request for a reminder, never a question about them:
+    /// - "remind me to <task>"; "remind me about/of/that …" only with a date or time;
+    /// - «recuérdame» / «recorda'm» followed by an infinitive or «que», or with a date or time;
+    /// - "create / add / set a reminder…", «pon un recordatorio…» starting the sentence.
+    /// A timer asked in the same breath ("remind me in 10 minutes") stays a timer.
+    static func asksForReminder(_ question: String, now: Date = .now) -> Bool {
+        let (raw, folded) = words(question)
+        guard let first = folded.first, !questionWords.contains(first) else { return false }
+        let hasDate = { ReminderDateParser.parse(question, now: now) != nil }
+
+        // "create a reminder…", «pon un recordatorio…»
+        if reminderMakingWords.contains(first),
+           folded.prefix(5).contains(where: { word in reminderNouns.contains { word.hasPrefix($0) } }) {
+            return true
+        }
+        for (index, word) in folded.enumerated() {
+            let next = index + 1 < raw.count ? raw[index + 1] : nil
+            let nextFolded = next.map(AssistantHTML.fold)
+            // English: "remind me to …"
+            if word == "remind", index + 2 < folded.count, folded[index + 1] == "me" {
+                let joiner = folded[index + 2]
+                if joiner == "to" { return index + 3 < folded.count && !asksForTimer(question) }
+                if ["about", "of", "that"].contains(joiner) { return hasDate() && !asksForTimer(question) }
+                continue
+            }
+            // Spanish and Catalan
+            if ["recuerdame", "recordarme", "recuerdamelo", "recorda'm", "recordam", "recorda-me", "recordeu-me"]
+                .contains(word) {
+                guard let next, let nextFolded else { return false }
+                if accentedQuestionWords.contains(next) { return false }
+                if next == "que" || isInfinitive(nextFolded) { return true }
+                return hasDate() && !asksForTimer(question)
+            }
+        }
+        return false
+    }
+
+    /// "Write down …", «apunta …»: the note, which runs even with something attached.
+    static func asksForNote(_ question: String) -> Bool {
+        let folded = AssistantHTML.fold(question)
+        let words = folded.split { !$0.isLetter && !$0.isNumber }.map(String.init)
+        let verbs: Set<String> = ["apunta", "apuntame", "apuntalo", "anota", "anotame", "anotalo", "jot"]
+        return words.contains(where: verbs.contains)
+            || ["write down", "write this down", "write that down", "add to my note", "add to the note", "note that"]
+                .contains(where: folded.contains)
+    }
+
     static func route(_ question: String, followsContext: Bool = false, now: Date = .now) -> AssistantRoute {
         // Before anything else: "run my clipboard shortcut" is a request to run, not a question about the clipboard.
         if ShortcutsAskIntent.isExplicitRun(question) { return .shortcut }
+        if AgentReplyIntent.parse(question) != nil { return .agentReply }
+        if asksForReminder(question) { return .reminder }
         let folded = AssistantHTML.fold(question)
         let words = folded.split { !$0.isLetter && !$0.isNumber && $0 != "-" }.map(String.init)
         if words.contains(where: contextWords.contains) || contextPhrases.contains(where: folded.contains)

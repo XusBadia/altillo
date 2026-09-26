@@ -46,7 +46,9 @@ struct DesvanDrawerView: View {
                                     guard !isDemo else { return }
                                     store.activate(entry, anchor: anchor)
                                 } label: {
+                                    // Template (single-colour) captures take the paper tone; colour icons stay as captured.
                                     MenuBarGlyph(image: icon(for: entry))
+                                        .foregroundStyle(Desvan.Palette.paper)
                                         .padding(.horizontal, 6)
                                         .frame(minWidth: Self.iconTarget, minHeight: Self.iconTarget)
                                         .contentShape(RoundedRectangle(cornerRadius: 7))
@@ -112,8 +114,8 @@ struct DesvanDrawerView: View {
         .onDisappear { if !isDemo { store.setVisible(false, for: .notch) } }
     }
 
-    /// Each icon is a 30 pt target (above the 28 pt minimum, `DesvanHitTarget`) around its 18 pt glyph, like the
-    /// menu bar's own spacing.
+    /// Each icon is a 30 pt target (above the 28 pt minimum, `DesvanHitTarget`) around its glyph, shown at its native
+    /// menu-bar size (up to 24 pt), like the menu bar's own spacing.
     private static let iconTarget: CGFloat = 30
 
     private func icon(for entry: MenuBarEntry) -> NSImage {

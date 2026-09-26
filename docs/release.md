@@ -161,3 +161,77 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
 Una versión con sufijo (`0.2.0-beta.1`) se marca como *prerelease* en GitHub
 y se publica en el canal `beta` del appcast (`--channel beta`), no en el
 general — solo la ven quienes hayan optado a probar el canal beta.
+
+## Homebrew
+
+`packaging/homebrew/Casks/altillo.rb` es la fuente de verdad del cask en
+este repositorio. No está publicado en ningún tap todavía: es preparación
+para cuando decidas distribuir Altillo por Homebrew (fase 10, "Publicación").
+
+### Mantenerlo al día
+
+Después de publicar una release con `script/release.sh <versión> --publish`,
+actualiza el cask con:
+
+```sh
+script/update-cask.sh <versión>
+```
+
+El script descarga el DMG recién publicado desde GitHub Releases, calcula su
+sha256 y reescribe `version` y `sha256` en `packaging/homebrew/Casks/altillo.rb`
+sin tocar el resto del fichero (depends_on, zap, etc.). Falla con un mensaje
+claro si la versión todavía no está publicada (404) o si el cask no tiene las
+líneas `version "..."` / `sha256 "..."` esperadas.
+
+### Opción A: tap propio (recomendado a corto plazo)
+
+Mientras Altillo no sea lo bastante conocido para el tap oficial, la forma
+más simple de que alguien haga `brew install --cask altillo` es un tap
+propio:
+
+```sh
+brew tap-new XusBadia/tap
+cp packaging/homebrew/Casks/altillo.rb "$(brew --repository)/Library/Taps/xusbadia/homebrew-tap/Casks/altillo.rb"
+brew style --cask "$(brew --repository)/Library/Taps/xusbadia/homebrew-tap/Casks/altillo.rb"
+brew audit --cask --new "$(brew --repository)/Library/Taps/xusbadia/homebrew-tap/Casks/altillo.rb"
+```
+
+Después, crea el repositorio `XusBadia/homebrew-tap` en GitHub (público, MIT
+o sin licencia — es solo el índice del tap), sube el cask y publícalo. Con el
+tap publicado, cualquiera instala Altillo con:
+
+```sh
+brew tap XusBadia/tap
+brew install --cask altillo
+```
+
+Este repositorio no crea el tap por ti — es una decisión que se toma aparte,
+con consentimiento explícito, porque implica publicar un nuevo repositorio
+público.
+
+### Opción B: `homebrew/homebrew-cask` oficial (más adelante)
+
+Homebrew acepta casks de terceros en su repositorio oficial solo cuando el
+proyecto es "notable" (criterios propios de estrellas, forks, menciones y
+descargas — ver su
+[`CONTRIBUTING.md`](https://github.com/Homebrew/homebrew-cask/blob/master/CONTRIBUTING.md)
+y los requisitos de
+[`Acceptable Casks`](https://docs.brew.sh/Acceptable-Casks)). No tiene
+sentido intentarlo antes de cumplir ese listón; hasta entonces, la Opción A
+cubre la instalación por Homebrew.
+
+### Validación local
+
+Sin tapear el cask, se puede comprobar el estilo directamente sobre el
+fichero:
+
+```sh
+brew style packaging/homebrew/Casks/altillo.rb
+```
+
+`brew audit --cask` no llegó a ejecutarse en esta máquina: Homebrew exige
+Xcode 27.0 y aquí solo hay 26.6 instalado, así que aborta antes de auditar
+nada, sin relación con el cask en sí. Repite `brew audit --cask --new` una
+vez el Xcode del equipo esté al día, o cuando el cask viva ya en un tap real
+(Opción A) — algunas comprobaciones del audit solo se resuelven bien con el
+cask tapeado.

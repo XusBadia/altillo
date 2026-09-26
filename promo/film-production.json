@@ -1,0 +1,38 @@
+{
+  "status": "RENDERED_AND_CHECKED",
+  "verification": "TypeScript passed; complete MP4 decoded; scene contact sheets visually checked; H264 1920x1080 30fps, AAC stereo 48kHz, 28.000s; measured -18.80 LUFS and -2.51 dBTP.",
+  "model": "Grok Build native image_to_video (Imagine)",
+  "resolution": "1264x720 source; 1920x1080 edit",
+  "sessionId": "01a0be37-2fca-7420-a6bd-c5be228cbea3",
+  "sourceDuration": 10.042,
+  "sourceFps": 24,
+  "output": "videos/altillo-la-puerta.mp4",
+  "durationPerClip": 8,
+  "images": {
+    "door": "public/film/01-door.png",
+    "attic": "public/film/02-attic.png",
+    "method": "Built-in imagegen"
+  },
+  "shots": [
+    {
+      "file": "public/film/01-door.mp4",
+      "reference": "55778271-51af-4ccf-a79f-ec9818f62595",
+      "prompt": "Animate this exact physical miniature set in a premium stop-motion product film. 8 second single continuous shot. First 2 seconds very slow cinematic push toward laptop with gentle parallax, amber light flickering beneath tiny oak door. At 2 seconds the tiny door in the top screen notch swings inward, revealing warm golden attic light. Then camera elegantly accelerates forward and upward directly toward that small open doorway until by final second we pass through the black notch into the warm glow. Paper sheets on desk flutter and rise slightly in the door's gentle magical draft. Preserve laptop geometry, only one door at TOP screen notch. Physical handmade stop-motion cadence, cinematic macro lens, rich material texture. No text, no logos, no speech. Sound: delicate paper rustle, small wood latch click and creak, warm airy shimmer, restrained felt piano notes; no bombastic soundtrack."
+    },
+    {
+      "file": "public/film/02-attic.mp4",
+      "reference": "3578d4e3-0463-4638-b074-eeba0873300f",
+      "prompt": "8 second cinematic single take of this exact handcrafted miniature attic. The three floating paper sheets come alive with expressive stop-motion motion: they curl, flutter in a graceful spiral around the warm bulb, then swoop individually into the kraft file folders on the left and right shelves. The folders shuffle sideways like a choreographed tiny library making room. Camera smoothly dollies forward and arcs slightly left past floating sheets, strong macro parallax, shallow depth, warm golden dust, refined physical texture. At end all papers settle neatly and lamp glows warmly. Preserve exact room architecture and practical realism. This is a sophisticated stop motion brand film, energetic choreography but not chaotic. No humans, text, logos or voice. Sound close papery flutters and soft wood taps, gentle felt piano and delicate plucked strings, whimsical intimate not epic."
+    },
+    {
+      "file": "public/film/03-return.mp4",
+      "reference": "55778271-51af-4ccf-a79f-ec9818f62595",
+      "prompt": "8 second cinematic return to the laptop from a macro close view of the tiny golden oak doorway in its top notch. Camera gracefully pulls back revealing the exact graphite laptop on the warm dark desk. Ivory paper sheets flutter upward into the little door and disappear inside. The door closes softly, leaving a fine golden glow under it. Handcrafted miniature stop-motion motion, exquisite material realism and macro parallax. No text, no logos or speech. Soft paper rustle, tiny wooden latch click, restrained felt piano cadence resolving warmly."
+    }
+  ],
+  "resolvedBlocker": "Higgsfield required a paid plan; native authenticated Grok CLI generation succeeded instead.",
+  "requestIds": [
+    "4b408b4f-cfa3-436d-a286-76db26247974",
+    "d5980c9c-ef19-4001-9271-f4e20c665be4"
+  ]
+}

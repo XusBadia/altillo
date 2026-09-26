@@ -1,10 +1,13 @@
 import Foundation
 
 /// A coding agent whose hooks Altillo can install. Raw values match `AgentKind` and the first argument of
-/// `altillo-hook`.
+/// `altillo-hook`. (OpenCode needs no hooks: Altillo follows its server.)
 enum AgentHookTarget: String, CaseIterable, Identifiable, Sendable {
     case claude
     case codex
+    case gemini
+    case copilot
+    case cursor
 
     var id: String { rawValue }
 
@@ -12,22 +15,29 @@ enum AgentHookTarget: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .claude: "Claude Code"
         case .codex: "Codex"
+        case .gemini: "Gemini CLI"
+        case .copilot: "Copilot CLI"
+        case .cursor: "Cursor"
         }
     }
 
-    /// The file Altillo edits, inside the agent's config directory.
+    /// The file Altillo edits, inside the agent's config directory. Copilot reads every `hooks/*.json`, so Altillo
+    /// keeps its hooks in a file of its own there.
     var configFileName: String {
         switch self {
-        case .claude: "settings.json"
-        case .codex: "hooks.json"
+        case .claude, .gemini: "settings.json"
+        case .codex, .cursor: "hooks.json"
+        case .copilot: "hooks/altillo.json"
         }
     }
 
     /// The environment variable that moves the agent's config directory, and the default directory in the home.
-    var configDirectoryVariable: String {
+    var configDirectoryVariable: String? {
         switch self {
         case .claude: "CLAUDE_CONFIG_DIR"
         case .codex: "CODEX_HOME"
+        case .copilot: "COPILOT_HOME"
+        case .gemini, .cursor: nil
         }
     }
 
@@ -35,11 +45,36 @@ enum AgentHookTarget: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .claude: ".claude"
         case .codex: ".codex"
+        case .gemini: ".gemini"
+        case .copilot: ".copilot"
+        case .cursor: ".cursor"
         }
     }
 
-    /// The events Altillo listens to, verified against Claude Code 2.1.281 and Codex 0.152.0 (September 2026):
-    /// https://code.claude.com/docs/en/hooks and https://developers.openai.com/codex/hooks.
+    /// How the file lists handlers: Claude, Codex and Gemini wrap them in matcher groups
+    /// (`hooks.<Event>: [{"hooks": [handler]}]`); Copilot and Cursor list them directly (`hooks.<event>: [handler]`)
+    /// under a top-level `"version": 1`.
+    enum Layout: Sendable { case grouped, flat }
+
+    var layout: Layout {
+        switch self {
+        case .claude, .codex, .gemini: .grouped
+        case .copilot, .cursor: .flat
+        }
+    }
+
+    /// Gemini's `timeout` is in milliseconds; everyone else's in seconds.
+    var timeoutScale: Int { self == .gemini ? 1000 : 1 }
+
+    /// The event whose hook can hold the end of a turn open for a reply from the notch (all five support it).
+    var replyEvent: String? { HookReplyOutputName.stopEvent(for: self) }
+
+    /// A permission can be answered from the notch (the hook's answer schema is verified and the hook fires only
+    /// when the agent would ask). Gemini's and Cursor's hooks can't answer a prompt; Copilot's fires for every tool.
+    var answersPermissions: Bool { self == .claude || self == .codex }
+
+    /// The events Altillo listens to, verified in September 2026 against Claude Code 2.1.281, Codex 0.152.0,
+    /// Gemini CLI 0.61.0 (bundled docs), Copilot CLI 1.0.88 (docs.github.com) and Cursor CLI 2026.09.23 (source).
     var events: [AgentHookEvent] {
         switch self {
         case .claude:
@@ -52,7 +87,7 @@ enum AgentHookTarget: String, CaseIterable, Identifiable, Sendable {
                 .init("PostToolUse"),
                 .init("PermissionRequest", waitsForDecision: true),
                 .init("Notification"),
-                .init("Stop"),
+                .init("Stop", repliable: true),
                 .init("StopFailure"),
                 .init("SubagentStart"),
                 .init("SubagentStop"),
@@ -66,11 +101,63 @@ enum AgentHookTarget: String, CaseIterable, Identifiable, Sendable {
                 .init("PreToolUse"),
                 .init("PostToolUse"),
                 .init("PermissionRequest", waitsForDecision: true),
-                .init("Stop"),
+                .init("Stop", repliable: true),
                 .init("Interrupt", timeout: nil),
                 .init("SubagentStart"),
                 .init("SubagentStop"),
             ]
+        case .gemini:
+            [
+                .init("SessionStart"),
+                .init("SessionEnd"),
+                .init("BeforeAgent"),
+                .init("BeforeTool"),
+                .init("AfterTool"),
+                .init("Notification"),
+                .init("AfterAgent", repliable: true),
+                .init("PreCompress"),
+            ]
+        case .copilot:
+            // No preToolUse: Copilot fails it closed when the hook errors (a moved Altillo would deny every tool).
+            // permissionRequest fires for every tool call before Copilot's own rules, so it only reports activity.
+            [
+                .init("sessionStart"),
+                .init("sessionEnd"),
+                .init("userPromptSubmitted"),
+                .init("permissionRequest"),
+                .init("postToolUse"),
+                .init("postToolUseFailure"),
+                .init("notification"),
+                .init("agentStop", repliable: true),
+                .init("subagentStart"),
+                .init("subagentStop"),
+                .init("errorOccurred"),
+            ]
+        case .cursor:
+            [
+                .init("sessionStart"),
+                .init("sessionEnd"),
+                .init("beforeSubmitPrompt"),
+                .init("preToolUse"),
+                .init("postToolUse"),
+                .init("postToolUseFailure"),
+                .init("afterAgentResponse"),
+                .init("stop", repliable: true),
+                .init("subagentStart"),
+                .init("subagentStop"),
+            ]
+        }
+    }
+}
+
+/// The stop event names, shared with `altillo-hook` (`HookReplyOutput.stopEvent`).
+enum HookReplyOutputName {
+    static func stopEvent(for target: AgentHookTarget) -> String? {
+        switch target {
+        case .claude, .codex: "Stop"
+        case .gemini: "AfterAgent"
+        case .copilot: "agentStop"
+        case .cursor: "stop"
         }
     }
 }
@@ -82,11 +169,15 @@ struct AgentHookEvent: Equatable, Sendable {
     let timeout: Int?
     /// PermissionRequest: the hook waits for the user's answer in the notch, up to the chosen wait.
     let waitsForDecision: Bool
+    /// The agent's stop event: with "Let me reply from the notch" on, the hook holds the turn open for a reply.
+    let repliable: Bool
 
-    init(_ name: String, timeout: Int? = AgentHookCommand.quickTimeout, waitsForDecision: Bool = false) {
+    init(_ name: String, timeout: Int? = AgentHookCommand.quickTimeout, waitsForDecision: Bool = false,
+         repliable: Bool = false) {
         self.name = name
         self.timeout = waitsForDecision ? nil : timeout
         self.waitsForDecision = waitsForDecision
+        self.repliable = repliable
     }
 }
 
@@ -109,16 +200,20 @@ enum AgentHookCommand {
     static let waitChoices = [30, 60, 120, 300]
     static let defaultWait = 120
 
-    /// `"<hook>" <agent> <event>`, plus `--timeout <seconds>` for PermissionRequest.
-    static func command(hookPath: String, agent: AgentHookTarget, event: AgentHookEvent, wait: Int) -> String {
+    /// `"<hook>" <agent> <event>`, plus `--timeout <seconds>` for PermissionRequest and `--reply-wait <seconds>` for
+    /// the stop event when the user lets the agent wait for a reply.
+    static func command(hookPath: String, agent: AgentHookTarget, event: AgentHookEvent, wait: Int,
+                        reply: Bool = false) -> String {
         var command = "\(shellQuoted(hookPath)) \(agent.rawValue) \(event.name)"
         if event.waitsForDecision { command += " --timeout \(wait)" }
+        if event.repliable, reply { command += " --reply-wait \(wait)" }
         return command
     }
 
-    /// The handler's `timeout` field for an event.
-    static func timeout(for event: AgentHookEvent, wait: Int) -> Int? {
-        event.waitsForDecision ? wait + permissionTimeoutMargin : event.timeout
+    /// The handler's `timeout` field for an event, in seconds.
+    static func timeout(for event: AgentHookEvent, wait: Int, reply: Bool = false) -> Int? {
+        if event.waitsForDecision || (event.repliable && reply) { return wait + permissionTimeoutMargin }
+        return event.timeout
     }
 
     /// Whether a hook command runs `altillo-hook` (quoted or not, from any path).

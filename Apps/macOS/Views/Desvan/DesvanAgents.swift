@@ -27,7 +27,7 @@ struct DesvanAgentsView: View {
                 DesvanModuleNotice(
                     symbol: "hand.raised",
                     title: "Nobody's working upstairs",
-                    message: "Altillo follows Claude Code and Codex: when one works, asks for your OK or finishes, it shows up here.",
+                    message: "Altillo follows Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor and OpenCode: when one works, asks for your OK or finishes, it shows up here.",
                     actionTitle: "Agents Settings…",
                     action: { SettingsWindowController.shared.show(tab: .modules) }
                 )
@@ -77,6 +77,8 @@ struct DesvanAgentsView: View {
         let hub = model.agentHub
         return DesvanAgentActions(
             decide: { hub.decide($0, $1) },
+            reply: { hub.sendReply($1, to: $0) },
+            letStop: { hub.letStop($0) },
             focus: { hub.focus($0) },
             dismiss: { hub.dismiss($0) },
             installHooks: { SettingsWindowController.shared.show(tab: .modules) }
@@ -88,6 +90,10 @@ struct DesvanAgentsView: View {
 @MainActor
 struct DesvanAgentActions {
     var decide: (String, AgentDecision) -> Void = { _, _ in }
+    /// Sends a reply typed in the notch, and says whether it went.
+    var reply: (AgentSession, String) -> AgentHub.ReplyOutcome = { _, _ in .unavailable }
+    /// "No, stop": lets the held stop hook go, so the agent stops now.
+    var letStop: (AgentSession) -> Void = { _ in }
     var focus: (AgentSession) -> Void = { _ in }
     var dismiss: (AgentSession) -> Void = { _ in }
     var installHooks: () -> Void = {}
@@ -111,8 +117,16 @@ private struct DesvanAgentCard: View {
         session.phase == .waitingPermission ? session.pendingRequest : nil
     }
 
-    /// Only hooks can carry an answer back; a session seen through its file is answered in the terminal.
-    private var canAnswer: Bool { session.source == .hooks && request != nil }
+    /// Only hooks (or OpenCode's server) can carry an answer back; a session seen through its file is answered in
+    /// the terminal.
+    private var canAnswer: Bool { session.source != .sessionFile && request != nil }
+
+    /// A reply typed here can reach the agent (a stop hook holding the turn open, or OpenCode's server).
+    private func replyChannel(now: Date) -> AgentReplyChannel? {
+        guard session.phase == .waitingAnswer, let channel = session.reply else { return nil }
+        if !channel.isClosed, let expiry = channel.expiresAt, expiry <= now { return nil }
+        return channel
+    }
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1)) { context in
@@ -126,6 +140,13 @@ private struct DesvanAgentCard: View {
                     if let request {
                         slip(request)
                         if request.isDangerous, canAnswer, !expired { dangerLine }
+                        if let failure = request.failure {
+                            Label(failure, systemImage: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11.5, weight: .medium))
+                                .foregroundStyle(Desvan.Palette.warning)
+                                .lineLimit(2)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
                     } else if let message = AgentsLogic.excerpt(session.lastMessage, limit: 140) {
                         Text(verbatim: "“\(message)”")
                             .font(.system(size: 12.5).italic())
@@ -134,7 +155,17 @@ private struct DesvanAgentCard: View {
                             .fixedSize(horizontal: false, vertical: true)
                             .textSelection(.enabled)
                     }
-                    buttons(expired: expired)
+                    if let channel = replyChannel(now: now) {
+                        // Go to terminal shares the quick answers' row: a row of its own pushed the card past
+                        // the section's height.
+                        DesvanReplyField(agentName: session.agent.name, channel: channel, now: now,
+                                         send: { actions.reply(session, $0) },
+                                         letStop: { actions.letStop(session) }) {
+                            terminalButton(prominent: true)
+                        }
+                    } else {
+                        buttons(expired: expired)
+                    }
                 }
             }
             .padding(.horizontal, 14)
@@ -328,12 +359,16 @@ private struct DesvanAgentCard: View {
                     .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
             }
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
-            .help("Opens Settings › Sections, where Altillo can add its hooks to Claude Code and Codex")
+            .help("Opens Settings › Sections, where Altillo can add its hooks to your agents")
         } else if expired {
             Text("It's asking in the terminal now")
                 .font(.system(size: 12))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
-        } else if session.phase == .waitingAnswer {
+        } else if session.phase == .waitingAnswer, session.reply == nil {
+            Text("Answer it in the terminal")
+                .font(.system(size: 12))
+                .foregroundStyle(Desvan.Palette.paperTertiary)
+        } else if session.phase == .waitingPermission, request == nil {
             Text("Answer it in the terminal")
                 .font(.system(size: 12))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
@@ -392,10 +427,117 @@ private struct DesvanAgentCard: View {
     }
 }
 
+/// "Reply to Claude…": a line of paper to write on, and quick answers. Return sends. While a stop hook holds the
+/// turn open, the ring shows how long the agent still waits before it stops as usual, and "No, stop" lets it stop
+/// now. A reply that didn't get through keeps its text here, saying so, until the session moves on.
+private struct DesvanReplyField<Trailing: View>: View {
+    let agentName: String
+    let channel: AgentReplyChannel
+    let now: Date
+    let send: (String) -> AgentHub.ReplyOutcome
+    let letStop: () -> Void
+    /// At the end of the quick answers' row (Go to terminal).
+    @ViewBuilder let trailing: () -> Trailing
+
+    @State private var text = ""
+    @State private var outcome: AgentHub.ReplyOutcome?
+    @FocusState private var focused: Bool
+
+    private static var chips: [LocalizedStringResource] { ["Continue", "Yes"] }
+
+    private var closed: Bool { channel.isClosed || outcome == .unavailable }
+    private var tooLong: Bool { text.utf8.count > AgentHub.maxReplyBytes }
+    private var canSend: Bool {
+        !closed && !tooLong && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                TextField(text: $text, prompt: Text("Reply to \(agentName)…")) {
+                    Text("Reply to \(agentName)")
+                }
+                .textFieldStyle(.plain)
+                .font(.system(size: 12.5))
+                .foregroundStyle(closed ? Desvan.Palette.paperSecondary : Desvan.Palette.paper)
+                .focused($focused)
+                .onSubmit { submit(text) }
+                .padding(.horizontal, 9)
+                .frame(height: 28)
+                .background(RoundedRectangle(cornerRadius: 7, style: .continuous).fill(Desvan.Palette.woodRaised))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .strokeBorder(focused ? Desvan.Palette.bulb.opacity(0.7) : Desvan.Palette.hairlineStrong,
+                                      lineWidth: focused ? 1 : 0.5)
+                }
+                if !closed, let expiry = channel.expiresAt {
+                    let total = max(expiry.timeIntervalSince(channel.openedAt), 1)
+                    let left = max(expiry.timeIntervalSince(now), 0)
+                    DesvanCountdown(fraction: min(max(left / total, 0), 1), seconds: left,
+                                    help: "After this, it stops and you answer in the terminal")
+                }
+                Button { submit(text) } label: {
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 12.5, weight: .bold))
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
+                // The style doesn't dim a disabled button: without this an empty reply looks ready to send.
+                .opacity(canSend ? 1 : 0.4)
+                .disabled(!canSend)
+                .help("Send (Return)")
+                .accessibilityLabel("Send reply")
+            }
+            HStack(spacing: 6) {
+                if !closed {
+                    ForEach(Self.chips.indices, id: \.self) { index in
+                        let chip = String(localized: Self.chips[index])
+                        Button { submit(chip) } label: {
+                            Text(verbatim: chip).font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                        }
+                        .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 28))
+                        .help("Reply “\(chip)”")
+                    }
+                    if channel.kind == .stopHook {
+                        Button(action: letStop) {
+                            Text("No, stop").font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                        }
+                        .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 28))
+                        .help("Let it stop now, without a reply")
+                    }
+                }
+                if closed {
+                    Text("It stopped waiting. Answer in the terminal.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Desvan.Palette.warning)
+                        .lineLimit(1)
+                } else if tooLong || outcome == .tooLong {
+                    Text("Too long to send from here (16 KB at most).")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Desvan.Palette.warning)
+                        .lineLimit(1)
+                }
+                Spacer(minLength: 4)
+                trailing()
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private func submit(_ reply: String) {
+        let trimmed = reply.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !closed else { return }
+        let result = send(trimmed)
+        outcome = result
+        // Sent: the session moves on and the field goes. Otherwise the typed text stays.
+        if result == .sent { text = "" }
+    }
+}
+
 /// How long until the hook gives up: a ring that empties, and the time left. Turns tomato for the last 15 s.
 private struct DesvanCountdown: View {
     let fraction: Double
     let seconds: TimeInterval
+    var help: LocalizedStringKey = "After this, it asks in the terminal instead"
 
     var body: some View {
         let urgent = seconds <= 15
@@ -416,7 +558,7 @@ private struct DesvanCountdown: View {
                 .monospacedDigit()
                 .fixedSize()
         }
-        .help("After this, it asks in the terminal instead")
+        .help(help)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("\(Int(seconds.rounded(.up))) seconds left to answer here")
     }
@@ -690,7 +832,7 @@ private struct DesvanHooksHint: View {
             .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
         }
         .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
-        .help("Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to Claude Code and Codex.")
+        .help("Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to your agents.")
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }

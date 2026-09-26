@@ -12,6 +12,8 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
     case timer, note
     // Phase 12: runs one of the user's Shortcuts, only when asked for it by name (`AssistantRoute.shortcut`).
     case shortcuts
+    // Phase 13: adds a reminder (`AssistantRoute.reminder`).
+    case reminders
 
     var id: Self { self }
 
@@ -28,6 +30,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .timer: "timer"
         case .note: "note.text"
         case .shortcuts: "square.2.layers.3d"
+        case .reminders: "checklist"
         }
     }
 
@@ -45,6 +48,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .timer: String(localized: "Setting your timer…")
         case .note: String(localized: "Opening your note…")
         case .shortcuts: String(localized: "Running your shortcut…")
+        case .reminders: String(localized: "Adding your reminder…")
         }
     }
 
@@ -62,6 +66,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         case .timer: String(localized: "Used your timer")
         case .note: String(localized: "Used your note")
         case .shortcuts: String(localized: "Ran a shortcut")
+        case .reminders: String(localized: "Used Reminders")
         }
     }
 
@@ -70,7 +75,7 @@ enum AssistantActivity: String, Sendable, CaseIterable, Identifiable {
         switch self {
         case .shelf, .calendar, .nowPlaying, .clipboard, .usage, .agents: true
         case .timer, .note: true
-        case .shortcuts: true
+        case .shortcuts, .reminders: true
         case .calculator, .web: false
         }
     }
@@ -89,17 +94,28 @@ enum AssistantTools {
         shelfItems: @escaping @MainActor @Sendable () -> [ShelfItem],
         usage: @escaping @MainActor @Sendable () -> AssistantUsage.Reading = { AssistantUsage.liveReading() },
         agents: @escaping @MainActor @Sendable () -> AssistantAgents.Reading = { AssistantAgents.liveReading() },
+        nowPlaying: @escaping @MainActor @Sendable () -> AssistantNowPlaying.StoreReading = {
+            AssistantNowPlaying.liveReading()
+        },
         timer: @escaping @MainActor @Sendable (TimerAssistant.Request) -> String = { TimerAssistant.live($0) },
         note: @escaping @MainActor @Sendable (NoteAssistant.Request) -> String = { NoteAssistant.live($0) },
+        question: String = "",
+        reminders: any ReminderStoring = LiveReminderStore.shared,
+        once: AssistantActionOnce = AssistantActionOnce(),
+        receipt: @escaping AssistantReceiptReport = { _ in },
         report: @escaping AssistantActivityReport
     ) -> [any Tool] {
         // Asked explicitly to run a shortcut: that tool alone (`ShortcutsAskIntent`).
         if route == .shortcut { return [RunShortcutTool(report: report)] }
+        // Asked for a reminder: that tool alone (`AssistantRouter.asksForReminder`).
+        if route == .reminder {
+            return [RemindersTool(question: question, store: reminders, once: once, report: report, receipt: receipt)]
+        }
         guard route == .context else { return [] }
         return [
             ShelfTool(items: shelfItems, report: report),
             CalendarTool(report: report),
-            NowPlayingTool(report: report),
+            NowPlayingTool(reading: nowPlaying, report: report),
             ClipboardTool(report: report),
             ClipboardHistoryTool(report: report),
             UsageTool(reading: usage, report: report),
@@ -209,8 +225,10 @@ actor AssistantCalendar {
 // MARK: - Now playing
 
 struct NowPlayingTool: Tool {
+    /// What Altillo's Now Playing already knows (`AssistantNowPlaying.liveReading`), read first.
+    var reading: @MainActor @Sendable () -> AssistantNowPlaying.StoreReading = { AssistantNowPlaying.liveReading() }
     let name = "nowPlaying"
-    let description = "Gets the song playing in Music or Spotify."
+    let description = "Gets what's playing now in any app: a song, a podcast, a video."
 
     @Generable
     struct Arguments {}
@@ -219,20 +237,52 @@ struct NowPlayingTool: Tool {
 
     func call(arguments: Arguments) async throws -> String {
         await report(.nowPlaying)
-        let answer = await AssistantNowPlaying.read()
+        let answer = await AssistantNowPlaying.read(store: reading)
         await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool nowPlaying → \(answer.count) chars")
         return answer
     }
 }
 
-/// Asks Music and Spotify what they're doing, read-only, with the same scripts as the Now Playing section.
+/// What's playing, for Ask. First what Altillo's Now Playing already knows (`NowPlayingStore`, which hears any app
+/// through the system's Now Playing), but only while it's listening anyway: Ask never starts the helper just to
+/// answer. With nothing there, or the universal provider off, it asks Music and Spotify directly, read-only, with
+/// the same scripts as the Now Playing section.
 ///
 /// Never launches a player (only running ones are asked) and never shows the Automation dialog: the permission is
 /// checked first without asking, and a player we aren't allowed to talk to is simply reported as such.
 enum AssistantNowPlaying {
     enum Permission: Equatable, Sendable { case granted, denied, notAsked, notRunning }
 
-    static func read() async -> String {
+    /// What the store has right now.
+    struct StoreReading: Equatable, Sendable {
+        /// It's listening (section, ears or alerts), so the track is current.
+        var isListening: Bool
+        var track: NowPlayingStore.Track?
+
+        static let none = StoreReading(isListening: false, track: nil)
+    }
+
+    @MainActor
+    static func liveReading() -> StoreReading {
+        guard let store = AssistantAgents.live?.nowPlaying else { return .none }
+        return StoreReading(isListening: store.isListening, track: store.track)
+    }
+
+    /// The store's answer, or nil to fall back to asking Music and Spotify.
+    static func answer(from reading: StoreReading) -> String? {
+        guard reading.isListening, let track = reading.track,
+              !track.title.trimmingCharacters(in: .whitespaces).isEmpty
+        else { return nil }
+        return AssistantContent.nowPlaying(track)
+    }
+
+    static func read(store: @MainActor @Sendable () -> StoreReading = { liveReading() }) async -> String {
+        if let answer = answer(from: await store()) { return answer }
+        return await readPlayers()
+    }
+
+    /// Music and Spotify, asked directly (only the running ones).
+    static func readPlayers() async -> String {
         let running = await MainActor.run {
             let open = Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
             return MusicPlayer.allCases.filter { open.contains($0.bundleID) }

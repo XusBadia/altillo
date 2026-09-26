@@ -9,8 +9,9 @@ import Observation
 /// - **Shelf**: read straight from the model, nothing to watch.
 /// - **Next event**: EventKit, only if calendar access is already granted (this store never asks for it). One timer
 ///   asleep until the next moment the ear's text changes, plus EventKit changes, waking, clock and day changes.
-/// - **Music**: `NowPlayingStore`'s background listening (the players' own broadcasts, no polling), shared with the
-///   contextual ear so the players are only ever listened to once.
+/// - **Music**: `NowPlayingStore`'s background listening, shared with the contextual ear and the new-song alert so
+///   playback is only ever listened to once: the system's Now Playing stream for any app (Safari, Podcasts, VLC…),
+///   or Music's and Spotify's own broadcasts when the store has fallen back to AppleScript. No polling either way.
 /// - **AI usage**: `UsageStore`'s latest numbers (its own 5-minute rhythm), nothing extra.
 /// - **Agents**: `AgentHub`'s sessions (hook events and session files), nothing extra.
 /// - **What matters now** (`.automatic`): `NotchActivityLogic` over the sources above, only for sections that are on.

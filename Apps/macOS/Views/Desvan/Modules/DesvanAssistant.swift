@@ -13,14 +13,49 @@ struct DesvanAssistantView: View {
     let model: NotchModel
 
     @FocusState private var isFieldFocused: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var store: AssistantStore { model.assistant }
     private var isDemo: Bool { model.scenario == .openAssistant }
 
     /// The real conversation; the design scenario falls back to a sample so the look can be reviewed.
     private var exchanges: [AssistantStore.Exchange] {
+        #if DEBUG
+        switch demo {
+        case .receipts: return DemoContent.assistantReceipts
+        case .offerReceipt: return Array(DemoContent.assistantReceipts.prefix(2))
+        case .reminderReceipt: return Array(DemoContent.assistantReceipts.prefix(1))
+        default: break
+        }
+        #endif
         if store.exchanges.isEmpty && isDemo { return [.sample] }
         return store.exchanges
+    }
+
+    /// `-demoAssistant` in the design scenario (DEBUG builds): a phase 13 state drawn without doing it for real.
+    private var demo: DesvanDebug.AssistantDemo? { isDemo ? DesvanDebug.assistantDemo : nil }
+
+    private var showsSaved: Bool { store.showsSaved || demo == .saved || demo == .savedEmpty }
+
+    private var attachment: AssistantAttachment? {
+        #if DEBUG
+        if demo == .attachment { return DemoContent.assistantAttachment }
+        #endif
+        return store.attachment
+    }
+
+    private var isAttaching: Bool { store.isAttaching || demo == .reading }
+
+    private var shownDictationProblem: AssistantDictation.Problem? {
+        demo == .micProblem ? .microphoneDenied : store.dictation.problem
+    }
+
+    private var savedAnswers: [AssistantSavedAnswer]? {
+        #if DEBUG
+        if demo == .saved { return DemoContent.assistantSaved }
+        if demo == .savedEmpty { return [] }
+        #endif
+        return nil
     }
 
     var body: some View {
@@ -34,6 +69,7 @@ struct DesvanAssistantView: View {
                 store.stop()
                 store.isFieldFocused = false
             }
+            .onExitCommand { store.dictation.cancel() }
             .onChange(of: store.focusRequest) { takeFocusRequest() }
             .onChange(of: isFieldFocused) { _, focused in
                 store.isFieldFocused = focused
@@ -50,7 +86,10 @@ struct DesvanAssistantView: View {
         case .available:
             // Fills whatever height the notch gives the section: the conversation takes the room, the field stays.
             VStack(spacing: 10) {
-                if exchanges.isEmpty {
+                if showsSaved {
+                    DesvanSavedAnswers(model: model, demoAnswers: savedAnswers)
+                        .transition(.opacity)
+                } else if exchanges.isEmpty {
                     DesvanAssistantWelcome(
                         suggestions: store.suggestions,
                         searchesTheWeb: model.settings.assistantWebSearch
@@ -60,8 +99,12 @@ struct DesvanAssistantView: View {
                 } else {
                     DesvanAssistantConversation(model: model, exchanges: exchanges)
                 }
+                if let problem = shownDictationProblem {
+                    dictationProblem(problem)
+                }
                 promptBar
             }
+            .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion), value: showsSaved)
         case .appleIntelligenceOff:
             DesvanModuleNotice(
                 symbol: "sparkle",
@@ -92,7 +135,7 @@ struct DesvanAssistantView: View {
 
     private var promptBar: some View {
         HStack(spacing: 6) {
-            if !store.exchanges.isEmpty {
+            if !exchanges.isEmpty {
                 Button {
                     store.newConversation()
                     isFieldFocused = true
@@ -105,20 +148,84 @@ struct DesvanAssistantView: View {
                 .accessibilityLabel("New conversation")
                 .transition(.opacity)
             }
+            Button {
+                store.showsSaved.toggle()
+            } label: {
+                Image(systemName: showsSaved ? "bookmark.fill" : "bookmark")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(showsSaved ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 32))
+            .help(showsSaved ? "Back to the conversation" : "Saved answers")
+            .accessibilityLabel(showsSaved ? "Back to the conversation" : "Saved answers")
             DesvanPromptField(
                 text: Bindable(store).draft,
                 isFocused: $isFieldFocused,
+                placeholder: placeholder,
                 onSubmit: send,
                 onClick: { model.actions.takeKeyboardFocus() }
-            )
+            ) {
+                if attachment != nil || isAttaching {
+                    DesvanAttachmentChip(attachment: attachment, isReading: isAttaching) {
+                        store.removeAttachment()
+                    }
+                    .transition(reduceMotion ? .opacity : .scale(scale: 0.8).combined(with: .opacity))
+                }
+            } trailing: {
+                DesvanMicButton(
+                    dictation: store.dictation,
+                    sendsWhenDone: Bindable(store).sendsWhenDictationEnds,
+                    demoLevel: demo == .listening ? 0.7 : nil
+                ) {
+                    model.actions.takeKeyboardFocus()
+                    store.toggleDictation()
+                }
+            }
+            .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion), value: attachment?.id)
             sendButton
         }
         .frame(height: 32)
     }
 
+    private var placeholder: String {
+        if store.dictation.state == .listening || demo == .listening { return String(localized: "Listening…") }
+        if let attachment {
+            return String(localized: "Ask about “\(AssistantFormat.shortName(attachment.name))”…")
+        }
+        return String(localized: "Ask about your day, your shelf, anything…")
+    }
+
+    /// Why the mic couldn't listen, in one line with a way out.
+    private func dictationProblem(_ problem: AssistantDictation.Problem) -> some View {
+        HStack(spacing: 7) {
+            Image(systemName: "mic.slash")
+                .font(.system(size: 11.5, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.warning)
+                .accessibilityHidden(true)
+            Text(verbatim: problem.message)
+                .font(.system(size: 12))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            Button {
+                store.dictation.clearProblem()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .bold))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
+            .accessibilityLabel("Dismiss")
+        }
+        .padding(.leading, 4)
+        .transition(.opacity)
+        .onAppear { AccessibilityNotification.Announcement(problem.message).post() }
+    }
+
     private var sendButton: some View {
         let isResponding = store.isResponding
         let isEmpty = store.draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            && (attachment == nil || isAttaching)
         return Button {
             if isResponding { store.cancel() } else { send() }
         } label: {
@@ -323,9 +430,18 @@ private struct DesvanExchangeView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DesvanQuestionSlip(id: exchange.id, text: exchange.question)
+            DesvanQuestionSlip(id: exchange.id, text: exchange.question, attachmentName: exchange.attachmentName)
                 .frame(maxWidth: .infinity, alignment: .trailing)
             answer
+            ForEach(exchange.receipts) { receipt in
+                DesvanReceiptRow(receipt: receipt) {
+                    model.actions.haptic(.snap)
+                    model.assistant.undo(receipt, in: exchange)
+                } accept: {
+                    model.actions.haptic(.snap)
+                    model.assistant.accept(receipt, in: exchange)
+                }
+            }
             if exchange.offersWeb && isLast && exchange.isFinished {
                 DesvanWebOffer(
                     search: { model.assistant.searchWeb(for: exchange) },
@@ -404,6 +520,17 @@ private struct DesvanExchangeView: View {
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
             .disabled(putUp)
             .help("Put the answer on the shelf, to drag it anywhere")
+
+            let isSaved = model.assistant.saved.answers.contains { $0.exchangeID == exchange.id }
+            Button {
+                model.assistant.toggleSave(exchange)
+                if !isSaved { model.actions.haptic(.snap) }
+            } label: {
+                Label(isSaved ? "Saved" : "Save", systemImage: isSaved ? "bookmark.fill" : "bookmark")
+                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
+            .help(isSaved ? "Remove from saved answers" : "Keep this answer in Saved, on this Mac")
 
             Spacer(minLength: 6)
 
@@ -552,9 +679,22 @@ private struct DesvanSourceLink: View {
 private struct DesvanQuestionSlip: View {
     let id: UUID
     let text: String
+    var attachmentName: String?
 
     var body: some View {
-        Text(verbatim: text)
+        VStack(alignment: .trailing, spacing: 2) {
+            if let attachmentName {
+                Label {
+                    Text(verbatim: AssistantFormat.shortName(attachmentName, limit: 28))
+                } icon: {
+                    Image(systemName: "paperclip")
+                }
+                .font(.system(size: 11, weight: .medium))
+                .foregroundStyle(Desvan.Palette.ink.opacity(0.7))
+                .lineLimit(1)
+            }
+            Text(verbatim: text)
+        }
             .font(.system(size: 12.5, weight: .medium))
             .foregroundStyle(Desvan.Palette.ink)
             .lineLimit(4)
@@ -568,7 +708,7 @@ private struct DesvanQuestionSlip: View {
             }
             .rotationEffect(.degrees(Desvan.jitter(id) * 0.7))
             .frame(maxWidth: 400, alignment: .trailing)
-            .accessibilityLabel(Text("You asked: \(text)"))
+            .accessibilityLabel(attachmentName.map { Text("You asked about \($0): \(text)") } ?? Text("You asked: \(text)"))
     }
 }
 
@@ -606,12 +746,17 @@ private struct DesvanThinkingLine: View {
 // MARK: - Prompt field
 
 /// A single-line field set into the wood like a well, lit by the bulb while it has focus.
-private struct DesvanPromptField: View {
+private struct DesvanPromptField<Leading: View, Trailing: View>: View {
     @Binding var text: String
     var isFocused: FocusState<Bool>.Binding
+    let placeholder: String
     let onSubmit: () -> Void
     /// The notch panel doesn't become key on hover; a click in the field has to ask for it.
     let onClick: () -> Void
+    /// The attachment chip, when there is one.
+    @ViewBuilder let leading: () -> Leading
+    /// The mic.
+    @ViewBuilder let trailing: () -> Trailing
 
     var body: some View {
         let focused = isFocused.wrappedValue
@@ -620,10 +765,11 @@ private struct DesvanPromptField: View {
                 .font(.system(size: 11, weight: .semibold))
                 .foregroundStyle(focused ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
                 .accessibilityHidden(true)
+            leading()
             TextField(
                 "Ask",
                 text: $text,
-                prompt: Text("Ask about your day, your shelf, anything…").foregroundStyle(Desvan.Palette.paperTertiary)
+                prompt: Text(verbatim: placeholder).foregroundStyle(Desvan.Palette.paperTertiary)
             )
             .textFieldStyle(.plain)
             .font(.system(size: 13))
@@ -632,8 +778,10 @@ private struct DesvanPromptField: View {
             .focused(isFocused)
             .onSubmit(onSubmit)
             .accessibilityLabel("Ask the assistant")
+            trailing()
         }
-        .padding(.horizontal, 12)
+        .padding(.leading, 12)
+        .padding(.trailing, 3)
         .frame(maxWidth: .infinity)
         .frame(height: 32)
         .background {

@@ -1,7 +1,8 @@
 import Foundation
 
-// The hook installer (PLAN §5.3, risk table §9): puts Altillo's hooks into Claude Code's `settings.json` and Codex's
-// `hooks.json`, and takes them out again. It only ever touches Altillo's own entries (recognised by their command,
+// The hook installer (PLAN §5.3, risk table §9): puts Altillo's hooks into Claude Code's `settings.json`, Codex's
+// `hooks.json`, Gemini CLI's `settings.json`, Copilot CLI's `hooks/altillo.json` and Cursor's `hooks.json` (phase 14),
+// and takes them out again. It only ever touches Altillo's own entries (recognised by their command,
 // which runs `altillo-hook`), shows the exact diff before writing, backs the file up, writes atomically and refuses
 // to touch a file it can't parse.
 
@@ -21,9 +22,10 @@ struct AgentHookEnvironment: Sendable {
                                     supportDirectory: support.appending(path: "Altillo", directoryHint: .isDirectory))
     }
 
-    /// `$CLAUDE_CONFIG_DIR` / `$CODEX_HOME` when set, otherwise `~/.claude` / `~/.codex`.
+    /// `$CLAUDE_CONFIG_DIR` / `$CODEX_HOME` / `$COPILOT_HOME` when set, otherwise `~/.claude`, `~/.codex`…
     func configDirectory(for target: AgentHookTarget) -> URL {
-        if let custom = variables[target.configDirectoryVariable]?.trimmingCharacters(in: .whitespaces),
+        if let variable = target.configDirectoryVariable,
+           let custom = variables[variable]?.trimmingCharacters(in: .whitespaces),
            !custom.isEmpty {
             let expanded = custom.hasPrefix("~/") ? home.path + custom.dropFirst() : custom
             return URL(filePath: expanded, directoryHint: .isDirectory)
@@ -105,8 +107,10 @@ struct AgentHookPlan: Equatable, Sendable, Identifiable {
 struct AgentHookInstallRecord: Codable, Equatable, Sendable {
     /// Altillo created the file.
     var createdFile: Bool
-    /// `"hooks"` and `"hooks.<Event>"` keys Altillo created.
+    /// `"hooks"`, `"hooks.<Event>"` and `"version"` keys Altillo created.
     var createdKeys: [String]
+    /// Altillo created the folder the file lives in (Copilot's `hooks/`).
+    var createdDirectory: Bool? = nil
 }
 
 enum AgentHookError: Error, Equatable, Sendable, LocalizedError {
@@ -139,12 +143,16 @@ enum AgentHookError: Error, Equatable, Sendable, LocalizedError {
 /// plan the user has seen.
 struct AgentHookInstaller: Sendable {
     var environment: AgentHookEnvironment
-    /// How long a PermissionRequest waits for the user's answer, in seconds.
+    /// How long a PermissionRequest waits for the user's answer, in seconds (and a stop hook for a reply).
     var wait: Int
+    /// Agents whose stop hook waits for a reply from the notch (opt-in, phase 14).
+    var replyTargets: Set<AgentHookTarget>
 
-    init(environment: AgentHookEnvironment = .live, wait: Int = AgentHookCommand.defaultWait) {
+    init(environment: AgentHookEnvironment = .live, wait: Int = AgentHookCommand.defaultWait,
+         replyTargets: Set<AgentHookTarget> = []) {
         self.environment = environment
         self.wait = wait
+        self.replyTargets = replyTargets
     }
 
     // MARK: Status
@@ -169,7 +177,7 @@ struct AgentHookInstaller: Sendable {
         guard let document = loaded.document, Self.containsAltilloHooks(document) else { return .notInstalled }
         let desired: OrderedJSON
         do {
-            desired = try Self.installing(entries(for: target), into: document).document
+            desired = try Self.installing(entries(for: target), into: document, layout: target.layout).document
         } catch {
             return .unreadable(error.localizedDescription)
         }
@@ -189,6 +197,17 @@ struct AgentHookInstaller: Sendable {
             guard let text = try? String(contentsOf: config, encoding: .utf8),
                   Self.codexHooksDisabled(configTOML: text) else { return [] }
             return [String(localized: "Hooks are turned off in Codex's config.toml ([features] hooks = false).")]
+        case .gemini:
+            guard let loaded = try? load(target), let document = loaded.document,
+                  document["hooksConfig"]?["enabled"] == .bool(false) else { return [] }
+            return [String(localized: "Gemini CLI has hooks turned off (\"hooksConfig.enabled\" in settings.json).")]
+        case .copilot:
+            let settings = environment.configDirectory(for: target).appending(path: "settings.json")
+            guard let data = try? Data(contentsOf: settings), let document = try? OrderedJSON.parse(data),
+                  document["disableAllHooks"] == .bool(true) else { return [] }
+            return [String(localized: "Copilot CLI has every hook turned off (\"disableAllHooks\" in settings.json).")]
+        case .cursor:
+            return []
         }
     }
 
@@ -216,15 +235,19 @@ struct AgentHookInstaller: Sendable {
     func planInstall(_ target: AgentHookTarget) throws(AgentHookError) -> AgentHookPlan {
         let loaded = try load(target)
         let original = loaded.document ?? .object([])
-        let result = try Self.installing(entries(for: target), into: original)
+        let result = try Self.installing(entries(for: target), into: original, layout: target.layout)
         var record = loaded.record ?? AgentHookInstallRecord(createdFile: loaded.document == nil, createdKeys: [])
         if loaded.document == nil { record.createdFile = true }
+        if loaded.document == nil, !FileManager.default.fileExists(atPath: loaded.writeURL.deletingLastPathComponent().path) {
+            record.createdDirectory = true
+        }
         // Keys created now, plus keys created by an earlier install that are still there.
         record.createdKeys = Array(Set(record.createdKeys.filter { Self.exists($0, in: result.document) })
             .union(result.createdKeys)).sorted()
         let style = loaded.text.map(OrderedJSON.Style.detect(in:)) ?? .standard
         let newText = result.document.serialized(style: style)
-        try Self.verify(old: original, new: result.document, newText: newText, installed: true)
+        try Self.verify(old: original, new: result.document, newText: newText, installed: true,
+                        ignoring: Set(record.createdKeys.filter { !$0.hasPrefix("hooks") }))
         return plan(target, .install, loaded, newText: newText, record: record)
     }
 
@@ -239,8 +262,12 @@ struct AgentHookInstaller: Sendable {
         if deletesFile { document = .object([]) }
         let newText = deletesFile ? nil : document.serialized(style: loaded.text.map(OrderedJSON.Style.detect(in:))
             ?? .standard)
-        try Self.verify(old: original, new: document, newText: newText ?? "{}", installed: false)
-        return plan(target, .uninstall, loaded, newText: newText, record: nil)
+        try Self.verify(old: original, new: document, newText: newText ?? "{}", installed: false,
+                        ignoring: Set((record?.createdKeys ?? []).filter { !$0.hasPrefix("hooks") }))
+        // A folder Altillo created for the file goes with it once empty.
+        let keepRecord = deletesFile && record?.createdDirectory == true
+            ? AgentHookInstallRecord(createdFile: false, createdKeys: [], createdDirectory: true) : nil
+        return plan(target, .uninstall, loaded, newText: newText, record: keepRecord)
     }
 
     private func plan(_ target: AgentHookTarget, _ action: AgentHookPlan.Action, _ loaded: Loaded,
@@ -281,6 +308,11 @@ struct AgentHookInstaller: Sendable {
 
         do {
             if let newText = plan.newText {
+                let folder = plan.writeURL.deletingLastPathComponent()
+                if !fileManager.fileExists(atPath: folder.path) {
+                    try fileManager.createDirectory(at: folder, withIntermediateDirectories: true,
+                                                    attributes: [.posixPermissions: 0o700])
+                }
                 try Self.atomicWrite(Data(newText.utf8), to: plan.writeURL)
                 let written = try Data(contentsOf: plan.writeURL)
                 guard written == Data(newText.utf8) else {
@@ -288,6 +320,11 @@ struct AgentHookInstaller: Sendable {
                 }
             } else {
                 try fileManager.removeItem(at: plan.writeURL)
+                let folder = plan.writeURL.deletingLastPathComponent()
+                if plan.record?.createdDirectory == true,
+                   (try? fileManager.contentsOfDirectory(atPath: folder.path))?.isEmpty == true {
+                    try? fileManager.removeItem(at: folder)
+                }
             }
         } catch let error as AgentHookError {
             throw error
@@ -295,7 +332,7 @@ struct AgentHookInstaller: Sendable {
             throw .writeFailed(error.localizedDescription)
         }
 
-        try saveRecord(plan.record, for: plan.target)
+        try saveRecord(plan.action == .uninstall ? nil : plan.record, for: plan.target)
         return Outcome(backup: backup)
     }
 
@@ -423,14 +460,25 @@ struct AgentHookInstaller: Sendable {
 
     /// Altillo's handler for each event, as it goes in the file.
     func entries(for target: AgentHookTarget) -> [(event: String, handler: OrderedJSON)] {
-        target.events.map { event in
-            var members: [OrderedJSON.Member] = [
-                .init(key: "type", value: .string("command")),
-                .init(key: "command", value: .string(AgentHookCommand.command(
-                    hookPath: environment.hookLink.path, agent: target, event: event, wait: wait))),
-            ]
-            if let timeout = AgentHookCommand.timeout(for: event, wait: wait) {
-                members.append(.init(key: "timeout", value: .number(String(timeout))))
+        let reply = replyTargets.contains(target)
+        return target.events.map { event in
+            let command = AgentHookCommand.command(hookPath: environment.hookLink.path, agent: target, event: event,
+                                                   wait: wait, reply: reply)
+            let timeout = AgentHookCommand.timeout(for: event, wait: wait, reply: reply)
+            var members: [OrderedJSON.Member]
+            switch target {
+            case .copilot:
+                // Copilot: `bash` runs through the shell; `timeoutSec` in seconds.
+                members = [.init(key: "type", value: .string("command")), .init(key: "bash", value: .string(command))]
+                if let timeout { members.append(.init(key: "timeoutSec", value: .number(String(timeout)))) }
+            case .cursor:
+                members = [.init(key: "command", value: .string(command))]
+                if let timeout { members.append(.init(key: "timeout", value: .number(String(timeout)))) }
+            case .claude, .codex, .gemini:
+                members = [.init(key: "type", value: .string("command")), .init(key: "command", value: .string(command))]
+                if let timeout {
+                    members.append(.init(key: "timeout", value: .number(String(timeout * target.timeoutScale))))
+                }
             }
             return (event.name, .object(members))
         }
@@ -439,17 +487,21 @@ struct AgentHookInstaller: Sendable {
     // MARK: Document edits (pure)
 
     static func isAltilloHandler(_ handler: OrderedJSON) -> Bool {
-        guard let command = handler["command"]?.stringValue else { return false }
-        return AgentHookCommand.isAltilloCommand(command)
+        // `command` (Claude, Codex, Gemini, Cursor), `bash` (Copilot) or `exec` (Copilot's direct form).
+        for key in ["command", "bash", "exec"] {
+            if let command = handler[key]?.stringValue, AgentHookCommand.isAltilloCommand(command) { return true }
+        }
+        return false
+    }
+
+    /// An element of an event's list that is, or holds, Altillo's handler (a flat handler or a matcher group).
+    private static func holdsAltillo(_ element: OrderedJSON) -> Bool {
+        isAltilloHandler(element) || (element["hooks"]?.elements?.contains(where: isAltilloHandler) ?? false)
     }
 
     static func containsAltilloHooks(_ document: OrderedJSON) -> Bool {
         guard let events = document["hooks"]?.members else { return false }
-        return events.contains { event in
-            event.value.elements?.contains { group in
-                group["hooks"]?.elements?.contains(where: isAltilloHandler) ?? false
-            } ?? false
-        }
+        return events.contains { event in event.value.elements?.contains(where: holdsAltillo) ?? false }
     }
 
     /// Takes Altillo's handlers out of one event's matcher groups. Returns the remaining groups and where the first
@@ -460,6 +512,12 @@ struct AgentHookInstaller: Sendable {
         var slot: Int?
         var changed = false
         for group in groups {
+            if isAltilloHandler(group) {
+                // A flat list (Copilot, Cursor): the element is the handler.
+                changed = true
+                slot = slot ?? kept.count
+                continue
+            }
             guard let handlers = group["hooks"]?.elements, handlers.contains(where: isAltilloHandler) else {
                 kept.append(group)
                 continue
@@ -480,10 +538,19 @@ struct AgentHookInstaller: Sendable {
     /// The document with exactly this version's Altillo handlers: older or duplicate ones are replaced in place,
     /// new events are added at the end, everything else is left exactly as it was.
     static func installing(_ entries: [(event: String, handler: OrderedJSON)],
-                           into document: OrderedJSON) throws(AgentHookError) -> (document: OrderedJSON,
-                                                                                  createdKeys: [String]) {
+                           into document: OrderedJSON,
+                           layout: AgentHookTarget.Layout = .grouped) throws(AgentHookError) -> (document: OrderedJSON,
+                                                                                                  createdKeys: [String]) {
         var document = document
         var createdKeys: [String] = []
+        func wrap(_ handler: OrderedJSON) -> OrderedJSON { layout == .grouped ? group(handler) : handler }
+        if layout == .flat, document["version"] == nil {
+            // Copilot and Cursor want `"version": 1` at the top.
+            var members = document.members ?? []
+            members.insert(.init(key: "version", value: .number("1")), at: 0)
+            document = .object(members)
+            createdKeys.append("version")
+        }
         var hooks: OrderedJSON
         if let existing = document["hooks"] {
             guard existing.members != nil else {
@@ -505,7 +572,7 @@ struct AgentHookInstaller: Sendable {
             let stripped = strippingAltillo(from: groups)
             var updated = stripped.groups
             if let handler = wanted[event] {
-                updated.insert(group(handler), at: stripped.slot ?? updated.count)
+                updated.insert(wrap(handler), at: stripped.slot ?? updated.count)
             }
             if stripped.changed || wanted[event] != nil {
                 if updated.isEmpty { hooks.remove(event) } else { hooks.set(event, .array(updated)) }
@@ -513,7 +580,7 @@ struct AgentHookInstaller: Sendable {
         }
         // Events not there yet, in Altillo's order.
         for entry in entries where hooks[entry.event] == nil {
-            hooks.set(entry.event, .array([group(entry.handler)]))
+            hooks.set(entry.event, .array([wrap(entry.handler)]))
             createdKeys.append("hooks.\(entry.event)")
         }
         document.set("hooks", hooks)
@@ -546,6 +613,8 @@ struct AgentHookInstaller: Sendable {
         } else {
             document.set("hooks", hooks)
         }
+        // The `"version": 1` Altillo added to a flat file (Copilot, Cursor) goes too, unless someone changed it.
+        if createdKeys?.contains("version") == true, document["version"] == .number("1") { document.remove("version") }
         return document
     }
 
@@ -559,12 +628,17 @@ struct AgentHookInstaller: Sendable {
     /// the old document apart from Altillo's handlers (and empty containers), and install must leave Altillo's
     /// hooks in while uninstall must leave none.
     static func verify(old: OrderedJSON, new: OrderedJSON, newText: String,
-                       installed: Bool) throws(AgentHookError) {
+                       installed: Bool, ignoring createdTopLevel: Set<String> = []) throws(AgentHookError) {
         guard (try? JSONSerialization.jsonObject(with: Data(newText.utf8))) != nil,
               (try? OrderedJSON.parse(newText)) == new else {
             throw .verificationFailed(String(localized: "the new file wouldn't be valid JSON."))
         }
-        guard normalized(old) == normalized(new) else {
+        func withoutCreated(_ document: OrderedJSON) -> OrderedJSON {
+            var document = normalized(document)
+            for key in createdTopLevel { document.remove(key) }
+            return document
+        }
+        guard withoutCreated(old) == withoutCreated(new) else {
             throw .verificationFailed(String(localized: "the change would touch more than Altillo's hooks."))
         }
         guard containsAltilloHooks(new) == installed else {

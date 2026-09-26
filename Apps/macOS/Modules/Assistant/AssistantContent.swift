@@ -354,6 +354,18 @@ enum AssistantContent {
         return sentence + "."
     }
 
+    /// One sentence about what Altillo's Now Playing hears, in any app ("Playing in Safari: …").
+    static func nowPlaying(_ track: NowPlayingStore.Track) -> String {
+        var sentence = "\(track.isPlaying ? "Playing" : "Paused") in \(track.appName): \"\(track.title)\""
+        if !track.artist.isEmpty { sentence += " by \(track.artist)" }
+        if let album = track.album, !album.isEmpty { sentence += ", from \"\(album)\"" }
+        if let duration = track.duration, duration > 0 {
+            let elapsed = track.elapsed.map { "\(clock($0)) of " } ?? ""
+            sentence += " (\(elapsed)\(clock(duration)))"
+        }
+        return sentence + "."
+    }
+
     /// "3:05", "1:02:09".
     static func clock(_ seconds: TimeInterval) -> String {
         let total = Int(max(0, seconds).rounded())

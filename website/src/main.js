@@ -1,4 +1,5 @@
 import "./style.css";
+import "./release.css";
 import { mountDemo } from "./demo.js";
 import { mountMotion } from "./motion.js";
 import { mountHeroFilm } from "./hero-film.js";

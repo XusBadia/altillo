@@ -17,6 +17,12 @@ struct DesvanDropZones: View {
 
     var body: some View {
         HStack(spacing: Self.spacing) {
+            // On the Ask section, a third zone reads what's dropped for the next question (phase 13).
+            if model.offersAskDrop || model.scenario?.isAskDropTarget == true {
+                DesvanAssistantDropZone(isHovering: hovered == .ask)
+                    .frame(width: planeWidth)
+                    .desvanDropZoneFrame(.ask, model: model)
+            }
             DesvanBoxZone(model: model, isHovering: hovered == .shelf)
                 .desvanDropZoneFrame(.shelf, model: model)
             DesvanAirDropZone(isHovering: hovered == .airDrop)

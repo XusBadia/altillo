@@ -93,7 +93,8 @@ struct WireProtocolTests {
         private var received: [HookEnvelope] = []
         var envelopes: [HookEnvelope] { lock.withLock { received } }
 
-        init(decision: WireDecision?) throws {
+        /// `reply`: what a waiting stop hook gets (nil: held open until it gives up).
+        init(decision: WireDecision?, reply: String? = nil) throws {
             fd = try UnixSocket.listen(path: path).fd
             // The fake serves one connection at a time, blocking.
             _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK)
@@ -105,7 +106,16 @@ struct WireProtocolTests {
                     guard let line = UnixSocket.readLine(client, timeout: 5),
                           let envelope = AgentWire.decodeEnvelope(line) else { close(client); continue }
                     lock.withLock { received.append(envelope) }
-                    if envelope.waitsForDecision, let requestID = envelope.requestID, let decision {
+                    if envelope.waitsForReply, let requestID = envelope.requestID {
+                        if let reply {
+                            UnixSocket.writeAll(client, AgentWire.frame(HookReply(requestID: requestID, decision: .reply,
+                                                                                  text: reply))!)
+                        } else if let decision {
+                            UnixSocket.writeAll(client, AgentWire.frame(HookReply(requestID: requestID, decision: decision))!)
+                        } else {
+                            _ = UnixSocket.readLine(client, timeout: 10)
+                        }
+                    } else if envelope.waitsForDecision, let requestID = envelope.requestID, let decision {
                         UnixSocket.writeAll(client, AgentWire.frame(HookReply(requestID: requestID, decision: decision))!)
                     } else if envelope.waitsForDecision {
                         _ = UnixSocket.readLine(client, timeout: 10) // hold it open until the hook gives up

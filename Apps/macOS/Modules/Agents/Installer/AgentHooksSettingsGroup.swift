@@ -18,21 +18,80 @@ final class AgentHooksModel {
     /// The plan being reviewed in the diff sheet.
     var review: AgentHookPlan?
     private(set) var feedback: [AgentHookTarget: Feedback] = [:]
+    /// Agents whose stop hook waits for a reply from the notch (opt-in, off by default; phase 14).
+    private(set) var replyTargets: Set<AgentHookTarget>
+    /// A reply toggle waiting on the review sheet: undone if the user cancels it.
+    private var pendingReplyChange: (target: AgentHookTarget, wasOn: Bool)?
 
     private let environment: AgentHookEnvironment
+    private let defaults: UserDefaults
 
-    init(environment: AgentHookEnvironment = .live) {
+    static func replyKey(_ target: AgentHookTarget) -> String { "agentReplyFromNotch.\(target.rawValue)" }
+
+    /// Replying from the notch is on by default for Claude Code and Codex, for new installs only: the first install
+    /// includes it (and its review shows it). An install made before this default keeps what it has; the switch
+    /// stays there. Gemini, Copilot and Cursor start off.
+    static let repliesByDefault: Set<AgentHookTarget> = [.claude, .codex]
+
+    init(environment: AgentHookEnvironment = .live, defaults: UserDefaults = .standard) {
         self.environment = environment
+        self.defaults = defaults
+        replyTargets = Set(AgentHookTarget.allCases.filter { defaults.bool(forKey: Self.replyKey($0)) })
+    }
+
+    /// Settles the default for agents the user never chose for: on for a new install, off (remembered) for one that
+    /// already has Altillo's hooks.
+    private func resolveReplyDefaults(wait: Int) {
+        let plain = AgentHookInstaller(environment: environment, wait: wait)
+        for target in Self.repliesByDefault where defaults.object(forKey: Self.replyKey(target)) == nil {
+            switch plain.status(for: target) {
+            case .installed, .needsRepair:
+                replyTargets.remove(target)
+                defaults.set(false, forKey: Self.replyKey(target))
+            case .notInstalled, .agentNotFound, .unreadable:
+                replyTargets.insert(target) // remembered once the install is confirmed
+            }
+        }
     }
 
     func installer(wait: Int) -> AgentHookInstaller {
-        AgentHookInstaller(environment: environment, wait: wait)
+        AgentHookInstaller(environment: environment, wait: wait, replyTargets: replyTargets)
+    }
+
+    /// "Let me reply from the notch": remembered per agent; when its hooks are in, the change goes through the same
+    /// review as any other edit of the agent's file (cancelling it turns the switch back).
+    func setReply(_ on: Bool, for target: AgentHookTarget, wait: Int) {
+        let wasOn = replyTargets.contains(target)
+        guard on != wasOn else { return }
+        if on { replyTargets.insert(target) } else { replyTargets.remove(target) }
+        defaults.set(on, forKey: Self.replyKey(target))
+        let status = reports.first { $0.target == target }?.status
+        switch status {
+        case .installed?, .needsRepair?:
+            pendingReplyChange = (target, wasOn)
+            prepare(.install, for: target, wait: wait)
+            if review == nil { pendingReplyChange = nil }
+        default:
+            refresh(wait: wait)
+        }
+    }
+
+    /// The review sheet was dismissed without writing.
+    func cancelReview(wait: Int) {
+        review = nil
+        if let change = pendingReplyChange {
+            if change.wasOn { replyTargets.insert(change.target) } else { replyTargets.remove(change.target) }
+            defaults.set(change.wasOn, forKey: Self.replyKey(change.target))
+            pendingReplyChange = nil
+        }
+        refresh(wait: wait)
     }
 
     func displayPath(_ url: URL) -> String { environment.displayPath(url) }
     var backupsPath: String { environment.displayPath(environment.backupsDirectory) }
 
     func refresh(wait: Int) {
+        resolveReplyDefaults(wait: wait)
         let installer = installer(wait: wait)
         reports = AgentHookTarget.allCases.map(installer.report(for:))
     }
@@ -40,6 +99,7 @@ final class AgentHooksModel {
     /// Install, Update (also relinks the hook first) or Remove: computes the change and opens the review sheet.
     func prepare(_ action: AgentHookPlan.Action, for target: AgentHookTarget, wait: Int) {
         feedback[target] = nil
+        resolveReplyDefaults(wait: wait)
         let installer = installer(wait: wait)
         do {
             if action == .install, !FileManager.default.isExecutableFile(atPath: environment.hookLink.path) {
@@ -51,6 +111,7 @@ final class AgentHooksModel {
             if plan.changesNothing {
                 // Only the hook link needed fixing (or nothing at all): there's nothing to review.
                 try installer.apply(plan)
+                if action == .install { defaults.set(replyTargets.contains(target), forKey: Self.replyKey(target)) }
                 feedback[target] = Feedback(text: String(localized: "Up to date. Nothing in the file had to change."),
                                             isError: false)
             } else {
@@ -64,6 +125,10 @@ final class AgentHooksModel {
 
     func confirm(_ plan: AgentHookPlan, wait: Int) {
         review = nil
+        pendingReplyChange = nil
+        if plan.action == .install {
+            defaults.set(replyTargets.contains(plan.target), forKey: Self.replyKey(plan.target))
+        }
         do {
             let outcome = try installer(wait: wait).apply(plan)
             let text = switch plan.action {
@@ -93,10 +158,15 @@ struct SettingsAgentsGroup: View {
                     .foregroundStyle(Desvan.Palette.paper)
                 ForEach(model.reports, id: \.target) { report in
                     SettingsAgentHookRow(report: report, feedback: model.feedback[report.target],
-                                         path: model.displayPath(report.configFile)) { action in
+                                         path: model.displayPath(report.configFile),
+                                         replies: Binding(
+                                            get: { model.replyTargets.contains(report.target) },
+                                            set: { model.setReply($0, for: report.target, wait: settings.agentPermissionWait) }),
+                                         wait: Self.waitTitle(settings.agentPermissionWait)) { action in
                         model.prepare(action, for: report.target, wait: settings.agentPermissionWait)
                     }
                 }
+                SettingsOpenCodeRow()
                 Text("Hooks let an agent tell Altillo what it's doing and ask you for permission in the notch. Without them Altillo still shows your sessions from the agents' own session files, but can't approve anything.")
                     .settingsHint()
             }
@@ -130,7 +200,7 @@ struct SettingsAgentsGroup: View {
         .sheet(item: $model.review) { plan in
             AgentHookReviewSheet(plan: plan, path: model.displayPath(plan.fileURL),
                                  backups: model.backupsPath,
-                                 cancel: { model.review = nil },
+                                 cancel: { model.cancelReview(wait: settings.agentPermissionWait) },
                                  confirm: { model.confirm(plan, wait: settings.agentPermissionWait) })
         }
     }
@@ -144,11 +214,35 @@ struct SettingsAgentsGroup: View {
     }
 }
 
+/// OpenCode needs nothing installed: Altillo follows `opencode serve` while it runs.
+private struct SettingsOpenCodeRow: View {
+    var body: some View {
+        HStack(alignment: .top, spacing: 9) {
+            AgentGlyph(agent: .opencode, size: 20)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(verbatim: "OpenCode")
+                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paper)
+                Text("Nothing to install. While `opencode serve` runs, Altillo follows its sessions, and you can answer its permissions and reply from the notch.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(.vertical, 2)
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// One agent: its mark, name, how its hooks stand, the file they live in, and what can be done.
 private struct SettingsAgentHookRow: View {
     let report: AgentHookReport
     let feedback: AgentHooksModel.Feedback?
     let path: String
+    /// "Let me reply from the notch" for this agent.
+    @Binding var replies: Bool
+    /// "2 min (default)": how long the agent waits.
+    let wait: String
     let perform: (AgentHookPlan.Action) -> Void
 
     var body: some View {
@@ -188,6 +282,20 @@ private struct SettingsAgentHookRow: View {
                 }
                 ForEach(notes, id: \.self) { note in
                     Text(note).settingsHint()
+                }
+                if report.status != .agentNotFound, report.target.replyEvent != nil {
+                    Toggle(isOn: $replies) {
+                        VStack(alignment: .leading, spacing: 1) {
+                            Text("Let me reply from the notch")
+                                .font(.system(size: 11.5, weight: .medium))
+                                .foregroundStyle(Desvan.Palette.paper)
+                            Text("When it finishes a turn and you're not looking at its terminal, the agent waits up to \(wait) for your reply before it stops. Switching to the terminal lets it stop at once, so you can type there. On by default for new Claude Code and Codex installs.")
+                                .settingsHint()
+                        }
+                    }
+                    .toggleStyle(.switch)
+                    .controlSize(.mini)
+                    .padding(.top, 2)
                 }
                 if let feedback {
                     HStack(spacing: 8) {
@@ -230,9 +338,13 @@ private struct SettingsAgentHookRow: View {
 
     private var notes: [String] {
         var notes = report.notes
-        if report.target == .codex, report.status == .installed || report.status == .needsRepair(.outdated)
-            || report.status == .needsRepair(.hookMissing) {
+        let isIn = report.status == .installed || report.status == .needsRepair(.outdated)
+            || report.status == .needsRepair(.hookMissing)
+        if report.target == .codex, isIn {
             notes.append(String(localized: "Codex runs new or changed hooks only once you trust them: in Codex, type /hooks and trust Altillo's."))
+        }
+        if !report.target.answersPermissions, report.status != .agentNotFound {
+            notes.append(String(localized: "Altillo shows when it asks for permission, but you answer in the terminal: its hooks can't answer for you."))
         }
         return notes
     }

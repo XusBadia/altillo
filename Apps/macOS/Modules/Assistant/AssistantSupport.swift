@@ -40,6 +40,14 @@ enum AssistantInstructions {
 
             The user asked you to run one of their Shortcuts. Call runShortcut once with the shortcut's name as the user wrote it, then say in one sentence what ran and how it went, from the tool's result. Never claim something ran unless the tool said so, and never run anything else.
             """
+        case .agentReply:
+            // Never reaches the model (`AssistantStore.replyToAgent`); a chat session if it ever did.
+            break
+        case .reminder:
+            text += """
+
+            The user wants a reminder in the Reminders app. Call reminders once, with the title (what to do, in the user's words, without the date or time) and when (as the user said it). Then say in one sentence what the tool said was created. Never say a reminder was made unless the tool said so.
+            """
         case .chat, .live:
             // The small model refuses too readily: it's told plainly what it's good at and to just answer.
             text += """
@@ -135,7 +143,7 @@ struct AssistantSuggestion: Identifiable, Equatable, Sendable {
         var calendarGranted = false
         /// Name of the newest document or note on the shelf the assistant can read.
         var readableShelfItem: String?
-        /// A player that is open (Music, Spotify).
+        /// The app playing (any app Now Playing hears) or an open Music or Spotify.
         var runningPlayer: String?
         var clipboardHasText = false
     }
@@ -190,6 +198,13 @@ struct AssistantSuggestion: Identifiable, Equatable, Sendable {
             chips.append(chip)
         }
         return Array(chips.prefix(maximum))
+    }
+
+    /// The app to ask about for the "What's playing?" chip: whatever Now Playing hears in any app (Safari, Podcasts,
+    /// VLC…) while it's listening, otherwise an open Music or Spotify.
+    static func playingApp(store: AssistantNowPlaying.StoreReading, runningPlayer: String?) -> String? {
+        if store.isListening, let track = store.track, track.isPlaying { return track.appName }
+        return runningPlayer
     }
 
     /// The newest shelf item worth summarising (a document, a PDF, a note).
@@ -339,6 +354,7 @@ enum AssistantFormat {
         case "runShortcut": String(localized: "shortcuts")
         case "timer": String(localized: "timer")
         case "note": String(localized: "note")
+        case "reminders": String(localized: "reminders")
         default: String(localized: "things")
         }
     }

@@ -55,6 +55,11 @@ targets:
         codeSign: true
         copy:
           destination: executables
+      # Now Playing for any app (PLAN §5.6): /usr/bin/perl loads this framework at run time; the app never links it.
+      - target: MediaRemoteAdapter
+        embed: true
+        link: false
+        codeSign: true
     info:
       # Sparkle's feed/key/check-interval keys aren't in Xcode's known INFOPLIST_KEY_ list, so they're
       # merged in from this partial (Xcode merges GENERATE_INFOPLIST_FILE's output with INFOPLIST_FILE
@@ -78,6 +83,9 @@ targets:
         INFOPLIST_KEY_NSCameraUsageDescription: The mirror shows the Mac's camera inside the notch. The image never leaves your Mac.
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: The calendar shows your next event in the notch. Events never leave your Mac.
         INFOPLIST_KEY_NSAppleEventsUsageDescription: Altillo asks Music and Spotify what is playing so it can show it in the notch and tell you when you ask.
+        INFOPLIST_KEY_NSRemindersFullAccessUsageDescription: Ask adds the reminders you ask it for to the Reminders app, and can undo them. Your reminders never leave your Mac.
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Ask listens only while you dictate a question, and only on this Mac. Nothing is recorded.
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Ask turns what you dictate into text on this Mac. Your voice never leaves it.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual
@@ -104,6 +112,38 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).tests
         TEST_HOST: $(BUILT_PRODUCTS_DIR)/Altillo.app/Contents/MacOS/Altillo
         BUNDLE_LOADER: $(TEST_HOST)
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
+
+  # Vendored mediaremote-adapter (BSD-3-Clause, ThirdPartyNotices/README.md). Built from source, embedded in
+  # Altillo.app/Contents/Frameworks with its Perl script as a resource, and only ever loaded by /usr/bin/perl.
+  MediaRemoteAdapter:
+    type: framework
+    platform: macOS
+    sources:
+      - path: Vendor/mediaremote-adapter/src
+        headerVisibility: project
+      - path: Vendor/mediaremote-adapter/include
+        headerVisibility: project
+      - path: Vendor/mediaremote-adapter/bin/mediaremote-adapter.pl
+        buildPhase: resources
+      - path: Vendor/mediaremote-adapter/LICENSE
+        buildPhase: resources
+    dependencies:
+      - sdk: Foundation.framework
+      - sdk: AppKit.framework
+      - sdk: UniformTypeIdentifiers.framework
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).MediaRemoteAdapter
+        PRODUCT_NAME: MediaRemoteAdapter
+        CLANG_ENABLE_OBJC_ARC: YES
+        # The script finds its entry points with dlsym: keep them visible.
+        GCC_SYMBOLS_PRIVATE_EXTERN: NO
+        HEADER_SEARCH_PATHS: $(SRCROOT)/Vendor/mediaremote-adapter/src $(SRCROOT)/Vendor/mediaremote-adapter/include
+        GCC_WARN_INHIBIT_ALL_WARNINGS: YES
+        DEFINES_MODULE: NO
+        SKIP_INSTALL: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
 

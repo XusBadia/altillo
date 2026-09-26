@@ -1,35 +1,71 @@
 import AppKit
 import SwiftUI
 
-/// The capture is already trimmed to its visible pixels. Give symbols a common
-/// optical box, but preserve the width of status items that contain text.
+/// The capture is already trimmed to its visible pixels and sized in native points (pixels / capture scale).
+/// Captured glyphs are shown at that native size and never resampled when they fit the menu bar's own
+/// 24 pt item height: a status item captured at 1x holds only 1x pixels, and fitting every glyph to a common
+/// 18 pt box (14 → 18 px up, 20 or 24 → 18 px down) is what made the Drawer blurry. Only glyphs taller than a
+/// status item shrink. Vector images (SF Symbols, the demo) still fill the 18 pt optical box.
+/// Monochrome captures arrive as templates and take the surrounding foreground style.
 struct MenuBarGlyph: View {
     let image: NSImage
 
-    static func size(for imageSize: CGSize) -> CGSize {
+    /// Optical box for vector symbols.
+    static let box: CGFloat = 18
+    /// Tallest native capture shown unscaled: a full menu-bar status item.
+    static let nativeLimit: CGFloat = 24
+
+    static func size(for imageSize: CGSize, allowsEnlarging: Bool = false) -> CGSize {
         guard imageSize.width > 0, imageSize.height > 0 else {
-            return CGSize(width: 18, height: 18)
+            return CGSize(width: box, height: box)
         }
         let isWide = imageSize.width / imageSize.height > 2
-        let scale = isWide
-            ? min(14 / imageSize.height, 178 / imageSize.width)
-            : 18 / max(imageSize.width, imageSize.height)
+        let limit = allowsEnlarging ? box : nativeLimit
+        var scale = isWide
+            ? min(limit / imageSize.height, 178 / imageSize.width)
+            : limit / max(imageSize.width, imageSize.height)
+        if !allowsEnlarging { scale = min(scale, 1) }
         return CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
     }
 
+    /// Bitmap-backed images (every capture) carry a fixed number of pixels; only vector images scale cleanly.
+    static func allowsEnlarging(_ image: NSImage) -> Bool {
+        !image.representations.contains { $0 is NSBitmapImageRep || $0.pixelsWide > 0 }
+    }
+
+    static func size(of image: NSImage) -> CGSize {
+        size(for: image.size, allowsEnlarging: allowsEnlarging(image))
+    }
+
     static func cellWidth(for imageSize: CGSize) -> CGFloat {
-        let width = size(for: imageSize).width + 16
+        // 5 pt either side: a full 24 pt native status item still fits one 34 pt slot.
+        let width = size(for: imageSize).width + 10
         // Wide indicators occupy whole grid slots so subsequent symbols align.
         return max(34, ceil((width + 6) / 40) * 40 - 6)
     }
 
+    @Environment(\.displayScale) private var displayScale
+
+    /// Pixels per point of the captured bitmap (nil for vector images).
+    static func pixelScale(of image: NSImage) -> CGFloat? {
+        // A CGImage-backed rep reports its point size as `pixelsWide`; ask for the backing CGImage instead.
+        guard image.size.width > 0, !allowsEnlarging(image),
+              let pixels = image.cgImage(forProposedRect: nil, context: nil, hints: nil)?.width else { return nil }
+        return CGFloat(pixels) / image.size.width
+    }
+
     var body: some View {
-        let size = Self.size(for: image.size)
+        let size = Self.size(of: image)
+        // One source pixel per screen pixel: sample exactly, so a half-point position cannot soften it.
+        let isNative = size == image.size && Self.pixelScale(of: image) == displayScale
         Image(nsImage: image)
+            .renderingMode(image.isTemplate ? .template : .original)
             .resizable()
-            .interpolation(.high)
+            // At native size no resampling happens; otherwise (downscaling, vector) use the best filter.
+            .interpolation(isNative ? .none : .high)
+            .antialiased(!isNative)
             .frame(width: size.width, height: size.height)
-            .frame(height: 18)
+            .frame(height: max(Self.box, size.height))
             .accessibilityHidden(true)
     }
 }

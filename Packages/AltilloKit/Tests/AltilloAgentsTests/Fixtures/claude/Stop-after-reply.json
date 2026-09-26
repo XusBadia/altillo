@@ -1,0 +1,12 @@
+{
+  "session_id": "2ab9ac82-834a-4a94-b09d-d57d9e1cd3ca",
+  "transcript_path": "/Users/me/.claude/projects/-Users-me-Projects-demo/2ab9ac82-834a-4a94-b09d-d57d9e1cd3ca.jsonl",
+  "cwd": "/Users/me/Projects/demo",
+  "prompt_id": "73245c8e-370c-4c11-b650-3e7d612b90f9",
+  "permission_mode": "default",
+  "hook_event_name": "Stop",
+  "stop_hook_active": true,
+  "last_assistant_message": "ALPHA\nBRAVO",
+  "background_tasks": [],
+  "session_crons": []
+}

@@ -6,6 +6,8 @@ import Observation
 /// Areas of the open notch that accept a drop.
 enum DropZone: Hashable, Sendable {
     case shelf, airDrop
+    /// "Ask about it" (phase 13): only offered while the notch is on the Ask section (`NotchModel.offersAskDrop`).
+    case ask
 }
 
 /// Everything the notch views render. Owned by `NotchCoordinator`, one per app (shared by every screen's panel).
@@ -72,6 +74,10 @@ final class NotchModel {
     var horizontalScrollRegions: [String: CGRect] = [:]
     /// True while a drag hovers the shelf drop zone itself (not just near the notch).
     var isDropHovering: Bool { dropZone == .shelf }
+    /// A drag over the notch while it's on Ask (and Ask can answer) also gets an "Ask about it" zone.
+    var offersAskDrop: Bool {
+        module == .assistant && settings.modules.contains(.assistant) && assistant.availability == .available
+    }
     /// How close a drag is to the notch: 1 at the notch, 0 at 300 pt or more. Lights the bulb while dragArmed.
     var dragProximity: Double = 0
 

@@ -1,0 +1,50 @@
+/* Download CTA — added for the public 0.5.0 release (phase 10, "Publicación").
+   Kept in its own file: website/src/style.css has unrelated in-progress
+   changes from another session and must not be touched here. */
+
+.nav-download {
+  padding: 11px 18px;
+  border-radius: 30px;
+  background: var(--accent);
+  color: #1a1713;
+  font-weight: 600;
+  transition:
+    background 160ms,
+    transform 160ms;
+}
+.nav-download:hover {
+  background: #efbb7e;
+  transform: translateY(-1px);
+}
+
+.project-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 28px;
+  margin: 6px 0 22px;
+}
+.project-download .round-arrow {
+  background: var(--accent);
+}
+.project-download:hover .round-arrow {
+  background: #efbb7e;
+}
+
+@media (max-width: 900px) {
+  .nav-download {
+    padding: 9px 13px;
+  }
+}
+
+@media (max-width: 600px) {
+  .nav-download {
+    padding: 8px 11px;
+    font-size: 11px;
+  }
+  .project-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+}

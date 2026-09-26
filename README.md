@@ -3,8 +3,10 @@
 > 🇪🇸 Este README está en inglés para llegar a más gente, pero el plan de
 > desarrollo completo está en español: **[PLAN.md](PLAN.md)**.
 
-**Status: early development (phase 0).** Nothing here is stable yet — expect
-missing features, rough edges, and breaking changes without notice.
+**Status: actively developed, current version 0.5.0.** Public, notarized
+builds are available from [GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
+with Sparkle auto-update. It's a working app used daily, but still pre-1.0 —
+expect some rough edges and occasional breaking changes.
 
 Altillo turns your Mac's notch into a small, useful place at the top of your
 screen:
@@ -32,9 +34,33 @@ the full plan: principles, module design, phases, and open decisions.
 
 ## Screenshots
 
-_Coming soon — Altillo is still in phase 0 (foundations). See
-[PLAN.md §4](PLAN.md#4-ux-y-personalización) for the UX process, including the
-GIF/recording convention used for each interaction._
+**At rest** — the closed notch, with small ears for AI usage and the shelf.
+
+![The closed notch at rest, with usage and shelf ears](docs/assets/readme/idle.png)
+
+**Shelf** — files dropped on the notch, ready to drag out.
+
+![The shelf with files](docs/assets/readme/shelf.png)
+
+**Ask** — the on-device assistant answering from your calendar and clipboard.
+
+![Ask, the on-device assistant](docs/assets/readme/ask.png)
+
+**AI usage** — Claude and Codex quotas, with pace and time to refill.
+
+![AI usage for Claude and Codex](docs/assets/readme/usage.png)
+
+**Live agents** — a Claude Code permission request, answered from the notch.
+
+![Live agents with a pending permission request](docs/assets/readme/agents.png)
+
+**Calendar** — today's events and the month at a glance.
+
+![Calendar](docs/assets/readme/calendar.png)
+
+**Drawer** — your chosen menu bar icons in a strip above the navigation.
+
+![The Drawer with menu bar icons](docs/assets/readme/drawer.png)
 
 ## Installing
 
@@ -103,9 +129,10 @@ development — only for publishing an actual build.
 # AltilloKit package tests
 cd Packages/AltilloKit && swift test
 
-# macOS app: build + test
+# macOS app: build + test (derived data in /tmp: on macOS 27 a test host under
+# ~/Documents can hang before it connects, see docs/desarrollo.md)
 xcodebuild -project Altillo.xcodeproj -scheme Altillo \
-  -derivedDataPath build/dd-ci test
+  -derivedDataPath /tmp/altillo-dd-ci test
 
 # iOS app + widget: build for the simulator, no signing required
 xcodebuild -project Altillo.xcodeproj -scheme AltilloiOS \

@@ -1,0 +1,22 @@
+{
+  "name": "altillo-promo",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "render:director": "remotion render src/index.ts AltilloDirectorCut videos/altillo-director-cut.mp4 --codec=h264 --crf=16 --audio-codec=aac --audio-bitrate=256k",
+    "render:demo": "remotion render src/index.ts AltilloTrailerDemo videos/altillo-trailer-demo.mp4 --codec=h264 --crf=16 --audio-codec=aac --audio-bitrate=192k",
+    "render:film": "remotion render src/index.ts AltilloLaPuerta videos/altillo-la-puerta.mp4 --codec=h264 --crf=16 --audio-codec=aac --audio-bitrate=192k",
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts AltilloStopMotion videos/altillo-promo.mp4 --codec=h264 --crf=16 --audio-codec=aac --audio-bitrate=192k",
+    "still": "remotion still src/index.ts AltilloStopMotion videos/altillo-promo.png --frame=900"
+  },
+  "devDependencies": {
+    "@remotion/cli": "4.0.526",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "remotion": "4.0.526",
+    "typescript": "5.9.3"
+  }
+}

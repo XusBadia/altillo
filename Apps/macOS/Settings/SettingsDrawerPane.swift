@@ -314,6 +314,7 @@ struct SettingsDrawerPane: View {
                     }
 
                 MenuBarGlyph(image: icon(for: entry))
+                    .foregroundStyle(Desvan.Palette.paper)
                     .accessibilityHidden(true)
 
                 if isMoving {

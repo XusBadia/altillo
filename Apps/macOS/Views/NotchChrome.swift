@@ -227,7 +227,7 @@ struct NotchChrome: Equatable {
     /// Ears only appear when there is something to show (PLAN §3).
     @MainActor
     static func showsEars(_ model: NotchModel) -> Bool {
-        if let scenario = model.scenario { return scenario == .idleWithEars }
+        if let scenario = model.scenario { return scenario == .idleWithEars || scenario.isAgentWaitingEars }
         return model.ears.showsEars(for: model)
     }
 }

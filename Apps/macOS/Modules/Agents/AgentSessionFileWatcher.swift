@@ -2,21 +2,30 @@ import AltilloAgents
 import CoreServices
 import Foundation
 
-/// Passive detection: follows Claude Code transcripts (`~/.claude/projects/<folder>/<session>.jsonl`) and Codex
-/// rollouts (`~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`) with FSEvents, so sessions show up even before hooks
+/// Passive detection: follows Claude Code transcripts (`~/.claude/projects/<folder>/<session>.jsonl`), Codex
+/// rollouts (`~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl`) and Gemini CLI chats
+/// (`~/.gemini/tmp/<project>/chats/session-*.jsonl`, phase 14) with FSEvents, so sessions show up even before hooks
 /// are installed. Read-only. Only the tail of a file that changed is read, on a background queue; when nothing
 /// is written there is no work at all (no polling).
 final class AgentSessionFileWatcher: @unchecked Sendable {
     struct Roots: Sendable {
         var claudeProjects: URL
         var codexSessions: URL
+        /// `~/.gemini/tmp`; nil leaves Gemini out (tests).
+        var geminiTemp: URL? = nil
 
         static var standard: Roots {
             let home = URL(fileURLWithPath: NSHomeDirectory())
             let codexHome = ProcessInfo.processInfo.environment["CODEX_HOME"].map { URL(fileURLWithPath: $0) }
                 ?? home.appendingPathComponent(".codex")
             return Roots(claudeProjects: home.appendingPathComponent(".claude/projects"),
-                         codexSessions: codexHome.appendingPathComponent("sessions"))
+                         codexSessions: codexHome.appendingPathComponent("sessions"),
+                         geminiTemp: home.appendingPathComponent(".gemini/tmp"))
+        }
+
+        /// `~/.gemini/projects.json`, next to `tmp`: which project path each chat folder belongs to.
+        var geminiRegistry: URL? {
+            geminiTemp?.deletingLastPathComponent().appendingPathComponent("projects.json")
         }
     }
 
@@ -32,6 +41,10 @@ final class AgentSessionFileWatcher: @unchecked Sendable {
     /// Size at the last read, per file: FSEvents also fires for metadata changes.
     private var lastSize: [String: UInt64] = [:]
     private var codexMeta: [String: CodexRollout.Meta] = [:]
+    private var geminiMeta: [String: GeminiChat.Meta] = [:]
+    /// Gemini project id → path, and the registry's modification date when read.
+    private var geminiProjects: [String: String] = [:]
+    private var geminiRegistryDate: Date?
 
     init(roots: Roots = .standard, window: TimeInterval = AgentSessionAging.dropAfter) {
         self.roots = roots
@@ -57,6 +70,7 @@ final class AgentSessionFileWatcher: @unchecked Sendable {
             stream = nil
             lastSize.removeAll()
             codexMeta.removeAll()
+            geminiMeta.removeAll()
         }
     }
 
@@ -108,10 +122,38 @@ final class AgentSessionFileWatcher: @unchecked Sendable {
                 if modified >= cutoff { read(file, initial: true, force: true) }
             }
         }
+        scanGemini(cutoff: cutoff)
+    }
+
+    private func scanGemini(cutoff: Date) {
+        guard let root = roots.geminiTemp else { return }
+        let manager = FileManager.default
+        guard let projects = try? manager.contentsOfDirectory(at: root, includingPropertiesForKeys: nil,
+                                                               options: [.skipsHiddenFiles]) else { return }
+        for project in projects {
+            let chats = project.appendingPathComponent("chats")
+            guard let files = try? manager.contentsOfDirectory(at: chats, includingPropertiesForKeys: [.contentModificationDateKey],
+                                                               options: [.skipsHiddenFiles]) else { continue }
+            for file in files where GeminiChat.isChatFile(file) {
+                let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?
+                    .contentModificationDate ?? .distantPast
+                if modified >= cutoff { read(file, initial: true, force: true) }
+            }
+        }
+    }
+
+    private func geminiCWD(projectID: String) -> String? {
+        guard let registry = roots.geminiRegistry else { return nil }
+        let modified = (try? registry.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+        if modified != geminiRegistryDate || (geminiProjects[projectID] == nil && modified != nil) {
+            geminiRegistryDate = modified
+            geminiProjects = (try? Data(contentsOf: registry)).map(GeminiChat.projectPaths(registry:)) ?? [:]
+        }
+        return geminiProjects[projectID]
     }
 
     private func startStream() {
-        let paths = [roots.claudeProjects, roots.codexSessions]
+        let paths = ([roots.claudeProjects, roots.codexSessions] + [roots.geminiTemp].compactMap { $0 })
             .filter { FileManager.default.fileExists(atPath: $0.path) }
             .map(\.path)
         guard !paths.isEmpty else { return }
@@ -147,10 +189,20 @@ final class AgentSessionFileWatcher: @unchecked Sendable {
         let claudeRoot = Self.canonical(roots.claudeProjects.path)
         let isClaude = path.hasPrefix(claudeRoot + "/")
         let isCodex = path.hasPrefix(Self.canonical(roots.codexSessions.path) + "/")
-        guard isClaude || isCodex else { return }
+        let isGemini = roots.geminiTemp.map { path.hasPrefix(Self.canonical($0.path) + "/") } ?? false
+        guard isClaude || isCodex || isGemini else { return }
 
         let snapshot: SessionFileSnapshot?
-        if isClaude {
+        if isGemini {
+            guard GeminiChat.isChatFile(url) else { return }
+            if geminiMeta[path] == nil, let line = SessionFileTail.firstLine(url), let meta = GeminiChat.meta(firstLine: line) {
+                geminiMeta[path] = meta
+            }
+            guard let meta = geminiMeta[path], !meta.isSubagent, let tail = tail(url, force: force) else { return }
+            let projectID = GeminiChat.projectID(for: url)
+            snapshot = GeminiChat.snapshot(tail: tail.lines, meta: meta, cwd: geminiCWD(projectID: projectID),
+                                           projectID: projectID, modified: tail.modified)
+        } else if isClaude {
             // Only `<folder>/<session>.jsonl`; subagent transcripts sit deeper.
             let relative = path.dropFirst(claudeRoot.count + 1)
             guard relative.split(separator: "/").count == 2, let sessionID = ClaudeTranscript.sessionID(for: url),

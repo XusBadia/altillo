@@ -120,6 +120,23 @@
         }
       }
     },
+    "%@ and %lld more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ and %lld more"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ y %lld más"
+          }
+        }
+      }
+    },
     "%@ answered in a way Altillo doesn't understand yet." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -256,6 +273,23 @@
         }
       }
     },
+    "%@ has already passed today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ has already passed today"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hoy ya ha pasado esa hora (%@)"
+          }
+        }
+      }
+    },
     "%@ has used all of %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -286,6 +320,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ en %@"
+          }
+        }
+      }
+    },
+    "%@ in %@ stopped waiting before I could send it. Answer it in its terminal." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ in %@ stopped waiting before I could send it. Answer it in its terminal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ en %@ ha dejado de esperar antes de que pudiera enviárselo. Respóndele en su terminal."
           }
         }
       }
@@ -473,6 +524,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ no está configurado en este Mac."
+          }
+        }
+      }
+    },
+    "%@ isn't waiting for a reply right now, so nothing was sent. You can answer it in its terminal." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ isn't waiting for a reply right now, so nothing was sent. You can answer it in its terminal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ no está esperando respuesta ahora mismo, así que no he enviado nada. Puedes responderle en su terminal."
           }
         }
       }
@@ -932,6 +1000,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%@ – %@"
+          }
+        }
+      }
+    },
+    "%@, %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@, %@"
           }
         }
       }
@@ -2372,6 +2457,23 @@
         }
       }
     },
+    "Adding your reminder…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adding your reminder…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadiendo tu recordatorio…"
+          }
+        }
+      }
+    },
     "Adds it back to the tabs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2436,6 +2538,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Después, lo pregunta en la terminal"
+          }
+        }
+      }
+    },
+    "After this, it stops and you answer in the terminal" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "After this, it stops and you answer in the terminal"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pasado este tiempo, se para y respondes en la terminal"
           }
         }
       }
@@ -3052,6 +3171,40 @@
         }
       }
     },
+    "Altillo can't use speech recognition. Allow it in System Settings › Privacy & Security › Speech Recognition." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo can't use speech recognition. Allow it in System Settings › Privacy & Security › Speech Recognition."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no puede usar el reconocimiento de voz. Permítelo en Ajustes del Sistema › Privacidad y seguridad › Reconocimiento de voz."
+          }
+        }
+      }
+    },
+    "Altillo can't use the microphone. Allow it in System Settings › Privacy & Security › Microphone." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo can't use the microphone. Allow it in System Settings › Privacy & Security › Microphone."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo no puede usar el micrófono. Permítelo en Ajustes del Sistema › Privacidad y seguridad › Micrófono."
+          }
+        }
+      }
+    },
     "Altillo created this file for its hooks and nothing else is in it, so it will be deleted." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3116,6 +3269,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo sigue a Claude Code y Codex: cuando uno trabaja, te pide permiso o termina, aparece aquí."
+          }
+        }
+      }
+    },
+    "Altillo follows Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor and OpenCode: when one works, asks for your OK or finishes, it shows up here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo follows Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor and OpenCode: when one works, asks for your OK or finishes, it shows up here."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo sigue a Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor y OpenCode: cuando uno trabaja, te pide permiso o termina, aparece aquí."
           }
         }
       }
@@ -3286,6 +3456,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo lee la sesión que ya tienen tus herramientas. Nunca inicia sesión, ni la renueva ni cambia nada, y tus cifras nunca salen de este Mac."
+          }
+        }
+      }
+    },
+    "Altillo shows when it asks for permission, but you answer in the terminal: its hooks can't answer for you." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo shows when it asks for permission, but you answer in the terminal: its hooks can't answer for you."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo te muestra cuándo pide permiso, pero respondes en la terminal: sus hooks no pueden responder por ti."
           }
         }
       }
@@ -3749,6 +3936,23 @@
         }
       }
     },
+    "Ask about it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask about it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregunta por esto"
+          }
+        }
+      }
+    },
     "Ask about your day, your shelf, anything…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3762,6 +3966,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Pregunta por tu día, tu altillo, lo que sea…"
+          }
+        }
+      }
+    },
+    "Ask about “%@”…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ask about “%@”…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pregunta por «%@»…"
           }
         }
       }
@@ -3919,6 +4140,23 @@
         }
       }
     },
+    "Attached: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attached: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjunto: %@"
+          }
+        }
+      }
+    },
     "Auto" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4017,6 +4255,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Volver al modo normal"
+          }
+        }
+      }
+    },
+    "Back to the conversation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to the conversation"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volver a la conversación"
           }
         }
       }
@@ -5007,6 +5262,23 @@
         }
       }
     },
+    "Copilot CLI has every hook turned off (\"disableAllHooks\" in settings.json)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot CLI has every hook turned off (\"disableAllHooks\" in settings.json)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copilot CLI tiene todos los hooks desactivados («disableAllHooks» en settings.json)."
+          }
+        }
+      }
+    },
     "Copy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5092,6 +5364,23 @@
         }
       }
     },
+    "Couldn't make it. Try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't make it. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No he podido crearlo. Vuelve a probar."
+          }
+        }
+      }
+    },
     "Couldn't prepare the input." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5156,6 +5445,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No se ha podido activar. Prueba a mover Altillo a la carpeta Aplicaciones."
+          }
+        }
+      }
+    },
+    "Couldn't undo it. Remove it in Reminders." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't undo it. Remove it in Reminders."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No he podido deshacerlo. Quítalo en Recordatorios."
           }
         }
       }
@@ -5279,6 +5585,40 @@
         }
       }
     },
+    "Delete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar"
+          }
+        }
+      }
+    },
+    "Delete this saved answer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delete this saved answer"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Borrar esta respuesta guardada"
+          }
+        }
+      }
+    },
     "Dentist" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5381,6 +5721,57 @@
         }
       }
     },
+    "Dictate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictate"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictar"
+          }
+        }
+      }
+    },
+    "Dictate, privately on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictate, privately on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictar, en privado en este Mac"
+          }
+        }
+      }
+    },
+    "Dictation stopped unexpectedly. Try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dictation stopped unexpectedly. Try again."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "El dictado se ha parado de repente. Vuelve a probar."
+          }
+        }
+      }
+    },
     "Dinner with Alex" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5394,6 +5785,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cena con Álex"
+          }
+        }
+      }
+    },
+    "Dismiss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dismiss"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Descartar"
           }
         }
       }
@@ -5751,6 +6159,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ajustes del cajón"
+          }
+        }
+      }
+    },
+    "Drop a file here and ask about it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drop a file here and ask about it"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Suelta aquí un fichero y pregunta por él"
           }
         }
       }
@@ -6397,6 +6822,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "vie 18 sept 10:24"
+          }
+        }
+      }
+    },
+    "Gemini CLI has hooks turned off (\"hooksConfig.enabled\" in settings.json)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemini CLI has hooks turned off (\"hooksConfig.enabled\" in settings.json)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gemini CLI tiene los hooks desactivados («hooksConfig.enabled» en settings.json)."
           }
         }
       }
@@ -7081,6 +7523,23 @@
         }
       }
     },
+    "I can't reach your agents right now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I can't reach your agents right now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora mismo no puedo hablar con tus agentes."
+          }
+        }
+      }
+    },
     "I couldn't answer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7183,6 +7642,23 @@
         }
       }
     },
+    "I didn't hear anything. Try again a bit closer to the mic." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I didn't hear anything. Try again a bit closer to the mic."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No he oído nada. Vuelve a probar un poco más cerca del micro."
+          }
+        }
+      }
+    },
     "I'd rather not answer that one. Try asking it another way." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7196,6 +7672,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Prefiero no responder a eso. Prueba a preguntarlo de otra forma."
+          }
+        }
+      }
+    },
+    "I'll read it, privately" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I'll read it, privately"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lo leeré en privado"
           }
         }
       }
@@ -7264,6 +7757,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reposo con orejas"
+          }
+        }
+      }
+    },
+    "In Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Reminders"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Recordatorios"
+          }
+        }
+      }
+    },
+    "In Reminders · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Reminders · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En Recordatorios · %@"
           }
         }
       }
@@ -7417,6 +7944,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Se queda arriba hasta que lo bajes a otro sitio."
+          }
+        }
+      }
+    },
+    "It stopped waiting. Answer in the terminal." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It stopped waiting. Answer in the terminal."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha dejado de esperar. Responde en la terminal."
           }
         }
       }
@@ -7689,6 +8233,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ten a mano en Altillo los iconos que elijas."
+          }
+        }
+      }
+    },
+    "Keep this answer in Saved, on this Mac" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep this answer in Saved, on this Mac"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda esta respuesta en Guardadas, en este Mac"
+          }
+        }
+      }
+    },
+    "Keeps what you said in the field" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps what you said in the field"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deja en el campo lo que has dicho"
           }
         }
       }
@@ -8016,6 +8594,40 @@
         }
       }
     },
+    "Let it stop now, without a reply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let it stop now, without a reply"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Déjalo parar ya, sin respuesta"
+          }
+        }
+      }
+    },
+    "Let me reply from the notch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let me reply from the notch"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responder desde el notch"
+          }
+        }
+      }
+    },
     "Limit reached" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8097,6 +8709,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escuchando lo que suena…"
+          }
+        }
+      }
+    },
+    "Listening…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escuchando…"
+          }
+        }
+      }
+    },
+    "Listens on this Mac and writes what you say" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listens on this Mac and writes what you say"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escucha en este Mac y escribe lo que dices"
           }
         }
       }
@@ -8318,6 +8964,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Crea uno en la app Atajos y aparecerá aquí, a un clic."
+          }
+        }
+      }
+    },
+    "Make this reminder for tomorrow at the same time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Make this reminder for tomorrow at the same time"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crear este recordatorio para mañana a la misma hora"
           }
         }
       }
@@ -9223,6 +9886,23 @@
         }
       }
     },
+    "No, stop" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, stop"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No, para"
+          }
+        }
+      }
+    },
     "Nobody's working upstairs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9631,6 +10311,23 @@
         }
       }
     },
+    "Nothing saved yet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing saved yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aún no hay nada guardado"
+          }
+        }
+      }
+    },
     "Nothing to allow for this setup. If you turn on a section that needs something, it asks then." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9644,6 +10341,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No hay nada que permitir con esta configuración. Si activas una sección que necesita algo, te lo pedirá entonces."
+          }
+        }
+      }
+    },
+    "Nothing to install. While `opencode serve` runs, Altillo follows its sessions, and you can answer its permissions and reply from the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nothing to install. While `opencode serve` runs, Altillo follows its sessions, and you can answer its permissions and reply from the notch."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay nada que instalar. Mientras `opencode serve` esté en marcha, Altillo sigue sus sesiones, y puedes responder a sus permisos y contestarle desde el notch."
           }
         }
       }
@@ -10430,6 +11144,23 @@
         }
       }
     },
+    "OpenCode didn't take the answer. Try again, or answer it in OpenCode." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenCode didn't take the answer. Try again, or answer it in OpenCode."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OpenCode no ha aceptado la respuesta. Vuelve a probar o respóndele en OpenCode."
+          }
+        }
+      }
+    },
     "Opening your note…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10494,6 +11225,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abre Ajustes › Secciones, donde Altillo puede añadir sus hooks a Claude Code y Codex"
+          }
+        }
+      }
+    },
+    "Opens Settings › Sections, where Altillo can add its hooks to your agents" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens Settings › Sections, where Altillo can add its hooks to your agents"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Ajustes › Secciones, donde Altillo puede añadir sus hooks a tus agentes"
           }
         }
       }
@@ -10936,6 +11684,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Reproducir"
+          }
+        }
+      }
+    },
+    "Play music, a podcast or a video in any app and it'll show up." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play music, a podcast or a video in any app and it'll show up."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pon música, un pódcast o un vídeo en cualquier app y aparecerá aquí."
           }
         }
       }
@@ -11501,6 +12266,40 @@
         }
       }
     },
+    "Reading what you dropped" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading what you dropped"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leyendo lo que has soltado"
+          }
+        }
+      }
+    },
+    "Reading…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leyendo…"
+          }
+        }
+      }
+    },
     "Ready" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11637,6 +12436,23 @@
         }
       }
     },
+    "Remove %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar %@"
+          }
+        }
+      }
+    },
     "Remove Altillo's hooks from %@?" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11650,6 +12466,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "¿Quitar los hooks de Altillo de %@?"
+          }
+        }
+      }
+    },
+    "Remove from saved answers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove from saved answers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar de las respuestas guardadas"
+          }
+        }
+      }
+    },
+    "Remove the attachment" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove the attachment"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar el adjunto"
+          }
+        }
+      }
+    },
+    "Remove this reminder" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove this reminder"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitar este recordatorio"
           }
         }
       }
@@ -11684,6 +12551,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quitar…"
+          }
+        }
+      }
+    },
+    "Reply to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reply to %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responder a %@"
+          }
+        }
+      }
+    },
+    "Reply to %@…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reply to %@…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responde a %@…"
+          }
+        }
+      }
+    },
+    "Reply “%@”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reply “%@”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Responder «%@»"
           }
         }
       }
@@ -12062,6 +12980,91 @@
         }
       }
     },
+    "Save" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar"
+          }
+        }
+      }
+    },
+    "Save an answer to keep it here. Only what you save is kept, on this Mac." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save an answer to keep it here. Only what you save is kept, on this Mac."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guarda una respuesta para tenerla aquí. Solo se conserva lo que guardas, en este Mac."
+          }
+        }
+      }
+    },
+    "Saved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardada"
+          }
+        }
+      }
+    },
+    "Saved answers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved answers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Respuestas guardadas"
+          }
+        }
+      }
+    },
+    "Saved: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardada: %@"
+          }
+        }
+      }
+    },
     "Screens" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12283,6 +13286,57 @@
         }
       }
     },
+    "Send (Return)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send (Return)"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar (Retorno)"
+          }
+        }
+      }
+    },
+    "Send reply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send reply"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar respuesta"
+          }
+        }
+      }
+    },
+    "Send when I stop talking" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send when I stop talking"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviar cuando deje de hablar"
+          }
+        }
+      }
+    },
     "Sends this question to DuckDuckGo, just this once, and answers again" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12296,6 +13350,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Envía esta pregunta a DuckDuckGo, solo esta vez, y vuelve a responder"
+          }
+        }
+      }
+    },
+    "Sent to %@ in %@: “%@”" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sent to %@ in %@: “%@”"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviado a %@ en %@: «%@»"
+          }
+        }
+      }
+    },
+    "Sent to %@ · %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sent to %@ · %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enviado a %@ · %@"
           }
         }
       }
@@ -12330,6 +13418,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Las sesiones con una lupa solo se leen de sus ficheros. En Ajustes › Secciones puedes añadir los hooks de Altillo a Claude Code y Codex."
+          }
+        }
+      }
+    },
+    "Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to your agents." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to your agents."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Las sesiones con una lupa solo se leen de sus ficheros. En Ajustes › Secciones puedes añadir los hooks de Altillo a tus agentes."
           }
         }
       }
@@ -13490,6 +14595,23 @@
         }
       }
     },
+    "Stop dictating" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop dictating"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dejar de dictar"
+          }
+        }
+      }
+    },
     "Stopped" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13537,6 +14659,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Resume «%@» de mi altillo."
+          }
+        }
+      }
+    },
+    "Summarize “%@”." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Summarize “%@”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume «%@»."
           }
         }
       }
@@ -13850,6 +14989,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ese es tu altillo. Siempre está ahí arriba, a un gesto de distancia."
+          }
+        }
+      }
+    },
+    "The Agents section is off, so I can't reach %@. You can turn it on in Settings › Sections." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The Agents section is off, so I can't reach %@. You can turn it on in Settings › Sections."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La sección Agentes está desactivada, así que no puedo hablar con %@. Puedes activarla en Ajustes › Secciones."
           }
         }
       }
@@ -14330,6 +15486,40 @@
         }
       }
     },
+    "There's more than one %@ session (%@). Say which one: “tell %@ in %@ to …”." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's more than one %@ session (%@). Say which one: “tell %@ in %@ to …”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hay más de una sesión de %@ (%@). Dime cuál: «dile a %@ en %@ que…»."
+          }
+        }
+      }
+    },
+    "There's no %@ session I can see right now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "There's no %@ session I can see right now."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora mismo no veo ninguna sesión de %@."
+          }
+        }
+      }
+    },
     "There's nothing to hand over any more, so it didn't run." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14428,6 +15618,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Este Mac no puede preguntar"
+          }
+        }
+      }
+    },
+    "This Mac can't recognise speech in your language on its own yet. Try turning on Dictation in System Settings › Keyboard." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This Mac can't recognise speech in your language on its own yet. Try turning on Dictation in System Settings › Keyboard."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este Mac aún no sabe reconocer la voz en tu idioma por sí solo. Prueba a activar el Dictado en Ajustes del Sistema › Teclado."
           }
         }
       }
@@ -14683,6 +15890,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mañana"
+          }
+        }
+      }
+    },
+    "Tomorrow at %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tomorrow at %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mañana a las %@"
+          }
+        }
+      }
+    },
+    "Too long to send from here (16 KB at most)." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Too long to send from here (16 KB at most)."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Demasiado largo para enviarlo desde aquí (16 KB como máximo)."
           }
         }
       }
@@ -15078,6 +16319,23 @@
         }
       }
     },
+    "Undone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Undone"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deshecho"
+          }
+        }
+      }
+    },
     "Unpin" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15329,6 +16587,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Usar el Cajón"
+          }
+        }
+      }
+    },
+    "Used Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Used Reminders"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ha usado Recordatorios"
           }
         }
       }
@@ -15809,6 +17084,23 @@
         }
       }
     },
+    "What is this link?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is this link?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué es este enlace?"
+          }
+        }
+      }
+    },
     "What matters now" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15826,6 +17118,23 @@
         }
       }
     },
+    "What should I tell %@? Try “tell %@ to …”." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What should I tell %@? Try “tell %@ to …”."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué le digo a %@? Prueba con «dile a %@ que…»."
+          }
+        }
+      }
+    },
     "What your agents are doing, and what they're asking you for." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15839,6 +17148,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Qué están haciendo tus agentes y qué te piden."
+          }
+        }
+      }
+    },
+    "What's in this image?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What's in this image?"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¿Qué hay en esta imagen?"
           }
         }
       }
@@ -15924,6 +17250,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Si hay algo"
+          }
+        }
+      }
+    },
+    "When it finishes a turn and you're not looking at its terminal, the agent waits up to %@ for your reply before it stops. Switching to the terminal lets it stop at once, so you can type there. On by default for new Claude Code and Codex installs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "When it finishes a turn and you're not looking at its terminal, the agent waits up to %@ for your reply before it stops. Switching to the terminal lets it stop at once, so you can type there. On by default for new Claude Code and Codex installs."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando termina un turno y no estás mirando su terminal, el agente espera tu respuesta hasta %@ antes de pararse. Si cambias a la terminal, se para al momento para que puedas escribir allí. Viene activado en las instalaciones nuevas de Claude Code y Codex."
           }
         }
       }
@@ -16094,6 +17437,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Escribe las cifras en iCloud en el formato que lee la app de iPhone de antes de Altillo, para que puedas retirar el puente antiguo."
+          }
+        }
+      }
+    },
+    "Yes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sí"
+          }
+        }
+      }
+    },
+    "You asked about %@: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You asked about %@: %@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Has preguntado por %@: %@"
           }
         }
       }
@@ -17063,6 +18440,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "se repone en %@"
+          }
+        }
+      }
+    },
+    "reminders" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "reminders"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "lista de recordatorios"
           }
         }
       }

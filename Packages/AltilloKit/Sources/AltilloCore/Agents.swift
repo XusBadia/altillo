@@ -11,6 +11,14 @@ public struct AgentKind: RawRepresentable, Hashable, Codable, Sendable, Comparab
 
     public static let claude = AgentKind(rawValue: "claude")
     public static let codex = AgentKind(rawValue: "codex")
+    /// Gemini CLI (hooks in `~/.gemini/settings.json`), phase 14.
+    public static let gemini = AgentKind(rawValue: "gemini")
+    /// GitHub Copilot CLI (hooks in `~/.copilot/hooks/*.json`), phase 14.
+    public static let copilot = AgentKind(rawValue: "copilot")
+    /// OpenCode, followed through the HTTP server of `opencode serve`, phase 14.
+    public static let opencode = AgentKind(rawValue: "opencode")
+    /// Cursor's CLI (`cursor-agent`) and editor, hooks in `~/.cursor/hooks.json`, phase 14.
+    public static let cursor = AgentKind(rawValue: "cursor")
 
     public static func < (lhs: Self, rhs: Self) -> Bool { lhs.rawValue < rhs.rawValue }
 }
@@ -77,6 +85,9 @@ public struct AgentPermissionRequest: Identifiable, Hashable, Codable, Sendable 
     public var expiresAt: Date?
     /// The hook stopped waiting (timed out): the agent asks in the terminal now and the notch can't answer it.
     public var isExpired: Bool
+    /// The last answer from the notch didn't reach the agent (OpenCode's server refused it or is gone): shown on the
+    /// card, which stays answerable.
+    public var failure: String?
 
     public init(id: String, toolName: String, summary: String, detail: String? = nil, isDangerous: Bool = false,
                 canAllowForSession: Bool = false, requestedAt: Date, expiresAt: Date? = nil, isExpired: Bool = false) {
@@ -100,6 +111,46 @@ public enum AgentDecision: String, Codable, Sendable {
     case deny
 }
 
+/// How a reply typed in the notch reaches a session that is waiting for the user's next message (phase 14).
+/// Altillo never writes to an agent on its own: a reply only goes out when the user sends one.
+public struct AgentReplyChannel: Hashable, Codable, Sendable {
+    public enum Kind: String, Codable, Sendable {
+        /// The agent's stop hook is holding the end of the turn open (opt-in per agent); the reply makes the agent
+        /// carry on with it. Closes when the hook gives up (`expiresAt`), the user answers in the terminal, or the
+        /// agent is interrupted.
+        case stopHook
+        /// The agent's own server takes new messages (OpenCode's `prompt_async`): no deadline.
+        case server
+    }
+
+    public var kind: Kind
+    /// The waiting hook's request id (`stopHook`), or the session id (`server`).
+    public var id: String
+    public var openedAt: Date
+    /// When the hook stops waiting and the agent stops as usual. nil: no limit.
+    public var expiresAt: Date?
+    /// A reply didn't get through (the hook had just given up): the field stays, saying so, with the typed text,
+    /// until the session changes. Nothing more can be sent through it.
+    public var isClosed: Bool
+
+    public init(kind: Kind, id: String, openedAt: Date, expiresAt: Date? = nil, isClosed: Bool = false) {
+        self.kind = kind
+        self.id = id
+        self.openedAt = openedAt
+        self.expiresAt = expiresAt
+        self.isClosed = isClosed
+    }
+
+    public init(from decoder: any Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        kind = try c.decode(Kind.self, forKey: .kind)
+        id = try c.decode(String.self, forKey: .id)
+        openedAt = try c.decode(Date.self, forKey: .openedAt)
+        expiresAt = try c.decodeIfPresent(Date.self, forKey: .expiresAt)
+        isClosed = try c.decodeIfPresent(Bool.self, forKey: .isClosed) ?? false
+    }
+}
+
 /// One agent session.
 public struct AgentSession: Identifiable, Hashable, Codable, Sendable {
     /// "<agent>:<session id>", stable for the session's life.
@@ -120,14 +171,18 @@ public struct AgentSession: Identifiable, Hashable, Codable, Sendable {
     public var host: AgentHost?
     /// Seen through hooks (precise, can approve) or only through its session file (read-only, approximate).
     public var source: Source
+    /// Set while a reply typed in the notch can reach the session (phase 14).
+    public var reply: AgentReplyChannel?
 
     public enum Source: String, Codable, Sendable {
         case hooks, sessionFile
+        /// The agent's own local server (OpenCode): precise, and it can take answers.
+        case server
     }
 
     public init(agent: AgentKind, sessionID: String, cwd: String, phase: AgentPhase, activity: String? = nil,
                 startedAt: Date, lastActivity: Date, pendingRequest: AgentPermissionRequest? = nil,
-                lastMessage: String? = nil, host: AgentHost? = nil, source: Source) {
+                lastMessage: String? = nil, host: AgentHost? = nil, source: Source, reply: AgentReplyChannel? = nil) {
         id = "\(agent.rawValue):\(sessionID)"
         self.agent = agent
         self.sessionID = sessionID
@@ -141,5 +196,6 @@ public struct AgentSession: Identifiable, Hashable, Codable, Sendable {
         self.lastMessage = lastMessage
         self.host = host
         self.source = source
+        self.reply = reply
     }
 }

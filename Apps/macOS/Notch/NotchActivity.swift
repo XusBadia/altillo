@@ -12,7 +12,7 @@ enum NotchActivity: Equatable, Sendable {
     case agentRequest(AgentRequestSignal)
     /// A timed event starting within `NotchActivityLogic.imminentWindow`, or that has just started.
     case imminentEvent(EarEvent)
-    /// Music or Spotify is playing (paused doesn't count: the ear goes back to what it showed before).
+    /// Something is playing in any app (paused doesn't count: the ear goes back to what it showed before).
     case playback(PlaybackSignal)
     /// The main AI provider's fullest limit, while it runs high (`UsageStore.contextualSignal`).
     case usage(UsageSignal)

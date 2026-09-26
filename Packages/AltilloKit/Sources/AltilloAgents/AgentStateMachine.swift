@@ -112,6 +112,9 @@ public enum AgentStateMachine {
             guard !session.isBlockedOnPermission else { break }
             if session.phase != .waitingAnswer { session.phase = .working }
 
+        case .assistantMessage(let text):
+            session.lastMessage = text
+
         case .interrupted:
             session.phase = .idle
             session.activity = nil
@@ -220,6 +223,11 @@ public enum AgentSessionAging {
         if let request = session.pendingRequest, !request.isExpired, let expiry = request.expiresAt, now >= expiry {
             session.pendingRequest?.isExpired = true
         }
+        if let expiry = session.reply?.expiresAt, now >= expiry {
+            // The stop hook gave up: the agent stopped as usual and takes its next message in the terminal.
+            session.reply = nil
+        }
+        if session.phase == .finished || session.phase == .failed { session.reply = nil }
         switch session.phase {
         case .working, .waitingAnswer, .waitingPermission:
             if session.isBlockedOnPermission { return session }
@@ -241,6 +249,7 @@ public enum AgentSessionAging {
         if let request = session.pendingRequest, !request.isExpired, let expiry = request.expiresAt {
             deadlines.append(expiry)
         }
+        if let expiry = session.reply?.expiresAt { deadlines.append(expiry) }
         switch session.phase {
         case .working, .waitingAnswer, .waitingPermission:
             if !session.isBlockedOnPermission {

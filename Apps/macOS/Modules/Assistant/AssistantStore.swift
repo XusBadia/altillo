@@ -22,6 +22,8 @@ struct AssistantContext {
     var allowWebSearch: () -> Void = { AltilloSettings.shared.assistantWebSearch = true }
     /// Opens a web page in the default browser (a source, or the question as a search).
     var openURL: (URL) -> Void = { NSWorkspace.shared.open($0) }
+    /// "Tell Claude to …" (phase 13): hands the words to a waiting agent (`AgentHub.reply`).
+    var replyToAgent: (AgentReplyIntent.Request) -> AssistantAgentReply.Result = { AssistantAgentReply.live($0) }
 }
 
 /// The «Ask» section: a small on-device assistant (Apple Intelligence, Foundation Models) that can look at
@@ -81,9 +83,16 @@ final class AssistantStore {
         var webSources: [AssistantWebSource] = []
         /// The answer needed something live and web lookups are off: offer to search for this one question.
         var offersWeb = false
+        /// What was attached when it was asked (phase 13), for the mark on the question slip.
+        var attachmentName: String?
+        /// What its actions did (a reminder made), shown under the answer with an Undo (phase 13).
+        var receipts: [AssistantActionReceipt] = []
+        /// How it was routed, once known.
+        var route: AssistantRoute?
 
         init(id: UUID = UUID(), question: String, answer: String = "", status: Status = .thinking,
-             sources: [AssistantActivity] = [], webSources: [AssistantWebSource] = [], offersWeb: Bool = false) {
+             sources: [AssistantActivity] = [], webSources: [AssistantWebSource] = [], offersWeb: Bool = false,
+             attachmentName: String? = nil, receipts: [AssistantActionReceipt] = []) {
             self.id = id
             self.question = question
             self.answer = answer
@@ -91,6 +100,8 @@ final class AssistantStore {
             self.sources = sources
             self.webSources = webSources
             self.offersWeb = offersWeb
+            self.attachmentName = attachmentName
+            self.receipts = receipts
         }
 
         var usedWeb: Bool { sources.contains(.web) }
@@ -123,8 +134,44 @@ final class AssistantStore {
     /// Set by the view from its `@FocusState`.
     var isFieldFocused = false
 
-    /// Typing, a draft, or an answer on its way: the notch must not close under the user.
-    var holdsOpen: Bool { Self.holdsOpen(isFieldFocused: isFieldFocused, draft: draft, isResponding: isResponding) }
+    // Phase 13
+    /// Something dropped on Ask, read and going along with the questions until it's removed.
+    private(set) var attachment: AssistantAttachment?
+    /// A drop being read (a PDF, an image through Vision).
+    private(set) var isAttaching = false
+    /// The saved answers list is showing instead of the conversation.
+    var showsSaved = false
+    /// Answers the user chose to keep (the only thing Ask writes to disk).
+    let saved: AssistantSavedStore
+    /// The mic in the prompt field.
+    let dictation: AssistantDictation
+    /// Send the question as soon as dictation ends (a choice in the mic's menu). Off by default: the words stay in
+    /// the field to be checked first.
+    var sendsWhenDictationEnds: Bool = UserDefaults.standard.bool(forKey: AssistantStore.autoSendKey) {
+        didSet { UserDefaults.standard.set(sendsWhenDictationEnds, forKey: Self.autoSendKey) }
+    }
+    nonisolated static let autoSendKey = "assistantDictationAutoSend"
+    @ObservationIgnored private let reminders: any ReminderStoring
+    /// What was in the field when dictation started: the words heard go after it.
+    @ObservationIgnored private var dictationPrefix = ""
+    @ObservationIgnored private var attachTask: Task<Void, Never>?
+    /// One action per question, shared by its retries (`AssistantActionOnce`).
+    @ObservationIgnored private var actionOnce: [UUID: AssistantActionOnce] = [:]
+
+    init(dictation: AssistantDictation? = nil, saved: AssistantSavedStore? = nil,
+         reminders: any ReminderStoring = LiveReminderStore.shared) {
+        self.dictation = dictation ?? AssistantDictation(recognizer: LiveDictationRecognizer())
+        self.saved = saved ?? AssistantSavedStore()
+        self.reminders = reminders
+        self.dictation.onTranscript = { [weak self] words in self?.dictated(words) }
+        self.dictation.onEnded = { [weak self] ending in self?.dictationEnded(ending) }
+    }
+
+    /// Typing, a draft, dictating, or an answer on its way: the notch must not close under the user.
+    var holdsOpen: Bool {
+        Self.holdsOpen(isFieldFocused: isFieldFocused, draft: draft, isResponding: isResponding)
+            || dictation.isActive || isAttaching
+    }
 
     nonisolated static func holdsOpen(isFieldFocused: Bool, draft: String, isResponding: Bool) -> Bool {
         isFieldFocused || isResponding || !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -155,9 +202,10 @@ final class AssistantStore {
     }
 
     /// Called by the view when the section goes away. An answer on its way is not cancelled: it finishes and
-    /// announces itself with a peek.
+    /// announces itself with a peek. The mic never listens unseen.
     func stop() {
         viewers = max(0, viewers - 1)
+        if viewers == 0 { dictation.cancel() }
     }
 
     func requestFocus() { focusRequest += 1 }
@@ -211,7 +259,10 @@ final class AssistantStore {
         let signals = AssistantSuggestion.Signals(
             calendarGranted: EKEventStore.authorizationStatus(for: .event) == .fullAccess,
             readableShelfItem: AssistantSuggestion.readableItem(in: context.shelfItems())?.displayName,
-            runningPlayer: MusicPlayer.allCases.first { open.contains($0.bundleID) }?.appName,
+            runningPlayer: AssistantSuggestion.playingApp(
+                store: AssistantNowPlaying.liveReading(),
+                runningPlayer: MusicPlayer.allCases.first { open.contains($0.bundleID) }?.appName
+            ),
             clipboardHasText: AssistantContent.clipboardHasText()
         )
         suggestions = AssistantSuggestion.make(signals)
@@ -221,13 +272,17 @@ final class AssistantStore {
 
     /// Sends `text`, or the draft when nil.
     func send(_ text: String? = nil) {
-        let question = (text ?? draft).trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !question.isEmpty, !isResponding else { return }
+        var question = (text ?? draft).trimmingCharacters(in: .whitespacesAndNewlines)
+        // Something attached and nothing typed: the obvious question about it.
+        if question.isEmpty, text == nil, let attachment { question = AssistantAttachments.defaultQuestion(for: attachment) }
+        guard !question.isEmpty, !isResponding, !isAttaching else { return }
         availability = Availability(SystemLanguageModel.default.availability)
         guard availability == .available else { return }
         if text == nil { draft = "" }
+        dictation.cancel()
+        showsSaved = false
 
-        let exchange = Exchange(question: question)
+        let exchange = Exchange(question: question, attachmentName: attachment?.name)
         exchanges.append(exchange)
         isResponding = true
         respondingTo = exchange.id
@@ -245,8 +300,11 @@ final class AssistantStore {
         SpikeLog.shared.record(SpikeLog.Category.assistant, "stop")
     }
 
-    /// Forgets the conversation and starts over.
+    /// Forgets the conversation (and what was attached) and starts over.
     func newConversation() {
+        dictation.cancel()
+        removeAttachment()
+        actionOnce = [:]
         responseTask?.cancel()
         responseTask = nil
         respondingTo = nil
@@ -313,6 +371,158 @@ final class AssistantStore {
         SpikeLog.shared.record(SpikeLog.Category.assistant, "answer put up on the shelf")
     }
 
+    // MARK: - Attachments (phase 13)
+
+    /// Something dropped on Ask: read it (off the main actor) and keep it for the next questions. Replaces what
+    /// was attached before.
+    func attach(_ items: [ShelfItem]) {
+        guard !items.isEmpty else { return }
+        attachTask?.cancel()
+        isAttaching = true
+        showsSaved = false
+        SpikeLog.shared.record(SpikeLog.Category.assistant, "attaching \(items.count) dropped item(s)")
+        attachTask = Task { [weak self] in
+            let read = await Task.detached(priority: .userInitiated) { await AssistantAttachments.read(items) }.value
+            guard let self, !Task.isCancelled else { return }
+            self.attachment = read
+            self.isAttaching = false
+            self.attachTask = nil
+            let kind = read.map { String(describing: $0.kind) } ?? "nothing"
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "attached \(kind) (\(read?.text.count ?? 0) chars)")
+        }
+    }
+
+    /// Sets an attachment already read (tests, previews).
+    func setAttachment(_ attachment: AssistantAttachment?) {
+        attachTask?.cancel()
+        attachTask = nil
+        isAttaching = false
+        self.attachment = attachment
+    }
+
+    /// The × on the chip. Following questions go back to being about anything.
+    func removeAttachment() {
+        setAttachment(nil)
+    }
+
+    // MARK: - Saved answers (phase 13)
+
+    func isSaved(_ exchange: Exchange) -> Bool { saved.isSaved(exchange.id) }
+
+    /// The bookmark under an answer: saves it, or unsaves it when it's saved already.
+    func toggleSave(_ exchange: Exchange) {
+        guard exchange.hasAnswer else { return }
+        if saved.isSaved(exchange.id) {
+            saved.remove(exchangeID: exchange.id)
+        } else {
+            saved.save(question: exchange.question, answer: exchange.answer, exchangeID: exchange.id,
+                       attachmentName: exchange.attachmentName)
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "answer saved")
+        }
+    }
+
+    func copy(_ answer: AssistantSavedAnswer) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(AssistantFormat.plainText(answer.answer), forType: .string)
+    }
+
+    func putUp(_ answer: AssistantSavedAnswer) {
+        let text = AssistantFormat.plainText(answer.answer)
+        guard !text.isEmpty else { return }
+        context.addToShelf([ShelfItem(kind: .text(text), displayName: AssistantFormat.shelfName(question: answer.question))])
+    }
+
+    func delete(_ answer: AssistantSavedAnswer) {
+        saved.remove(answer.id)
+    }
+
+    // MARK: - Actions (phase 13)
+
+    /// Undo under an answer: removes the reminder it made.
+    func undo(_ receipt: AssistantActionReceipt, in exchange: Exchange) {
+        guard case let .reminder(identifier)? = receipt.undo, !receipt.isUndone else { return }
+        let reminders = self.reminders
+        Task { [weak self] in
+            let removed = await AssistantReminders.undo(identifier: identifier, store: reminders)
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "reminder undo → \(removed)")
+            self?.update(exchange.id) { exchange in
+                guard let index = exchange.receipts.firstIndex(where: { $0.id == receipt.id }) else { return }
+                // Undone only when it really went; otherwise the card says so.
+                exchange.receipts[index].isUndone = removed
+                exchange.receipts[index].undoFailed = !removed
+            }
+        }
+    }
+
+    /// "Tomorrow at 9:00" on a card whose time had passed: makes that reminder, and the card becomes its receipt.
+    func accept(_ receipt: AssistantActionReceipt, in exchange: Exchange) {
+        guard let offer = receipt.offer else { return }
+        let reminders = self.reminders
+        update(exchange.id) { exchange in
+            guard let index = exchange.receipts.firstIndex(where: { $0.id == receipt.id }) else { return }
+            exchange.receipts[index].offer = nil
+        }
+        Task { [weak self] in
+            let made = await AssistantReminders.accept(offer, store: reminders, now: .now)
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "reminder offer accepted → \(made != nil)")
+            self?.update(exchange.id) { exchange in
+                guard let index = exchange.receipts.firstIndex(where: { $0.id == receipt.id }) else { return }
+                if let made {
+                    exchange.receipts[index] = made
+                } else {
+                    exchange.receipts[index].offer = offer
+                    exchange.receipts[index].undoFailed = true
+                }
+            }
+        }
+    }
+
+    /// "Tell Claude to …": sent as typed, answered by Altillo itself, no model involved.
+    private func replyToAgent(_ request: AgentReplyIntent.Request, exchange id: UUID) {
+        noteActivity(.agents)
+        let result = context.replyToAgent(request)
+        SpikeLog.shared.record(SpikeLog.Category.assistant, "agent reply → \(result.receipt == nil ? "not sent" : "sent")")
+        update(id) {
+            $0.answer = result.answer
+            if let receipt = result.receipt { $0.receipts.append(receipt) }
+        }
+        finish(id, error: nil)
+    }
+
+    private func noteReceipt(_ receipt: AssistantActionReceipt) {
+        guard let id = respondingTo else { return }
+        update(id) { $0.receipts.append(receipt) }
+    }
+
+    // MARK: - Dictation (phase 13)
+
+    /// The mic button.
+    func toggleDictation() {
+        if !dictation.isActive {
+            dictationPrefix = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        }
+        Task { await dictation.toggle() }
+    }
+
+    private func dictated(_ words: String) {
+        draft = dictationPrefix.isEmpty ? words : dictationPrefix + " " + words
+    }
+
+    private func dictationEnded(_ ending: AssistantDictation.Ending) {
+        guard Self.autoSends(draft, enabled: sendsWhenDictationEnds), !isResponding else { return }
+        send()
+    }
+
+    /// Whether dictation may send on its own. Never for actions (a message to an agent, a reminder): the words the
+    /// recogniser heard stay in the field for the user to check first.
+    static func autoSends(_ draft: String, enabled: Bool) -> Bool {
+        let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard enabled, !text.isEmpty else { return false }
+        return AgentReplyIntent.parse(text) == nil && AssistantRouter.route(text) != .reminder
+            && !ShortcutsAskIntent.isExplicitRun(text)
+    }
+
     // MARK: - Answering
 
     /// Routes the question (`AssistantRouter`), then answers it: from the model alone, with the local tools, or
@@ -322,6 +532,24 @@ final class AssistantStore {
             .contains(where: \.isLocalContext) ?? false
         let route = AssistantRouter.route(question, followsContext: followsContext)
         let webAllowed = context.webSearchAllowed()
+        update(id) { $0.route = route }
+        if route == .agentReply, let request = AgentReplyIntent.parse(question) {
+            replyToAgent(request, exchange: id)
+            return
+        }
+        // With something attached, questions are about it, unless they explicitly ask for an action.
+        let attached = exchanges.first(where: { $0.id == id })?.attachmentName != nil ? attachment : nil
+        if let attached, !route.acts, !AssistantRouter.asksForTimer(question), !AssistantRouter.asksForNote(question) {
+            SpikeLog.shared.record(SpikeLog.Category.assistant, "route attachment (\(attached.text.count) chars)")
+            do {
+                try await answer(AssistantAttachments.prompt(for: question, attachment: attached), route: .chat, into: id)
+            } catch {
+                finish(id, error: Task.isCancelled ? CancellationError() : error)
+                return
+            }
+            finish(id, error: Task.isCancelled ? CancellationError() : nil)
+            return
+        }
         SpikeLog.shared.record(SpikeLog.Category.assistant, "route \(route.rawValue)")
         if route == .live && webAllowed {
             await respondFromWeb(to: question, exchange: id)
@@ -338,13 +566,13 @@ final class AssistantStore {
         // Without the web, a live question is a chat one that knows it can't check.
         let sessionRoute: AssistantRoute = route == .live ? .chat : route
         do {
-            try await answer(prompt, route: sessionRoute, into: id)
+            try await answer(prompt, route: sessionRoute, question: question, into: id)
         } catch {
             finish(id, error: Task.isCancelled ? CancellationError() : error)
             return
         }
         // Web lookups are allowed and the model says it can't know: look it up for it.
-        if !Task.isCancelled, webAllowed,
+        if !Task.isCancelled, webAllowed, !route.acts,
            let exchange = exchanges.first(where: { $0.id == id }), !exchange.usedWeb,
            AssistantLiveness.answerAdmitsNotKnowing(AssistantFormat.plainText(exchange.answer)) {
             SpikeLog.shared.record(SpikeLog.Category.assistant, "the model can't know: looking it up")
@@ -383,18 +611,28 @@ final class AssistantStore {
 
     /// One answer in a session of its own. When the small window overflows, or the model trips over itself (it
     /// sometimes fails right after a tool call), it tries once more in a fresh session without the recap.
-    private func answer(_ prompt: String, route: AssistantRoute, into id: UUID) async throws {
-        let session = takePrewarmed(for: route, excluding: id) ?? makeSession(route: route, recap: recap(excluding: id))
+    private func answer(_ prompt: String, route: AssistantRoute, question: String = "", into id: UUID) async throws {
+        let session = takePrewarmed(for: route, excluding: id)
+            ?? makeSession(route: route, recap: recap(excluding: id), question: question, exchange: id)
         do {
             try await stream(prompt, in: session, into: id)
-        } catch let error where [.contextFull, .other].contains(AssistantFailure(error)) && !Task.isCancelled {
+        } catch let error where [.contextFull, .other].contains(AssistantFailure(error)) && !Task.isCancelled
+            && !hasActed(id, route: route) {
             SpikeLog.shared.record(SpikeLog.Category.assistant, "\(AssistantFailure(error)): retrying in a fresh session")
             update(id) {
                 $0.answer = ""
                 $0.status = .thinking
             }
-            try await stream(prompt, in: makeSession(route: route, recap: nil), into: id)
+            try await stream(prompt, in: makeSession(route: route, recap: nil, question: question, exchange: id), into: id)
         }
+    }
+
+    /// An action route whose tool already did something: never tried again (the reminder exists, the shortcut ran).
+    private func hasActed(_ id: UUID, route: AssistantRoute) -> Bool {
+        guard route == .reminder || route == .shortcut,
+              let exchange = exchanges.first(where: { $0.id == id })
+        else { return false }
+        return !exchange.receipts.isEmpty || exchange.sources.contains(.shortcuts)
     }
 
     private func stream(_ prompt: String, in session: LanguageModelSession, into id: UUID) async throws {
@@ -422,6 +660,7 @@ final class AssistantStore {
             exchanges[index].status = .done
             let exchange = exchanges[index]
             exchanges[index].offersWeb = !context.webSearchAllowed() && !exchange.usedWeb
+                && !(exchange.route?.acts ?? false)
                 && AssistantLiveness.shouldOffer(
                     question: exchange.question,
                     answer: AssistantFormat.plainText(exchange.answer),
@@ -468,10 +707,22 @@ final class AssistantStore {
         return AssistantInstructions.recap(earlier)
     }
 
-    private func makeSession(route: AssistantRoute, recap: String?) -> LanguageModelSession {
+    private func makeSession(route: AssistantRoute, recap: String?, question: String = "",
+                             exchange: UUID? = nil) -> LanguageModelSession {
+        let once: AssistantActionOnce
+        if let exchange {
+            once = actionOnce[exchange] ?? AssistantActionOnce()
+            actionOnce[exchange] = once
+        } else {
+            once = AssistantActionOnce()
+        }
         let tools = AssistantTools.all(
             for: route,
             shelfItems: { [weak self] in self?.context.shelfItems() ?? [] },
+            question: question,
+            reminders: reminders,
+            once: once,
+            receipt: { [weak self] receipt in self?.noteReceipt(receipt) },
             report: { [weak self] activity in self?.noteActivity(activity) }
         )
         return LanguageModelSession(

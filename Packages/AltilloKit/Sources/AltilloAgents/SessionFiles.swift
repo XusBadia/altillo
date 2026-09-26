@@ -335,3 +335,104 @@ public enum CodexRollout {
         }
     }
 }
+
+// MARK: - Gemini CLI
+
+/// Gemini CLI chats (phase 14): `~/.gemini/tmp/<project id>/chats/session-<date>-<short id>.jsonl`, append-only JSONL
+/// (verified in the 0.61.0 source, `chatRecordingService.ts`). The first record is the metadata (`sessionId`,
+/// `projectHash`, `startTime`, `lastUpdated`, `kind`, `directories`); then messages (`id`, `timestamp`, `type`
+/// `user`/`gemini`/`info`/`error`/`warning`, `content` as a string or `[{text}]`, `toolCalls` `[{name, args,
+/// status}]` with status `validating|scheduled|awaiting_approval|executing|success|error|cancelled`), re-appended
+/// with the same id when they change, and `{"$set":{…}}` metadata updates. `<project id>` is a slug that
+/// `~/.gemini/projects.json` maps from the project's path (`{"projects":{"/path":"slug"}}`); older installs used the
+/// path's SHA-256.
+public enum GeminiChat {
+    public struct Meta: Hashable, Sendable {
+        public var sessionID: String
+        public var startedAt: Date?
+        public var isSubagent: Bool
+    }
+
+    public static func isChatFile(_ url: URL) -> Bool {
+        url.pathExtension == "jsonl" && url.lastPathComponent.hasPrefix("session-")
+            && url.deletingLastPathComponent().lastPathComponent == "chats"
+    }
+
+    /// The project folder (`<project id>`) of a chat file.
+    public static func projectID(for url: URL) -> String {
+        url.deletingLastPathComponent().deletingLastPathComponent().lastPathComponent
+    }
+
+    public static func meta(firstLine: Data) -> Meta? {
+        guard let record = JSONValue.parse(firstLine), let id = record["sessionId"].nonEmptyString else { return nil }
+        let kind = record["kind"]?.string?.lowercased() ?? ""
+        return Meta(sessionID: id, startedAt: Timestamps.parse(record["startTime"]?.string),
+                    isSubagent: kind.contains("subagent"))
+    }
+
+    /// `~/.gemini/projects.json`: project id → path.
+    public static func projectPaths(registry: Data) -> [String: String] {
+        guard let projects = JSONValue.parse(registry)?["projects"]?.object else { return [:] }
+        var paths: [String: String] = [:]
+        for (path, id) in projects { if let id = id.string { paths[id] = path } }
+        return paths
+    }
+
+    public static func snapshot(tail: [Data], meta: Meta, cwd: String?, projectID: String,
+                                modified: Date) -> SessionFileSnapshot? {
+        var latest: Date?
+        var decided: (phase: AgentPhase, activity: String?, message: String?)?
+        var seen = Set<String>()
+        for line in tail.reversed() {
+            guard let record = JSONValue.parse(line), let type = record["type"]?.string else { continue }
+            if latest == nil { latest = Timestamps.parse(record["timestamp"]?.string) }
+            // A message re-appended later supersedes its earlier copies.
+            if let id = record["id"]?.string, !seen.insert(id).inserted { continue }
+            switch type {
+            case "user":
+                let text = text(of: record["content"])
+                if text.hasPrefix("/") { continue } // a slash command, not a turn
+                decided = (.working, "Thinking", nil)
+            case "gemini":
+                let calls = record["toolCalls"]?.array ?? []
+                if let waiting = calls.last(where: { $0["status"]?.string == "awaiting_approval" }) {
+                    let call = toolCall(waiting)
+                    decided = (.waitingPermission, ToolDescriptions.activity(for: call, cwd: cwd), nil)
+                } else if let running = calls.last(where: {
+                    ["validating", "scheduled", "executing"].contains($0["status"]?.string ?? "")
+                }) {
+                    decided = (.working, ToolDescriptions.activity(for: toolCall(running), cwd: cwd), nil)
+                } else {
+                    let message = text(of: record["content"]).trimmingCharacters(in: .whitespacesAndNewlines)
+                    decided = message.isEmpty ? (.working, "Thinking", nil) : (.waitingAnswer, nil, message)
+                }
+            case "error":
+                decided = (.failed, nil, text(of: record["content"]))
+            default:
+                continue // info, warning, metadata
+            }
+            break
+        }
+        guard let decided else {
+            return SessionFileSnapshot(agent: .gemini, sessionID: meta.sessionID, cwd: cwd ?? "", projectHint: projectID,
+                                       phase: .idle, lastActivity: max(latest ?? modified, modified),
+                                       startedAt: meta.startedAt)
+        }
+        return SessionFileSnapshot(
+            agent: .gemini, sessionID: meta.sessionID, cwd: cwd ?? "", projectHint: projectID, phase: decided.phase,
+            activity: decided.activity, lastMessage: decided.message, lastActivity: max(latest ?? modified, modified),
+            startedAt: meta.startedAt)
+    }
+
+    static func toolCall(_ call: JSONValue) -> AgentToolCall {
+        AgentToolCall(name: call["name"].nonEmptyString ?? "tool", input: call["args"] ?? .object([:]))
+    }
+
+    /// `content` is a string, a part, or a list of parts (`{text}`).
+    static func text(of content: JSONValue?) -> String {
+        guard let content else { return "" }
+        if let text = content.string { return text }
+        if let parts = content.array { return parts.compactMap { $0["text"]?.string ?? $0.string }.joined(separator: "\n") }
+        return content["text"]?.string ?? ""
+    }
+}

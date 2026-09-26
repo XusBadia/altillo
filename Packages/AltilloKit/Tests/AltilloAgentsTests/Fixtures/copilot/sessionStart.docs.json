@@ -1,0 +1,8 @@
+{
+  "_event": "sessionStart",
+  "sessionId": "b7e0d3c4-2f61-4a8e-a1d9-0c5e7f3b2d48",
+  "timestamp": 1790341911209,
+  "cwd": "/Users/me/Projects/demo",
+  "source": "new",
+  "initialPrompt": "Fix the flaky test"
+}

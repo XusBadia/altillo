@@ -1,6 +1,26 @@
 import AltilloCore
 import Foundation
 
+extension DesignScenario {
+    /// The resting notch with an agent knocking (`idleWithAgentWaiting`, DEBUG builds only).
+    var isAgentWaitingEars: Bool {
+        #if DEBUG
+        self == .idleWithAgentWaiting
+        #else
+        false
+        #endif
+    }
+
+    /// A drag over the notch on Ask (`dropTargetAsk`, DEBUG builds only).
+    var isAskDropTarget: Bool {
+        #if DEBUG
+        self == .dropTargetAsk
+        #else
+        false
+        #endif
+    }
+}
+
 /// Sample content for the design-review scenarios (usage, agents, shelf). Real modules never read it: usage has
 /// `UsageStore` since phase 3 and agents `AgentHub` since phase 4.
 struct DemoContent {
@@ -121,6 +141,42 @@ struct DemoContent {
             first.pendingRequest?.requestedAt = now.addingTimeInterval(-130)
             first.pendingRequest?.expiresAt = now.addingTimeInterval(-10)
             first.pendingRequest?.isExpired = true
+        #if DEBUG
+        // `-demoAgents reply|replyUrgent|replyClosed|serverReply|more` (DEBUG builds): the reply field held open by a
+        // stop hook (with its countdown, and in its last 15 s), after a reply that didn't get through, OpenCode's
+        // server reply (no deadline), and the phase 14 agents in the rows.
+        case "reply", "replyUrgent", "replyClosed":
+            first.phase = .waitingAnswer
+            first.pendingRequest = nil
+            first.lastMessage = "I've moved the settings into their own pane. Should I also migrate the old keys, or leave them for a release?"
+            let left: TimeInterval = variant == "replyUrgent" ? 12 : 94
+            first.reply = AgentReplyChannel(kind: .stopHook, id: "demo-reply", openedAt: now.addingTimeInterval(left - 120),
+                                            expiresAt: now.addingTimeInterval(left), isClosed: variant == "replyClosed")
+        case "serverReply":
+            first = AgentSession(
+                agent: .opencode, sessionID: "demo-opencode", cwd: "/Users/demo/Code/website", phase: .waitingAnswer,
+                startedAt: now.addingTimeInterval(-9 * 60), lastActivity: now.addingTimeInterval(-20),
+                lastMessage: "The pricing page builds again. Do you want me to deploy a preview too?",
+                source: .server,
+                reply: AgentReplyChannel(kind: .server, id: "demo-opencode", openedAt: now.addingTimeInterval(-20)))
+        case "more":
+            return [
+                AgentSession(agent: .opencode, sessionID: "demo-oc", cwd: "/Users/demo/Code/website", phase: .working,
+                             activity: "Editing pricing.astro", startedAt: now.addingTimeInterval(-5 * 60),
+                             lastActivity: now.addingTimeInterval(-2), source: .server),
+                AgentSession(agent: .gemini, sessionID: "demo-gemini", cwd: "/Users/demo/Code/notes", phase: .working,
+                             activity: "Reading 14 files", startedAt: now.addingTimeInterval(-3 * 60),
+                             lastActivity: now.addingTimeInterval(-6), source: .hooks),
+                AgentSession(agent: .copilot, sessionID: "demo-copilot", cwd: "/Users/demo/Code/api-gateway-service",
+                             phase: .failed, activity: "Took 2 min", startedAt: now.addingTimeInterval(-8 * 60),
+                             lastActivity: now.addingTimeInterval(-90),
+                             lastMessage: "Rate limit reached. Try again in a few minutes.", source: .hooks),
+                AgentSession(agent: .cursor, sessionID: "demo-cursor", cwd: "/Users/demo/Code/badia.me", phase: .finished,
+                             activity: "Took 4 min 3 s", startedAt: now.addingTimeInterval(-12 * 60),
+                             lastActivity: now.addingTimeInterval(-5 * 60),
+                             lastMessage: "Fixed the dark mode contrast on the blog index.", source: .hooks),
+            ]
+        #endif
         default:
             return agents
         }
@@ -157,3 +213,67 @@ struct DemoContent {
         waitingAgent.flatMap { AgentAlerts.alert(from: nil, to: $0, now: $0.lastActivity) }
     }
 }
+
+#if DEBUG
+/// Sample Ask content for `-demoAssistant` (DEBUG builds): nothing here is dropped, saved or made for real.
+extension DemoContent {
+    static let assistantAttachment = AssistantAttachment(
+        name: "Informe trimestral Q3 2026 - versión final.pdf", kind: .document, text: "", description: "PDF file")
+
+    static let assistantReceipts: [AssistantStore.Exchange] = {
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now
+        return [
+            AssistantStore.Exchange(
+                question: "Remind me to call Ana tomorrow at 10",
+                answer: "Done: I've added **Call Ana** to Reminders for tomorrow at 10:00.",
+                status: .done,
+                receipts: [
+                    AssistantActionReceipt(symbol: "checklist", title: "Call Ana",
+                                           detail: "In Reminders · Tomorrow at 10:00", undo: .reminder("demo")),
+                ]
+            ),
+            AssistantStore.Exchange(
+                question: "Remind me to water the plants today at 9",
+                answer: "9:00 has already passed today, so I didn't make it. You can set it for tomorrow instead.",
+                status: .done,
+                receipts: [
+                    AssistantActionReceipt(symbol: "clock.badge.exclamationmark", title: "Water the plants",
+                                           detail: "9:00 has already passed today",
+                                           offer: .reminder(title: "Water the plants", due: tomorrow)),
+                    {
+                        var undone = AssistantActionReceipt(symbol: "checklist", title: "Buy coffee beans",
+                                                            detail: "In Reminders", undo: .reminder("demo-2"))
+                        undone.isUndone = true
+                        return undone
+                    }(),
+                ]
+            ),
+            AssistantStore.Exchange(
+                question: "Tell Claude to also migrate the old keys and keep a backup of the file",
+                answer: "Sent to Claude in altillo: “Also migrate the old keys and keep a backup of the file”",
+                status: .done,
+                receipts: [
+                    AssistantActionReceipt(symbol: "paperplane",
+                                           title: "Also migrate the old keys and keep a backup of the file",
+                                           detail: String(localized: "Sent to \("Claude") · \("altillo")")),
+                ]
+            ),
+        ]
+    }()
+
+    static let assistantSaved: [AssistantSavedAnswer] = [
+        AssistantSavedAnswer(
+            id: UUID(), exchangeID: UUID(), question: "How do I undo the last commit but keep the changes?",
+            answer: "Run `git reset --soft HEAD~1`. The commit goes away and its changes stay staged, ready to commit again.",
+            savedAt: .now.addingTimeInterval(-2 * 86_400)),
+        AssistantSavedAnswer(
+            id: UUID(), exchangeID: UUID(), question: "What's the Wi-Fi password at the studio?",
+            answer: "It's on the note you put up last week: **attic-lightbulb-42**.",
+            savedAt: .now.addingTimeInterval(-9 * 86_400), attachmentName: "studio notes.txt"),
+        AssistantSavedAnswer(
+            id: UUID(), exchangeID: UUID(), question: "Summarise the quarterly report in three lines",
+            answer: "Revenue grew 12 % on the quarter, led by the new subscription plan. Costs held flat. The team expects a slower Q4 because of the move.",
+            savedAt: .now.addingTimeInterval(-20 * 86_400), attachmentName: "Informe trimestral Q3.pdf"),
+    ]
+}
+#endif

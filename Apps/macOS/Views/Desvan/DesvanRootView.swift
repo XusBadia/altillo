@@ -214,12 +214,17 @@ private struct DesvanEarsFace: View {
         EarBand(chrome: chrome, earWidth: NotchChrome.earWidth) {
             if model.scenario == .idleWithEars {
                 DesvanUsageEar(usage: model.demo.primaryUsage)
+            } else if model.scenario?.isAgentWaitingEars == true {
+                // What the contextual ear shows for a knocking agent (`DesvanContextualEar`).
+                DesvanKnockingHand(size: 13)
             } else if model.scenario == nil {
                 DesvanEarContent(content: model.settings.leftEar, model: model, style: restingStyle)
             }
         } trailing: {
-            if model.scenario != nil {
-                // Design review: the shelf's sample count (the agents ear is reviewed live).
+            if model.scenario?.isAgentWaitingEars == true {
+                DesvanAgentsEar(counts: AgentsLogic.counts(model.demo.agents))
+            } else if model.scenario != nil {
+                // Design review: the shelf's sample count.
                 if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
             } else {
                 DesvanEarContent(content: model.settings.rightEar, model: model, style: restingStyle)
@@ -479,10 +484,12 @@ extension DesvanRing where Label == EmptyView {
     }
 }
 
-/// "Toc, toc": a hand that knocks twice every 3 s. Still with Reduce Motion.
+/// "Toc, toc": a hand that knocks twice, a few times in a row when it appears, then only now and then. Between
+/// knocks nothing animates, so a session that waits for hours costs no frames. Still with Reduce Motion.
 struct DesvanKnockingHand: View {
     var size: CGFloat = 11
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var knocks = 0
 
     var body: some View {
         let hand = Image(systemName: "hand.raised.fill")
@@ -492,34 +499,51 @@ struct DesvanKnockingHand: View {
         if reduceMotion {
             hand
         } else {
-            hand.keyframeAnimator(initialValue: Knock(), repeating: true) { content, knock in
+            hand.keyframeAnimator(initialValue: Knock(), trigger: knocks) { content, knock in
                 content
                     .rotationEffect(.degrees(knock.angle), anchor: .bottom)
                     .offset(x: knock.jolt)
             } keyframes: { _ in
-                // Two taps every 3 s: the hand swings at the door (±12°) and jolts forward a point on each tap,
-                // so it still reads at 1×.
+                // Two taps: the hand swings at the door (±12°) and jolts forward a point on each tap, so it still
+                // reads at 1×.
                 KeyframeTrack(\.angle) {
-                    LinearKeyframe(0, duration: 2.3)
                     CubicKeyframe(-12, duration: 0.09)
                     CubicKeyframe(4, duration: 0.1)
                     CubicKeyframe(-12, duration: 0.09)
                     CubicKeyframe(0, duration: 0.42)
                 }
                 KeyframeTrack(\.jolt) {
-                    LinearKeyframe(0, duration: 2.3)
                     CubicKeyframe(-1, duration: 0.09)
                     CubicKeyframe(0.3, duration: 0.1)
                     CubicKeyframe(-1, duration: 0.09)
                     CubicKeyframe(0, duration: 0.42)
                 }
             }
+            .task { await PeriodicNudge.run { knocks += 1 } }
         }
     }
 
     private struct Knock {
         var angle = 0.0
         var jolt = 0.0
+    }
+}
+
+/// The rhythm of a looping nudge that shouldn't loop forever: three beats 3 s apart when it appears, then one
+/// every 30 s for as long as the view is on screen (the task is cancelled when it goes away).
+enum PeriodicNudge {
+    static let eager: [Duration] = [.milliseconds(400), .seconds(3), .seconds(3)]
+    static let lazy: Duration = .seconds(30)
+
+    @MainActor
+    static func run(eager: [Duration] = eager, every lazy: Duration = lazy, _ beat: @MainActor () -> Void) async {
+        for delay in eager {
+            guard (try? await Task.sleep(for: delay)) != nil else { return }
+            beat()
+        }
+        while (try? await Task.sleep(for: lazy)) != nil {
+            beat()
+        }
     }
 }
 

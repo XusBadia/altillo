@@ -12,14 +12,14 @@ public enum ToolDescriptions {
         }
         let files = call.filePaths
         switch call.name {
-        case "Edit", "MultiEdit", "NotebookEdit", "str_replace_based_edit_tool":
+        case "Edit", "MultiEdit", "NotebookEdit", "str_replace_based_edit_tool", "replace", "edit":
             return files.first.map { "Editing \($0.fileName)" } ?? "Editing a file"
         case "apply_patch", "ApplyPatch":
             if files.count == 1 { return "Editing \(files[0].fileName)" }
             return files.isEmpty ? "Editing files" : "Editing \(files.count) files"
-        case "Write", "write_file", "create_file":
+        case "Write", "write_file", "create_file", "create":
             return files.first.map { "Writing \($0.fileName)" } ?? "Writing a file"
-        case "Read", "read_file":
+        case "Read", "read_file", "view", "read_many_files":
             return files.first.map { "Reading \($0.fileName)" } ?? "Reading a file"
         case "view_image":
             return "Looking at an image"

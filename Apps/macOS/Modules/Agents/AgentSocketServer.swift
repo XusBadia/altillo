@@ -4,7 +4,8 @@ import Foundation
 
 /// The Unix socket `altillo-hook` talks to (`~/Library/Application Support/Altillo/agents.sock`, 0600 in a 0700
 /// folder). Runs entirely on its own serial queue, never on the main actor: one connection per hook call, a
-/// fire-and-forget event is read and the connection closed; a PermissionRequest connection stays open until the
+/// fire-and-forget event is read and the connection closed; a PermissionRequest connection (or a stop hook waiting for
+/// a reply, phase 14) stays open until the
 /// user decides (`reply`) or the hook goes away (timeout, or the user answered in the terminal and the agent
 /// killed the hook), which `onRequestClosed` reports.
 final class AgentSocketServer: @unchecked Sendable {
@@ -67,13 +68,14 @@ final class AgentSocketServer: @unchecked Sendable {
         }
     }
 
-    /// Answers a waiting hook. False when that hook is gone (it timed out or was killed).
+    /// Answers a waiting hook (`text`: a reply typed in the notch, with `.reply`). False when that hook is gone (it
+    /// timed out or was killed).
     @discardableResult
-    func reply(requestID: String, decision: WireDecision) -> Bool {
+    func reply(requestID: String, decision: WireDecision, text: String? = nil) -> Bool {
         queue.sync {
             guard let fd = waiting.removeValue(forKey: requestID), let connection = connections[fd] else { return false }
             connection.requestID = nil
-            let delivered = AgentWire.frame(HookReply(requestID: requestID, decision: decision))
+            let delivered = AgentWire.frame(HookReply(requestID: requestID, decision: decision, text: text))
                 .map { UnixSocket.writeAll(fd, $0, timeout: 1) } ?? false
             connection.source?.cancel()
             connections[fd] = nil
@@ -122,7 +124,7 @@ final class AgentSocketServer: @unchecked Sendable {
 
     private func handle(_ line: Data, on connection: Connection) {
         guard connection.requestID == nil, let envelope = AgentWire.decodeEnvelope(line) else { return }
-        if envelope.waitsForDecision, let requestID = envelope.requestID {
+        if envelope.waits, let requestID = envelope.requestID {
             connection.requestID = requestID
             waiting[requestID] = connection.fd
         }

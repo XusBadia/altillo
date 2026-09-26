@@ -1,30 +1,33 @@
 import Foundation
 
-/// Peeks when a new song starts in Music or Spotify.
+/// Peeks when a new song starts, in any app.
 ///
-/// Purely event-driven: both apps broadcast a distributed notification on every state change (the same one their
-/// own menu bar extras and widgets listen to), so there is no polling, no AppleScript and no permission prompt —
-/// just two observers that sit idle until something plays (PLAN §1.5).
+/// It reads `NowPlayingStore` (the app's one, `NowPlayingStore.primary`, unless one is injected), so it sees what
+/// the store sees: the system's Now Playing for every app when the universal provider runs, or Music's and
+/// Spotify's own broadcasts when the store has fallen back to AppleScript. Enabling it asks the store to listen
+/// (`watchForAlerts`); both paths are event-driven, so nothing polls (PLAN §1.5).
 ///
-/// Keys are documented behaviour of `com.apple.Music.playerInfo` (formerly iTunes') and
-/// `com.spotify.client.PlaybackStateChanged`, unverified against a live process in this environment (neither app
-/// was running); `identity(from:)` treats every key as optional and never assumes one is present.
+/// Without any store (never in the app) it listens to the two players' distributed notifications itself, as it
+/// always did: no polling, no AppleScript and no permission prompt.
 @MainActor
 final class NowPlayingAlertSource {
     private let post: (NotchAlert) -> Void
+    private let injectedStore: NowPlayingStore?
+    private weak var store: NowPlayingStore?
     private var enabled = false
     private var observers: [NSObjectProtocol] = []
     /// What we last alerted about. `nil` right after enabling, so the song already playing at that moment sets the
     /// baseline instead of triggering a peek — only a change afterwards counts as "new".
     private var lastAlerted: NowPlayingAlertDedupe.TrackIdentity?
 
-    /// The two players' state-change broadcasts (PLAN §5.6: Music and Spotify today, MediaRemote later).
+    /// The two players' state-change broadcasts, for the store-less fallback.
     private static let notificationNames: [Notification.Name] = [
         Notification.Name("com.apple.Music.playerInfo"),
         Notification.Name("com.spotify.client.PlaybackStateChanged"),
     ]
 
-    init(post: @escaping (NotchAlert) -> Void) {
+    init(store: NowPlayingStore? = nil, post: @escaping (NotchAlert) -> Void) {
+        self.injectedStore = store
         self.post = post
     }
 
@@ -34,11 +37,33 @@ final class NowPlayingAlertSource {
         self.enabled = enabled
         if enabled {
             lastAlerted = nil
-            observe()
+            if let store = injectedStore ?? NowPlayingStore.primary {
+                self.store = store
+                store.onTrackChange = { [weak self] track in self?.handle(track) }
+                store.watchForAlerts(true)
+                // The song already playing is the baseline.
+                handle(store.track)
+            } else {
+                observe()
+            }
         } else {
+            if let store {
+                store.onTrackChange = nil
+                store.watchForAlerts(false)
+            }
+            store = nil
             stopObserving()
         }
     }
+
+    // MARK: - From the store
+
+    private func handle(_ track: NowPlayingStore.Track?) {
+        let (state, identity) = NowPlayingAlertDedupe.input(from: track)
+        handle(state: state, identity: identity)
+    }
+
+    // MARK: - Store-less fallback
 
     private func observe() {
         guard observers.isEmpty else { return }
@@ -105,6 +130,16 @@ enum NowPlayingAlertDedupe {
     struct Decision: Equatable {
         var shouldAlert: Bool
         var lastAlerted: TrackIdentity?
+    }
+
+    /// The store's track as a state and an identity. The id is the app that plays it: the same title and artist
+    /// moving from Safari to Music is a new song to show; the same one resuming isn't.
+    static func input(from track: NowPlayingStore.Track?) -> (state: String?, identity: TrackIdentity?) {
+        guard let track else { return ("Stopped", nil) }
+        let name = track.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !name.isEmpty else { return (track.isPlaying ? "Playing" : "Paused", nil) }
+        return (track.isPlaying ? "Playing" : "Paused",
+                TrackIdentity(id: track.appBundleID, name: name, artist: track.artist))
     }
 
     /// What a state-change notification should do, given what was last alerted.

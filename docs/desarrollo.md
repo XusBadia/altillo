@@ -16,6 +16,23 @@ open ~/Library/Developer/AltilloBuild/Build/Products/Debug/Altillo.app
 
 En CI da igual, porque no hay TCC.
 
+### Tests en macOS 27: derivedData en `/tmp`
+
+En macOS 27, `xcodebuild test` con la derivedData dentro de `~/Documents` (por ejemplo `build/dd`) puede
+quedarse colgado antes de que el runner conecte: «The test runner hung before establishing connection». La app
+de pruebas se queda parada en `dyld` abriendo sus librerías, esperando a TCC (la protección de Documentos), y no
+sale ningún diálogo. Compilar funciona; lo que se cuelga es lanzar el host de los tests.
+
+Usa una derivedData en `/tmp` para los tests:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild \
+  -project Altillo.xcodeproj -scheme Altillo \
+  -derivedDataPath /tmp/altillo-dd test
+```
+
+En CI no pasa (los runners de GitHub no tienen TCC), así que el workflow sigue con `build/dd-ci`.
+
 ## Xcode y `xcode-select`
 
 Altillo necesita **Xcode 26**, no solo las Command Line Tools. Si tu Mac tiene

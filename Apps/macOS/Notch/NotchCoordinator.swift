@@ -135,6 +135,7 @@ final class NotchCoordinator {
         model.usage.start()
         // Live agents: hook events over the socket plus the agents' own session files (phase 4).
         model.agentHub.postAlert = { [weak self] alert in self?.post(alert) }
+        model.agentHub.isModuleEnabled = { [weak model] in model?.settings.isEnabled(.agents) ?? true }
         model.agentHub.start()
         // Kitchen timers (phase 12): running ones come back from disk and ring with the notch closed.
         model.timers.postAlert = { [weak self] alert in self?.post(alert) }
@@ -301,6 +302,7 @@ final class NotchCoordinator {
             }
             controller.dropTarget.onZoneChanged = { [weak self] zone in self?.model.dropZone = zone }
             controller.dropTarget.onAirDrop = { [weak self] items in self?.sendViaAirDrop(items) }
+            controller.dropTarget.onAsk = { [weak self] items in self?.askAbout(items) }
             // Accepted before slow file promises (Photos, Mail) resolve, so the notch stays open while they arrive.
             controller.dropTarget.onDropAccepted = { [weak self] in self?.dropAccepted() }
             controller.panel.onCloseRequest = { [weak self] in self?.send(.escape) }
@@ -563,8 +565,18 @@ final class NotchCoordinator {
         guard model.state == .dropTarget else { return nil }
         let topLeft = CGPoint(x: point.x, y: view.bounds.height - point.y)
         if model.dropZoneFrames[.airDrop]?.contains(topLeft) == true { return .airDrop }
+        if model.offersAskDrop, model.dropZoneFrames[.ask]?.contains(topLeft) == true { return .ask }
         if model.dropZoneFrames[.shelf]?.contains(topLeft) == true { return .shelf }
         return nil
+    }
+
+    /// Dropped on "Ask about it": Ask reads it for the next question, and the field takes the keyboard.
+    private func askAbout(_ items: [ShelfItem]) {
+        model.isReceivingDrop = false
+        guard !items.isEmpty else { return }
+        if model.module != .assistant, model.settings.modules.contains(.assistant) { model.jump(to: .assistant) }
+        model.assistant.attach(items)
+        model.assistant.requestFocus()
     }
 
     private func sendViaAirDrop(_ items: [ShelfItem]) {
@@ -863,6 +875,7 @@ final class NotchCoordinator {
 
     private func applySettings() {
         let settings = model.settings
+        model.agentHub.moduleAvailabilityChanged()
         let accepted = hotKey.register(settings.assistantHotKey, enabled: settings.modules.contains(.assistant)) {
             [weak self] in self?.summonAssistant()
         }

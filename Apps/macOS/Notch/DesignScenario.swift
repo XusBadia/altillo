@@ -23,6 +23,12 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     case openMirror
     case openNowPlaying
     case openDrawer
+    #if DEBUG
+    /// A drag over the notch while it's on Ask: the "Ask about it" zone beside the box and the plane.
+    case dropTargetAsk
+    /// The resting notch while an agent waits: the knocking hand in both ears.
+    case idleWithAgentWaiting
+    #endif
 
     var id: Self { self }
 
@@ -48,6 +54,10 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openMirror: String(localized: "Open: mirror")
         case .openNowPlaying: String(localized: "Open: now playing")
         case .openDrawer: String(localized: "Open: Drawer")
+        #if DEBUG
+        case .dropTargetAsk: "Drop target on Ask"
+        case .idleWithAgentWaiting: "Idle: agent waiting"
+        #endif
         }
     }
 
@@ -59,6 +69,10 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .dropTarget: .dropTarget
         case .openShelfEmpty, .openShelfLoading, .openShelfError, .openShelf, .openAssistant, .openUsage, .openAgents,
              .openCalendar, .openMirror, .openNowPlaying, .openDrawer: .open
+        #if DEBUG
+        case .dropTargetAsk: .dropTarget
+        case .idleWithAgentWaiting: .idle
+        #endif
         }
     }
 
@@ -66,6 +80,9 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     var showsDemoShelf: Bool {
         switch self {
         case .idleWithEars, .peekShelf, .dropTarget, .openShelf: true
+        #if DEBUG
+        case .dropTargetAsk: true
+        #endif
         default: false
         }
     }
@@ -80,6 +97,10 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openMirror: .mirror
         case .openNowPlaying: .nowPlaying
         case .openDrawer: .shelf
+        #if DEBUG
+        case .dropTargetAsk: .assistant
+        case .idleWithAgentWaiting: .agents
+        #endif
         default: .shelf
         }
     }

@@ -9,21 +9,21 @@ async function chapter(page, name) {
   await expect(step).toHaveClass(/is-active/);
 }
 
-test('explains the product, labels development and links to Aurio without overflow', async ({ page }) => {
+test('explains the product, offers a download and links to Aurio without overflow', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
   await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
-  await expect(page.locator('#proyecto')).toContainText('Todavía no hay una versión pública para descargar');
+  await expect(page.locator('#proyecto')).toContainText('firmada y notarizada');
+  await expect(page.getByRole('link', { name: 'Descargar para Mac' })).toHaveAttribute('href', 'https://github.com/XusBadia/altillo/releases/latest');
   await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toHaveAttribute('href', 'https://www.aurioapp.com');
   await expect(page.getByRole('tab')).toHaveCount(0);
   await expect(page.locator('.story-step')).toHaveCount(3);
   for (const [name, view] of [['shelf', 'idle'], ['day', 'calendar'], ['ai', 'usage']]) {
     await chapter(page, name);
     await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', view);
-    if (name === 'ai') await expect(page.locator(`.story-step[data-chapter="${name}"]`)).toContainText('EN DESARROLLO');
-    else await expect(page.locator(`.story-step[data-chapter="${name}"]`)).not.toContainText('EN DESARROLLO');
+    await expect(page.locator(`.story-step[data-chapter="${name}"]`)).not.toContainText('EN DESARROLLO');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   expect(errors).toEqual([]);

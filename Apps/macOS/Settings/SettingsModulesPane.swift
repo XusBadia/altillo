@@ -87,10 +87,13 @@ struct SettingsModulesPane: View {
             .environment(\.defaultMinListRowHeight, 40)
             .padding(.horizontal, 12)
             .padding(.bottom, 12)
-            .onAppear {
+            .task {
                 // `-settingsSection calendar|usage|agents` (with `-settingsTab modules`) opens scrolled to that group.
+                // Once more after the rows above have measured themselves, or it stops short.
                 if let anchor = UserDefaults.standard.string(forKey: "settingsSection"),
                    [Self.calendarAnchor, Self.usageAnchor, Self.agentsAnchor].contains(anchor) {
+                    proxy.scrollTo(anchor, anchor: .top)
+                    try? await Task.sleep(for: .milliseconds(400))
                     proxy.scrollTo(anchor, anchor: .top)
                 }
             }

@@ -41,8 +41,9 @@ enum AgentTerminalFocus {
     }
 
     /// Activates the host app, then selects the tab when the host supports it.
+    /// The running app hosting the session: its bundle id, else the first GUI app walking up from the agent.
     @MainActor
-    static func focus(_ host: AgentHost) {
+    static func application(for host: AgentHost) -> NSRunningApplication? {
         var app: NSRunningApplication?
         if let bundleID = host.appBundleID {
             app = NSRunningApplication.runningApplications(withBundleIdentifier: bundleID).first
@@ -57,7 +58,12 @@ enum AgentTerminalFocus {
                 }
             }
         }
-        guard let app else { return }
+        return app
+    }
+
+    @MainActor
+    static func focus(_ host: AgentHost) {
+        guard let app = application(for: host) else { return }
         app.activate()
 
         guard let bundleID = app.bundleIdentifier, let script = tabScript(bundleID: bundleID, host: host) else { return }

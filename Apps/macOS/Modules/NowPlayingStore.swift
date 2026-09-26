@@ -1,16 +1,22 @@
 import AppKit
 import Observation
 
-/// What's playing right now. Phase 1 covers Music and Spotify through AppleScript; other apps arrive with the
-/// MediaRemote adapter in phase 5 (PLAN §5.6).
+/// What's playing right now, from any app (PLAN §5.6).
 ///
-/// Two speeds, never both polling:
-/// - **On screen** (`start()`/`stop()`, the Now playing section): an AppleScript poll every 2 s at most, only while
-///   one of the two apps is open. `NSWorkspace` tells us when they launch and quit, so a closed Music means a
-///   cancelled poll loop, not a timer firing into the void.
-/// - **Off screen** (`watchInBackground(_:)`, for the ears): the distributed notifications Music and Spotify post on
-///   every state change. No polling. AppleScript only runs once per new track (for its artwork) or after waking,
-///   and only if the user already allowed it: the permission is checked without ever showing the dialog.
+/// Two providers, one at a time (`NowPlayingProviderChoice`):
+/// - **Universal** (`NowPlayingProvider`, normally `MediaRemoteNowPlayingProvider`): the system's Now Playing, so
+///   Safari, Chrome, Podcasts, TV, VLC, IINA, Spotify, Music… all show up, with artwork, position and controls. It
+///   streams changes; nothing polls. It runs only while something wants playback (the section on screen, an ear,
+///   the new-song alert) and is stopped the moment nothing does.
+/// - **AppleScript** (Music and Spotify only), the fallback when the universal one isn't bundled or breaks:
+///   - on screen (`start()`/`stop()`): an AppleScript poll every 2 s at most, only while one of the two apps is open;
+///   - off screen (`watchInBackground(_:)`, `watchForAlerts(_:)`): the distributed notifications Music and Spotify
+///     post on every change. AppleScript only runs once per new track (for its artwork) or after waking, and only
+///     if the user already allowed it: the permission is checked without ever showing the dialog.
+///
+/// The players' broadcasts are listened to in both modes: they cost nothing, fill in the first instant before the
+/// universal stream reports, and tell when the universal stream has gone blind (Music playing, stream silent), in
+/// which case it is switched off for the session and AppleScript takes over.
 @MainActor
 @Observable
 final class NowPlayingStore {
@@ -24,21 +30,45 @@ final class NowPlayingStore {
         /// Bundle identifier of the app playing it.
         var appBundleID: String
         var appName: String
+        /// Playback speed (1 normally), so the groove keeps pace with a podcast at 1.5×.
+        var rate: Double = 1
     }
 
     enum Access: Sendable { case unknown, granted, denied }
 
-    private(set) var track: Track?
+    typealias Source = NowPlayingProviderChoice.Source
+
+    private(set) var track: Track? {
+        didSet {
+            guard track != oldValue else { return }
+            onTrackChange?(track)
+        }
+    }
     private(set) var artwork: NSImage?
-    /// Apple Events permission. `.denied` stops the loop: the dialog is asked for once, never in a cycle.
+    /// Apple Events permission (AppleScript mode). `.denied` stops the loop: the dialog is asked for once, never in
+    /// a cycle.
     private(set) var access: Access = .unknown
-    /// When `track.elapsed` was read, so the progress bar can keep moving between polls.
+    /// When `track.elapsed` was read, so the progress bar can keep moving between updates.
     private(set) var sampledAt = Date.now
     /// Music and/or Spotify, as far as `NSWorkspace` knows.
     private(set) var runningPlayers: [MusicPlayer] = []
+    /// Which provider feeds the store right now.
+    private(set) var source: Source
 
     /// True while a player says it is playing (paused and stopped are not).
     var isPlaying: Bool { track?.isPlaying ?? false }
+
+    /// Something is listening right now (the section, the ears, the alerts), so `track` is current rather than
+    /// what was heard last time. Ask reads it only then, and never starts listening just to answer.
+    var isListening: Bool { viewers > 0 || !backgroundReasons.isEmpty }
+
+    /// The icon of the app playing the track.
+    var sourceIcon: NSImage? {
+        track.flatMap { NowPlayingSourceApp.icon(for: $0.appBundleID) }
+    }
+
+    /// Whether the groove can be scrubbed: a real track of known length.
+    var canSeek: Bool { (track?.duration ?? 0) > 0 }
 
     /// What the contextual ear needs, while something actually plays.
     var playbackSignal: PlaybackSignal? {
@@ -46,21 +76,38 @@ final class NowPlayingStore {
         return PlaybackSignal(title: track.title, artist: track.artist, appName: track.appName)
     }
 
-    /// The ceiling asked for in PLAN §5.6: never more often than this, and only while visible.
+    /// The ceiling asked for in PLAN §5.6: never more often than this, and only while visible (AppleScript mode).
     static let pollInterval: Duration = .seconds(2)
+
+    /// The store the app runs on (the first one made, the notch's). The new-song alert finds it here.
+    private(set) static weak var primary: NowPlayingStore?
+
+    /// Called whenever `track` changes (the new-song alert).
+    @ObservationIgnored var onTrackChange: ((Track?) -> Void)?
 
     /// Checks the Apple Events permission without ever asking. Injected by tests.
     @ObservationIgnored var permission: @Sendable (MusicPlayer) async -> AutomationPermission.Status = {
         await AutomationPermission.status(for: $0.bundleID)
     }
 
+    @ObservationIgnored private let universal: (any NowPlayingProvider)?
+    @ObservationIgnored private var universalFailed = false
+    /// The universal stream's latest word (`nil`: nothing is playing anywhere).
+    @ObservationIgnored private var universalSnapshot: NowPlayingSnapshot?
+    /// Whether the stream has reported any track since it started (the blind-stream check).
+    @ObservationIgnored private var universalHasReported = false
+    @ObservationIgnored private var universalRunning = false
+    /// Since when a player has been broadcasting "Playing", for the blind-stream check.
+    @ObservationIgnored private var playerPlayingSince: Date?
+    @ObservationIgnored private var blindCheck: Task<Void, Never>?
+
     @ObservationIgnored private var viewers = 0
-    @ObservationIgnored private var watchesInBackground = false
+    @ObservationIgnored private var backgroundReasons: Set<BackgroundReason> = []
     @ObservationIgnored private var loop: Task<Void, Never>?
     @ObservationIgnored private var artworkTask: Task<Void, Never>?
     @ObservationIgnored private var resyncTask: Task<Void, Never>?
     /// `bundleID#title#artist#album` of the artwork we already have, so it is fetched once per track. Built the
-    /// same way from a poll and from a broadcast, so opening the section doesn't fetch it again.
+    /// same way from a poll, a broadcast and the stream, so opening the section doesn't fetch it again.
     @ObservationIgnored private var artworkKey: String?
     /// Polled first and preferred when both play: the app that last started playing.
     @ObservationIgnored private var preferred: MusicPlayer?
@@ -69,85 +116,264 @@ final class NowPlayingStore {
     @ObservationIgnored private var workspaceObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var broadcastObservers: [NSObjectProtocol] = []
 
+    private enum BackgroundReason: Hashable { case ears, alerts }
+
+    /// The app's store: the universal provider when it is bundled (never inside the unit-test host, where the
+    /// tests drive the players by hand and whatever the Mac is playing must not leak in).
+    convenience init() {
+        let environment = ProcessInfo.processInfo.environment
+        let isTestHost = ["XCTestConfigurationFilePath", "XCTestBundlePath", "XCTestSessionIdentifier"]
+            .contains { environment[$0] != nil }
+        let paths = isTestHost ? nil : MediaRemoteNowPlayingProvider.bundledPaths()
+        self.init(universal: paths.map { MediaRemoteNowPlayingProvider(paths: $0) })
+    }
+
+    init(universal: (any NowPlayingProvider)?) {
+        self.universal = universal
+        self.source = NowPlayingProviderChoice.source(universalAvailable: universal != nil, universalFailed: false)
+        if Self.primary == nil { Self.primary = self }
+    }
+
+    // MARK: - Who wants playback
+
     /// Called by the view when the module appears.
     func start() {
         viewers += 1
         guard viewers == 1 else { return }
-        observeWorkspace()
-        refreshRunningPlayers()
-        if access == .denied {
-            // Refused earlier: look again (silently) in case it was allowed in System Settings since.
-            recheckDeniedAccess()
+        activate()
+        if source == .appleScript {
+            if access == .denied {
+                // Refused earlier: look again (silently) in case it was allowed in System Settings since.
+                recheckDeniedAccess()
+            }
+            beginLoop()
         }
-        beginLoop()
     }
 
-    /// Called by the view when the module goes away: no processes, no timers. The broadcasts keep listening only
-    /// if the ears asked for them.
+    /// Called by the view when the module goes away. The sources keep running only if an ear or the alert wants
+    /// them.
     func stop() {
         viewers = max(0, viewers - 1)
         guard viewers == 0 else { return }
         loop?.cancel()
         loop = nil
-        guard !watchesInBackground else { return }
-        artworkTask?.cancel()
-        artworkTask = nil
-        stopObservingWorkspace()
+        guard backgroundReasons.isEmpty else {
+            refreshDisplay()
+            return
+        }
+        // The last track stays for the next opening (the stream or the poll corrects it at once); nothing else
+        // reads it while nobody listens.
+        deactivate(forget: false)
     }
 
-    /// Listens to the players' broadcasts while the section is off screen, for the ears. Idempotent. Off, it
-    /// forgets what they said: a disabled source never leaves a song behind.
+    /// Listens while the section is off screen, for the ears. Idempotent. Off (and nothing else listening), it
+    /// forgets what it heard: a disabled source never leaves a song behind.
     func watchInBackground(_ watching: Bool) {
-        guard watching != watchesInBackground else { return }
-        watchesInBackground = watching
+        setBackground(.ears, watching)
+    }
+
+    /// Listens for the new-song alert. Idempotent.
+    func watchForAlerts(_ watching: Bool) {
+        setBackground(.alerts, watching)
+    }
+
+    private func setBackground(_ reason: BackgroundReason, _ watching: Bool) {
+        let before = backgroundReasons
+        if watching { backgroundReasons.insert(reason) } else { backgroundReasons.remove(reason) }
+        guard backgroundReasons.isEmpty != before.isEmpty else { return }
         if watching {
-            observeWorkspace()
-            observeBroadcasts()
+            activate()
             resync()
-        } else {
-            stopObservingBroadcasts()
-            resyncTask?.cancel()
-            resyncTask = nil
-            states = [:]
-            guard viewers == 0 else { return }
-            artworkTask?.cancel()
-            artworkTask = nil
-            stopObservingWorkspace()
-            clear()
+        } else if viewers == 0 {
+            deactivate(forget: true)
+        }
+    }
+
+    /// Everything that runs while playback is wanted: the running-apps watch, the players' broadcasts and, when
+    /// it's the source, the universal stream. Idempotent.
+    private func activate() {
+        observeWorkspace()
+        refreshRunningPlayers()
+        observeBroadcasts()
+        startUniversal()
+    }
+
+    /// Nothing wants playback: no process, no observers and, with `forget`, no song left behind.
+    private func deactivate(forget: Bool) {
+        stopUniversal()
+        stopObservingBroadcasts()
+        resyncTask?.cancel()
+        resyncTask = nil
+        artworkTask?.cancel()
+        artworkTask = nil
+        blindCheck?.cancel()
+        blindCheck = nil
+        playerPlayingSince = nil
+        stopObservingWorkspace()
+        guard forget else { return }
+        states = [:]
+        clear()
+    }
+
+    /// The on-screen AppleScript poll decides what's shown (only in AppleScript mode).
+    private var polls: Bool { source == .appleScript && viewers > 0 }
+
+    // MARK: - Universal provider
+
+    private func startUniversal() {
+        guard source == .universal, !universalRunning, let universal else { return }
+        universalRunning = true
+        universalHasReported = false
+        universal.start { [weak self] event in self?.receive(event) }
+    }
+
+    private func stopUniversal() {
+        guard universalRunning else { return }
+        universalRunning = false
+        universal?.stop()
+        universalSnapshot = nil
+        universalHasReported = false
+    }
+
+    /// An event from the universal provider. Internal (not private) so tests can drive it with a fake.
+    func receive(_ event: NowPlayingProviderEvent) {
+        switch event {
+        case let .changed(snapshot):
+            guard universalRunning else { return }
+            universalSnapshot = snapshot
+            if snapshot != nil {
+                universalHasReported = true
+                blindCheck?.cancel()
+                blindCheck = nil
+            }
+            refreshDisplay()
+        case .failed:
+            fallBackToAppleScript()
+        }
+    }
+
+    /// The universal provider broke: AppleScript for the rest of the session ("si se rompe, se desactiva solo").
+    private func fallBackToAppleScript() {
+        guard source == .universal else { return }
+        stopUniversal()
+        universalFailed = true
+        source = NowPlayingProviderChoice.source(universalAvailable: universal != nil, universalFailed: true)
+        blindCheck?.cancel()
+        blindCheck = nil
+        if viewers > 0 {
+            if access == .denied { recheckDeniedAccess() }
+            beginLoop()
+        }
+        resync()
+    }
+
+    /// A player broadcasts "Playing" but the stream has never said a word: give it `blockedAfter`, then give up
+    /// on it (MediaRemote refusing us looks exactly like this).
+    private func scheduleBlindCheck() {
+        guard source == .universal, universalRunning, !universalHasReported, blindCheck == nil else { return }
+        blindCheck = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(NowPlayingProviderChoice.blockedAfter))
+            guard !Task.isCancelled, let self else { return }
+            self.blindCheck = nil
+            if NowPlayingProviderChoice.looksBlocked(universalHasReported: self.universalHasReported,
+                                                     playerPlayingSince: self.playerPlayingSince, now: .now) {
+                self.fallBackToAppleScript()
+            }
         }
     }
 
     // MARK: - Controls
 
     func playPause() {
-        // The button has to answer instantly; the next poll confirms it 250 ms later.
+        // The button has to answer instantly; the next update confirms it.
         if var current = track {
+            current.elapsed = elapsed()
             current.isPlaying.toggle()
             track = current
             sampledAt = .now
         }
-        send(.playPause)
+        perform(.playPause)
     }
 
-    func next() { send(.next) }
-    func previous() { send(.previous) }
+    func next() { perform(.next) }
+    func previous() { perform(.previous) }
 
-    /// Elapsed time, carried forward from the last sample so the bar moves smoothly at 1 Hz between polls.
+    /// Jumps to `seconds` into the track (the groove, scrubbed).
+    func seek(to seconds: TimeInterval) {
+        guard var current = track, canSeek else { return }
+        let target = NowPlayingSeek.clamp(seconds, duration: current.duration)
+        current.elapsed = target
+        track = current
+        sampledAt = .now
+        perform(.seek(target))
+    }
+
+    /// Elapsed time, carried forward from the last sample (at the track's rate) so the bar moves between updates.
     func elapsed(at now: Date = .now) -> TimeInterval? {
         guard let track, let sampled = track.elapsed else { return nil }
-        guard track.isPlaying else { return sampled }
-        let carried = sampled + now.timeIntervalSince(sampledAt)
-        guard let duration = track.duration else { return carried }
-        return min(carried, duration)
+        return NowPlayingSeek.elapsed(sample: sampled, sampledAt: sampledAt, now: now, rate: track.rate,
+                                      isPlaying: track.isPlaying, duration: track.duration)
     }
 
-    private func send(_ command: MusicPlayerScripts.Command) {
+    private func perform(_ command: NowPlayingCommand) {
+        // The stream's track: the system's own commands reach any app.
+        if source == .universal, universalSnapshot != nil, let universal {
+            universal.perform(command)
+            return
+        }
         let target = track.flatMap { MusicPlayer(rawValue: $0.appBundleID) } ?? preferred ?? runningPlayers.first
         guard let target, access != .denied else { return }
+        let script: String = switch command {
+        case .playPause: MusicPlayerScripts.command(.playPause, for: target)
+        case .next: MusicPlayerScripts.command(.next, for: target)
+        case .previous: MusicPlayerScripts.command(.previous, for: target)
+        case let .seek(seconds): MusicPlayerScripts.seek(to: seconds, for: target)
+        }
         Task { [weak self] in
-            _ = try? await AppleScriptRunner.run(MusicPlayerScripts.command(command, for: target))
+            _ = try? await AppleScriptRunner.run(script)
             try? await Task.sleep(for: .milliseconds(250))
-            await self?.poll()
+            guard let self, self.polls else { return }
+            await self.poll()
+        }
+    }
+
+    // MARK: - What's shown
+
+    /// Shows the stream's track when there is one, else what the players' broadcasts add up to. On screen in
+    /// AppleScript mode the poll decides instead.
+    private func refreshDisplay() {
+        if source == .universal, let snapshot = universalSnapshot {
+            show(snapshot)
+            return
+        }
+        guard !polls else { return }
+        applyStates()
+    }
+
+    private func show(_ snapshot: NowPlayingSnapshot) {
+        let now = Date.now
+        let fresh = NowPlayingMapping.track(from: snapshot, appName: NowPlayingSourceApp.name(for: snapshot.bundleID),
+                                            now: now)
+        if fresh != track {
+            track = fresh
+            sampledAt = now
+        }
+        let key = [snapshot.bundleID, snapshot.title, snapshot.artist, snapshot.album ?? ""].joined(separator: "#")
+        if let data = snapshot.artwork {
+            // The stream re-sends the same bytes after a pause or a seek: decode them only when the track changes
+            // or the artwork arrives late.
+            guard key != artworkKey || artwork == nil else { return }
+            artworkKey = key
+            artworkTask?.cancel()
+            artwork = NSImage(data: data)
+            return
+        }
+        guard key != artworkKey else { return }
+        artworkKey = key
+        artwork = nil
+        // No artwork from the system: Music and Spotify can still give theirs, if Altillo may already ask them.
+        if let player = MusicPlayer(rawValue: snapshot.bundleID) {
+            fetchArtwork(for: player, url: nil, onlyIfAllowed: true)
         }
     }
 
@@ -160,11 +386,17 @@ final class NowPlayingStore {
         guard next != previous else { return }
         states[player] = next
         if next?.isPlaying == true, previous?.isPlaying != true { preferred = player }
-        if viewers > 0 {
+        if states.values.contains(where: \.isPlaying) {
+            if playerPlayingSince == nil { playerPlayingSince = .now }
+            scheduleBlindCheck()
+        } else {
+            playerPlayingSince = nil
+        }
+        if polls {
             // On screen the poll is the truth: ask now instead of waiting up to two seconds.
             restartLoop()
         } else {
-            applyStates()
+            refreshDisplay()
         }
     }
 
@@ -196,9 +428,9 @@ final class NowPlayingStore {
         broadcastObservers.removeAll()
     }
 
-    /// The track the players' last words add up to. Off screen only: on screen the poll decides.
+    /// The track the players' last words add up to. Never while the poll decides.
     private func applyStates() {
-        guard viewers == 0 else { return }
+        guard !polls else { return }
         guard let (player, state) = NowPlayingLogic.current(states, preferred: preferred) else {
             clear()
             return
@@ -226,17 +458,18 @@ final class NowPlayingStore {
         fetchArtwork(for: player, url: state.artworkURL, onlyIfAllowed: true)
     }
 
-    /// Catches up after starting to listen or waking: players that quit are forgotten, and the ones Altillo may
-    /// already talk to are asked once (never the others: that would show the permission dialog out of nowhere).
+    /// Catches up after starting to listen or waking: players that quit are forgotten, and in AppleScript mode the
+    /// ones Altillo may already talk to are asked once (never the others: that would show the permission dialog out
+    /// of nowhere). The universal stream needs no catching up: it reports its state as soon as it starts.
     private func resync() {
         refreshRunningPlayers()
         states = states.filter { runningPlayers.contains($0.key) }
-        if viewers > 0 {
+        if polls {
             restartLoop()
             return
         }
-        applyStates()
-        guard !runningPlayers.isEmpty, access != .denied else { return }
+        refreshDisplay()
+        guard source == .appleScript, !runningPlayers.isEmpty, access != .denied else { return }
         resyncTask?.cancel()
         let players = runningPlayers
         resyncTask = Task { [weak self] in
@@ -253,7 +486,7 @@ final class NowPlayingStore {
                 self.access = .granted
                 self.record(MusicPlayerScripts.parse(output), from: player)
             }
-            self?.applyStates()
+            self?.refreshDisplay()
         }
     }
 
@@ -263,10 +496,10 @@ final class NowPlayingStore {
         if snapshot?.isPlaying == true, previous?.isPlaying != true { preferred = player }
     }
 
-    // MARK: - Polling
+    // MARK: - Polling (AppleScript mode, on screen)
 
     private func beginLoop() {
-        guard loop == nil, viewers > 0, access != .denied, !runningPlayers.isEmpty else { return }
+        guard loop == nil, polls, access != .denied, !runningPlayers.isEmpty else { return }
         loop = Task { [weak self] in
             while !Task.isCancelled {
                 guard let self else { return }
@@ -306,6 +539,7 @@ final class NowPlayingStore {
             } catch {
                 continue
             }
+            guard polls else { return }
             if access != .granted { access = .granted }
             let snapshot = MusicPlayerScripts.parse(output)
             record(snapshot, from: player)
@@ -351,7 +585,7 @@ final class NowPlayingStore {
         artworkKey = nil
     }
 
-    // MARK: - Artwork
+    // MARK: - Artwork (AppleScript)
 
     private static func artworkKey(player: MusicPlayer, title: String, artist: String, album: String?) -> String {
         [player.bundleID, title, artist, album ?? ""].joined(separator: "#")
@@ -448,15 +682,18 @@ final class NowPlayingStore {
         guard before != runningPlayers else { return }
         // A player that quit said its last word: forget it (it rarely broadcasts "Stopped" on the way out).
         states = states.filter { runningPlayers.contains($0.key) }
-        if runningPlayers.isEmpty {
-            loop?.cancel()
-            loop = nil
-            artworkTask?.cancel()
-            clear()
-        } else if viewers > 0 {
-            beginLoop()
+        if !states.values.contains(where: \.isPlaying) { playerPlayingSince = nil }
+        if polls {
+            if runningPlayers.isEmpty {
+                loop?.cancel()
+                loop = nil
+                artworkTask?.cancel()
+                clear()
+            } else {
+                beginLoop()
+            }
         } else {
-            applyStates()
+            refreshDisplay()
         }
     }
 
@@ -469,7 +706,26 @@ final class NowPlayingStore {
     func setRunningPlayersForTesting(_ players: [MusicPlayer]) {
         runningPlayers = players
         states = states.filter { players.contains($0.key) }
-        applyStates()
+        refreshDisplay()
+    }
+}
+
+// MARK: - Mapping (pure, testable)
+
+enum NowPlayingMapping {
+    /// The store's track for a stream snapshot, with the elapsed time brought up to `now`.
+    static func track(from snapshot: NowPlayingSnapshot, appName: String, now: Date) -> NowPlayingStore.Track {
+        NowPlayingStore.Track(
+            title: snapshot.title,
+            artist: snapshot.artist,
+            album: snapshot.album,
+            duration: snapshot.duration,
+            elapsed: snapshot.elapsed(at: now),
+            isPlaying: snapshot.isPlaying,
+            appBundleID: snapshot.bundleID,
+            appName: appName,
+            rate: snapshot.rate
+        )
     }
 }
 

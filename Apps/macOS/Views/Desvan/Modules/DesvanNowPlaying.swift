@@ -4,12 +4,15 @@ import SwiftUI
 
 /// The "Sonando" tab: the record sleeve, what it is, how far in you are and the three buttons that matter.
 ///
-/// Music and Spotify only, through AppleScript. Every other player (browsers, podcast apps, VLC…) arrives with the
-/// `mediaremote-adapter` behind `NowPlayingProvider` in phase 5 (PLAN §5.6).
+/// Any app that plays (Safari, Chrome, Podcasts, TV, VLC, IINA, Spotify, Music…) through the system's Now Playing;
+/// Music and Spotify through AppleScript when that isn't available (`NowPlayingStore`, PLAN §5.6). The groove can be
+/// scrubbed whenever the track has a known length.
 struct DesvanNowPlayingView: View {
     let model: NotchModel
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Where the pointer is while scrubbing the groove (0…1), `nil` otherwise.
+    @State private var scrubFraction: Double?
 
     private var store: NowPlayingStore { model.nowPlaying }
 
@@ -23,14 +26,27 @@ struct DesvanNowPlayingView: View {
     /// Real playback whenever there is any; the design scenario falls back to a sample so the look can be reviewed
     /// with nothing open.
     private var track: NowPlayingStore.Track? {
+        if demo == .empty { return nil }
         if let track = store.track { return track }
         if model.scenario == .openNowPlaying { return .sample }
         return nil
     }
 
+    /// `-demoNowPlaying` in the design scenario (DEBUG builds).
+    private var demo: DesvanDebug.NowPlayingDemo? {
+        model.scenario == .openNowPlaying ? DesvanDebug.nowPlayingDemo : nil
+    }
+
+    /// The playing app's icon on the sleeve: the real one, or Music's for the sample in the design scenario.
+    private var appIcon: NSImage? {
+        if store.track != nil { return store.sourceIcon }
+        guard demo == .icon || demo == .needle else { return nil }
+        return NSWorkspace.shared.icon(forFile: "/System/Applications/Music.app")
+    }
+
     @ViewBuilder
     private var content: some View {
-        if store.access == .denied {
+        if store.source == .appleScript && store.access == .denied {
             DesvanModuleNotice(
                 symbol: "hand.raised.slash",
                 title: "I'm not allowed to ask",
@@ -41,6 +57,12 @@ struct DesvanNowPlayingView: View {
             }
         } else if let track {
             player(track)
+        } else if store.source == .universal {
+            DesvanModuleNotice(
+                symbol: "music.note",
+                title: "Nothing playing up here",
+                message: "Play music, a podcast or a video in any app and it'll show up."
+            )
         } else if store.runningPlayers.isEmpty {
             DesvanModuleNotice(
                 symbol: "music.note",
@@ -63,7 +85,8 @@ struct DesvanNowPlayingView: View {
     /// card's 24 pt inset around the 132 pt sleeve fills the module's 180 pt exactly; the column spans the sleeve.
     private func player(_ track: NowPlayingStore.Track) -> some View {
         HStack(spacing: 18) {
-            DesvanArtwork(image: store.artwork, isPlaying: track.isPlaying)
+            DesvanArtwork(image: store.artwork, appIcon: appIcon,
+                          appName: track.appName, isPlaying: track.isPlaying)
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(track.title)
@@ -97,10 +120,10 @@ struct DesvanNowPlayingView: View {
         .desvanCard(radius: 16)
     }
 
-    /// The groove: elapsed over duration, carried forward at 1 Hz between the store's two-second polls.
+    /// The groove: elapsed over duration, carried forward at 1 Hz between updates. Still while scrubbing.
     @ViewBuilder
     private func progress(_ track: NowPlayingStore.Track) -> some View {
-        if track.isPlaying && !reduceMotion {
+        if track.isPlaying && !reduceMotion && scrubFraction == nil {
             TimelineView(.periodic(from: .now, by: 1)) { context in
                 groove(track, at: context.date)
             }
@@ -110,21 +133,40 @@ struct DesvanNowPlayingView: View {
     }
 
     private func groove(_ track: NowPlayingStore.Track, at date: Date) -> some View {
-        let elapsed = store.track == nil ? track.elapsed : store.elapsed(at: date)
+        let live = store.track == nil ? track.elapsed : store.elapsed(at: date)
+        // While scrubbing, the numbers follow the pointer.
+        let elapsed = scrubFraction.flatMap { NowPlayingSeek.position(fraction: $0, duration: track.duration) } ?? live
         let fraction: Double = {
             guard let elapsed, let duration = track.duration, duration > 0 else { return 0 }
             return min(max(elapsed / duration, 0), 1)
         }()
+        let canSeek = store.track != nil && store.canSeek
         return HStack(spacing: 8) {
-            DesvanGroove(fraction: fraction)
+            DesvanGroove(fraction: fraction, isScrubbing: scrubFraction != nil || demo == .needle,
+                         onScrub: canSeek ? { scrubFraction = $0 } : nil,
+                         onCommit: canSeek ? { commitScrub(to: $0, duration: track.duration) } : nil)
             Text(DesvanTrackFormat.position(elapsed: elapsed, duration: track.duration))
                 .font(Desvan.Typeface.figure(12.5, weight: .medium))
-                .foregroundStyle(Desvan.Palette.paperTertiary)
+                .foregroundStyle(scrubFraction == nil ? Desvan.Palette.paperTertiary : Desvan.Palette.paper)
                 .monospacedDigit()
                 .fixedSize()
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("At \(DesvanTrackFormat.spokenPosition(elapsed: elapsed, duration: track.duration))")
+        .accessibilityAdjustableAction { direction in
+            guard canSeek, let current = live else { return }
+            switch direction {
+            case .increment: store.seek(to: current + 10)
+            case .decrement: store.seek(to: current - 10)
+            @unknown default: break
+            }
+        }
+    }
+
+    private func commitScrub(to fraction: Double, duration: TimeInterval?) {
+        scrubFraction = nil
+        guard let position = NowPlayingSeek.position(fraction: fraction, duration: duration) else { return }
+        store.seek(to: position)
     }
 
     private func controls(_ track: NowPlayingStore.Track) -> some View {
@@ -161,9 +203,12 @@ struct DesvanNowPlayingView: View {
 
 // MARK: - Pieces
 
-/// The sleeve: the album cover in a shallow wooden tray, or a record when there is no artwork.
+/// The sleeve: the album cover in a shallow wooden tray, or a record when there is no artwork. The app playing it
+/// sits in the corner, like a sticker on the sleeve.
 private struct DesvanArtwork: View {
     let image: NSImage?
+    let appIcon: NSImage?
+    let appName: String
     let isPlaying: Bool
 
     static let side: CGFloat = 132
@@ -201,17 +246,54 @@ private struct DesvanArtwork: View {
         }
         .shadow(color: .black.opacity(0.55), radius: 10, y: 4)
         .shadow(color: Desvan.Palette.bulb.opacity(isPlaying ? 0.16 : 0), radius: 16)
+        .overlay(alignment: .bottomTrailing) {
+            if let appIcon {
+                Image(nsImage: appIcon)
+                    .resizable()
+                    .interpolation(.high)
+                    .frame(width: 30, height: 30)
+                    .shadow(color: .black.opacity(0.5), radius: 3, y: 1)
+                    .offset(x: 7, y: 7)
+                    .help(appName)
+            }
+        }
         .accessibilityHidden(true)
     }
 }
 
-/// A groove cut into the plank, filled in amber up to where you are.
+/// A groove cut into the plank, filled in amber up to where you are. With `onScrub`, it can be dragged or clicked
+/// to jump: the pointer target is taller than the groove it draws.
 private struct DesvanGroove: View {
     let fraction: Double
+    var isScrubbing = false
+    var onScrub: ((Double) -> Void)?
+    var onCommit: ((Double) -> Void)?
+
+    @State private var isHovering = false
 
     var body: some View {
         GeometryReader { proxy in
-            ZStack(alignment: .leading) {
+            groove(width: proxy.size.width)
+                .frame(height: 7)
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .gesture(scrub(width: proxy.size.width), including: onScrub == nil ? .none : .all)
+                .onHover { isHovering = $0 && onScrub != nil }
+        }
+        .frame(height: 28)
+        .accessibilityHidden(true)
+    }
+
+    private func scrub(width: CGFloat) -> some Gesture {
+        DragGesture(minimumDistance: 0)
+            .onChanged { value in onScrub?(NowPlayingSeek.fraction(x: value.location.x, width: width)) }
+            .onEnded { value in onCommit?(NowPlayingSeek.fraction(x: value.location.x, width: width)) }
+    }
+
+    private func groove(width: CGFloat) -> some View {
+        let clamped = min(max(fraction, 0), 1)
+        let lifted = isHovering || isScrubbing
+        return ZStack(alignment: .leading) {
                 Capsule()
                     .fill(Desvan.Palette.plank)
                     .overlay(alignment: .top) {
@@ -223,12 +305,19 @@ private struct DesvanGroove: View {
                         startPoint: .top,
                         endPoint: .bottom
                     ))
-                    .frame(width: max(7, proxy.size.width * min(max(fraction, 0), 1)))
+                    .frame(width: max(7, width * clamped))
                     .shadow(color: Desvan.Palette.bulb.opacity(0.35), radius: 3)
+                if lifted {
+                    // The needle: where a click lands, or where the drag is.
+                    Circle()
+                        .fill(Desvan.Palette.paper)
+                        .frame(width: 13, height: 13)
+                        .shadow(color: .black.opacity(0.5), radius: 2, y: 1)
+                        .offset(x: max(0, width * clamped - 6.5))
+                        .transition(.opacity)
+                }
             }
-        }
-        .frame(height: 7)
-        .accessibilityHidden(true)
+            .animation(.easeOut(duration: 0.12), value: lifted)
     }
 }
 

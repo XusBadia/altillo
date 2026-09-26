@@ -31,7 +31,7 @@ public struct AgentToolCall: Hashable, Sendable {
         if name == "apply_patch" || name == "ApplyPatch" {
             return PatchText.files(in: input["command"]?.string ?? input["input"]?.string ?? input["patch"]?.string ?? "")
         }
-        for key in ["file_path", "notebook_path", "path", "filePath"] {
+        for key in ["file_path", "notebook_path", "path", "filePath", "absolute_path"] {
             if let path = input[key].nonEmptyString { return [path] }
         }
         if let edits = input["edits"]?.array {
@@ -44,10 +44,11 @@ public struct AgentToolCall: Hashable, Sendable {
 /// Tool names that mean the same thing across agents.
 public enum ToolNames {
     public static let shell: Set<String> = ["Bash", "PowerShell", "shell", "exec_command", "local_shell", "container.exec",
-                                           "unified_exec"]
-    public static let edit: Set<String> = ["Edit", "MultiEdit", "NotebookEdit", "apply_patch", "ApplyPatch", "str_replace_based_edit_tool"]
-    public static let write: Set<String> = ["Write", "write_file", "create_file"]
-    public static let read: Set<String> = ["Read", "read_file", "view_image"]
+                                           "unified_exec", "Shell", "run_shell_command", "bash"]
+    public static let edit: Set<String> = ["Edit", "MultiEdit", "NotebookEdit", "apply_patch", "ApplyPatch", "str_replace_based_edit_tool",
+                                          "replace", "edit"]
+    public static let write: Set<String> = ["Write", "write_file", "create_file", "create"]
+    public static let read: Set<String> = ["Read", "read_file", "view_image", "view", "read_many_files"]
     public static let fileWriting: Set<String> = edit.union(write)
 }
 
@@ -72,6 +73,8 @@ public struct AgentEvent: Hashable, Sendable {
         case turnFailed(error: String?, message: String?)
         case subagentStarted(type: String?)
         case subagentFinished(type: String?, lastMessage: String?)
+        /// Something the agent said to the user mid-turn or at its end (Cursor's `afterAgentResponse`).
+        case assistantMessage(String)
         /// The user interrupted the turn (Codex `Interrupt`).
         case interrupted
         /// Before/after compaction.

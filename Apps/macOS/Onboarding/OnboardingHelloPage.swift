@@ -125,9 +125,10 @@ struct OnboardingHelloPage: View {
     }
 }
 
-/// An arrow nudging upwards, towards the notch. Still with Reduce Motion.
+/// An arrow nudging upwards, towards the notch: a few bobs, then one every few seconds. Still with Reduce Motion.
 struct OnboardingBobbingArrow: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var bobs = 0
 
     var body: some View {
         let arrow = Image(systemName: "arrow.up")
@@ -136,14 +137,19 @@ struct OnboardingBobbingArrow: View {
         if reduceMotion {
             arrow
         } else {
-            arrow.keyframeAnimator(initialValue: 0.0, repeating: true) { content, lift in
+            arrow.keyframeAnimator(initialValue: 0.0, trigger: bobs) { content, lift in
                 content.offset(y: -lift)
             } keyframes: { _ in
                 KeyframeTrack {
                     CubicKeyframe(6, duration: 0.45)
                     CubicKeyframe(0, duration: 0.55)
-                    CubicKeyframe(0, duration: 0.6)
                 }
+            }
+            .task {
+                await PeriodicNudge.run(
+                    eager: [.milliseconds(300), .seconds(1.6), .seconds(1.6), .seconds(1.6)],
+                    every: .seconds(5)
+                ) { bobs += 1 }
             }
         }
     }

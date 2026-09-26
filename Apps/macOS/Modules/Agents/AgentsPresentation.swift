@@ -10,6 +10,10 @@ extension AgentKind {
         switch self {
         case .claude: "Claude"
         case .codex: "Codex"
+        case .gemini: "Gemini"
+        case .copilot: "Copilot"
+        case .opencode: "OpenCode"
+        case .cursor: "Cursor"
         default: rawValue.prefix(1).uppercased() + rawValue.dropFirst()
         }
     }
@@ -186,11 +190,13 @@ enum ToolAction: Equatable, Sendable {
 
     init(toolName: String) {
         switch toolName.lowercased() {
-        case "bash", "shell", "exec", "exec_command", "local_shell", "run", "terminal", "killshell", "bashoutput":
+        case "bash", "shell", "exec", "exec_command", "local_shell", "run", "terminal", "killshell", "bashoutput",
+             "run_shell_command":
             self = .run
-        case "edit", "multiedit", "write", "notebookedit", "apply_patch", "applypatch", "patch", "str_replace_editor":
+        case "edit", "multiedit", "write", "notebookedit", "apply_patch", "applypatch", "patch", "str_replace_editor",
+             "replace", "write_file", "create", "create_file":
             self = .edit
-        case "read", "glob", "grep", "ls", "view":
+        case "read", "glob", "grep", "ls", "view", "read_file", "read_many_files":
             self = .read
         case "webfetch", "websearch", "fetch", "web_search", "browser":
             self = .web

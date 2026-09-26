@@ -1,0 +1,10 @@
+{
+  "_event": "notification",
+  "sessionId": "b7e0d3c4-2f61-4a8e-a1d9-0c5e7f3b2d48",
+  "timestamp": 1790341911209,
+  "cwd": "/Users/me/Projects/demo",
+  "hook_event_name": "Notification",
+  "message": "Copilot wants to run npm test",
+  "title": "Permission needed",
+  "notification_type": "permission_prompt"
+}

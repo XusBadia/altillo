@@ -19,7 +19,7 @@ public enum HookDecisionOutput {
     public static func output(agent: AgentKind, decision: WireDecision, payload: JSONValue) -> Data? {
         let decisionObject: [String: JSONValue]
         switch decision {
-        case .none:
+        case .none, .reply:
             return nil
         case .deny:
             decisionObject = ["behavior": .string("deny"), "message": .string(denyMessage)]
@@ -40,6 +40,57 @@ public enum HookDecisionOutput {
             ]),
         ])
         return output.data
+    }
+}
+
+/// What a stop hook installed with `--reply-wait` prints when the user replied from the notch: the agent's own "don't
+/// stop yet, carry on with this" answer (phase 14). No reply (timeout, Altillo closed) → nothing: the agent stops.
+///
+/// Verified schemas (September 2026):
+/// - Claude Code 2.1.281 `Stop` (live): `{"decision":"block","reason":"…"}`. Claude gets the reason as a user turn
+///   ("Stop hook feedback: …") and carries on; the next `Stop` has `stop_hook_active: true`.
+/// - Codex 0.152.0 `Stop` (schema + source, `codex-rs/hooks/src/events/stop.rs`): same shape; the reason becomes the
+///   continuation prompt.
+/// - Gemini CLI 0.61.0 `AfterAgent` (bundled docs): `{"decision":"deny","reason":"…"}`; the reason is sent to the
+///   agent as a new prompt.
+/// - Copilot CLI 1.0.88 `agentStop` (docs.github.com hooks reference): `{"decision":"block","reason":"…"}`; after
+///   8 consecutive blocks the CLI ends the turn anyway.
+/// - Cursor CLI 2026.09.23 `stop` (bundled source): `{"followup_message":"…"}`; `loop_limit` caps the follow-ups.
+public enum HookReplyOutput {
+    /// The agents whose stop hook can take a reply, and the event it is installed on.
+    public static func stopEvent(for agent: AgentKind) -> String? {
+        switch agent {
+        case .claude, .codex: "Stop"
+        case .gemini: "AfterAgent"
+        case .copilot: "agentStop"
+        case .cursor: "stop"
+        default: nil
+        }
+    }
+
+    /// Whether `event` is `agent`'s stop event (any spelling).
+    public static func isStopEvent(_ event: String, agent: AgentKind) -> Bool {
+        guard let stop = stopEvent(for: agent) else { return false }
+        return HookPayloadParser.normalized(event) == HookPayloadParser.normalized(stop)
+    }
+
+    /// Frames the reply so the agent knows it comes from the user, not from a check the hook ran.
+    public static func framed(_ text: String) -> String {
+        "The user replied from Altillo (their notch):\n\n" + text
+    }
+
+    /// The stdout bytes for a reply, or nil to print nothing.
+    public static func output(agent: AgentKind, text: String?) -> Data? {
+        guard let text = text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        let reason = JSONValue.string(framed(text))
+        let object: [String: JSONValue]
+        switch agent {
+        case .claude, .codex, .copilot: object = ["decision": .string("block"), "reason": reason]
+        case .gemini: object = ["decision": .string("deny"), "reason": reason]
+        case .cursor: object = ["followup_message": reason]
+        default: return nil
+        }
+        return JSONValue.object(object).data
     }
 }
 

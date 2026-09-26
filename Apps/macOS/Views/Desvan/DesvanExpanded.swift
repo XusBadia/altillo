@@ -20,7 +20,7 @@ struct DesvanExpandedFace: View {
     private var isEditing: Bool { model.isEditing && !isDropTarget }
     private var bodyKey: String { isDropTarget ? "drop" : (isEditing ? "edit" : model.module.rawValue) }
     private var hoveredZone: DropZone? {
-        guard model.scenario == .dropTarget else { return model.dropZone }
+        guard model.scenario == .dropTarget || model.scenario?.isAskDropTarget == true else { return model.dropZone }
         // `-demoMotion flaps`: the pointer comes and goes over the box.
         if DesvanDebug.demoMotion == .flaps { return DesvanDebug.clock.phase ? .shelf : nil }
         return DesvanDebug.forcedZone

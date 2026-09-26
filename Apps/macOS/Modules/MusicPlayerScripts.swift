@@ -1,8 +1,8 @@
 import Foundation
 
-/// The two players Altillo can talk to today. Full support for every player (Safari, browsers, podcast apps…)
-/// arrives with the `mediaremote-adapter` behind `NowPlayingProvider` in phase 5 (PLAN §5.6); until then these are
-/// the only two with a stable, public scripting dictionary.
+/// The two players with a stable, public scripting dictionary and a state broadcast. Every other app (Safari,
+/// browsers, podcast apps, VLC…) comes through the universal provider (`MediaRemoteNowPlayingProvider`); these two
+/// are the AppleScript fallback when it isn't available (PLAN §5.6).
 enum MusicPlayer: String, CaseIterable, Identifiable, Sendable {
     case music = "com.apple.Music"
     case spotify = "com.spotify.client"
@@ -136,6 +136,15 @@ enum MusicPlayerScripts {
     static func command(_ command: Command, for player: MusicPlayer) -> String {
         """
         tell application id "\(player.bundleID)" to \(command.rawValue)
+        """
+    }
+
+    /// Jumps to `seconds` into the current track. Both players take `player position` in seconds; the number is
+    /// written with a dot whatever the Mac's locale, which is how AppleScript source reads reals.
+    static func seek(to seconds: TimeInterval, for player: MusicPlayer) -> String {
+        let position = String(format: "%.2f", locale: Locale(identifier: "en_US_POSIX"), max(0, seconds))
+        return """
+        tell application id "\(player.bundleID)" to set player position to \(position)
         """
     }
 

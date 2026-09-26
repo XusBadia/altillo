@@ -262,12 +262,23 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **11. Vida: movimiento, avisos y Pregunta (M)** | Apertura «líquida», transiciones con dirección, swipe entre secciones, ⌘1…9, hápticos, avisos en vivo (calendario y música) y el asistente on-device con tools y atajo global (§5.7-5.9) | 1 | 1,5 semanas |
 | **12. Utilidades del altillo (M)** | Temporizador (un reloj de cocina que asoma al sonar), nota rápida, portapapeles de solo texto (opt-in, excluye contraseñas), lanzador de Atajos. Pregunta aprende a usarlos («pon 10 min», «apunta esto») | 11 | 1,5 semanas |
 | **13. Pregunta con todo el contexto (K+M)** | Los tools de uso y agentes ya llegaron con las fases 3 y 4. Queda: arrastrar un archivo a Pregunta para preguntarle por él, respuestas guardables, acciones (poner un temporizador, crear un recordatorio, responder a un agente) y dictado por voz | 3, 4, 11, 12 | 1 semana |
-| **14. Más agentes (K+M)** | Gemini CLI y Copilot CLI (hooks), OpenCode (SSE de `opencode serve`) y Cursor CLI (ACP); responder desde el notch cuando un agente espera tu respuesta | 4 | 1 semana |
+| **14. Más agentes (K+M)** | Gemini CLI, Copilot CLI y Cursor CLI (hooks), OpenCode (API de `opencode serve`); responder desde el notch cuando un agente espera tu respuesta | 4 | 1 semana |
 | **15. Primer arranque (M)** | Bienvenida adelantada de la fase 10, ahora que ya hay releases públicas: plantilla, permisos explicados uno a uno (calendario, Automatización, Accesibilidad) solo cuando hacen falta, ofrecer los hooks y detectar qué proveedores de IA hay en el Mac | 4 | 3-4 días |
 
-**Orden de ejecución (actualizado el 24-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 ✓ → 15 ✓ → 12 ✓ → 14 → 5 → 13 → 6 → 8 (resto) → 9 → 10. La fase 7 ya tiene su primera implementación (Cajón). Los números son identificadores, no el orden.
+**Orden de ejecución (actualizado el 26-09-2026):** 11 ✓ → 2 ✓ → 3 ✓ → 4 ✓ → 15 ✓ → 12 ✓ → 14 ✓ → 13 ✓ → 8 ✓ → 10 ✓ (salvo publicar el tap y la marca) → 5 → 6 → 9. La fase 7 tiene su segunda pasada (iconos nítidos). Lo que queda es la companion de iPhone/iPad (5, 6 y 9), que se define contigo antes de empezar. Los números son identificadores, no el orden.
 
 ### Estado
+
+- **Fases 14, 13, 8, 10 y 7 (26-09-2026, 0.6.0):**
+  - **Más agentes (14):** Gemini CLI, Copilot CLI y Cursor por hooks; OpenCode sin instalar nada, por la API de `opencode serve`, con permisos y respuestas desde el notch. Cursor usa hooks y no ACP: ACP solo ve sesiones que abre la propia app.
+    - **Responder desde el notch:** cuando un agente acaba su turno, el hook espera tu respuesta. Nunca espera si estás en su terminal, suelta en cuanto vuelves a ella y nunca en ejecuciones sin terminal (`-p`, `exec`, tuberías, editores) ni si Altillo no sabe qué terminal es (tmux, SSH). Activado por defecto en instalaciones nuevas de Claude Code y Codex; Gemini, Copilot y Cursor, opt-in.
+    - Revisión independiente con 11 fallos corregidos (carreras de Cursor, colas y reconexión de OpenCode, trabajo en reposo sin OpenCode, desinstalación byte a byte).
+  - **Pregunta con todo el contexto (13):** soltar un archivo en «Pregúntale» (texto, PDF, Word e imágenes con Vision), respuestas guardadas, recordatorios con deshacer (es/en/ca), dictado on-device y «dile a Claude que…» con tu texto exacto. Sabe qué suena en cualquier app. Revisión independiente con 15 fallos corregidos (falsos positivos de recordatorios y respuestas a agentes, fechas).
+  - **Sonando universal (8):** cualquier app vía `mediaremote-adapter` (BSD-3, en `Vendor/`), que corre dentro de `/usr/bin/perl` porque desde macOS 15.4 MediaRemote solo responde a procesos de Apple. Sin sondeo, el ayudante vive solo mientras hace falta y muere con Altillo; si falla, vuelve a AppleScript con Música y Spotify. Arrastrar para saltar. Verificado en macOS 27.
+  - **Publicación (10):** web con descarga y funciones reales (sin desplegar), capturas en el README, cask de Homebrew en `packaging/homebrew` con `script/update-cask.sh`, y [comprobación del nombre](docs/nombre.md). **Pendiente, que haces tú:** la búsqueda de marca en EUIPO/OEPM y decidir si creamos `XusBadia/homebrew-tap`.
+  - **Cajón (7):** iconos capturados a la escala de la pantalla y sin reescalar; los monocromos se tiñen como plantillas.
+  - **Calidad:** la mano que llama y la flecha de la bienvenida ya no animan sin parar (CPU en reposo con un agente esperando). `script/idle-cpu.sh` mide la CPU en reposo y `script/check-localization.py` impide publicar con textos sin traducir. En macOS 27 los tests se compilan en `/tmp` ([detalle](docs/desarrollo.md)).
+  - TESTCOUNTS
 
 - **Fase 3 (24-09-2026):** implementación terminada y validación automática en verde.
   - **`AltilloUsage`:**

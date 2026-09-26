@@ -261,8 +261,8 @@ extension Desvan {
 
 /// Launch flags for design reviews only.
 ///
-/// - `-prototypeHoverZone shelf|airDrop` lights that zone in the frozen dropTarget scenario, as if the pointer were
-///   over it.
+/// - `-prototypeHoverZone shelf|airDrop|ask` lights that zone in the frozen dropTarget (or dropTargetAsk) scenario,
+///   as if the pointer were over it.
 /// - `-demoShelfCount <n>` repeats the sample files until the shelf holds `n` things, to review how the row
 ///   scrolls when the altillo is full.
 /// - `-demoMotion landing|flaps|knock|stamp|approach` loops a signature moment in its design scenario so it can be
@@ -273,6 +273,7 @@ enum DesvanDebug {
     static let forcedZone: DropZone? = switch UserDefaults.standard.string(forKey: "prototypeHoverZone") {
     case "shelf": .shelf
     case "airDrop", "airdrop": .airDrop
+    case "ask": .ask
     default: nil
     }
 
@@ -287,6 +288,42 @@ enum DesvanDebug {
     }
 
     static let demoMotion: Moment? = UserDefaults.standard.string(forKey: "demoMotion").flatMap(Moment.init(rawValue:))
+
+    /// `-demoAssistant <state>` (DEBUG builds, openAssistant scenario): a phase 13 state of Ask to review without
+    /// dropping a file, speaking, saving or making a reminder for real.
+    enum AssistantDemo: String {
+        /// A PDF on the chip, and one being read.
+        case attachment, reading
+        /// The mic listening, its meter up; and the line explaining why it couldn't.
+        case listening, micProblem
+        /// The saved answers, full and empty.
+        case saved, savedEmpty
+        /// Receipts under the newest answer: a reply sent to an agent (`receipts`), the "tomorrow" offer beside one
+        /// undone (`offerReceipt`), a reminder with Undo (`reminderReceipt`).
+        case receipts, offerReceipt, reminderReceipt
+    }
+
+    static let assistantDemo: AssistantDemo? = {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "demoAssistant").flatMap(AssistantDemo.init(rawValue:))
+        #else
+        nil
+        #endif
+    }()
+
+    /// `-demoNowPlaying <state>` (DEBUG builds, openNowPlaying scenario): the sleeve with the playing app's icon
+    /// (`icon`), the needle out as if the pointer were over the groove (`needle`), or nothing playing (`empty`).
+    enum NowPlayingDemo: String {
+        case icon, needle, empty
+    }
+
+    static let nowPlayingDemo: NowPlayingDemo? = {
+        #if DEBUG
+        UserDefaults.standard.string(forKey: "demoNowPlaying").flatMap(NowPlayingDemo.init(rawValue:))
+        #else
+        nil
+        #endif
+    }()
 
     /// Ticks while a `-demoMotion` loop runs; views replay their moment on each tick.
     @MainActor static let clock = MotionClock()

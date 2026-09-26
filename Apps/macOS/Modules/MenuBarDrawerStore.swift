@@ -421,9 +421,15 @@ final class MenuBarDrawerStore: NSObject {
 
     /// Menu-bar glyphs render differently in light/dark bars and at other backing scales.
     private var glyphAppearance: String {
-        let appearance = (separator?.button ?? control?.button)?.effectiveAppearance ?? NSApp.effectiveAppearance
-        let scale = NSScreen.screens.first?.backingScaleFactor ?? 2
-        return "\(appearance.name.rawValue)@\(scale)"
+        let button = separator?.button ?? control?.button
+        let appearance = button?.effectiveAppearance ?? NSApp.effectiveAppearance
+        // The status items' own display decides the pixels ScreenCaptureKit can return.
+        let scale = button?.window?.screen?.backingScaleFactor ?? NSScreen.screens.first?.backingScaleFactor ?? 2
+        return Self.glyphAppearanceKey(appearance: appearance.name.rawValue, scale: scale)
+    }
+
+    nonisolated static func glyphAppearanceKey(appearance: String, scale: CGFloat) -> String {
+        "\(appearance)@\(scale)"
     }
 
     /// Avoids invalidating every observing view when a rescan found the same catalog.

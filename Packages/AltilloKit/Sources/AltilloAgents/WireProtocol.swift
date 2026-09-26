@@ -7,12 +7,17 @@ import Foundation
 //                "tty":"/dev/ttys003","agentPID":123,"waitsForDecision":false,"requestID":null,"timeout":null}
 //   app → hook  {"requestID":"…","decision":"allow|allowForSession|deny|none"}   (only when waitsForDecision)
 //
+// Phase 14: a stop hook installed with `--reply-wait N` sends `"waitsForReply":true` and waits up to N s for
+//   app → hook  {"requestID":"…","decision":"reply","text":"…"}   (or "none": the agent stops as usual)
+//
 // Versioned by `v`; both sides ignore fields they don't know, so the hook inside an older Altillo.app keeps
 // working with a newer app and the other way round.
 
 /// The user's answer as it travels back to the hook. `none` = no decision: the agent asks in the terminal.
 public enum WireDecision: String, Codable, Sendable, CaseIterable {
     case allow, allowForSession, deny, none
+    /// Only for a hook waiting for a reply: carry on with `HookReply.text`. Never an approval.
+    case reply
 
     public init(_ decision: AgentDecision) {
         switch decision {
@@ -38,7 +43,7 @@ public struct HookEnvelope: Codable, Sendable, Hashable {
         "KITTY_PID", "WEZTERM_PANE", "WEZTERM_UNIX_SOCKET", "ALACRITTY_WINDOW_ID", "GHOSTTY_RESOURCES_DIR",
         "WARP_IS_LOCAL_SHELL_SESSION", "ZED_TERM", "TMUX", "TMUX_PANE", "STY", "VSCODE_PID", "VSCODE_INJECTION",
         "VSCODE_GIT_IPC_HANDLE", "CURSOR_TRACE_ID", "TERMINAL_EMULATOR", "__CFBundleIdentifier", "CLAUDE_PID",
-        "CLAUDE_CODE_ENTRYPOINT", "CODEX_THREAD_ID",
+        "CLAUDE_CODE_ENTRYPOINT", "CODEX_THREAD_ID", "GEMINI_SESSION_ID", "CURSOR_VERSION",
     ]
 
     public var v: Int
@@ -54,13 +59,21 @@ public struct HookEnvelope: Codable, Sendable, Hashable {
     /// The agent's own process (first non-shell ancestor).
     public var agentPID: Int32?
     public var waitsForDecision: Bool
+    /// A stop hook holding the end of the turn open for a reply typed in the notch (phase 14).
+    public var waitsForReply: Bool
+    /// The event came through another agent's hooks (Cursor or Copilot running Claude Code's settings.json):
+    /// observe-only, and it says nothing about the real agent's own hooks.
+    public var rerouted: Bool
     public var requestID: String?
-    /// Seconds the hook waits for a decision.
+    /// Seconds the hook waits for a decision or a reply.
     public var timeout: Double?
 
+    /// The hook keeps the connection open for an answer.
+    public var waits: Bool { waitsForDecision || waitsForReply }
+
     public init(agent: String, event: String, payload: JSONValue, env: [String: String] = [:], ppids: [Int32] = [],
-                tty: String? = nil, agentPID: Int32? = nil, waitsForDecision: Bool = false, requestID: String? = nil,
-                timeout: Double? = nil) {
+                tty: String? = nil, agentPID: Int32? = nil, waitsForDecision: Bool = false, waitsForReply: Bool = false,
+                rerouted: Bool = false, requestID: String? = nil, timeout: Double? = nil) {
         v = Self.currentVersion
         self.agent = agent
         self.event = event
@@ -70,6 +83,8 @@ public struct HookEnvelope: Codable, Sendable, Hashable {
         self.tty = tty
         self.agentPID = agentPID
         self.waitsForDecision = waitsForDecision
+        self.waitsForReply = waitsForReply
+        self.rerouted = rerouted
         self.requestID = requestID
         self.timeout = timeout
     }
@@ -85,6 +100,8 @@ public struct HookEnvelope: Codable, Sendable, Hashable {
         tty = try? c.decode(String.self, forKey: .tty)
         agentPID = try? c.decode(Int32.self, forKey: .agentPID)
         waitsForDecision = (try? c.decode(Bool.self, forKey: .waitsForDecision)) ?? false
+        waitsForReply = (try? c.decode(Bool.self, forKey: .waitsForReply)) ?? false
+        rerouted = (try? c.decode(Bool.self, forKey: .rerouted)) ?? false
         requestID = try? c.decode(String.self, forKey: .requestID)
         timeout = try? c.decode(Double.self, forKey: .timeout)
     }
@@ -94,10 +111,13 @@ public struct HookEnvelope: Codable, Sendable, Hashable {
 public struct HookReply: Codable, Sendable, Hashable {
     public var requestID: String
     public var decision: WireDecision
+    /// The user's reply, with `decision == .reply`.
+    public var text: String?
 
-    public init(requestID: String, decision: WireDecision) {
+    public init(requestID: String, decision: WireDecision, text: String? = nil) {
         self.requestID = requestID
         self.decision = decision
+        self.text = text
     }
 }
 

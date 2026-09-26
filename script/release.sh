@@ -194,6 +194,17 @@ xcodebuild archive \
   ALTILLO_SPARKLE_FEED_URL="$FEED_URL" \
   ALTILLO_SPARKLE_PUBLIC_KEY="$SPARKLE_PUBLIC_KEY"
 
+# Every user-facing string ships in Spanish too. ALTILLO_ALLOW_UNTRANSLATED=1 skips this (a hotfix, say).
+echo "==> checking Spanish strings"
+if ! "$ROOT_DIR/script/check-localization.py" "$DERIVED_DATA_PATH"; then
+  if [[ "${ALTILLO_ALLOW_UNTRANSLATED:-0}" == 1 ]]; then
+    echo "   untranslated strings, allowed by ALTILLO_ALLOW_UNTRANSLATED=1"
+  else
+    echo "Untranslated strings (listed above): add Spanish to Localizable.xcstrings, or set ALTILLO_ALLOW_UNTRANSLATED=1." >&2
+    exit 1
+  fi
+fi
+
 cat > "$EXPORT_OPTIONS" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

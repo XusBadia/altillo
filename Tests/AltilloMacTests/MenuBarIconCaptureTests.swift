@@ -147,6 +147,50 @@ struct MenuBarIconCaptureTests {
         #expect(!MenuBarIconCapture.isStatusWindow(frame: CGRect(x: 0, y: 0, width: 1000, height: 30), ownerPID: 418, entry: item, isSystemStatusProxy: true))
     }
 
+    @Test func captureRectSnapsToWholeBackingPixels() {
+        // A 1 pt size difference centres the item on a half pixel at 1x; that sub-pixel crop blurred every glyph.
+        let window = CGRect(x: 500, y: 0, width: 38, height: 24)
+        let item = CGRect(x: 500.5, y: 0, width: 37, height: 24)
+        #expect(MenuBarIconCapture.sourceRect(windowFrame: window, itemFrame: item) == CGRect(x: 0, y: 0, width: 38, height: 24))
+        // At 2x the half point is a whole pixel and is kept.
+        #expect(MenuBarIconCapture.sourceRect(windowFrame: window, itemFrame: item, scale: 2) == CGRect(x: 0.5, y: 0, width: 37, height: 24))
+    }
+
+    @Test @MainActor func normalizationKeepsPixelDensityAtEveryScale() throws {
+        for scale in [1, 2, 3] as [CGFloat] {
+            let source = try glyphFixture(width: 20 * Int(scale), height: 20 * Int(scale),
+                                          ink: CGRect(x: 2 * scale, y: 3 * scale, width: 14 * scale, height: 13 * scale))
+            let glyph = try #require(MenuBarIconCapture.normalizedGlyph(from: source, scale: scale))
+            let pixels = try #require(glyph.cgImage(forProposedRect: nil, context: nil, hints: nil))
+            // Exactly the source pixels, and exactly `scale` of them per point: nothing resampled.
+            #expect(CGFloat(pixels.width) == glyph.size.width * scale)
+            #expect(CGFloat(pixels.height) == glyph.size.height * scale)
+            #expect(MenuBarGlyph.pixelScale(of: glyph) == scale)
+            #expect(MenuBarGlyph.size(of: glyph) == glyph.size)
+        }
+    }
+
+    @Test @MainActor func singleColourGlyphsBecomeTemplatesAndColouredOnesDoNot() throws {
+        func image(_ fill: (CGContext) -> Void) throws -> CGImage {
+            let context = try #require(CGContext(data: nil, width: 20, height: 20, bitsPerComponent: 8, bytesPerRow: 80,
+                                                 space: CGColorSpaceCreateDeviceRGB(),
+                                                 bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+            fill(context)
+            return try #require(context.makeImage())
+        }
+        let white = try image { $0.setFillColor(gray: 1, alpha: 0.9); $0.fillEllipse(in: CGRect(x: 3, y: 3, width: 14, height: 14)) }
+        let black = try image { $0.setFillColor(gray: 0, alpha: 1); $0.fill(CGRect(x: 3, y: 3, width: 14, height: 14)) }
+        let colour = try image { $0.setFillColor(red: 0.4, green: 0.3, blue: 1, alpha: 1); $0.fill(CGRect(x: 3, y: 3, width: 14, height: 14)) }
+        let mixed = try image {
+            $0.setFillColor(gray: 1, alpha: 1); $0.fill(CGRect(x: 3, y: 3, width: 14, height: 14))
+            $0.setFillColor(gray: 0, alpha: 1); $0.fill(CGRect(x: 6, y: 6, width: 8, height: 8))
+        }
+        #expect(try #require(MenuBarIconCapture.normalizedGlyph(from: white, scale: 1)).isTemplate)
+        #expect(try #require(MenuBarIconCapture.normalizedGlyph(from: black, scale: 1)).isTemplate)
+        #expect(!(try #require(MenuBarIconCapture.normalizedGlyph(from: colour, scale: 1)).isTemplate))
+        #expect(!(try #require(MenuBarIconCapture.normalizedGlyph(from: mixed, scale: 1)).isTemplate))
+    }
+
     // MARK: - Glyph cache
 
     private func cacheEntry(_ id: String = "status", width: CGFloat = 24, x: CGFloat = 500) -> MenuBarEntry {
@@ -180,6 +224,18 @@ struct MenuBarIconCaptureTests {
         #expect(cache.entriesNeedingCapture([cacheEntry("other")], appearance: "dark", now: now).count == 1)
         // Sub-pixel AX noise is not a size change.
         #expect(cache.entriesNeedingCapture([cacheEntry(width: 24.1)], appearance: "dark", now: now).isEmpty)
+    }
+
+    @Test func backingScaleChangeInvalidatesEveryGlyph() {
+        var cache = MenuBarGlyphCache()
+        let now = ContinuousClock.now
+        let oneX = MenuBarDrawerStore.glyphAppearanceKey(appearance: "NSAppearanceNameDarkAqua", scale: 1)
+        let twoX = MenuBarDrawerStore.glyphAppearanceKey(appearance: "NSAppearanceNameDarkAqua", scale: 2)
+        cache.record(cacheEntry("a"), appearance: oneX, at: now)
+        cache.record(cacheEntry("b"), appearance: oneX, at: now)
+        #expect(cache.entriesNeedingCapture([cacheEntry("a"), cacheEntry("b")], appearance: oneX, now: now).isEmpty)
+        #expect(cache.entriesNeedingCapture([cacheEntry("a"), cacheEntry("b")], appearance: twoX, now: now).count == 2)
+        #expect(MenuBarGlyphKey(entry: cacheEntry(), appearance: oneX).version == MenuBarGlyphKey.version)
     }
 
     @Test func maxAgeRenewsOnlyOldGlyphsAndForceRenewsAll() {

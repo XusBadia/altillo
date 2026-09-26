@@ -14,6 +14,8 @@ final class DropTargetView: NSView {
     var onDrop: ([ShelfItem]) -> Void = { _ in }
     /// Items dropped on the AirDrop zone, ingested the same way (promises become real files to send).
     var onAirDrop: ([ShelfItem]) -> Void = { _ in }
+    /// Items dropped on Ask's zone, ingested the same way; Ask reads them and drops its own copies.
+    var onAsk: ([ShelfItem]) -> Void = { _ in }
     /// Fired synchronously when a drop is accepted, before `onDrop` (which can take seconds with file promises).
     var onDropAccepted: () -> Void = {}
 
@@ -122,6 +124,7 @@ final class DropTargetView: NSView {
             switch zone {
             case .shelf: self?.onDrop(items)
             case .airDrop: self?.onAirDrop(items)
+            case .ask: self?.onAsk(items)
             }
         }
         return true

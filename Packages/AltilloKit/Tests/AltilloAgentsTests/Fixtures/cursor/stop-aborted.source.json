@@ -1,0 +1,15 @@
+{
+  "conversation_id": "c2a5e8f1-7d34-4b9e-8e12-5f6a0b9c3d21",
+  "generation_id": "g-1",
+  "model": "claude-5-sonnet",
+  "session_id": "c2a5e8f1-7d34-4b9e-8e12-5f6a0b9c3d21",
+  "cursor_version": "2026.09.23",
+  "workspace_roots": [
+    "/Users/me/Projects/demo"
+  ],
+  "user_email": null,
+  "transcript_path": "/Users/me/.cursor/projects/demo/agent-transcripts/c2a5e8f1-7d34-4b9e-8e12-5f6a0b9c3d21.jsonl",
+  "hook_event_name": "stop",
+  "status": "aborted",
+  "loop_count": 0
+}
