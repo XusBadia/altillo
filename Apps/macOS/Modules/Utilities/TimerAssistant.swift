@@ -35,7 +35,7 @@ struct TimerTool: Tool {
         case .cancel: .cancel(label: arguments.label)
         }
         let answer = await perform(request)
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool timer \(arguments.action) → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool timer \(arguments.action) → \(answer.count) chars")
         return answer
     }
 }

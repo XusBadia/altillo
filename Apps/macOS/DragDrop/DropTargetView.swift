@@ -97,10 +97,9 @@ final class DropTargetView: NSView {
     func receive(_ pasteboard: NSPasteboard, sourceMask: NSDragOperation, zone: DropZone = .shelf) -> Bool {
         let start = ContinuousClock.now
         let payload = DropReader.read(from: pasteboard)
-        let app = NSWorkspace.shared.frontmostApplication?.localizedName ?? "?"
-        let types = pasteboard.types?.map(\.rawValue).joined(separator: ", ") ?? "—"
-        SpikeLog.shared.record(SpikeLog.Category.drop,
-                               "active app: \(app) · mask: \(sourceMask.logDescription) · read: \(payload.summary) · types: \(types)")
+        let typeCount = pasteboard.types?.count ?? 0
+        DiagnosticLog.shared.record(DiagnosticLog.Category.drop,
+                                     "mask: \(sourceMask.logDescription) · read: \(payload.summary) · \(typeCount) type(s)")
         guard !payload.isEmpty else { return false }
         onDropAccepted()
 
@@ -115,11 +114,11 @@ final class DropTargetView: NSView {
                 for stream in promised {
                     files += await Self.collect(stream, timeout: timeout, ingest: ingest)
                 }
-                SpikeLog.shared.record(SpikeLog.Category.promise,
+                DiagnosticLog.shared.record(DiagnosticLog.Category.promise,
                                        "\(files.count) files from \(promised.count) promises in \(Self.milliseconds(since: promiseStart))")
                 items.insert(contentsOf: files, at: min(payload.promiseInsertionIndex, items.count))
             }
-            SpikeLog.shared.record(SpikeLog.Category.drop,
+            DiagnosticLog.shared.record(DiagnosticLog.Category.drop,
                                    "delivered \(items.count) items in \(Self.milliseconds(since: start)) since drop")
             switch zone {
             case .shelf: self?.onDrop(items)
@@ -172,8 +171,8 @@ final class DropTargetView: NSView {
         let names = receiver.fileNames
         let expected = max(names.count, 1)
         let (outcomes, continuation) = AsyncStream<PromiseOutcome>.makeStream()
-        SpikeLog.shared.record(SpikeLog.Category.promise,
-                               "receiving \(expected) file(s): \(names.joined(separator: ", ")) · types: \(receiver.fileTypes.joined(separator: ", "))")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.promise,
+                                     "receiving \(expected) promised file(s) · \(receiver.fileTypes.count) type(s)")
         do {
             let directory = try ingest.makeSlotDirectory()
             receiver.receivePromisedFiles(atDestination: directory, options: [:], operationQueue: Self.promiseQueue,
@@ -184,7 +183,7 @@ final class DropTargetView: NSView {
                                                   .appending(path: "Recovery", directoryHint: .isDirectory)
                                           ))
         } catch {
-            SpikeLog.shared.record(SpikeLog.Category.promise, "FAILED creating the inbox folder: \(error.localizedDescription)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.promise, "FAILED creating the inbox folder: \(error.localizedDescription)")
             continuation.finish()
         }
         return PromiseStream(outcomes: outcomes, expected: expected, finish: { continuation.finish() })
@@ -203,7 +202,7 @@ final class DropTargetView: NSView {
                 recoverLatePromise(at: url, under: recoveryRoot)
             }
             let logResult = error.map { "FAILED \($0.localizedDescription)" } ?? "ok"
-            SpikeLog.post(SpikeLog.Category.promise, "\(url.lastPathComponent): \(logResult) in \(milliseconds(elapsed))")
+            DiagnosticLog.post(DiagnosticLog.Category.promise, "promised file: \(logResult) in \(milliseconds(elapsed))")
         }
     }
 
@@ -215,9 +214,9 @@ final class DropTargetView: NSView {
             let slot = recoveryRoot.appending(path: UUID().uuidString, directoryHint: .isDirectory)
             try FileManager.default.createDirectory(at: slot, withIntermediateDirectories: true)
             try FileManager.default.moveItem(at: url, to: slot.appending(path: url.lastPathComponent))
-            SpikeLog.post(SpikeLog.Category.promise, "late promise set aside in Recovery: \(url.lastPathComponent)")
+            DiagnosticLog.post(DiagnosticLog.Category.promise, "late promised file set aside in Recovery")
         } catch {
-            SpikeLog.post(SpikeLog.Category.promise, "FAILED setting aside late promise: \(error.localizedDescription)")
+            DiagnosticLog.post(DiagnosticLog.Category.promise, "FAILED setting aside late promise: \(error.localizedDescription)")
         }
     }
 
@@ -238,12 +237,12 @@ final class DropTargetView: NSView {
             received += 1
             if outcome.error == nil, FileManager.default.fileExists(atPath: outcome.url.path) {
                 items.append(ingest.item(forReceivedFile: outcome.url))
-                SpikeLog.shared.record(SpikeLog.Category.ingest, "copy (promise) → \(outcome.url.path)")
+                DiagnosticLog.shared.record(DiagnosticLog.Category.ingest, "copied promised file")
             }
             if received >= stream.expected { break }
         }
         if received < stream.expected {
-            SpikeLog.shared.record(SpikeLog.Category.promise,
+            DiagnosticLog.shared.record(DiagnosticLog.Category.promise,
                                    "FAILED: timeout of \(timeout) with \(received)/\(stream.expected) files; delivering what arrived")
         }
         return items
@@ -257,7 +256,7 @@ final class DropTargetView: NSView {
         }.value
         var items: [ShelfItem] = []
         for (item, message) in results {
-            SpikeLog.shared.record(SpikeLog.Category.ingest, message)
+            DiagnosticLog.shared.record(DiagnosticLog.Category.ingest, message)
             if let item { items.append(item) }
         }
         return items
@@ -271,17 +270,17 @@ final class DropTargetView: NSView {
                 let (item, decision) = try ingest.ingest(fileAt: url)
                 switch decision {
                 case .reference:
-                    return (item, "reference → \(url.path)")
+                    return (item, "kept file reference")
                 case let .copy(reason):
-                    return (item, "copy (\(reason)) in \(milliseconds(since: start)) → \(item.fileURL?.path ?? "?") · original: \(url.path)")
+                    return (item, "copied file (\(reason)) in \(milliseconds(since: start))")
                 }
             case let .link(url, title):
                 let item = ShelfItem(kind: .link(url), displayName: title ?? linkName(url))
-                return (item, "link → \(url.absoluteString)")
+                return (item, "stored link")
             case let .image(data, type, suggestedName):
                 let bytes = try pngIfNeeded(data, type: type)
                 let item = try ingest.ingest(data: bytes, suggestedName: suggestedName)
-                return (item, "copy (image without file, \(type), \(bytes.count) bytes) → \(item.fileURL?.path ?? "?")")
+                return (item, "copied image without file (\(bytes.count) bytes)")
             case let .text(text):
                 let item = ShelfItem(kind: .text(text), displayName: textName(text))
                 return (item, "text (\(text.count) characters)")
@@ -324,9 +323,9 @@ final class DropTargetView: NSView {
 private extension IncomingDrop {
     var logLabel: String {
         switch self {
-        case let .file(url): "file \(url.path)"
-        case let .link(url, _): "link \(url.absoluteString)"
-        case let .image(_, type, _): "image \(type)"
+        case .file: "file"
+        case .link: "link"
+        case .image: "image"
         case .text: "text"
         }
     }

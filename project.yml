@@ -93,6 +93,10 @@ targets:
         CODE_SIGN_ENTITLEMENTS: Apps/macOS/App/Altillo.entitlements
         PROVISIONING_PROFILE_SPECIFIER: ""
         COMBINE_HIDPI_IMAGES: YES
+      configs:
+        Release:
+          # Internal review windows and spike tools must never enter a distributable binary.
+          EXCLUDED_SOURCE_FILE_NAMES: SpikeLog.swift
     scheme:
       testTargets:
         - AltilloMacTests

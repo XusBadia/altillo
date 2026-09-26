@@ -167,7 +167,7 @@ final class OpenCodeMonitor: NSObject, @unchecked Sendable, URLSessionDataDelega
         let task = calls.dataTask(with: request) { _, response, error in
             let status = (response as? HTTPURLResponse)?.statusCode ?? 0
             let ok = error == nil && (200..<300).contains(status)
-            if !ok { Self.log.error("OpenCode call failed (\(status)): \(String(describing: error), privacy: .public)") }
+            if !ok { Self.log.error("OpenCode call failed (\(status)): \(String(describing: error), privacy: .private(mask: .hash))") }
             completion(ok)
         }
         task.resume()

@@ -4,7 +4,7 @@
 
 ## Estado
 
-- **Prioridad**: P1 · **Esfuerzo**: S/M · **Riesgo**: MED · **Depende de**: 006
+- **Estado**: DONE · **Prioridad**: P1 · **Esfuerzo**: S/M · **Riesgo**: MED · **Depende de**: 006
 - **Categoría**: dx/docs · **Planned at**: `7f80680`, 26-09-2026
 
 ## Por qué importa

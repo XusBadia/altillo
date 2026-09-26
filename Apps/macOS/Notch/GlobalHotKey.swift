@@ -24,7 +24,7 @@ final class GlobalHotKey {
         var ref: EventHotKeyRef?
         let status = RegisterEventHotKey(combo.keyCode, combo.modifiers, id, GetEventDispatcherTarget(), 0, &ref)
         guard status == noErr, let ref else {
-            SpikeLog.shared.record(SpikeLog.Category.app, "Shortcut \(wanted.title) refused by macOS (\(status))")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.app, "Shortcut \(wanted.title) refused by macOS (\(status))")
             return false
         }
         hotKeyRef = ref

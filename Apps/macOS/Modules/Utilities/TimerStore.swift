@@ -268,7 +268,7 @@ final class TimerStore {
             let data = try JSONEncoder().encode(Snapshot(timers: timers))
             try data.write(to: storeURL, options: .atomic)
         } catch {
-            SpikeLog.shared.record("utilities", "timers: couldn't save (\(error.localizedDescription))")
+            DiagnosticLog.shared.record("utilities", "timers: couldn't save (\(error.localizedDescription))")
         }
     }
 

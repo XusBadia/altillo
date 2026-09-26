@@ -145,8 +145,8 @@ struct ShelfTool: Tool {
         await report(.shelf)
         let items = await items()
         let answer = AssistantContent.shelfAnswer(name: arguments.name, items: items)
-        await SpikeLog.shared.record(
-            SpikeLog.Category.assistant, "tool shelf read=\(arguments.name != nil) → \(answer.count) chars"
+        await DiagnosticLog.shared.record(
+            DiagnosticLog.Category.assistant, "tool shelf read=\(arguments.name != nil) → \(answer.count) chars"
         )
         return answer
     }
@@ -179,8 +179,8 @@ struct CalendarTool: Tool {
         let hidden = await MainActor.run { AltilloSettings.shared.calendarHiddenIDs }
         let events = await AssistantCalendar.shared.events(on: day, calendar: calendar, hiding: hidden)
         let answer = AssistantContent.agenda(events, day: day, now: now, calendar: calendar)
-        await SpikeLog.shared.record(
-            SpikeLog.Category.assistant, "tool calendar offset=\(arguments.dayOffset) → \(events.count) events"
+        await DiagnosticLog.shared.record(
+            DiagnosticLog.Category.assistant, "tool calendar offset=\(arguments.dayOffset) → \(events.count) events"
         )
         return answer
     }
@@ -238,7 +238,7 @@ struct NowPlayingTool: Tool {
     func call(arguments: Arguments) async throws -> String {
         await report(.nowPlaying)
         let answer = await AssistantNowPlaying.read(store: reading)
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool nowPlaying → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool nowPlaying → \(answer.count) chars")
         return answer
     }
 }
@@ -348,7 +348,7 @@ struct ClipboardTool: Tool {
     func call(arguments: Arguments) async throws -> String {
         await report(.clipboard)
         let answer = await MainActor.run { AssistantContent.readClipboard() }
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool clipboard → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool clipboard → \(answer.count) chars")
         return answer
     }
 }
@@ -373,7 +373,7 @@ struct UsageTool: Tool {
         // Never the network: the numbers Altillo already has (refreshed every 5 min by `UsageStore`).
         let reading = await reading()
         let answer = AssistantUsage.answer(reading, provider: arguments.provider, now: .now)
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool usage → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool usage → \(answer.count) chars")
         return answer
     }
 }
@@ -492,7 +492,7 @@ struct AgentsTool: Tool {
         // Never the network: the sessions Altillo already follows (`AgentHub`).
         let reading = await reading()
         let answer = AssistantAgents.answer(reading, agent: arguments.agent, now: .now)
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool agents → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool agents → \(answer.count) chars")
         return answer
     }
 }

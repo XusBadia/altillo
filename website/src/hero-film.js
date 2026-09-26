@@ -66,6 +66,10 @@ export function mountHeroFilm() {
     setStyle("--film-intro-y", `${(1 - introProgress) * 32}px`);
     setStyle("--film-shade", String(ramp(progress, 0.65, 0.9)));
     setStyle("--film-opening", String(1 - ramp(progress, 0.05, 0.24)));
+    // Keep the exact poster pixels for the opening pose, then hand off to the
+    // canvas as soon as scrolling begins. This avoids a visible interpolation
+    // jump on narrow, high-density screens.
+    setStyle("--film-canvas", String(ramp(progress, 0, 0.015)));
     track.firstElementChild.style.transform = `scaleX(${progress})`;
     copy.inert = progress > 0.17;
     intro.inert = introProgress < 0.7;
@@ -132,7 +136,7 @@ export function mountHeroFilm() {
       canvas.remove();
       track.remove();
       hero.classList.remove("has-film");
-      for (const property of ["--film-copy", "--film-intro", "--film-intro-y", "--film-shade", "--film-opening"])
+      for (const property of ["--film-copy", "--film-intro", "--film-intro-y", "--film-shade", "--film-opening", "--film-canvas"])
         hero.style.removeProperty(property);
       copy.inert = false;
       intro.inert = false;

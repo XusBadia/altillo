@@ -676,6 +676,8 @@ private struct SettingsCalendarAccount: View {
 /// Mac, each with its switch (on until switched off), and folding the rest into "Not set up on this Mac" with one
 /// line on how to set each up.
 private struct SettingsUsageGroup: View {
+    private static let privacy = URL(string: "https://altillo.app/privacy/")!
+
     @Bindable var settings: AltilloSettings
     /// The running app's store; nil only in previews.
     let store: UsageStore?
@@ -726,8 +728,10 @@ private struct SettingsUsageGroup: View {
                 notSetUpList(notSetUp)
             }
             if !setUp.isEmpty || !notSetUp.isEmpty {
-                Text("Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything, and your numbers never leave this Mac.")
+                Text("Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything. To read quotas, it sends the credential only to that tool's provider.")
                     .settingsHint()
+                Link("See privacy details", destination: Self.privacy)
+                    .font(.system(size: 11.5, weight: .medium))
             }
         }
     }

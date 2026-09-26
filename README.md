@@ -5,7 +5,7 @@
 > 🇪🇸 Este README está en inglés para llegar a más gente, pero el plan de
 > desarrollo completo está en español: **[PLAN.md](PLAN.md)**.
 
-**Status: actively developed, current version 0.7.5.** Public, notarized
+**Status: actively developed, current version 0.7.6.** Public, notarized
 builds are available from [altillo.app](https://altillo.app/) and
 [GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
 with Sparkle auto-update. It's a working app used daily, but still pre-1.0 —
@@ -173,17 +173,46 @@ altillo/
 See [PLAN.md §2](PLAN.md#2-estructura-del-monorepo) for more detail, including
 the identifiers used in `Local.xcconfig`.
 
+## Agent hooks
+
+Hooks are small commands that an AI CLI runs when its state changes. They let
+Altillo receive precise live events and, where the CLI supports it, relay your
+explicit permission or reply from the notch. They are optional: Altillo can
+still detect Claude Code, Codex and Gemini sessions from their local session
+files, with less detail; OpenCode uses its local API and needs no hook.
+
+There is no universal hook shared by every CLI. Each agent owns a different
+configuration file, so install Altillo's hooks separately for each one you use
+in **Settings › Sections › Agents**. Altillo shows the exact diff before it
+writes, backs up an existing file, and never removes another tool's hooks.
+Codex also asks you to trust new or changed hooks with `/hooks`.
+
+Before deleting Altillo, open **Settings › Sections › Agents › Prepare to
+Uninstall…**. Review each target and remove the selected hooks first. Homebrew's
+`brew uninstall --zap altillo` cannot safely perform this step: a cask cannot
+edit shared third-party configuration without risking unrelated settings.
+See the [safe uninstall guide](docs/desinstalacion-segura.md).
+
 ## Privacy
 
-- **Your credentials never leave your Mac.** Usage data is read locally
-  (keychain / local APIs) and never sent to a third-party server.
+- **Altillo has no analytics or telemetry service.** Your files, calendar,
+  clipboard, camera image, agent sessions and Ask conversations are not sent
+  to Altillo.
+- **Usage checks contact each provider directly.** Altillo reads the sign-in
+  or API key that the provider's own tool already stores on your Mac, then
+  presents that credential only to the same provider to request your quota.
+  It does not refresh, rewrite or retain a copy of the credential.
+- **Ask is on-device by default.** If you allow web search for one question or
+  in Settings, Altillo sends a short search derived from that question to the
+  search, weather or reference service named in the privacy policy.
 - **Altillo never auto-approves anything.** When an AI agent asks for
   permission, Altillo only ever relays your explicit choice — it never
   decides or filters on your behalf. If Altillo is closed, agents behave
   exactly as if the hooks weren't installed (fail open, not silently blocked).
 
-See [PLAN.md §1 (principles)](PLAN.md#1-principios) and
-[§5.3 (live agents)](PLAN.md#53-agentes-en-vivo) for the full reasoning.
+See the [privacy policy](https://altillo.app/privacy/) for every network
+destination, local storage and retention, and [PLAN.md §1](PLAN.md#1-principios)
+and [§5.3](PLAN.md#53-agentes-en-vivo) for the design reasoning.
 
 ## License
 
@@ -201,11 +230,12 @@ attribution as reused code lands):
 - [DynamicNotchKit](https://github.com/MrKai77/DynamicNotchKit) (MIT) — notch
   window and shape reference.
 - [OpenUsage](https://github.com/robinebers/openusage) (MIT) — AI usage
-  provider mappers and pacing/threshold logic. Altillo is **compatible with
-  OpenUsage**'s local API as an optional data source, but is not affiliated
-  with or endorsed by the OpenUsage project. "OpenUsage" is governed by its
-  own trademark policy (`TRADEMARK.md` in that repository), which reserves the
-  name for the upstream project; Altillo does not use it as a product name.
+  provider mappers and pacing/threshold logic. Altillo reads providers itself;
+  it does not require or connect to an OpenUsage installation. Altillo is not
+  affiliated with or endorsed by the OpenUsage project. "OpenUsage" is
+  governed by its own trademark policy (`TRADEMARK.md` in that repository),
+  which reserves the name for the upstream project; Altillo does not use it as
+  a product name.
 
 A few GPL-licensed notch apps (boring.notch, Ice, Thaw, MewNotch, Atoll) were
 read for research and are cited in [PLAN.md](PLAN.md) and
@@ -214,7 +244,10 @@ since Altillo is MIT-licensed.
 
 ## Security
 
-Altillo needs no API keys, and this repository never contains secrets: signing
-material and local config are git-ignored, a pre-commit hook and CI scan every
-commit with gitleaks, and provider credentials are read from your own Keychain
-at runtime and never leave your Mac. See [CONTRIBUTING.md](CONTRIBUTING.md#secrets).
+Altillo has no service or API key of its own, and this repository never
+contains secrets: signing material and local config are git-ignored, a
+pre-commit hook and CI scan every commit with gitleaks, and provider
+credentials are read from your own Keychain or the provider tool's config at
+runtime. They are used only to request usage from that same provider. See
+[CONTRIBUTING.md](CONTRIBUTING.md#secrets) and the [privacy
+policy](https://altillo.app/privacy/).

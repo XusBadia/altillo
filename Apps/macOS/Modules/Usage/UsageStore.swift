@@ -415,7 +415,7 @@ final class UsageStore {
                                                     withIntermediateDirectories: true)
             try data.write(to: archiveURL, options: .atomic)
         } catch {
-            SpikeLog.shared.record(Self.logCategory, "couldn't save usage.json: \(error.localizedDescription)")
+            DiagnosticLog.shared.record(Self.logCategory, "couldn't save usage.json: \(error.localizedDescription)")
         }
     }
 

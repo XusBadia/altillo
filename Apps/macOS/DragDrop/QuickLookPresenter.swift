@@ -10,7 +10,7 @@ enum QuickLookPresenter {
     static func show(_ urls: [URL]) {
         let urls = existingURLs(in: urls)
         guard !urls.isEmpty, let panel = QLPreviewPanel.shared() else {
-            SpikeLog.shared.record(SpikeLog.Category.quickLook, "nothing to preview")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.quickLook, "nothing to preview")
             return
         }
         source.urls = urls
@@ -27,7 +27,7 @@ enum QuickLookPresenter {
                 MainActor.assumeIsolated { NSApp.deactivate() }
             }
         }
-        SpikeLog.shared.record(SpikeLog.Category.quickLook,
+        DiagnosticLog.shared.record(DiagnosticLog.Category.quickLook,
                                "\(urls.count) file(s) · visible: \(panel.isVisible ? "yes" : "no") · key: \(panel.isKeyWindow ? "yes" : "no")")
     }
 

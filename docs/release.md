@@ -142,6 +142,14 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
    ```
 
    Revisa `dist/Altillo.app`, `dist/Altillo-0.2.0.dmg` y `dist/appcast.xml`.
+   El script monta ese mismo DMG y comprueba Gatekeeper, firma profunda,
+   componentes embebidos, configuración de Sparkle y que la app permanece
+   viva tras arrancar. Un fallo detiene la publicación.
+
+   Antes de publicar, copia `docs/releases/TEMPLATE.md` a
+   `docs/releases/<versión>.md` y sustituye cada marcador. La publicación se
+   niega a continuar sin esas notas, que deben incluir cambios, limitaciones,
+   soporte y rollback.
 
 4. Publica (crea el release de GitHub y sube el appcast a `gh-pages`):
 
@@ -163,6 +171,26 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
 5. Una vez publicado, las instalaciones existentes de Altillo (con Sparkle
    configurado) lo detectan en su siguiente comprobación programada, o al
    momento si el usuario pulsa "Check for Updates…".
+
+El workflow remoto ejecuta antes, como puertas obligatorias, AltilloKit, la
+suite macOS, el control de localización, el build de la web y Playwright. Las
+suites Swift y Xcode se ejecutan en serie porque comparten el socket de hooks.
+
+## Rollback y hotfix
+
+- **Release defectuosa todavía no anunciada:** marca el release de GitHub como
+  pre-release o elimínalo, restaura en `gh-pages` el `appcast.xml` anterior y
+  comprueba que `https://altillo.app/appcast.xml` ya no ofrece esa versión.
+- **Release ya instalada:** no sustituyas silenciosamente el DMG bajo la misma
+  etiqueta. Corrige desde `main`, aumenta la versión patch, escribe sus notas y
+  publica un hotfix normal; Sparkle lo entregará como una actualización nueva.
+- **Rollback manual del usuario:** cerrar Altillo, instalar el DMG de la release
+  anterior y desactivar temporalmente las actualizaciones automáticas. Los
+  datos locales no se borran. Si el problema afecta a hooks, usar primero
+  **Settings → Agents → Prepare to Uninstall**.
+- Tras cualquier rollback, descarga el DMG que siga público y ejecuta
+  `script/smoke-release.sh <dmg>`; verifica también que el appcast conserva su
+  firma EdDSA y todas las versiones anteriores necesarias.
 
 ### Versiones de prueba (pre-release)
 

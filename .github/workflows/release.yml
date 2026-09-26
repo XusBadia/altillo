@@ -27,14 +27,68 @@ env:
   DEVELOPER_DIR: /Applications/Xcode.app/Contents/Developer
 
 jobs:
+  quality:
+    name: Swift, macOS, and localization gates
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+      - name: Select Xcode
+        run: |
+          set -euo pipefail
+          latest=$(find /Applications -maxdepth 1 -name "Xcode_26*.app" 2>/dev/null | sort -V | tail -1)
+          sudo xcode-select -s "${latest:-/Applications/Xcode.app}"
+      - name: Install XcodeGen
+        run: brew install xcodegen
+      # These suites share a global altillo-hook socket, so keep them serial.
+      - name: AltilloKit tests
+        working-directory: Packages/AltilloKit
+        run: swift test
+      - name: macOS build and tests
+        run: |
+          xcodegen generate
+          xcodebuild -project Altillo.xcodeproj -scheme Altillo \
+            -derivedDataPath build/dd-release-gate test
+      - name: Check Spanish localization
+        run: script/check-localization.py build/dd-release-gate
+
+  website:
+    name: Website gate
+    runs-on: macos-26
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref }}
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: website/package-lock.json
+      - run: npm ci
+      - run: npx playwright install chromium webkit
+      - run: npm run build
+      - run: npm test -- --workers=1
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: release-playwright-report
+          path: website/playwright-report
+          if-no-files-found: ignore
+
   release:
     # Opt-in: tag pushes only build here once the secrets exist and the repository variable
     # ALTILLO_CI_RELEASE is "true" (docs/release.md). Until then releases are published locally with
     # `script/release.sh <version> --publish`, whose tag must not start a second, secret-less run.
+    needs: [quality, website]
     if: github.event_name == 'workflow_dispatch' || vars.ALTILLO_CI_RELEASE == 'true'
     runs-on: macos-26
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # Build the requested tag. On a tag push `inputs.tag` is empty and checkout defaults to the
           # triggering tag; on workflow_dispatch this pins the tag instead of the default branch.
@@ -65,7 +119,7 @@ jobs:
       # Imports the Developer ID Application cert into a temporary keychain and adds it to the search
       # list (cleaned up automatically in a post step). script/release.sh finds it by team ID.
       - name: Import Developer ID certificate
-        uses: apple-actions/import-codesign-certs@v7
+        uses: apple-actions/import-codesign-certs@5142e029c445c10ffc7149d172e540235a065466 # v7
         with:
           p12-file-base64: ${{ secrets.ALTILLO_CERTIFICATE_P12 }}
           p12-password: ${{ secrets.ALTILLO_CERTIFICATE_PASSWORD }}

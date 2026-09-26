@@ -219,7 +219,7 @@ final class NoteStore {
             }
             saveCount += 1
         } catch {
-            SpikeLog.shared.record("utilities", "note: couldn't save (\(error.localizedDescription))")
+            DiagnosticLog.shared.record("utilities", "note: couldn't save (\(error.localizedDescription))")
         }
     }
 

@@ -67,7 +67,7 @@ extension NotchAlert {
     static let demoMeeting = NotchAlert(
         source: .calendar,
         symbol: "calendar",
-        title: String(localized: "Design review"),
+        title: String(localized: "Product sync"),
         detail: String(localized: "with Ana and Luis"),
         trailing: String(localized: "in 5 min"),
         isUrgent: true,

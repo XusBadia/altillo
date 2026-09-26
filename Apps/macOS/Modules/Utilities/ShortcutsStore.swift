@@ -138,7 +138,7 @@ final class ShortcutsStore {
             shortcuts = list
             phase = .ready
             if Self.showsDemo, pinnedIDs.isEmpty { pinnedIDs = list.prefix(3).map(\.id) }
-            SpikeLog.shared.record("shortcuts", "listed \(list.count) shortcuts")
+            DiagnosticLog.shared.record("shortcuts", "listed \(list.count) shortcuts")
         } catch ShortcutsCLI.Failure.missing {
             shortcuts = []
             phase = .missing
@@ -147,7 +147,7 @@ final class ShortcutsStore {
         } catch {
             // Keep what was listed before: a hiccup shouldn't empty the section.
             if shortcuts.isEmpty { phase = .failed(Self.message(for: error)) }
-            SpikeLog.shared.record("shortcuts", "list failed: \(error.localizedDescription)")
+            DiagnosticLog.shared.record("shortcuts", "list failed: \(error.localizedDescription)")
         }
     }
 
@@ -225,7 +225,7 @@ final class ShortcutsStore {
         defer { if let scratch { try? FileManager.default.removeItem(at: scratch) } }
 
         let arguments = ShortcutsCLI.runArguments(for: shortcut, inputPath: inputPath)
-        SpikeLog.shared.record("shortcuts", "run: \(ShortcutsCLI.displayCommand(arguments))")
+        DiagnosticLog.shared.record("shortcuts", "run: \(ShortcutsCLI.displayCommand(arguments))")
         let state: RunState
         do {
             let output = try await runner(arguments)
@@ -253,7 +253,7 @@ final class ShortcutsStore {
         case .succeeded: "done"
         case .failed: "failed"
         }
-        SpikeLog.shared.record("shortcuts", "\(shortcut.name): \(word)")
+        DiagnosticLog.shared.record("shortcuts", "\(shortcut.name): \(word)")
         clearTasks[shortcut.id] = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(4))
             guard !Task.isCancelled, let self, self.runs[shortcut.id] == state else { return }

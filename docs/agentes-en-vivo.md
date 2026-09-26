@@ -1,5 +1,31 @@
 # Agentes en vivo: investigación (septiembre 2026)
 
+## Qué son los hooks y cuándo hacen falta
+
+Un *hook* es un comando pequeño que una CLI ejecuta cuando empieza una sesión,
+usa una herramienta, pide permiso o termina un turno. El comando de Altillo
+solo entrega ese evento a la app local. No toma decisiones por su cuenta y, si
+Altillo no está abierto, termina sin bloquear la CLI.
+
+Los hooks son **opcionales** y se instalan por agente porque Claude Code,
+Codex, Gemini CLI, Copilot CLI y Cursor tienen configuraciones y formatos
+distintos. En **Ajustes › Secciones › Agentes**, pulsa «Instalar…» únicamente
+en las CLI que uses y revisa el diff antes de confirmar. Altillo hace una copia
+privada del fichero existente y conserva los ajustes y hooks ajenos. Codex
+requiere además abrir `/hooks` y confiar en los hooks nuevos o modificados.
+
+Sin hooks, Altillo sigue detectando de forma pasiva las sesiones de Claude
+Code, Codex y Gemini desde sus ficheros locales, pero el estado es menos preciso
+y no puede responder permisos o turnos desde el notch. OpenCode es la excepción:
+se conecta a su API local cuando se ejecuta `opencode serve` y no necesita
+instalar nada. No existe una integración universal fiable que pueda responder
+por todas las CLI; una API o extensión oficial seguiría siendo específica de
+cada agente.
+
+Antes de borrar la app, usa **Ajustes › Secciones › Agentes › Preparar la
+desinstalación…**. La guía completa está en
+[Desinstalación segura](desinstalacion-segura.md).
+
 Hay que volver a verificar los campos exactos contra la versión instalada de cada CLI antes de implementar, porque cambian rápido.
 
 ## Verificado contra las CLI instaladas (25-09-2026)

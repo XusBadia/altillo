@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10100f" />
+    <meta name="description" content="Qué guarda Altillo en tu Mac, cuándo se conecta a internet y qué datos nunca recopila." />
+    <link rel="canonical" href="https://altillo.app/es/privacidad/" />
+    <link rel="alternate" hreflang="en" href="https://altillo.app/privacy/" />
+    <link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
+    <link rel="alternate" hreflang="x-default" href="https://altillo.app/privacy/" />
+    <link rel="icon" href="/altillo-icon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/privacy.css" />
+    <title>Privacidad — Altillo</title>
+  </head>
+  <body>
+    <header class="shell">
+      <a class="brand" href="/es/"><img src="/altillo-icon.png" alt="" />altillo</a>
+      <nav class="languages" aria-label="Idioma"><a href="/privacy/">EN</a><a href="/es/privacidad/" aria-current="page">ES</a></nav>
+    </header>
+    <main class="shell">
+      <p class="eyebrow">Política de privacidad</p>
+      <h1>Tus cosas se quedan en tu Mac.</h1>
+      <p class="lede">Altillo no tiene analítica, publicidad ni telemetría. No nos envía tus archivos, calendario, portapapeles, imagen de cámara, sesiones de agentes, conversaciones de Pregunta ni credenciales.</p>
+      <p class="updated">Versión 1.0 · en vigor desde el 26 de septiembre de 2026</p>
+
+      <section><h2>Qué se queda en local</h2><p>Altillo guarda sus ajustes en las preferencias de macOS y el contenido que le pides recordar en su carpeta de Application Support. Puede incluir copias del estante, notas y su historial, temporizadores, historial opcional del portapapeles, elementos guardados de Pregunta, lecturas de consumo y registros de instalación de hooks. El acceso a calendario, multimedia y cámara usa permisos de macOS y permanece en el dispositivo. Al borrar un elemento dentro de Altillo se elimina la copia de Altillo; tú mantienes el control de los originales.</p></section>
+      <section>
+        <h2>Consultas de consumo de IA</h2>
+        <p>Cuando las activas, Altillo lee la credencial que ya guarda la app o CLI del proveedor y la presenta únicamente a ese mismo proveedor para pedir los límites de uso. Altillo no renueva, reescribe ni conserva otra copia de esas credenciales. Utiliza sesiones efímeras sin cookies persistentes ni caché en disco.</p>
+        <div class="destinations"><table>
+          <thead><tr><th>Herramienta</th><th>Destino de red</th><th>Qué se envía</th></tr></thead>
+          <tbody>
+            <tr><td>Claude Code</td><td><code>api.anthropic.com</code></td><td>El token de Claude y una petición de consumo de solo lectura.</td></tr>
+            <tr><td>Codex</td><td>Primero, el app-server local; si no responde, <code>chatgpt.com</code></td><td>No sale ninguna credencial si responde el servidor local. La alternativa envía el token de Codex y, si existe, el ID de cuenta de ChatGPT.</td></tr>
+            <tr><td>Cursor</td><td><code>api2.cursor.sh</code>, <code>cursor.com</code></td><td>El token o las cookies de la sesión de Cursor y peticiones de consumo de solo lectura.</td></tr>
+            <tr><td>GitHub Copilot</td><td><code>api.github.com</code></td><td>El token de GitHub/Copilot y una petición de consumo de solo lectura.</td></tr>
+            <tr><td>Gemini / Antigravity</td><td>Primero, el servidor de lenguaje local; si no responde, <code>daily-cloudcode-pa.googleapis.com</code> o <code>cloudcode-pa.googleapis.com</code></td><td>Las peticiones de loopback se quedan en el Mac. La alternativa envía el token de Google y una petición de consumo vacía.</td></tr>
+            <tr><td>Grok</td><td><code>cli-chat-proxy.grok.com</code></td><td>El token de la CLI de Grok y peticiones de facturación y ajustes de solo lectura.</td></tr>
+            <tr><td>OpenRouter</td><td><code>openrouter.ai</code></td><td>La clave API de OpenRouter y peticiones de créditos y clave de solo lectura.</td></tr>
+            <tr><td>Z.ai</td><td><code>api.z.ai</code></td><td>La clave API de Z.ai y peticiones de cuota y suscripción de solo lectura.</td></tr>
+            <tr><td>Devin / Windsurf</td><td>El servidor HTTPS guardado por Windsurf o <code>server.codeium.com</code></td><td>La clave API de Windsurf y los metadatos de cliente necesarios para pedir el consumo.</td></tr>
+            <tr><td>OpenCode Go</td><td><code>opencode.ai</code></td><td>La clave de OpenCode Go y una petición de consumo de solo lectura.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Esos proveedores reciben la petición bajo sus propias condiciones de privacidad. Altillo no recibe nada de ella.</p>
+      </section>
+      <section><h2>Pregunta y consultas web</h2><p>Pregunta funciona en el dispositivo por defecto. La web permanece desactivada hasta que la permites para una pregunta o en Ajustes. Una búsqueda breve derivada de la pregunta puede enviarse a DuckDuckGo, con Bing como alternativa; los lugares de consultas meteorológicas se envían a Open-Meteo; y Wikipedia puede usarse como referencia alternativa. Las páginas elegidas por el buscador pueden consultarse para preparar la respuesta. Las peticiones usan sesiones efímeras, sin una cuenta de Altillo ni cookies publicitarias. Esos servicios reciben la petición y aplican sus propias políticas.</p></section>
+      <section><h2>Agentes e integraciones locales</h2><p>Los hooks de agentes se comunican con Altillo mediante un socket Unix local. Altillo muestra las solicitudes de permiso y transmite solo tu decisión explícita; nunca aprueba automáticamente. La integración con OpenCode puede conectarse a su servidor local en tu Mac. La configuración y las copias de seguridad permanecen en Application Support, y «Preparar desinstalación» muestra cada cambio antes de aplicarlo.</p></section>
+      <section><h2>Actualizaciones, enlaces y diagnósticos</h2><p>Buscar actualizaciones consulta el feed firmado de Sparkle de Altillo en GitHub Pages; descargarlas contacta con GitHub Releases. Sonando puede descargar la carátula desde la URL que facilita la app multimedia activa. Abrir GitHub, Aurio, una reunión u otro enlace externo te lleva a ese servicio en el navegador. Los registros de las versiones públicas se quedan en tu Mac y omiten credenciales, texto de preguntas, contenido del portapapeles y rutas completas de archivos. «Copiar diagnóstico seguro» genera texto local únicamente con la versión de Altillo, macOS, arquitectura y estado de los hooks; no se sube nada automáticamente.</p></section>
+      <section><h2>Qué recopilamos</h2><p>Como Altillo no tiene cuenta, analítica ni un servidor de telemetría, no recibimos ni conservamos datos personales por el uso normal de la app. Si contactas con nosotros o abres una incidencia en GitHub, la información que decidas aportar será tratada por ese servicio y se conservará cuando sea necesario para responder o mantener el proyecto.</p></section>
+      <section><h2>Tu control</h2><ul><li>Desactiva cada módulo o permiso de macOS desde Ajustes de Altillo o Ajustes del Sistema.</li><li>Desactiva cuando quieras las consultas web y el historial opcional del portapapeles.</li><li>Usa «Preparar desinstalación» antes de borrar la app para retirar de forma segura los hooks propiedad de Altillo.</li><li>Borra los datos de Altillo en Application Support para eliminar su estado local guardado.</li></ul></section>
+      <section><h2>Preguntas</h2><p>Actualizaremos esta política cuando cambien los flujos de datos del producto. El repositorio es público para que se pueda inspeccionar la implementación.</p><a class="contact" href="https://github.com/XusBadia/altillo/issues/new?template=bug_report.yml">Contactar por GitHub</a></section>
+    </main>
+    <footer class="shell"><span>Altillo · código abierto con licencia MIT</span><a href="/es/">Volver a Altillo</a></footer>
+  </body>
+</html>

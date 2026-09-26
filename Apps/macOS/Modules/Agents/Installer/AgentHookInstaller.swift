@@ -101,6 +101,35 @@ struct AgentHookPlan: Equatable, Sendable, Identifiable {
     var changesNothing: Bool { diff.isEmpty && (newText != nil || originalData == nil) }
 }
 
+/// Everything Altillo can safely remove before the app itself is deleted. Files that cannot be parsed are never
+/// guessed at: they are returned as manual steps with the exact file to inspect.
+struct AgentHooksUninstallPreparation: Equatable, Sendable, Identifiable {
+    struct ManualStep: Equatable, Sendable, Identifiable {
+        let target: AgentHookTarget
+        let fileURL: URL
+        let reason: String
+
+        var id: AgentHookTarget { target }
+    }
+
+    let plans: [AgentHookPlan]
+    let manualSteps: [ManualStep]
+
+    var id: String { "prepare-to-uninstall" }
+    var isEmpty: Bool { plans.isEmpty && manualSteps.isEmpty }
+}
+
+/// One target's result in a multi-agent removal. A failure never prevents the remaining independent targets from
+/// being attempted, and the UI reports every result explicitly.
+struct AgentHookRemovalResult: Equatable, Sendable, Identifiable {
+    let target: AgentHookTarget
+    let backup: URL?
+    let errorDescription: String?
+
+    var id: AgentHookTarget { target }
+    var succeeded: Bool { errorDescription == nil }
+}
+
 /// What Altillo remembers about an install, so removing it leaves the file as it was: containers it created are
 /// removed again once empty, containers the user had are left even if empty. Stored in Altillo's own support
 /// directory; nothing is ever added to the agent's file beyond the hook entries.
@@ -270,6 +299,28 @@ struct AgentHookInstaller: Sendable {
         return plan(target, .uninstall, loaded, newText: newText, record: keepRecord)
     }
 
+    /// Builds the complete, read-only preview used by “Prepare to uninstall”. Only plans that actually change a
+    /// file are included. An unreadable/shared configuration becomes a manual step instead of a risky edit.
+    func prepareToUninstall() -> AgentHooksUninstallPreparation {
+        var plans: [AgentHookPlan] = []
+        var manualSteps: [AgentHooksUninstallPreparation.ManualStep] = []
+        for target in AgentHookTarget.allCases {
+            do {
+                let plan = try planUninstall(target)
+                if !plan.changesNothing { plans.append(plan) }
+            } catch AgentHookError.agentNotFound {
+                continue
+            } catch AgentHookError.unreadable(let reason) {
+                manualSteps.append(.init(target: target, fileURL: environment.configFile(for: target),
+                                         reason: reason))
+            } catch {
+                manualSteps.append(.init(target: target, fileURL: environment.configFile(for: target),
+                                         reason: error.localizedDescription))
+            }
+        }
+        return AgentHooksUninstallPreparation(plans: plans, manualSteps: manualSteps)
+    }
+
     private func plan(_ target: AgentHookTarget, _ action: AgentHookPlan.Action, _ loaded: Loaded,
                       newText: String?, record: AgentHookInstallRecord?) -> AgentHookPlan {
         let name = environment.displayPath(loaded.fileURL)
@@ -334,6 +385,21 @@ struct AgentHookInstaller: Sendable {
 
         try saveRecord(plan.action == .uninstall ? nil : plan.record, for: plan.target)
         return Outcome(backup: backup)
+    }
+
+    /// Applies every reviewed removal independently. This deliberately continues after a failure so a problem in
+    /// one CLI's configuration cannot leave removable Altillo hooks behind in the others.
+    func applyUninstall(_ plans: [AgentHookPlan]) -> [AgentHookRemovalResult] {
+        plans.map { plan in
+            do {
+                let outcome = try apply(plan)
+                return AgentHookRemovalResult(target: plan.target, backup: outcome.backup,
+                                              errorDescription: nil)
+            } catch {
+                return AgentHookRemovalResult(target: plan.target, backup: nil,
+                                              errorDescription: error.localizedDescription)
+            }
+        }
     }
 
     private func makeBackup(_ data: Data, for target: AgentHookTarget) throws(AgentHookError) -> URL {

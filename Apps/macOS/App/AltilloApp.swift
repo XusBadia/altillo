@@ -11,10 +11,12 @@ struct AltilloApp: App {
             Image(nsImage: Self.menuBarIcon)
                 .accessibilityLabel("Altillo")
         }
+        #if DEBUG
         Window("Spike log", id: SpikeLogView.windowID) {
             SpikeLogView(log: .shared)
         }
         .defaultSize(width: 720, height: 480)
+        #endif
     }
 
     /// Status items use an image's point size, even when its source is vector art.
@@ -60,6 +62,7 @@ struct AppMenu: View {
             .keyboardShortcut("z", modifiers: [.command, .shift])
             .disabled(!coordinator.model.canRedoShelfChange)
         Divider()
+        #if DEBUG
         Menu("Design review") {
             ForEach(DesignScenario.allCases) { scenario in
                 Button(scenario.title) { coordinator.show(scenario) }
@@ -71,6 +74,7 @@ struct AppMenu: View {
             NSApp.activate()
             openWindow(id: SpikeLogView.windowID)
         }
+        #endif
         Divider()
         Button("Empty the shelf") { coordinator.model.actions.clearShelf() }
             .disabled(coordinator.model.shelf.isEmpty)

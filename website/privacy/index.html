@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10100f" />
+    <meta name="description" content="What Altillo stores on your Mac, when it connects to the internet and what it never collects." />
+    <link rel="canonical" href="https://altillo.app/privacy/" />
+    <link rel="alternate" hreflang="en" href="https://altillo.app/privacy/" />
+    <link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
+    <link rel="alternate" hreflang="x-default" href="https://altillo.app/privacy/" />
+    <link rel="icon" href="/altillo-icon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/privacy.css" />
+    <title>Privacy — Altillo</title>
+  </head>
+  <body>
+    <header class="shell">
+      <a class="brand" href="/"><img src="/altillo-icon.png" alt="" />altillo</a>
+      <nav class="languages" aria-label="Language"><a href="/privacy/" aria-current="page">EN</a><a href="/es/privacidad/">ES</a></nav>
+    </header>
+    <main class="shell">
+      <p class="eyebrow">Privacy policy</p>
+      <h1>Your things stay on your Mac.</h1>
+      <p class="lede">Altillo has no analytics, advertising or telemetry service. It does not send us your files, calendar, clipboard, camera image, agent sessions, Ask conversations or credentials.</p>
+      <p class="updated">Version 1.0 · effective 26 September 2026</p>
+
+      <section><h2>What stays local</h2><p>Altillo stores its settings in macOS preferences and the content you ask it to remember in its Application Support folder. This can include shelf copies, notes and their history, timers, optional clipboard history, saved Ask items, usage snapshots and agent-hook installation records. Calendar, media and camera access use macOS permissions and remain on the device. Removing an item inside Altillo removes Altillo’s copy; retention of originals remains under your control.</p></section>
+      <section>
+        <h2>AI usage checks</h2>
+        <p>When you enable usage checks, Altillo reads the sign-in or API credential already stored by the provider’s own app or CLI and presents it only to that same provider to request quota information. Altillo does not refresh, rewrite or retain a separate copy of those credentials. It uses ephemeral sessions without a persistent cookie or disk cache.</p>
+        <div class="destinations"><table>
+          <thead><tr><th>Tool</th><th>Network destination</th><th>What is sent</th></tr></thead>
+          <tbody>
+            <tr><td>Claude Code</td><td><code>api.anthropic.com</code></td><td>Claude access token and a read-only usage request.</td></tr>
+            <tr><td>Codex</td><td>Local app-server first; otherwise <code>chatgpt.com</code></td><td>No internet credential when the local server answers. The fallback sends the Codex token and, when present, the ChatGPT account ID.</td></tr>
+            <tr><td>Cursor</td><td><code>api2.cursor.sh</code>, <code>cursor.com</code></td><td>Cursor access token or session cookies and read-only usage requests.</td></tr>
+            <tr><td>GitHub Copilot</td><td><code>api.github.com</code></td><td>GitHub/Copilot token and a read-only usage request.</td></tr>
+            <tr><td>Gemini / Antigravity</td><td>Local language server first; otherwise <code>daily-cloudcode-pa.googleapis.com</code> or <code>cloudcode-pa.googleapis.com</code></td><td>Loopback requests stay on this Mac. The fallback sends the Google access token and an empty usage request.</td></tr>
+            <tr><td>Grok</td><td><code>cli-chat-proxy.grok.com</code></td><td>Grok CLI token and read-only billing and settings requests.</td></tr>
+            <tr><td>OpenRouter</td><td><code>openrouter.ai</code></td><td>OpenRouter API key and read-only credit and key requests.</td></tr>
+            <tr><td>Z.ai</td><td><code>api.z.ai</code></td><td>Z.ai API key and read-only quota and subscription requests.</td></tr>
+            <tr><td>Devin / Windsurf</td><td>The HTTPS server saved by Windsurf, or <code>server.codeium.com</code></td><td>Windsurf API key and client metadata required for the usage request.</td></tr>
+            <tr><td>OpenCode Go</td><td><code>opencode.ai</code></td><td>OpenCode Go key and a read-only usage request.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Those providers receive the request under their own privacy terms. Altillo receives none of it.</p>
+      </section>
+      <section><h2>Ask and web lookups</h2><p>Ask runs on-device by default. Web access is off until you allow it for one question or in Settings. A short search derived from the question may then go to DuckDuckGo, with Bing as a fallback; weather place names go to Open-Meteo; and Wikipedia may be used as a reference fallback. Result pages selected by the search may be fetched to prepare the answer. Requests use ephemeral sessions without an Altillo account or advertising cookies. Those services receive the request and apply their own privacy policies.</p></section>
+      <section><h2>Agents and local integrations</h2><p>Agent hooks communicate with Altillo through a local Unix socket. Altillo shows permission requests and relays only your explicit choice; it never auto-approves. OpenCode integration may connect to its loopback server on your Mac. Hook configuration and backups stay locally in Application Support, and “Prepare to uninstall” previews every change before removal.</p></section>
+      <section><h2>Updates, links and diagnostics</h2><p>Checking for updates contacts Altillo’s signed Sparkle feed on GitHub Pages; downloading one contacts GitHub Releases. Now Playing may download artwork from the URL supplied by the active media app. Opening GitHub, Aurio, a meeting or another external link sends you to that service in your browser. Release logs stay on your Mac and redact credentials, question text, clipboard content and full file paths. “Copy Safe Diagnostics” creates local text containing only the Altillo version, macOS version, architecture and hook status; nothing is uploaded automatically.</p></section>
+      <section><h2>What we collect</h2><p>Because Altillo has no account, analytics or telemetry backend, we do not receive or retain personal data from normal app use. If you contact us or file a GitHub issue, the information you choose to provide is handled by that communication service and retained as needed to answer or maintain the project.</p></section>
+      <section><h2>Your control</h2><ul><li>Disable each module or its macOS permission in Altillo Settings or System Settings.</li><li>Turn web lookups and optional clipboard history off at any time.</li><li>Use “Prepare to uninstall” before deleting the app to remove Altillo-owned agent hooks safely.</li><li>Delete Altillo’s Application Support data to remove its local saved state.</li></ul></section>
+      <section><h2>Questions</h2><p>This policy changes when the product’s data flows change. The repository is public so the implementation can be inspected.</p><a class="contact" href="https://github.com/XusBadia/altillo/issues/new?template=bug_report.yml">Contact us on GitHub</a></section>
+    </main>
+    <footer class="shell"><span>Altillo · open source under MIT</span><a href="/">Back to Altillo</a></footer>
+  </body>
+</html>

@@ -220,7 +220,7 @@ final class AssistantStore {
     private func refreshAvailability() {
         let now = Availability(SystemLanguageModel.default.availability)
         if now != availability {
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "availability \(availability) → \(now)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "availability \(availability) → \(now)")
             availability = now
         }
         prepareSession()
@@ -287,7 +287,7 @@ final class AssistantStore {
         isResponding = true
         respondingTo = exchange.id
         activity = nil
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "ask (\(question.count) chars)")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "ask (\(question.count) chars)")
         responseTask = Task { [weak self] in
             await self?.respond(to: question, exchange: exchange.id)
         }
@@ -297,7 +297,7 @@ final class AssistantStore {
     func cancel() {
         guard isResponding else { return }
         responseTask?.cancel()
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "stop")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "stop")
     }
 
     /// Forgets the conversation (and what was attached) and starts over.
@@ -314,7 +314,7 @@ final class AssistantStore {
         prewarmed = nil
         refreshAvailability()
         refreshSuggestions()
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "new conversation")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "new conversation")
     }
 
     /// Copies an answer as plain text.
@@ -338,7 +338,7 @@ final class AssistantStore {
             $0.sources = []
             $0.webSources = []
         }
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "web search allowed for one question")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "web search allowed for one question")
         let question = exchange.question
         responseTask = Task { [weak self] in
             await self?.respondFromWeb(to: question, exchange: exchange.id)
@@ -348,7 +348,7 @@ final class AssistantStore {
     /// "Always allow": web lookups on for good (the Settings toggle), and this question searched right away.
     func alwaysAllowWeb(for exchange: Exchange) {
         context.allowWebSearch()
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "web search always allowed")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "web search always allowed")
         searchWeb(for: exchange)
     }
 
@@ -368,7 +368,7 @@ final class AssistantStore {
         let text = AssistantFormat.plainText(exchange.answer)
         guard !text.isEmpty else { return }
         context.addToShelf([ShelfItem(kind: .text(text), displayName: AssistantFormat.shelfName(question: exchange.question))])
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "answer put up on the shelf")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "answer put up on the shelf")
     }
 
     // MARK: - Attachments (phase 13)
@@ -380,7 +380,7 @@ final class AssistantStore {
         attachTask?.cancel()
         isAttaching = true
         showsSaved = false
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "attaching \(items.count) dropped item(s)")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "attaching \(items.count) dropped item(s)")
         attachTask = Task { [weak self] in
             let read = await Task.detached(priority: .userInitiated) { await AssistantAttachments.read(items) }.value
             guard let self, !Task.isCancelled else { return }
@@ -388,7 +388,7 @@ final class AssistantStore {
             self.isAttaching = false
             self.attachTask = nil
             let kind = read.map { String(describing: $0.kind) } ?? "nothing"
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "attached \(kind) (\(read?.text.count ?? 0) chars)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "attached \(kind) (\(read?.text.count ?? 0) chars)")
         }
     }
 
@@ -417,7 +417,7 @@ final class AssistantStore {
         } else {
             saved.save(question: exchange.question, answer: exchange.answer, exchangeID: exchange.id,
                        attachmentName: exchange.attachmentName)
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "answer saved")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "answer saved")
         }
     }
 
@@ -445,7 +445,7 @@ final class AssistantStore {
         let reminders = self.reminders
         Task { [weak self] in
             let removed = await AssistantReminders.undo(identifier: identifier, store: reminders)
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "reminder undo → \(removed)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "reminder undo → \(removed)")
             self?.update(exchange.id) { exchange in
                 guard let index = exchange.receipts.firstIndex(where: { $0.id == receipt.id }) else { return }
                 // Undone only when it really went; otherwise the card says so.
@@ -465,7 +465,7 @@ final class AssistantStore {
         }
         Task { [weak self] in
             let made = await AssistantReminders.accept(offer, store: reminders, now: .now)
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "reminder offer accepted → \(made != nil)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "reminder offer accepted → \(made != nil)")
             self?.update(exchange.id) { exchange in
                 guard let index = exchange.receipts.firstIndex(where: { $0.id == receipt.id }) else { return }
                 if let made {
@@ -482,7 +482,7 @@ final class AssistantStore {
     private func replyToAgent(_ request: AgentReplyIntent.Request, exchange id: UUID) {
         noteActivity(.agents)
         let result = context.replyToAgent(request)
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "agent reply → \(result.receipt == nil ? "not sent" : "sent")")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "agent reply → \(result.receipt == nil ? "not sent" : "sent")")
         update(id) {
             $0.answer = result.answer
             if let receipt = result.receipt { $0.receipts.append(receipt) }
@@ -540,7 +540,7 @@ final class AssistantStore {
         // With something attached, questions are about it, unless they explicitly ask for an action.
         let attached = exchanges.first(where: { $0.id == id })?.attachmentName != nil ? attachment : nil
         if let attached, !route.acts, !AssistantRouter.asksForTimer(question), !AssistantRouter.asksForNote(question) {
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "route attachment (\(attached.text.count) chars)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "route attachment (\(attached.text.count) chars)")
             do {
                 try await answer(AssistantAttachments.prompt(for: question, attachment: attached), route: .chat, into: id)
             } catch {
@@ -550,7 +550,7 @@ final class AssistantStore {
             finish(id, error: Task.isCancelled ? CancellationError() : nil)
             return
         }
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "route \(route.rawValue)")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "route \(route.rawValue)")
         if route == .live && webAllowed {
             await respondFromWeb(to: question, exchange: id)
             return
@@ -575,7 +575,7 @@ final class AssistantStore {
         if !Task.isCancelled, webAllowed, !route.acts,
            let exchange = exchanges.first(where: { $0.id == id }), !exchange.usedWeb,
            AssistantLiveness.answerAdmitsNotKnowing(AssistantFormat.plainText(exchange.answer)) {
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "the model can't know: looking it up")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "the model can't know: looking it up")
             await respondFromWeb(to: question, exchange: id)
             return
         }
@@ -597,8 +597,8 @@ final class AssistantStore {
             return
         }
         noteWebSources(lookup.sources)
-        SpikeLog.shared.record(
-            SpikeLog.Category.assistant, "web lookup → \(lookup.backend.rawValue), \(lookup.text.count) chars"
+        DiagnosticLog.shared.record(
+            DiagnosticLog.Category.assistant, "web lookup → \(lookup.backend.rawValue), \(lookup.text.count) chars"
         )
         do {
             try await answer(AssistantInstructions.prompt(for: question, webResults: lookup.text), route: .live, into: id)
@@ -618,7 +618,7 @@ final class AssistantStore {
             try await stream(prompt, in: session, into: id)
         } catch let error where [.contextFull, .other].contains(AssistantFailure(error)) && !Task.isCancelled
             && !hasActed(id, route: route) {
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "\(AssistantFailure(error)): retrying in a fresh session")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "\(AssistantFailure(error)): retrying in a fresh session")
             update(id) {
                 $0.answer = ""
                 $0.status = .thinking
@@ -666,14 +666,14 @@ final class AssistantStore {
                     answer: AssistantFormat.plainText(exchange.answer),
                     usedLocalTools: exchange.sources.contains(where: \.isLocalContext)
                 )
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "answered (\(exchanges[index].answer.count) chars)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "answered (\(exchanges[index].answer.count) chars)")
         case is CancellationError:
             exchanges[index].status = .stopped
             return
         case let error?:
             let failure = AssistantFailure(error)
             exchanges[index].status = .failed(failure)
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "failed: \(failure) — \(error)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "failed: \(failure) — \(error)")
         }
 
         guard !context.isVisible() else { return }

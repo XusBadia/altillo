@@ -65,7 +65,7 @@ final class NotchCoordinator {
         let restoration = shelfStore.restore(expiry: model.settings.shelfExpiry)
         model.shelf = restoration.items
         if case .recoveredFromCorruptSnapshot = restoration {
-            SpikeLog.shared.record(SpikeLog.Category.shelf, "The damaged state was set aside; the shelf starts empty")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.shelf, "The damaged state was set aside; the shelf starts empty")
         } else if case .failed = restoration {
             model.shelfProblem = String(localized: "I couldn't restore the shelf. I've kept its data so nothing gets overwritten.")
         }
@@ -287,7 +287,7 @@ final class NotchCoordinator {
             }
         }
         let kind = plan.live.hasNotch ? "notch" : "island"
-        SpikeLog.shared.record("screens", "\(screens.count) screen(s), mode \(displayMode.rawValue), live on "
+        DiagnosticLog.shared.record("screens", "\(screens.count) screen(s), mode \(displayMode.rawValue), live on "
             + "\(plan.live.id) (\(kind)), \(restingNotches.count) resting")
         refreshFullScreen()
         apply()
@@ -382,7 +382,7 @@ final class NotchCoordinator {
         let displays = behaviour.quietensOverFullScreen ? FullScreenDetector.fullScreenDisplays(among: screens) : []
         if displays != fullScreenDisplays {
             fullScreenDisplays = displays
-            SpikeLog.shared.record("screens", "Full-screen app on \(displays.count) display(s): \(displays.sorted())")
+            DiagnosticLog.shared.record("screens", "Full-screen app on \(displays.count) display(s): \(displays.sorted())")
             // A peek (an alert, a hover hint) over a screen that just went full screen leaves with it.
             if isQuietOverFullScreen, machine.state == .peek {
                 cancel(.hoverIntent)
@@ -407,7 +407,7 @@ final class NotchCoordinator {
         let liveHidden = model.scenario == nil && fullScreenDisplays.contains(window.screenID)
             && behaviour.hidesNotch(in: machine.state, dragIsClose: model.dragProximity > 0)
         if window.isShown == liveHidden, !fullScreenDisplays.isEmpty {
-            SpikeLog.shared.record("screens", "\(liveHidden ? "Out of sight" : "Back") over a full-screen app, \(machine.state)")
+            DiagnosticLog.shared.record("screens", "\(liveHidden ? "Out of sight" : "Back") over a full-screen app, \(machine.state)")
         }
         window.setShown(!liveHidden)
         for (id, resting) in restingNotches {
@@ -450,7 +450,7 @@ final class NotchCoordinator {
         if !model.settings.modules.contains(model.module) { model.module = .shelf }
         let state = machine.state
         let previous = model.state
-        if state != previous { SpikeLog.shared.record("notch", "\(previous) → \(state)") }
+        if state != previous { DiagnosticLog.shared.record("notch", "\(previous) → \(state)") }
         let indicator = indicatorTarget
         if state != .idle, state != .peek { indicatorTarget = nil }
         withAnimation(state == .idle ? .closeNotch : .openNotch) {
@@ -592,11 +592,11 @@ final class NotchCoordinator {
         model.isReceivingDrop = false
         send(.escape)
         guard sharingController.sendViaAirDrop(items, cleanupOwnedCopies: cleanupOwnedCopies) else {
-            SpikeLog.shared.record(SpikeLog.Category.drop, "AirDrop unavailable for \(items.count) item(s)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.drop, "AirDrop unavailable for \(items.count) item(s)")
             NSSound.beep()
             return
         }
-        SpikeLog.shared.record(SpikeLog.Category.drop, "AirDrop: sending \(items.count) item(s)")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.drop, "AirDrop: sending \(items.count) item(s)")
         NSApp.activate()
     }
 
@@ -1058,7 +1058,7 @@ final class NotchCoordinator {
             return true
         } catch {
             model.shelfProblem = String(localized: "I couldn't save the shelf's changes. Your earlier data is still safe.")
-            SpikeLog.shared.record(SpikeLog.Category.shelf, "FAILED saving the shelf: \(error.localizedDescription)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.shelf, "FAILED saving the shelf: \(error.localizedDescription)")
             return false
         }
     }
@@ -1067,7 +1067,7 @@ final class NotchCoordinator {
         guard model.scenario == nil else { return }
         let expired = shelfStore.expiredItems(in: model.shelf, expiry: model.settings.shelfExpiry)
         if !expired.isEmpty {
-            SpikeLog.shared.record(SpikeLog.Category.shelf, "\(expired.count) item(s) expired")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.shelf, "\(expired.count) item(s) expired")
             remove(Set(expired.map(\.id)), undoable: false)
         } else {
             scheduleShelfExpiry()

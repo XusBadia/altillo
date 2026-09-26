@@ -90,7 +90,7 @@ final class DragDetector {
             }
         case .leftMouseUp:
             if case .dragging = phase {
-                SpikeLog.shared.record(SpikeLog.Category.dragEnd, "dropped at \(Self.describe(NSEvent.mouseLocation))")
+                DiagnosticLog.shared.record(DiagnosticLog.Category.dragEnd, "dropped at \(Self.describe(NSEvent.mouseLocation))")
                 phase = .idle
                 callbacks.ended()
             } else {
@@ -107,23 +107,18 @@ final class DragDetector {
             phase = .ignored
             return
         }
-        let app = NSWorkspace.shared.frontmostApplication?.localizedName ?? "?"
         let items = pasteboard.pasteboardItems?.count ?? 0
         guard DragPasteboard.isDroppable(types) else {
             phase = .ignored
-            SpikeLog.shared.record(SpikeLog.Category.dragStart,
-                                   "ignored (no acceptable types) · app: \(app) · types: \(Self.describe(types))")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.dragStart,
+                                         "ignored (no acceptable drag type) · \(types.count) type(s)")
             return
         }
         phase = .dragging
-        SpikeLog.shared.record(SpikeLog.Category.dragStart,
-                               "app: \(app) · \(items) item(s) · types: \(Self.describe(types))")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.dragStart,
+                                     "accepted \(items) item(s) · \(types.count) type(s)")
         callbacks.began()
         callbacks.moved(NSEvent.mouseLocation)
-    }
-
-    private static func describe(_ types: [NSPasteboard.PasteboardType]) -> String {
-        types.isEmpty ? "—" : types.map(\.rawValue).joined(separator: ", ")
     }
 
     private static func describe(_ point: CGPoint) -> String {

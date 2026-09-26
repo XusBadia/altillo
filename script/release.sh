@@ -286,6 +286,13 @@ if [ "$NOTARIZE" = 1 ]; then
   echo "==> notarized + stapled"
 fi
 
+if [ "$NOTARIZE" = 1 ]; then
+  echo "==> smoke-testing the distributable DMG"
+  "$ROOT_DIR/script/smoke-release.sh" "$DMG_PATH"
+else
+  echo "    Skipping Gatekeeper smoke for the unnotarized dry-run artifact."
+fi
+
 # ---- appcast ------------------------------------------------------------------------------------------
 
 echo "==> generating appcast"
@@ -354,12 +361,18 @@ if [ "$PUBLISH" = 0 ]; then
 fi
 
 echo "==> publishing v$VERSION"
+RELEASE_NOTES="$ROOT_DIR/docs/releases/$VERSION.md"
+[[ -f "$RELEASE_NOTES" ]] || {
+  echo "Missing release notes: $RELEASE_NOTES" >&2
+  echo "Copy docs/releases/TEMPLATE.md, describe changes and known limitations, then retry." >&2
+  exit 1
+}
 PRERELEASE_ARGS=()
 [[ "$VERSION" == *-* ]] && PRERELEASE_ARGS=(--prerelease)
 gh release create "v$VERSION" "$DMG_PATH" \
   --repo "$REPO_SLUG" \
   --title "Altillo $VERSION" \
-  --generate-notes \
+  --notes-file "$RELEASE_NOTES" \
   "${PRERELEASE_ARGS[@]}"
 
 echo "==> publishing appcast to gh-pages"

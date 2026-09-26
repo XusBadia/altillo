@@ -566,7 +566,12 @@ h2 {
   font-size: 22px;
   color: #e1e1d5;
 }
-.site-footer > a:last-child {
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.footer-links a {
   padding-block: 15px;
 }
 @media (min-width: 1700px) {
@@ -898,7 +903,10 @@ h2 {
     font-size: 10px;
     padding-top: 0;
   }
-  .site-footer > a:last-child {
+  .footer-links {
+    gap: 14px;
+  }
+  .footer-links a {
     font-size: 9px;
   }
   .site-footer .brand {

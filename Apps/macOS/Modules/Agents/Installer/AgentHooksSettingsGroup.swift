@@ -17,6 +17,9 @@ final class AgentHooksModel {
     private(set) var reports: [AgentHookReport] = []
     /// The plan being reviewed in the diff sheet.
     var review: AgentHookPlan?
+    /// The all-agents preview shown before the user deletes Altillo.
+    var uninstallPreparation: AgentHooksUninstallPreparation?
+    private(set) var uninstallSummary: String?
     private(set) var feedback: [AgentHookTarget: Feedback] = [:]
     /// Agents whose stop hook waits for a reply from the notch (opt-in, off by default; phase 14).
     private(set) var replyTargets: Set<AgentHookTarget>
@@ -141,6 +144,55 @@ final class AgentHooksModel {
         }
         refresh(wait: wait)
     }
+
+    func prepareToUninstall(wait: Int) {
+        uninstallSummary = nil
+        let preparation = installer(wait: wait).prepareToUninstall()
+        if preparation.isEmpty {
+            uninstallSummary = String(localized: "No Altillo hooks are installed. You can delete the app safely.")
+        } else {
+            uninstallPreparation = preparation
+        }
+    }
+
+    func confirmUninstall(_ plans: [AgentHookPlan], wait: Int) {
+        let preparation = uninstallPreparation
+        let manualSteps = preparation?.manualSteps ?? []
+        let selectedTargets = Set(plans.map(\.target))
+        let unselected = preparation?.plans.filter { !selectedTargets.contains($0.target) } ?? []
+        uninstallPreparation = nil
+        let results = installer(wait: wait).applyUninstall(plans)
+        for result in results {
+            if let error = result.errorDescription {
+                feedback[result.target] = Feedback(text: error, isError: true)
+            } else {
+                feedback[result.target] = Feedback(
+                    text: String(localized: "Hooks removed. This agent is ready for Altillo to be deleted."),
+                    isError: false, backup: result.backup
+                )
+            }
+        }
+        for step in manualSteps {
+            feedback[step.target] = Feedback(
+                text: String(localized: "Not changed automatically. Open the file and remove only Altillo's hook entries."),
+                isError: true
+            )
+        }
+        for plan in unselected {
+            feedback[plan.target] = Feedback(
+                text: String(localized: "Still installed. Remove these hooks before deleting Altillo."),
+                isError: true
+            )
+        }
+        let removed = results.filter(\.succeeded).count
+        let failed = results.count - removed
+        if failed == 0, manualSteps.isEmpty, unselected.isEmpty {
+            uninstallSummary = String(localized: "All selected Altillo hooks were removed. You can now delete the app.")
+        } else {
+            uninstallSummary = String(localized: "Removed \(removed); \(failed + manualSteps.count + unselected.count) still need attention before deleting Altillo.")
+        }
+        refresh(wait: wait)
+    }
 }
 
 /// Settings › Sections › Agents: per agent, whether Altillo's hooks are in, and the buttons to install, update or
@@ -166,7 +218,7 @@ struct SettingsAgentsGroup: View {
                     }
                 }
                 SettingsOpenCodeRow()
-                Text("Hooks let an agent tell Altillo what it's doing and ask you for permission in the notch. Without them Altillo still shows your sessions from the agents' own session files, but can't approve anything.")
+                Text("Hooks are optional and installed separately for each CLI. They give Altillo precise live events, permission requests and replies. Without hooks, Claude Code, Codex and Gemini still appear from local session files with less detail; Copilot and Cursor need hooks. OpenCode uses its local API and needs nothing installed.")
                     .settingsHint()
                 if showsReplySwitch {
                     replyFootnote
@@ -192,6 +244,21 @@ struct SettingsAgentsGroup: View {
                 Text("Altillo never approves anything on its own. If Altillo is closed or you don't answer in time, the agent asks in the terminal as usual.")
                     .settingsHint()
             }
+
+            VStack(alignment: .leading, spacing: 5) {
+                Button("Prepare to Uninstall…") {
+                    model.prepareToUninstall(wait: settings.agentPermissionWait)
+                }
+                .controlSize(.small)
+                Text("Before deleting Altillo, remove its hooks so no CLI keeps a command pointing to a missing app. You'll review every file first; backups are made and other hooks stay untouched.")
+                    .settingsHint()
+                if let summary = model.uninstallSummary {
+                    Text(summary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
         }
         .padding(.vertical, 6)
         .onAppear { model.refresh(wait: settings.agentPermissionWait) }
@@ -204,6 +271,15 @@ struct SettingsAgentsGroup: View {
                                  backups: model.backupsPath,
                                  cancel: { model.cancelReview(wait: settings.agentPermissionWait) },
                                  confirm: { model.confirm(plan, wait: settings.agentPermissionWait) })
+        }
+        .sheet(item: $model.uninstallPreparation) { preparation in
+            AgentHooksUninstallSheet(
+                preparation: preparation,
+                path: model.displayPath,
+                backups: model.backupsPath,
+                cancel: { model.uninstallPreparation = nil },
+                confirm: { model.confirmUninstall($0, wait: settings.agentPermissionWait) }
+            )
         }
     }
 
@@ -230,6 +306,110 @@ struct SettingsAgentsGroup: View {
         case let seconds where seconds % 60 == 0: String(localized: "\(seconds / 60) min")
         default: String(localized: "\(seconds) s")
         }
+    }
+}
+
+/// One review for every CLI before Altillo is removed. Each safe target is selected explicitly; ambiguous files
+/// are never edited and instead show the exact manual action.
+private struct AgentHooksUninstallSheet: View {
+    let preparation: AgentHooksUninstallPreparation
+    let path: (URL) -> String
+    let backups: String
+    let cancel: () -> Void
+    let confirm: ([AgentHookPlan]) -> Void
+
+    @State private var selected: Set<AgentHookTarget>
+
+    init(preparation: AgentHooksUninstallPreparation, path: @escaping (URL) -> String, backups: String,
+         cancel: @escaping () -> Void, confirm: @escaping ([AgentHookPlan]) -> Void) {
+        self.preparation = preparation
+        self.path = path
+        self.backups = backups
+        self.cancel = cancel
+        self.confirm = confirm
+        _selected = State(initialValue: Set(preparation.plans.map(\.target)))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Prepare to Uninstall Altillo")
+                    .font(Desvan.Typeface.display(17, weight: 650))
+                    .foregroundStyle(Desvan.Palette.paper)
+                Text("Choose each agent to clean up. Altillo removes only commands it owns, saves the current file in \(backups), and then confirms the result for every agent.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 14) {
+                    ForEach(preparation.plans) { plan in
+                        VStack(alignment: .leading, spacing: 7) {
+                            Toggle(isOn: selection(for: plan.target)) {
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(plan.target.displayName)
+                                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                                    Text(verbatim: path(plan.fileURL))
+                                        .font(.system(size: 10.5, design: .monospaced))
+                                        .foregroundStyle(Desvan.Palette.paperTertiary)
+                                }
+                            }
+                            .toggleStyle(.checkbox)
+                            AgentHookDiffView(diff: plan.diff)
+                                .frame(height: 150)
+                                .opacity(selected.contains(plan.target) ? 1 : 0.45)
+                        }
+                    }
+
+                    ForEach(preparation.manualSteps) { step in
+                        VStack(alignment: .leading, spacing: 5) {
+                            Label("\(step.target.displayName) needs manual cleanup", systemImage: "exclamationmark.triangle.fill")
+                                .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                                .foregroundStyle(Desvan.Palette.warning)
+                            Text(verbatim: path(step.fileURL))
+                                .font(.system(size: 10.5, design: .monospaced))
+                                .textSelection(.enabled)
+                            Text("Altillo left this file untouched because \(step.reason) Open it and remove only complete hook entries whose command, bash or exec value runs `altillo-hook`. Leave every other setting and hook unchanged.")
+                                .settingsHint()
+                            Button("Open File") { NSWorkspace.shared.open(step.fileURL) }
+                                .controlSize(.small)
+                        }
+                        .padding(10)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Desvan.Palette.warning.opacity(0.08)))
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+
+            HStack {
+                Spacer()
+                Button("Cancel", role: .cancel, action: cancel)
+                    .keyboardShortcut(.cancelAction)
+                Button(removeTitle) {
+                    confirm(preparation.plans.filter { selected.contains($0.target) })
+                }
+                .disabled(selected.isEmpty)
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(20)
+        .frame(width: 680, height: 680)
+        .background(Desvan.Palette.wood)
+        .environment(\.colorScheme, .dark)
+    }
+
+    private func selection(for target: AgentHookTarget) -> Binding<Bool> {
+        Binding(
+            get: { selected.contains(target) },
+            set: { on in
+                if on { selected.insert(target) } else { selected.remove(target) }
+            }
+        )
+    }
+
+    private var removeTitle: String {
+        String(localized: "Remove Hooks (\(selected.count))")
     }
 }
 

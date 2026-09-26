@@ -22,7 +22,7 @@ struct ClipboardHistoryTool: Tool {
         await report(.clipboard)
         let reading = await reading()
         let answer = ClipboardAsk.answer(reading, search: arguments.search, now: .now)
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool clipboardHistory → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool clipboardHistory → \(answer.count) chars")
         return answer
     }
 }

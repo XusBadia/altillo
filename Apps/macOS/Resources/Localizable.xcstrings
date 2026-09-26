@@ -1,9 +1,156 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Report a Problem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Report a Problem" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Informar de un problema" } }
+      }
+    },
+    "Privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Privacidad" } }
+      }
+    },
+    "Copy Safe Diagnostics" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy Safe Diagnostics" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar diagnóstico seguro" } }
+      }
+    },
+    "Diagnostics Copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Diagnostics Copied" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Diagnóstico copiado" } }
+      }
+    },
+    "The diagnostic copy includes the version, macOS, architecture and hook status. It never includes paths, credentials, session content or logs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The diagnostic copy includes the version, macOS, architecture and hook status. It never includes paths, credentials, session content or logs." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La copia de diagnóstico incluye la versión, macOS, la arquitectura y el estado de los hooks. Nunca incluye rutas, credenciales, contenido de sesiones ni registros." } }
+      }
+    },
+    "Prepare to Uninstall…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Prepare to Uninstall…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparar la desinstalación…" } }
+      }
+    },
+    "Before deleting Altillo, remove its hooks so no CLI keeps a command pointing to a missing app. You'll review every file first; backups are made and other hooks stay untouched." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Before deleting Altillo, remove its hooks so no CLI keeps a command pointing to a missing app. You'll review every file first; backups are made and other hooks stay untouched." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Antes de borrar Altillo, retira sus hooks para que ninguna CLI conserve un comando que apunte a una app ausente. Revisarás primero cada fichero; se harán copias y los demás hooks no se tocarán." } }
+      }
+    },
+    "Hooks are optional and installed separately for each CLI. They give Altillo precise live events, permission requests and replies. Without hooks, Claude Code, Codex and Gemini still appear from local session files with less detail; Copilot and Cursor need hooks. OpenCode uses its local API and needs nothing installed." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hooks are optional and installed separately for each CLI. They give Altillo precise live events, permission requests and replies. Without hooks, Claude Code, Codex and Gemini still appear from local session files with less detail; Copilot and Cursor need hooks. OpenCode uses its local API and needs nothing installed." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los hooks son opcionales y se instalan por separado en cada CLI. Dan a Altillo eventos precisos en directo, peticiones de permiso y respuestas. Sin hooks, Claude Code, Codex y Gemini siguen apareciendo desde sus sesiones locales con menos detalle; Copilot y Cursor los necesitan. OpenCode usa su API local y no requiere instalar nada." } }
+      }
+    },
+    "Prepare to Uninstall Altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Prepare to Uninstall Altillo" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Preparar la desinstalación de Altillo" } }
+      }
+    },
+    "Choose each agent to clean up. Altillo removes only commands it owns, saves the current file in %@, and then confirms the result for every agent." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose each agent to clean up. Altillo removes only commands it owns, saves the current file in %@, and then confirms the result for every agent." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige cada agente que quieras limpiar. Altillo solo retira los comandos que le pertenecen, guarda el fichero actual en %@ y confirma después el resultado de cada agente." } }
+      }
+    },
+    "%@ needs manual cleanup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ needs manual cleanup" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@ necesita una limpieza manual" } }
+      }
+    },
+    "Altillo left this file untouched because %@ Open it and remove only complete hook entries whose command, bash or exec value runs `altillo-hook`. Leave every other setting and hook unchanged." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo left this file untouched because %@ Open it and remove only complete hook entries whose command, bash or exec value runs `altillo-hook`. Leave every other setting and hook unchanged." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo no ha tocado este fichero porque %@ Ábrelo y elimina solo las entradas completas cuyo valor command, bash o exec ejecute `altillo-hook`. No cambies ningún otro ajuste ni hook." } }
+      }
+    },
+    "Remove Hooks (%lld)" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove Hooks (%lld)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Retirar hooks (%lld)" } }
+      }
+    },
+    "No Altillo hooks are installed. You can delete the app safely." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Altillo hooks are installed. You can delete the app safely." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No hay hooks de Altillo instalados. Puedes borrar la app con seguridad." } }
+      }
+    },
+    "Hooks removed. This agent is ready for Altillo to be deleted." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hooks removed. This agent is ready for Altillo to be deleted." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hooks retirados. Este agente ya está listo para borrar Altillo." } }
+      }
+    },
+    "Not changed automatically. Open the file and remove only Altillo's hook entries." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not changed automatically. Open the file and remove only Altillo's hook entries." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se ha cambiado automáticamente. Abre el fichero y retira solo las entradas de hooks de Altillo." } }
+      }
+    },
+    "Still installed. Remove these hooks before deleting Altillo." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Still installed. Remove these hooks before deleting Altillo." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Siguen instalados. Retira estos hooks antes de borrar Altillo." } }
+      }
+    },
+    "All selected Altillo hooks were removed. You can now delete the app." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "All selected Altillo hooks were removed. You can now delete the app." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se han retirado todos los hooks seleccionados de Altillo. Ya puedes borrar la app." } }
+      }
+    },
+    "Removed %lld; %lld still need attention before deleting Altillo." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Removed %1$lld; %2$lld still need attention before deleting Altillo." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Retirados: %1$lld; aún requieren atención: %2$lld antes de borrar Altillo." } }
+      }
+    },
     "altillo" : {
       "extractionState" : "manual",
       "shouldTranslate" : false
+    },
+    "How privacy works" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "How privacy works" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cómo funciona la privacidad" } }
+      }
+    },
+    "See privacy details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "See privacy details" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ver detalles de privacidad" } }
+      }
     },
     "Input menu" : {
       "extractionState" : "manual",
@@ -3362,23 +3509,6 @@
         }
       }
     },
-    "Also read an app compatible with OpenUsage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Also read an app compatible with OpenUsage"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Leer también una app compatible con OpenUsage"
-          }
-        }
-      }
-    },
     "Also send them to the current iPhone app" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3647,19 +3777,19 @@
         }
       }
     },
-    "Altillo finds them by itself, right here on your Mac. Nothing leaves it." : {
+    "Altillo finds your tools locally. Usage checks contact each provider directly." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Altillo finds them by itself, right here on your Mac. Nothing leaves it."
+            "value" : "Altillo finds your tools locally. Usage checks contact each provider directly."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Altillo las encuentra solo, aquí mismo en tu Mac. Nada sale de él."
+            "value" : "Altillo encuentra tus herramientas en local. Las comprobaciones de consumo contactan directamente con cada proveedor."
           }
         }
       }
@@ -3864,36 +3994,19 @@
         }
       }
     },
-    "Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything, and your numbers never leave this Mac." : {
+    "Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything. To read quotas, it sends the credential only to that tool's provider." : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything, and your numbers never leave this Mac."
+            "value" : "Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything. To read quotas, it sends the credential only to that tool's provider."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Altillo lee la sesión o la clave que tus herramientas ya tienen en este Mac. Nunca inicia sesión, ni la renueva ni cambia nada, y tus cifras nunca salen de este Mac."
-          }
-        }
-      }
-    },
-    "Altillo reads the sign-in your tools already have. It never signs in, refreshes or changes anything, and your numbers never leave this Mac." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Altillo reads the sign-in your tools already have. It never signs in, refreshes or changes anything, and your numbers never leave this Mac."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Altillo lee la sesión que ya tienen tus herramientas. Nunca inicia sesión, ni la renueva ni cambia nada, y tus cifras nunca salen de este Mac."
+            "value" : "Altillo lee la sesión o la clave que tus herramientas ya tienen en este Mac. Nunca inicia sesión, ni la renueva ni cambia nada. Para consultar las cuotas, solo envía la credencial al proveedor de esa herramienta."
           }
         }
       }
@@ -5728,23 +5841,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Conectado"
-          }
-        }
-      }
-    },
-    "Connected through OpenUsage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connected through OpenUsage"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conectado a través de OpenUsage"
           }
         }
       }
@@ -12718,6 +12814,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En privado, en este Mac. Conozco tu altillo, tu calendario, tu música, tu uso de IA y tus agentes, pongo temporizadores, tomo notas y busco en la web."
+          }
+        }
+      }
+    },
+    "Product sync" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product sync"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sincronización de producto"
           }
         }
       }

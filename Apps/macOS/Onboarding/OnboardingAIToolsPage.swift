@@ -6,6 +6,8 @@ import SwiftUI
 /// honest offer: Altillo's hooks, so agents can ask for permission in the notch. Nothing is installed from here
 /// without the same diff review and confirmation as Settings.
 struct OnboardingAIToolsPage: View {
+    private static let privacy = URL(string: "https://altillo.app/privacy/")!
+
     let flow: OnboardingFlow
     let eyebrow: String
 
@@ -17,7 +19,7 @@ struct OnboardingAIToolsPage: View {
                 OnboardingHeader(
                     eyebrow: eyebrow,
                     title: "Your AI tools",
-                    subtitle: "Altillo finds them by itself, right here on your Mac. Nothing leaves it."
+                    subtitle: "Altillo finds your tools locally. Usage checks contact each provider directly."
                 )
                 if !OnboardingLogic.wantsAITools(Set(modules)) {
                     Text("Usage and Agents are off in this setup. Turn them on any time: right-click the notch.")
@@ -94,6 +96,8 @@ struct OnboardingAIToolsPage: View {
                 }
                 Text("Their limits show in Usage, and beside the notch when they run high. Sign in to others and they join in.")
                     .settingsHint()
+                Link("How privacy works", destination: Self.privacy)
+                    .font(.system(size: 11.5, weight: .medium))
             }
         }
         .padding(14)

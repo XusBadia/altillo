@@ -228,7 +228,7 @@ final class MenuBarIconCapture {
                 failed.insert(entry.id)
                 continue
             }
-            MenuBarDrawerStore.log.debug("glyph \(entry.title, privacy: .public) crop=\(crop.debugDescription, privacy: .public) px=\(captured.width)x\(captured.height) scale=\(actualScale) pt=\(image.size.debugDescription, privacy: .public) template=\(image.isTemplate)")
+            MenuBarDrawerStore.log.debug("glyph \(entry.title, privacy: .private(mask: .hash)) crop=\(crop.debugDescription, privacy: .public) px=\(captured.width)x\(captured.height) scale=\(actualScale) pt=\(image.size.debugDescription, privacy: .public) template=\(image.isTemplate)")
             // These are the actual colored/template pixels provided by the owner, not its bundle icon.
             images[entry.id] = image
             failed.remove(entry.id)

@@ -34,6 +34,7 @@
   --film-intro-y: 32px;
   --film-shade: 0;
   --film-opening: 1;
+  --film-canvas: 0;
 }
 .has-film .hero-stage {
   position: sticky;
@@ -49,9 +50,10 @@
   width: 100%;
   height: 100%;
   z-index: -3;
+  opacity: var(--film-canvas);
 }
 .has-film .hero-media {
-  opacity: 0;
+  opacity: calc(1 - var(--film-canvas));
 }
 .has-film .hero-media:has(+ .hero-canvas[hidden]) {
   opacity: 1;

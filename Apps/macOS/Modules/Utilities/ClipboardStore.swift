@@ -117,7 +117,7 @@ final class ClipboardStore {
         timer.tolerance = Self.tolerance
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
-        SpikeLog.shared.record("clipboard", "watching (every \(Self.interval) s)")
+        DiagnosticLog.shared.record("clipboard", "watching (every \(Self.interval) s)")
     }
 
     /// Stops watching and forgets what's in memory (a saved history stays on disk if the user keeps one).
@@ -131,7 +131,7 @@ final class ClipboardStore {
         undoable = nil
         query = ""
         selection = nil
-        SpikeLog.shared.record("clipboard", "stopped watching")
+        DiagnosticLog.shared.record("clipboard", "stopped watching")
     }
 
     // MARK: - Watching
@@ -147,7 +147,7 @@ final class ClipboardStore {
         let frontmost = frontmostBundleID()
         switch ClipboardPrivacy.decide(types: types, frontmostBundleID: frontmost) {
         case .skipPrivate:
-            SpikeLog.shared.record("clipboard", "skipped: private (marked, or from a password manager)")
+            DiagnosticLog.shared.record("clipboard", "skipped: private (marked, or from a password manager)")
             return
         case .skipNotText:
             return
@@ -281,7 +281,7 @@ final class ClipboardStore {
         do {
             try archive.save(history)
         } catch {
-            SpikeLog.shared.record("clipboard", "couldn't save the history: \(error.localizedDescription)")
+            DiagnosticLog.shared.record("clipboard", "couldn't save the history: \(error.localizedDescription)")
         }
     }
 

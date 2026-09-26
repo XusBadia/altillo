@@ -555,6 +555,71 @@ struct AgentHookInstallerTests {
     }
 }
 
+struct AgentHooksSafeUninstallTests {
+    typealias Sandbox = AgentHookInstallerTests.Sandbox
+
+    @Test func preparationFindsEveryInstalledTargetAndApplyingItIsIdempotent() throws {
+        let sandbox = try Sandbox()
+        try sandbox.install(.claude)
+        try sandbox.install(.codex)
+
+        let preparation = sandbox.installer().prepareToUninstall()
+        #expect(Set(preparation.plans.map(\.target)) == [.claude, .codex])
+        #expect(preparation.manualSteps.isEmpty)
+        #expect(preparation.plans.allSatisfy { !$0.diff.isEmpty })
+
+        let results = sandbox.installer().applyUninstall(preparation.plans)
+        #expect(results.allSatisfy { $0.succeeded })
+        #expect(results.allSatisfy { $0.backup != nil })
+        #expect(sandbox.installer().prepareToUninstall().isEmpty)
+        #expect(sandbox.installer().applyUninstall([]).isEmpty, "a second removal changes nothing")
+    }
+
+    @Test func sharedFilesKeepForeignContentByteForByte() throws {
+        let sandbox = try Sandbox()
+        try sandbox.write(AgentHookInstallerTests.userSettings, to: .claude)
+        try sandbox.install(.claude)
+
+        let preparation = sandbox.installer().prepareToUninstall()
+        #expect(preparation.plans.map(\.target) == [.claude])
+        let results = sandbox.installer().applyUninstall(preparation.plans)
+        #expect(results.allSatisfy { $0.succeeded })
+        #expect(try sandbox.read(.claude) == AgentHookInstallerTests.userSettings)
+    }
+
+    @Test func aFailureForOneAgentDoesNotStopTheOthers() throws {
+        let sandbox = try Sandbox()
+        try sandbox.install(.claude)
+        try sandbox.install(.codex)
+        let preparation = sandbox.installer().prepareToUninstall()
+
+        var codex = try sandbox.read(.codex)
+        codex += " "
+        try sandbox.write(codex, to: .codex)
+
+        let results = sandbox.installer().applyUninstall(preparation.plans)
+        let claudeResult = results.first(where: { $0.target == .claude })
+        let codexResult = results.first(where: { $0.target == .codex })
+        #expect(claudeResult?.succeeded == true)
+        #expect(codexResult?.succeeded == false)
+        #expect(sandbox.installer().status(for: .claude) == .notInstalled)
+        #expect(sandbox.installer().status(for: .codex) == .installed)
+    }
+
+    @Test func unreadableConfigurationIsAConcreteManualStepAndIsNeverChanged() throws {
+        let sandbox = try Sandbox()
+        let broken = #"{"hooks":{"Stop":[{"command":"/old/altillo-hook claude Stop"}]}"#
+        try sandbox.write(broken, to: .claude)
+
+        let preparation = sandbox.installer().prepareToUninstall()
+        let step = try #require(preparation.manualSteps.first { $0.target == .claude })
+        #expect(step.fileURL == sandbox.file(.claude))
+        #expect(step.reason.contains("JSON"))
+        #expect(!preparation.plans.contains { $0.target == .claude })
+        #expect(try sandbox.read(.claude) == broken)
+    }
+}
+
 /// The pieces under the installer: the order-keeping JSON and the diff shown before writing.
 struct AgentHookInstallerPartsTests {
     @Test func jsonRoundTripsTheWayTheAgentsWriteIt() throws {

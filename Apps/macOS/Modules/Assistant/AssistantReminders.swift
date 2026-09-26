@@ -78,7 +78,7 @@ struct RemindersTool: Tool {
             )
         }
         if isNew, let made = result.receipt { await receipt(made) }
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool reminders → \(result.answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool reminders → \(result.answer.count) chars")
         return result.answer
     }
 }

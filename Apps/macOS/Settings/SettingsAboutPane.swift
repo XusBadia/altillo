@@ -4,8 +4,11 @@ import SwiftUI
 /// Who made this, which version you have, and where to find the code.
 struct SettingsAboutPane: View {
     private static let repository = URL(string: "https://github.com/XusBadia/altillo")!
+    private static let privacy = URL(string: "https://altillo.app/privacy/")!
+    private static let reportProblem = URL(string: "https://github.com/XusBadia/altillo/issues/new?template=bug_report.yml")!
 
     private let updater = Updater.shared
+    @State private var copiedDiagnostics = false
 
     /// Two-way binding onto `Updater`, which isn't `@Observable` — it just wraps Sparkle's own state
     /// (Sparkle persists this preference itself). The toggle still reflects the current value on every
@@ -82,6 +85,25 @@ struct SettingsAboutPane: View {
                         }
                     }
                     .padding(.top, 10)
+
+                    VStack(spacing: 7) {
+                        HStack(spacing: 10) {
+                            Link("Report a Problem", destination: Self.reportProblem)
+                            Link("Privacy", destination: Self.privacy)
+                            Button(copiedDiagnostics ? "Diagnostics Copied" : "Copy Safe Diagnostics") {
+                                NSPasteboard.general.clearContents()
+                                NSPasteboard.general.setString(SupportDiagnostics.current(), forType: .string)
+                                copiedDiagnostics = true
+                            }
+                        }
+                        .font(.system(size: 11.5, weight: .medium))
+                        Text("The diagnostic copy includes the version, macOS, architecture and hook status. It never includes paths, credentials, session content or logs.")
+                            .font(.system(size: 10.5))
+                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, 8)
                 }
 
                 Spacer(minLength: 24)

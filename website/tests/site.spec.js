@@ -15,6 +15,7 @@ test('explains the product, offers a download and links to Aurio without overflo
   await page.goto('/es/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
   await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
+  await expect(page.locator('.hero-proof')).toHaveText('Gratis para siempre. Código abierto.');
   await expect(page.locator('#proyecto')).toContainText('firmada y notarizada');
   await expect(page.locator('[data-module="music"] small')).toHaveText('Controles multimedia del Mac');
   const staleSpanishClaims = /función en desarro[l]lo|Apple Music y Spotif[y]/;
@@ -34,6 +35,7 @@ test('explains the product, offers a download and links to Aurio without overflo
 
 test('English product claims match the shipped macOS app', async ({ page }) => {
   await page.goto('/');
+  await expect(page.locator('.hero-proof')).toHaveText('Free forever. Open source.');
   await expect(page.locator('[data-module="music"] small')).toHaveText('Mac media controls');
   const staleEnglishClaims = /feature in developmen[t]|Apple Music and Spotif[y]/;
   await expect(page.locator('main')).not.toContainText(staleEnglishClaims);
@@ -53,6 +55,18 @@ for (const [route, canonical] of [['/', 'https://altillo.app/'], ['/es/', 'https
     await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute('href', 'https://altillo.app/es/');
     await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://altillo.app/');
     await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute('href', 'https://altillo.app/');
+  });
+}
+
+for (const [route, canonical, heading] of [
+  ['/privacy/', 'https://altillo.app/privacy/', 'Your things stay on your Mac.'],
+  ['/es/privacidad/', 'https://altillo.app/es/privacidad/', 'Tus cosas se quedan en tu Mac.'],
+]) {
+  test(`publishes the privacy policy at ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
+    await expect(page.locator('main')).toContainText(/no analytics|no tiene analítica/);
   });
 }
 

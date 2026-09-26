@@ -143,7 +143,7 @@ final class AgentHub {
         } catch {
             // Another Altillo already answers on the socket (left alone), or the folder isn't writable: hooks go to
             // the other instance or fail open, and session files still work here.
-            Self.log.error("Agents socket unavailable (\(String(describing: error), privacy: .public)); following session files only")
+            Self.log.error("Agents socket unavailable (\(String(describing: error), privacy: .private(mask: .hash))); following session files only")
             self.server = nil
         }
 

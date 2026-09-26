@@ -24,7 +24,7 @@ struct RunShortcutTool: Tool {
     func call(arguments: Arguments) async throws -> String {
         await report(.shortcuts)
         let answer = await perform(arguments.name)
-        await SpikeLog.shared.record(SpikeLog.Category.assistant, "tool runShortcut → \(answer.count) chars")
+        await DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "tool runShortcut → \(answer.count) chars")
         return answer
     }
 }

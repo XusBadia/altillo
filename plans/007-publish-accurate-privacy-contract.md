@@ -4,6 +4,7 @@
 
 ## Estado
 
+- **Estado**: DONE · política ES/EN, enlaces públicos y guards de claims verificados el 26-09-2026
 - **Prioridad**: P0 · **Esfuerzo**: S/M · **Riesgo**: LOW · **Depende de**: 006
 - **Categoría**: docs/security · **Planned at**: `7f80680`, 26-09-2026
 

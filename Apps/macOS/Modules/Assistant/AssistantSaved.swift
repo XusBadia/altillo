@@ -53,7 +53,7 @@ final class AssistantSavedStore {
             let aside = fileURL.deletingLastPathComponent()
                 .appending(path: "Saved answers (unreadable \(stamp)).json", directoryHint: .notDirectory)
             try? FileManager.default.moveItem(at: fileURL, to: aside)
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "saved answers unreadable, moved aside: \(error)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "saved answers unreadable, moved aside: \(error)")
         }
     }
 
@@ -110,7 +110,7 @@ final class AssistantSavedStore {
             try encoder.encode(answers).write(to: fileURL, options: [.atomic])
             try manager.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path(percentEncoded: false))
         } catch {
-            SpikeLog.shared.record(SpikeLog.Category.assistant, "saving answers FAILED: \(error.localizedDescription)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "saving answers FAILED: \(error.localizedDescription)")
         }
     }
 }

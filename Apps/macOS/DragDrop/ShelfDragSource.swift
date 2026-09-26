@@ -135,7 +135,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         session.animatesToStartingPositionsOnCancelOrFail = true
         session.draggingFormation = .default
         let mask = draggingSession(session, sourceOperationMaskFor: .outsideApplication)
-        SpikeLog.shared.record(SpikeLog.Category.dragOut,
+        DiagnosticLog.shared.record(DiagnosticLog.Category.dragOut,
                                "start: \(items.count) item(s) [\(Self.kinds(items))] · mask outside the app: \(mask.logDescription)")
         return true
     }
@@ -168,7 +168,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
         let initiallyExisting = initiallyExistingFileIDs
         draggedItems = []
         initiallyExistingFileIDs = []
-        SpikeLog.shared.record(SpikeLog.Category.dragOut,
+        DiagnosticLog.shared.record(DiagnosticLog.Category.dragOut,
                                "end: operation \(operation.logDescription) at (\(Int(screenPoint.x)), \(Int(screenPoint.y))) · \(items.count) item(s)")
         releaseSwiftUIPress()
         Self.resolveDeparted(items, initiallyExistingFileIDs: initiallyExisting, after: operation, then: onEnded)
@@ -212,7 +212,7 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
             for item in items {
                 guard let url = item.fileURL, initiallyExisting.contains(item.id) else { continue }
                 let exists = FileManager.default.fileExists(atPath: url.path)
-                SpikeLog.shared.record(SpikeLog.Category.dragOut, "\(url.lastPathComponent): exists after: \(exists ? "yes" : "no") · \(url.path)")
+                DiagnosticLog.shared.record(DiagnosticLog.Category.dragOut, "file exists after drag: \(exists ? "yes" : "no")")
                 if !exists, operation == .move || operation == .delete {
                     departed.append(item)
                 } else if operation == .delete {
@@ -223,10 +223,10 @@ final class ShelfDragSourceView: NSView, NSDraggingSource {
             if !toRecycle.isEmpty {
                 do {
                     let moved = try await NSWorkspace.shared.recycle(toRecycle)
-                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "trash: Altillo moved \(moved.count) file(s) to the Trash")
+                    DiagnosticLog.shared.record(DiagnosticLog.Category.dragOut, "trash: Altillo moved \(moved.count) file(s) to the Trash")
                 } catch {
                     departed.removeAll { item in toRecycle.contains { $0 == item.fileURL } }
-                    SpikeLog.shared.record(SpikeLog.Category.dragOut, "FAILED moving to the Trash: \(error.localizedDescription)")
+                    DiagnosticLog.shared.record(DiagnosticLog.Category.dragOut, "FAILED moving to the Trash: \(error.localizedDescription)")
                 }
             }
             onEnded(operation, departed)

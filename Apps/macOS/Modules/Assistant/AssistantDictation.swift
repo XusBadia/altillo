@@ -176,7 +176,7 @@ final class AssistantDictation {
         }
         state = .listening
         endsBySilence = false
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "dictation started (\(locale.identifier))")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "dictation started (\(locale.identifier))")
         armSilence(after: silenceBeforeSpeech)
         limit = scheduler.after(maximum) { [weak self] in self?.stop() }
     }
@@ -264,7 +264,7 @@ final class AssistantDictation {
         let bySilence = endsBySilence
         recognizer.cancel()
         reset()
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "dictation ended (\(text.count) chars, silence: \(bySilence))")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "dictation ended (\(text.count) chars, silence: \(bySilence))")
         guard !text.isEmpty else { return }
         onEnded(Ending(text: text, bySilence: bySilence))
     }
@@ -272,7 +272,7 @@ final class AssistantDictation {
     private func fail(_ problem: Problem) {
         reset()
         self.problem = problem
-        SpikeLog.shared.record(SpikeLog.Category.assistant, "dictation problem: \(problem)")
+        DiagnosticLog.shared.record(DiagnosticLog.Category.assistant, "dictation problem: \(problem)")
     }
 
     private func reset() {

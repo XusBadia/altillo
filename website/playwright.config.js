@@ -2,7 +2,10 @@ import { defineConfig, devices } from "@playwright/test";
 
 export default defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
+  fullyParallel: !process.env.CI,
+  workers: process.env.CI ? 1 : undefined,
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [["line"], ["html", { open: "never" }]] : "list",
   use: { baseURL: "http://127.0.0.1:4174" },
   webServer: {
     command: "npm run dev -- --port 4174 --strictPort",

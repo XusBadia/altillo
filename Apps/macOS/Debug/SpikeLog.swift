@@ -1,77 +1,12 @@
+#if DEBUG
 import AltilloCore
 import AppKit
 import Foundation
-import Observation
-import os
 import SwiftUI
-
-/// In-app log for the phase 0 drag & drop spikes, so the test matrix can be checked without Console.app.
-/// Every entry is mirrored to the unified log (subsystem `altillo`, category `spike`) so `log stream` works too.
-@MainActor
-@Observable
-final class SpikeLog {
-    static let shared = SpikeLog()
-
-    /// Categories used by the drag & drop spikes (see docs/pruebas-drag-drop.md).
-    enum Category {
-        static let dragStart = "drag-start"
-        static let dragEnd = "drag-end"
-        static let drop = "drop"
-        static let ingest = "ingest"
-        static let promise = "promise"
-        static let dragOut = "drag-out"
-        static let quickLook = "quicklook"
-        static let shelf = "shelf"
-        static let app = "app"
-        static let alerts = "alerts"
-        static let assistant = "assistant"
-    }
-
-    struct Entry: Identifiable {
-        let id = UUID()
-        let date = Date()
-        let category: String
-        let message: String
-    }
-
-    /// Oldest entries are dropped past this count so a long session never grows unbounded.
-    static let capacity = 2_000
-
-    private(set) var entries: [Entry] = []
-
-    @ObservationIgnored private let logger = Logger(subsystem: "altillo", category: "spike")
-
-    func record(_ category: String, _ message: String) {
-        logger.log("[\(category, privacy: .public)] \(message, privacy: .public)")
-        entries.append(Entry(category: category, message: message))
-        if entries.count > Self.capacity {
-            entries.removeFirst(entries.count - Self.capacity)
-        }
-    }
-
-    func clear() {
-        entries.removeAll()
-    }
-
-    /// Records from any thread (file promise callbacks run on a background queue).
-    nonisolated static func post(_ category: String, _ message: String) {
-        Task { @MainActor in shared.record(category, message) }
-    }
-
-    /// Plain-text export, one line per entry.
-    static func export(_ entries: [Entry]) -> String {
-        entries.map { "\(timestamp($0.date)) [\($0.category)] \($0.message)" }.joined(separator: "\n")
-    }
-
-    static func timestamp(_ date: Date) -> String {
-        date.formatted(.dateTime.hour(.twoDigits(amPM: .omitted)).minute(.twoDigits).second(.twoDigits)
-            .secondFraction(.fractional(3)))
-    }
-}
 
 struct SpikeLogView: View {
     static let windowID = "spike-log"
-    let log: SpikeLog
+    let log: DiagnosticLog
 
     @State private var category: String?
     @State private var autoScroll = true
@@ -82,7 +17,7 @@ struct SpikeLogView: View {
         return seen
     }
 
-    private var visible: [SpikeLog.Entry] {
+    private var visible: [DiagnosticLog.Entry] {
         guard let category else { return log.entries }
         return log.entries.filter { $0.category == category }
     }
@@ -113,7 +48,7 @@ struct SpikeLogView: View {
                 .monospacedDigit()
             Button("Copy all") {
                 NSPasteboard.general.clearContents()
-                NSPasteboard.general.setString(SpikeLog.export(visible), forType: .string)
+                NSPasteboard.general.setString(DiagnosticLog.export(visible), forType: .string)
             }
             .disabled(visible.isEmpty)
             Button("Clear") { log.clear() }
@@ -141,11 +76,11 @@ struct SpikeLogView: View {
     }
 
     private struct EntryRow: View {
-        let entry: SpikeLog.Entry
+        let entry: DiagnosticLog.Entry
 
         var body: some View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(SpikeLog.timestamp(entry.date))
+                Text(DiagnosticLog.timestamp(entry.date))
                     .foregroundStyle(.secondary)
                 Text(entry.category)
                     .foregroundStyle(color)
@@ -158,12 +93,12 @@ struct SpikeLogView: View {
 
         private var color: Color {
             switch entry.category {
-            case SpikeLog.Category.dragStart, SpikeLog.Category.dragEnd: .blue
-            case SpikeLog.Category.drop: .green
-            case SpikeLog.Category.ingest: .orange
-            case SpikeLog.Category.promise: .purple
-            case SpikeLog.Category.dragOut: .pink
-            case SpikeLog.Category.shelf: .yellow
+            case DiagnosticLog.Category.dragStart, DiagnosticLog.Category.dragEnd: .blue
+            case DiagnosticLog.Category.drop: .green
+            case DiagnosticLog.Category.ingest: .orange
+            case DiagnosticLog.Category.promise: .purple
+            case DiagnosticLog.Category.dragOut: .pink
+            case DiagnosticLog.Category.shelf: .yellow
             default: .secondary
             }
         }
@@ -212,8 +147,9 @@ private struct SpikeToolsView: View {
             try Data("Altillo test file — \(Date.now.formatted())\n".utf8).write(to: url)
             return url
         } catch {
-            SpikeLog.shared.record(SpikeLog.Category.ingest, "FAILED creating the test file: \(error.localizedDescription)")
+            DiagnosticLog.shared.record(DiagnosticLog.Category.ingest, "FAILED creating the test file: \(error.localizedDescription)")
             return nil
         }
     }
 }
+#endif

@@ -5,9 +5,11 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report a bug. Altillo is early-stage software
-        (phase 0), so please include as much detail as you can — especially about
-        your notch/display setup, which affects a lot of the app's behavior.
+        Thanks for taking the time to report a bug. Please include as much detail
+        as you can — especially about your notch/display setup, which affects a
+        lot of the app's behavior. In Altillo, open Settings > About and use
+        “Copy Safe Diagnostics”; it excludes paths, credentials, session content
+        and logs.
 
   - type: textarea
     id: description
@@ -86,5 +88,14 @@ body:
     attributes:
       label: Altillo version
       description: Version/build, or the commit SHA if you built from source.
+    validations:
+      required: false
+
+  - type: textarea
+    id: safe-diagnostics
+    attributes:
+      label: Safe diagnostics
+      description: Paste the output from Settings > About > Copy Safe Diagnostics.
+      render: text
     validations:
       required: false
