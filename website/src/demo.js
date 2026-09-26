@@ -124,7 +124,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   let suppressClick = false;
   let returnFocus = null;
   element.innerHTML = `
-    <div class="ad-desktop" aria-label="Escritorio Mac de demostración">
+    <div class="ad-desktop" aria-label="Vista de las funciones de Altillo en un Mac">
       <div class="ad-wallpaper" aria-hidden="true"></div>
       <div class="ad-menubar" aria-hidden="true"><div><span class="ad-apple">●</span><b>Finder</b><span>Archivo</span><span>Edición</span><span>Visualización</span></div><div><span>${svg("wifi", 14)}</span><span>${svg("battery", 16)}</span><span>Mar 10:24</span></div></div>
       <div class="ad-notch" data-open="false">
@@ -139,9 +139,9 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
       <section class="ad-terminal ad-window" aria-label="Terminal de ejemplo"><div class="ad-terminal-title">${traffic}<span>mi-web — claude</span><span aria-hidden="true">${svg("command", 12)}</span></div><div class="ad-terminal-body"><p><span class="ad-terminal-star">${providerLogo("claude")}</span><b>Claude Code</b><span class="ad-terminal-version">v2.1</span></p><p class="ad-terminal-path">~/proyectos/mi-web</p><p class="ad-terminal-line"><span>❯</span> Publica los cambios de la web</p><div class="ad-terminal-result"></div><button type="button" data-action="agent"><span>${svg("request", 12)}</span> Pedir permiso para continuar <span class="ad-terminal-enter">${svg("enter", 12)}</span></button></div></section>
       <button type="button" class="ad-destination" data-action="deliver" aria-label="Llevar el archivo del estante a Entregas"><span class="ad-folder-art" aria-hidden="true"><i class="ad-folder-secret"></i></span><span>Entregas</span><small>Carpeta vacía</small></button>
       <div class="ad-dock" aria-hidden="true"><span class="ad-dock-finder"><i>⌣</i></span><span class="ad-dock-safari">${svg("safari")}</span><span class="ad-dock-notes"><i></i></span><span class="ad-dock-terminal">${svg("terminal")}</span><span class="ad-dock-divider"></span><span class="ad-dock-folder">${svg("folder")}</span><span class="ad-dock-trash">${svg("trash")}</span></div>
-      <div class="ad-screen-label">DEMO · DATOS DE EJEMPLO</div>
+      <div class="ad-screen-label">FUNCIONES · DATOS DE EJEMPLO</div>
     </div>
-    <div class="ad-demo-caption"><p class="ad-instruction"></p><button type="button" data-action="reset" aria-label="Reiniciar demo">${svg("reset")}<span>Reiniciar</span></button></div>
+    <div class="ad-demo-caption"><p class="ad-instruction"></p><button type="button" data-action="reset" aria-label="Reiniciar vista">${svg("reset")}<span>Reiniciar</span></button></div>
     <p class="ad-sr" role="status" aria-live="polite" aria-atomic="true"></p>
   `;
   element.append(audio);
@@ -236,7 +236,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     const button = element.querySelector(".ad-terminal [data-action=agent]");
     result.innerHTML =
       state.agent === "allowed"
-        ? '<p class="ad-terminal-success">✓ Cambios publicados en la demo.</p>'
+        ? '<p class="ad-terminal-success">✓ Cambios publicados en esta vista.</p>'
         : state.agent === "denied"
           ? "<p>Permiso denegado. No se ha publicado nada.</p>"
           : state.agent === "waiting"
@@ -524,7 +524,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
     renderFiles();
     renderTerminal();
     renderPanel();
-    announce("Demo reiniciada.");
+    announce("Vista reiniciada.");
   }
   element.addEventListener("click", (event) => {
     if (suppressClick) {
@@ -667,8 +667,8 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
         schedulePanelRender("agents", '[data-action="agent"]');
         announce(
           state.agent === "allowed"
-            ? "Permiso concedido en la demo."
-            : "Acción denegada en la demo.",
+            ? "Permiso concedido en esta vista."
+            : "Acción denegada en esta vista.",
         );
         if (state.agentPath.at(-2) === "denied" && state.agent === "allowed") {
           revealDemoEgg("agent-house-rules", "La casa recuerda quién dijo que no.", "night");

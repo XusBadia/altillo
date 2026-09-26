@@ -9,7 +9,7 @@ test('file markers and Finder face stay inside their bounds', async ({ page }) =
     window.scrollTo({ top: scrollY + rect.top + rect.height / 2 - innerHeight * (innerWidth < 1000 ? .72 : .5), behavior: 'instant' });
   });
   await expect(chapter).toHaveClass(/is-active/);
-  await page.getByRole('button', { name: 'Reiniciar demo' }).click();
+  await page.getByRole('button', { name: 'Reiniciar vista' }).click();
   await page.getByRole('button', { name: 'Subir al estante', exact: true }).click();
 
   for (const [outer, inner] of [

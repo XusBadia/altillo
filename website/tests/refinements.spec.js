@@ -9,7 +9,7 @@ async function ready(page, path = '/es/') {
     scrollTo({ top: scrollY + rect.top + rect.height / 2 - innerHeight * (innerWidth < 1000 ? .72 : .5), behavior: 'instant' });
   });
   await expect(step).toHaveClass(/is-active/);
-  await page.getByRole('button', { name: path === '/' ? 'Reset demo' : 'Reiniciar demo' }).click();
+  await page.getByRole('button', { name: path === '/' ? 'Reset view' : 'Reiniciar vista' }).click();
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'idle');
 }
 
@@ -45,7 +45,7 @@ test('click pins a hover-open shelf and hover never replaces selected usage', as
   await hoverNotch(page);
   await page.getByRole('button', { name: 'Abrir estante', exact: true }).click();
   await page.mouse.move(0, 0);
-  await page.getByRole('button', { name: 'Reiniciar demo' }).focus();
+  await page.getByRole('button', { name: 'Reiniciar vista' }).focus();
   await page.clock.fastForward(300);
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'shelf');
   await page.getByRole('button', { name: 'Ver consumo de Claude y Codex' }).click();
@@ -66,7 +66,7 @@ test('keyboard focus protects an open hover panel until focus leaves', async ({ 
   await page.clock.fastForward(300);
   await expect(page.getByRole('button', { name: 'Cerrar Altillo' })).toBeFocused();
   await expect(page.locator('.ad-notch-panel')).toBeVisible();
-  await page.getByRole('button', { name: 'Reiniciar demo' }).focus();
+  await page.getByRole('button', { name: 'Reiniciar vista' }).focus();
   await page.clock.fastForward(300);
   await expect(page.locator('.ad-notch-panel')).toBeHidden();
 });
@@ -101,13 +101,13 @@ test('English demo translates actions, outcomes and accessibility names througho
   await demo.getByRole('button', { name: /Request permission to continue/ }).click();
   await expect(demo.getByText('Sample request · you decide; Altillo never auto-approves')).toBeVisible();
   await demo.getByRole('button', { name: 'Allow', exact: true }).click();
-  await expect(demo.getByRole('status')).toHaveText('Permission granted in the demo.');
-  await expect(demo.locator('.ad-terminal-result')).toContainText('Changes published in the demo.');
+  await expect(demo.getByRole('status')).toHaveText('Permission granted in this view.');
+  await expect(demo.locator('.ad-terminal-result')).toContainText('Changes published in this view.');
   await demo.getByRole('button', { name: 'Another request', exact: true }).click();
   await demo.getByRole('button', { name: 'Deny', exact: true }).click();
-  await expect(demo.getByRole('status')).toHaveText('Action denied in the demo.');
-  await demo.getByRole('button', { name: 'Reset demo' }).click();
-  await expect(demo.getByRole('status')).toHaveText('Demo reset.');
+  await expect(demo.getByRole('status')).toHaveText('Action denied in this view.');
+  await demo.getByRole('button', { name: 'Reset view' }).click();
+  await expect(demo.getByRole('status')).toHaveText('View reset.');
   await expect(demo.locator('.ad-destination')).toContainText('Empty folder');
   await expect(demo.locator('.ad-notch-panel')).toBeHidden();
   await expect(demo.getByRole('button', { name: 'Add to shelf', exact: true })).toBeEnabled();

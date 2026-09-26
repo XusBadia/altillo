@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
     window.scrollTo({ top: scrollY + r.top + r.height / 2 - innerHeight * (innerWidth < 1000 ? 0.72 : 0.5), behavior: 'instant' });
   });
   await expect(page.locator('.story-step[data-chapter="shelf"]')).toHaveClass(/is-active/);
-  await page.getByRole('button', { name: 'Reiniciar demo' }).click();
+  await page.getByRole('button', { name: 'Reiniciar vista' }).click();
 });
 
 test('adds, delivers and removes a document while keeping its original', async ({ page }) => {
@@ -59,13 +59,13 @@ test('allows and denies simulated requests and resets desktop state', async ({ p
   await expect(demo.getByText('Solicitud de ejemplo · tú decides; Altillo nunca autoaprueba')).toBeVisible();
   await demo.getByRole('button', { name: 'Permitir', exact: true }).click();
   await expect(demo.getByText('El agente puede continuar.')).toBeVisible();
-  await expect(demo.locator('.ad-terminal-result')).toContainText('Cambios publicados en la demo');
+  await expect(demo.locator('.ad-terminal-result')).toContainText('Cambios publicados en esta vista');
   await demo.getByRole('button', { name: 'Otra solicitud', exact: true }).click();
   await demo.getByRole('button', { name: 'Denegar', exact: true }).click();
   await expect(demo.getByText('El comando no se ejecutará.')).toBeVisible();
   await expect(demo.locator('.ad-terminal-result')).toContainText('No se ha publicado nada');
-  await demo.getByRole('button', { name: 'Reiniciar demo' }).click();
-  await expect(demo.getByRole('status')).toHaveText('Demo reiniciada.');
+  await demo.getByRole('button', { name: 'Reiniciar vista' }).click();
+  await expect(demo.getByRole('status')).toHaveText('Vista reiniciada.');
   await expect(demo.locator('.ad-notch-panel')).toBeHidden();
   await expect(demo.getByRole('button', { name: 'Subir al estante' })).toBeEnabled();
   await expect(demo.locator('.ad-destination')).toContainText('Carpeta vacía');

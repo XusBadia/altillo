@@ -87,7 +87,7 @@ test('mirror flips its sample without requesting camera access', async ({ page }
   await expect(demo.locator('.ad-mirror-art')).toHaveClass(/is-haunted/);
   await expect(demo.locator('.ad-mirror-presence')).toHaveCount(1);
   await expect(demo.locator('.ad-mirror-presence')).toHaveCSS('animation-name', 'ad-presence-arrive');
-  await demo.getByRole('button', { name: 'Reiniciar demo', exact: true }).click();
+  await demo.getByRole('button', { name: 'Reiniciar vista', exact: true }).click();
   await expect(demo.locator('.ad-mirror-presence')).toHaveCount(0);
   await expect(page.locator('body')).not.toHaveClass(/egg-demo-mirror-guest/);
   expect(await page.evaluate(() => window.cameraRequests)).toBe(0);
@@ -152,7 +152,7 @@ test('reset clears the state of every daily module', async ({ page }) => {
   await demo.locator('[data-action="music-next"]').click();
   await choose(page, 'mirror');
   await demo.locator('[data-action="mirror-flip"]').click();
-  await demo.getByRole('button', { name: 'Reiniciar demo', exact: true }).click();
+  await demo.getByRole('button', { name: 'Reiniciar vista', exact: true }).click();
   await choose(page, 'drawer');
   await expect(demo.locator('.ad-drawer-icons')).toBeHidden();
   await choose(page, 'calendar');
