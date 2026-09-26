@@ -262,8 +262,10 @@ struct AgentHubTests {
             #expect(process.terminationStatus == 0)
             #expect(printed.isEmpty)
         }
-        // Judge the warm runs. Typically ~5 ms; the bound leaves room for a machine busy compiling in parallel, and
-        // still proves the hook never waits when Altillo isn't there.
-        #expect(timings.dropFirst().allSatisfy { $0 < 0.1 }, "\(timings)")
+        // Judge the warm runs. Their median must stay imperceptible, while the looser per-run ceiling allows one
+        // scheduler stall on a busy CI host and still proves the hook never waits for its 120-second decision timeout.
+        let warmTimings = timings.dropFirst().sorted()
+        #expect(warmTimings[warmTimings.count / 2] < 0.1, "\(timings)")
+        #expect(warmTimings.allSatisfy { $0 < 1 }, "\(timings)")
     }
 }
