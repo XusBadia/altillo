@@ -8,7 +8,7 @@
             <sparkle:version>71</sparkle:version>
             <sparkle:shortVersionString>0.7.1</sparkle:shortVersionString>
             <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
-            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.1/Altillo-0.7.1.dmg" length="11014036" type="application/octet-stream" sparkle:edSignature="1cHam5OyGXmPclPPC1Ns7FFMkclWXLnuBB7aMu0fBUzCLeF6EV4fFfCgOfUZWmaVpfO31QhOeP3/dTWqeaDwBg=="/>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.1/Altillo-0.7.1.dmg" length="11014007" type="application/octet-stream" sparkle:edSignature="RMJZ92gGhx0x2NSGEu9iOiZHMF14LQnaWYZhLBtWLtoBHa6Fxhs4KwsxrELM2cIsyhRSH+TyQ2wF+og9t4koBw=="/>
         </item>
         <item>
             <title>0.7.0</title>
