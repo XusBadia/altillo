@@ -27,7 +27,7 @@ const english = {
   'Vista de ejemplo · cámara apagada': 'Sample view · camera off',
   'Cajón': 'Drawer', 'Calendario': 'Calendar', 'Espejo': 'Mirror', 'Sonando': 'Now playing',
   'Muestra el grupo de iconos y abre el menú de Drive. Después, vuelve a guardarlo.': 'Show the icon group and open the Drive menu. Then put it away again.',
-  'Consulta tus próximas citas. Prueba «Unirse» sin abrir una videollamada real.': 'See your next events. Try “Join” without opening a real video call.',
+  'Consulta tus próximas citas. Pulsa «Unirse» sin abrir una videollamada real.': 'See your next events. Press “Join” without opening a real video call.',
   'Pulsa reproducir y escucha. Cambia entre tres canciones desde el notch.': 'Press play and listen. Switch between three tracks from the notch.',
   'Invierte la vista de ejemplo. Tu cámara sigue apagada.': 'Flip the sample view. Your camera stays off.',
   'Ideas.pdf': 'Ideas.pdf', 'Escapada.jpg': 'Getaway.jpg', 'Notas.txt': 'Notes.txt',

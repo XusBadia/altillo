@@ -53,7 +53,7 @@ test("the actual film advances with scrolling, introduces the next section and r
   await expect(canvas).toHaveAttribute("data-frame", String(manifest.count - 1));
   await expect(intro).toHaveCSS("opacity", "1");
   await expect(intro.getByRole("heading")).toBeInViewport();
-  await expect(intro.getByRole("link", { name: "Pruébalo aquí" })).toBeEnabled();
+  await expect(intro.getByRole("link", { name: "Explorar la demo" })).toBeEnabled();
   expect(await intro.evaluate((element) => element.inert)).toBe(false);
   expect(await imageSignature(canvas)).not.toEqual(openingImage);
 
@@ -99,7 +99,7 @@ test("a missing film leaves the poster and the following content usable", async 
   await page.locator(".intro").scrollIntoViewIfNeeded();
   await expect(page.locator(".intro").getByRole("heading")).toBeInViewport();
   await expect(page.locator(".intro")).toHaveCSS("opacity", "1");
-  await page.locator(".intro").getByRole("link", { name: "Pruébalo aquí" }).click();
+  await page.locator(".intro").getByRole("link", { name: "Explorar la demo" }).click();
   await expect(page).toHaveURL(/#experience$/);
   await expect(page.getByRole("heading", { name: "Un Mac. Tu turno." })).toBeInViewport();
   expect(errors).toEqual([]);

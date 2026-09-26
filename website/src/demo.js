@@ -428,7 +428,7 @@ export function mountDemo(element, { locale = document.documentElement.lang || "
   function updateInstruction() {
     const moduleInstructions = {
       drawer: "Muestra el grupo de iconos y abre el menú de Drive. Después, vuelve a guardarlo.",
-      calendar: "Consulta tus próximas citas. Prueba «Unirse» sin abrir una videollamada real.",
+      calendar: "Consulta tus próximas citas. Pulsa «Unirse» sin abrir una videollamada real.",
       music: "Pulsa reproducir y escucha. Cambia entre tres canciones desde el notch.",
       mirror: "Invierte la vista de ejemplo. Tu cámara sigue apagada.",
     };
