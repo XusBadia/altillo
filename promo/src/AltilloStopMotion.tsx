@@ -537,7 +537,7 @@ const FinaleScene = () => {
         <div style={{fontFamily: serif, fontSize: 118, lineHeight: 0.9, fontWeight: 800, color: C.paper}}>Altillo</div>
         <div style={{marginTop: 38, fontFamily: serif, fontSize: 48, lineHeight: 1.1, color: C.paper, width: 650}}>Un sitio arriba<br />para lo importante.</div>
         <div style={{marginTop: 42, display: 'inline-block', padding: '15px 22px', borderRadius: 999, border: `2px solid ${C.bulb}`, color: C.bulb, fontFamily: sans, fontWeight: 750, fontSize: 19, letterSpacing: 1.2}}>EN DESARROLLO · CÓDIGO ABIERTO</div>
-        <div style={{marginTop: 20, color: 'rgba(246,239,227,.62)', fontFamily: sans, fontSize: 22}}>github.com/XusBadia/altillo</div>
+        <div style={{marginTop: 20, color: 'rgba(246,239,227,.62)', fontFamily: sans, fontSize: 22}}>altillo.app</div>
       </div>
     </AbsoluteFill>
   );

@@ -124,7 +124,7 @@ if [ -z "$SPARKLE_PUBLIC_KEY" ]; then
 fi
 echo "    Sparkle public key: $SPARKLE_PUBLIC_KEY"
 
-FEED_URL="${ALTILLO_FEED_URL:-https://xusbadia.github.io/altillo/appcast.xml}"
+FEED_URL="${ALTILLO_FEED_URL:-https://altillo.app/appcast.xml}"
 BUILD="${ALTILLO_RELEASE_BUILD:-$(git rev-list --count HEAD)}"
 
 NOTARIZE=0

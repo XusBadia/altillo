@@ -205,7 +205,8 @@ struct SettingsEarsPreview: View {
 
     private static let notchWidth: CGFloat = 120
     private static let islandGap: CGFloat = 12
-    private static let earWidth: CGFloat = 48
+    /// Slightly compressed from the real ears, while keeping visible air around the widest sample.
+    private static let earWidth = NotchChrome.earWidth - 8
 
     var body: some View {
         let hasEars = leftEar != .none || rightEar != .none
@@ -301,7 +302,6 @@ struct SettingsEarsPreview: View {
             }
         }
         .foregroundStyle(Desvan.Palette.paper)
-        .opacity(visibility == .withActivity ? 0.55 : 1)
         .transition(.scale(scale: 0.6).combined(with: .opacity))
     }
 }

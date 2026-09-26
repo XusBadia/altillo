@@ -217,8 +217,6 @@ private struct DesvanEarsFace: View {
             } else if model.scenario?.isAgentWaitingEars == true {
                 // What the contextual ear shows for a knocking agent (`DesvanContextualEar`).
                 DesvanKnockingHand(size: 13)
-            } else if model.scenario == nil, model.ears.contextualFallbackSide(for: model) == .left {
-                DesvanContextualEar(model: model, style: restingStyle)
             } else if model.scenario == nil {
                 DesvanEarContent(content: model.settings.leftEar, model: model, style: restingStyle)
             }
@@ -228,8 +226,6 @@ private struct DesvanEarsFace: View {
             } else if model.scenario != nil {
                 // Design review: the shelf's sample count.
                 if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
-            } else if model.ears.contextualFallbackSide(for: model) == .right {
-                DesvanContextualEar(model: model, style: restingStyle)
             } else {
                 DesvanEarContent(content: model.settings.rightEar, model: model, style: restingStyle)
             }

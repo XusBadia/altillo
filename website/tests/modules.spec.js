@@ -16,6 +16,16 @@ async function choose(page, module) {
   return page.locator('#interactive-demo');
 }
 
+async function clickCurrentPanelControl(demo, selector) {
+  const panel = demo.locator('.ad-notch-panel');
+  await expect(panel.locator(selector)).toBeVisible();
+  await panel.evaluate((currentPanel, currentSelector) => {
+    const control = currentPanel.querySelector(currentSelector);
+    if (!(control instanceof HTMLElement)) throw new Error(`Missing panel control: ${currentSelector}`);
+    control.click();
+  }, selector);
+}
+
 test('all seven modules are reachable within three chapters without tabs', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.story-step')).toHaveCount(3);
@@ -44,7 +54,9 @@ test('music responds to playback and next while preserving its state', async ({ 
   await expect(demo.locator('.ad-track-title')).toHaveText('Azotea');
   await demo.getByRole('button', { name: 'Reproducir', exact: true }).click();
   await expect(demo.getByRole('button', { name: 'Pausar', exact: true })).toBeVisible();
-  await demo.getByRole('button', { name: 'Siguiente canción', exact: true }).click();
+  // A short sample can end while WebKit is preparing the click, replacing the controls. Dispatch through the
+  // stable panel so querying and clicking the current button remain one synchronous operation.
+  await clickCurrentPanelControl(demo, '[data-action="music-next"]');
   await expect(demo.locator('.ad-track-title')).toHaveText('Luz de tarde');
   await choose(page, 'calendar');
   await choose(page, 'music');
@@ -67,14 +79,14 @@ test('mirror flips its sample without requesting camera access', async ({ page }
   const demo = await choose(page, 'mirror');
   await expect(demo.getByText('Vista de ejemplo · cámara apagada', { exact: true })).toBeVisible();
   await expect(demo.locator('[data-action="mirror-flip"]')).toHaveAttribute('aria-pressed', 'true');
-  await demo.locator('[data-action="mirror-flip"]').click();
+  await clickCurrentPanelControl(demo, '[data-action="mirror-flip"]');
   await expect(demo.locator('[data-action="mirror-flip"]')).toHaveAttribute('aria-pressed', 'false');
   await expect(demo.locator('.ad-mirror-art')).toHaveAttribute('data-flipped', 'false');
-  await demo.locator('[data-action="mirror-flip"]').click();
-  await demo.locator('[data-action="mirror-flip"]').click();
+  await clickCurrentPanelControl(demo, '[data-action="mirror-flip"]');
+  await clickCurrentPanelControl(demo, '[data-action="mirror-flip"]');
   await expect(demo.locator('.ad-mirror-art')).toHaveClass(/is-haunted/);
   await expect(demo.locator('.ad-mirror-presence')).toHaveCount(1);
-  await expect.poll(() => demo.locator('.ad-mirror-presence').evaluate((node) => Number(getComputedStyle(node).opacity))).toBeGreaterThan(0.8);
+  await expect(demo.locator('.ad-mirror-presence')).toHaveCSS('animation-name', 'ad-presence-arrive');
   await demo.getByRole('button', { name: 'Reiniciar demo', exact: true }).click();
   await expect(demo.locator('.ad-mirror-presence')).toHaveCount(0);
   await expect(page.locator('body')).not.toHaveClass(/egg-demo-mirror-guest/);
@@ -122,9 +134,9 @@ test('secret module gestures reveal object-specific visual changes', async ({ pa
   await expect(demo.locator('.ad-impossible-value')).toHaveCount(2);
 
   await choose(page, 'agents');
-  await demo.locator('[data-action="deny"]').click();
-  await demo.locator('.ad-agent-request [data-action="agent"]').click();
-  await demo.locator('[data-action="allow"]').click();
+  await clickCurrentPanelControl(demo, '[data-action="deny"]');
+  await clickCurrentPanelControl(demo, '.ad-agent-request [data-action="agent"]');
+  await clickCurrentPanelControl(demo, '[data-action="allow"]');
   await expect(demo.locator('.ad-agent-request')).toHaveClass(/is-remembering/);
   await expect(demo.locator('.ad-agent-memory')).toContainText('LA CASA RECUERDA');
 });

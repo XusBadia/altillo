@@ -5,7 +5,7 @@ cask "altillo" do
   url "https://github.com/XusBadia/altillo/releases/download/v#{version}/Altillo-#{version}.dmg"
   name "Altillo"
   desc "Notch shelf, native AI usage, and live coding agents"
-  homepage "https://github.com/XusBadia/altillo"
+  homepage "https://altillo.app/"
 
   auto_updates true
   depends_on macos: :tahoe

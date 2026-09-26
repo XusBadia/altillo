@@ -756,7 +756,7 @@ final class NotchCoordinator {
     }
 
     /// The section behind either indicator at `point` (screen coordinates), including a fixed Calendar/Shelf/etc.
-    /// indicator and the live contextual fallback.
+    /// indicator and an explicitly selected contextual indicator.
     private func indicatorModule(at point: CGPoint) -> NotchModule? {
         guard model.scenario == nil, model.alert == nil,
               model.state == .idle || model.state == .peek,
@@ -772,9 +772,8 @@ final class NotchCoordinator {
         if point.x < shape.midX - clearWidth / 2 { side = .left }
         else if point.x > shape.midX + clearWidth / 2 { side = .right }
         else { return nil }
-        let fallback = model.ears.contextualFallbackSide(for: model)
         let content = side == .left ? model.settings.leftEar : model.settings.rightEar
-        let module = fallback == side || content == .automatic ? model.contextualActivity.module : content.module
+        let module = content == .automatic ? model.contextualActivity.module : content.module
         guard let module, model.settings.modules.contains(module) else { return nil }
         return module
     }

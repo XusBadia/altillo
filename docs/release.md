@@ -17,8 +17,8 @@ y desarrollar Altillo no necesitas nada de esto — ver
   Música/Spotify (Now Playing) y Calendario — nada de sandboxing real. Las
   builds de release usan las mismas entitlements que las de desarrollo.
 - Las actualizaciones usan **[Sparkle 2](https://sparkle-project.org/)**: la
-  app comprueba un feed (`appcast.xml`) publicado en GitHub Pages
-  (`https://xusbadia.github.io/altillo/appcast.xml`, rama `gh-pages`) y
+  app comprueba `https://altillo.app/appcast.xml`, que la web sirve desde el
+  feed publicado en GitHub Pages (rama `gh-pages`), y
   verifica la firma EdDSA de cada descarga con la clave pública embebida en
   `Info.plist` (`SUPublicEDKey`).
 - **Un fork sin configurar Sparkle sigue compilando.** `ALTILLO_SPARKLE_FEED_URL`
@@ -84,12 +84,16 @@ Esto guarda las credenciales en el llavero bajo el perfil `altillo-notary`,
 que es lo que usa `script/release.sh` por defecto en local. (En CI se usan
 en su lugar los secretos `ALTILLO_NOTARY_*`, ver más abajo.)
 
-### 3. GitHub Pages para el appcast
+### 3. GitHub Pages como origen del appcast
 
 En la configuración del repo (`XusBadia/altillo` → Settings → Pages), activa
 Pages sirviendo desde la rama `gh-pages` (carpeta raíz). La primera
 publicación (`script/release.sh <version> --publish`, o el workflow de CI)
 crea esa rama si no existe todavía.
+
+La web reexpone ese fichero en `https://altillo.app/appcast.xml` mediante una
+reescritura de Vercel. La URL pública queda así bajo el dominio definitivo sin
+cambiar el flujo de publicación de releases.
 
 ### 4. Secretos de CI (`.github/workflows/release.yml`)
 

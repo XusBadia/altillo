@@ -1,5 +1,7 @@
 # Web de Altillo
 
+La web de producción vive en **[altillo.app](https://altillo.app/)**.
+
 Web en español (`/`) e inglés (`/en/`) para presentar Altillo y probar un escritorio Mac simulado. Usa HTML, CSS y JavaScript con Vite. No necesita servidor de aplicación ni base de datos.
 
 La página abre con una secuencia cinematográfica del Mac y su puerta. El scroll controla el avance y el retroceso del vídeo, hasta entrar en el altillo y mostrar allí la explicación del estante. Después siguen tres capítulos interactivos, una escena del altillo y una sección compacta para conocer Aurio con su mascota oficial.
@@ -101,3 +103,6 @@ Las imágenes del Mac y del altillo ilustran el concepto de marca; no son captur
 Aloja el contenido de `dist/` en un hosting estático. Configura `website/` como directorio del proyecto, `npm run build` como comando y `dist/` como salida. Si sirves desde un subdirectorio, ajusta `base` en Vite y verifica las rutas de recursos antes de publicar.
 
 Estos comandos preparan los archivos; no publican la web. La sección final enlaza a [Aurio](https://www.aurioapp.com) para quienes quieran apoyar el desarrollo probando la otra app del equipo.
+
+`vercel.json` mantiene `https://altillo.app/appcast.xml` como URL pública estable
+del feed de Sparkle y lo sirve desde el origen publicado en GitHub Pages.

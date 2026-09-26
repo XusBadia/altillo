@@ -41,6 +41,20 @@ test('English product claims match the shipped macOS app', async ({ page }) => {
   await expect(page.locator('#interactive-demo')).toContainText('Sample request · you decide; Altillo never auto-approves');
 });
 
+for (const [route, canonical] of [['/', 'https://altillo.app/'], ['/en/', 'https://altillo.app/en/']]) {
+  test(`publishes canonical domain metadata for ${route}`, async ({ page }) => {
+    await page.goto(route);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', canonical);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      'https://altillo.app/media/mac-door.webp',
+    );
+    await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute('href', 'https://altillo.app/');
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://altillo.app/en/');
+  });
+}
+
 test('double-clicking the Aurio mascot follows its external link', async ({ page }) => {
   await page.route('https://www.aurioapp.com/**', (route) => route.abort());
   await page.goto('/');

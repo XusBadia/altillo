@@ -52,7 +52,7 @@ enum AssistantWeb {
 
     static let userAgent: String = {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
-        return "Altillo/\(version) (Macintosh; on-device assistant; +https://github.com/XusBadia/altillo)"
+        return "Altillo/\(version) (Macintosh; on-device assistant; +https://altillo.app/)"
     }()
 
     /// Ephemeral: no cookies, no cache, nothing kept between lookups.

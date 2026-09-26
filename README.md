@@ -1,10 +1,13 @@
 # Altillo
 
+**Website: [altillo.app](https://altillo.app/)**
+
 > 🇪🇸 Este README está en inglés para llegar a más gente, pero el plan de
 > desarrollo completo está en español: **[PLAN.md](PLAN.md)**.
 
 **Status: actively developed, current version 0.7.1.** Public, notarized
-builds are available from [GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
+builds are available from [altillo.app](https://altillo.app/) and
+[GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
 with Sparkle auto-update. It's a working app used daily, but still pre-1.0 —
 expect some rough edges and occasional breaking changes.
 

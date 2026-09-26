@@ -209,7 +209,7 @@ struct ContextualActivityTests {
         #expect(model.ears.hasActivity(.automatic, in: model))
     }
 
-    @Test func playbackUsesAQuietFixedEarWithoutOverwritingAnActiveOne() {
+    @Test func unrelatedActivityDoesNotReplaceExplicitFixedEars() {
         let model = makeModel()
         model.settings.leftEar = .nextEvent
         model.settings.rightEar = .shelf
@@ -217,15 +217,14 @@ struct ContextualActivityTests {
 
         model.nowPlaying.receive(state: "Playing", track: .init(title: "Teardrop", artist: "Massive Attack"),
                                  from: .spotify)
-        #expect(model.ears.contextualFallbackSide(for: model) == .left)
-        #expect(model.ears.showsEars(for: model), "music grows the notch without first opening Now Playing")
+        #expect(!model.ears.showsEars(for: model),
+                "an unrelated activity must not replace the explicitly selected next-event ear")
 
         model.shelf = [ShelfItem(kind: .text("hello"), displayName: "hello")]
-        #expect(model.ears.contextualFallbackSide(for: model) == .left,
-                "the live activity uses the quiet side, leaving the active shelf count alone")
+        #expect(model.ears.showsEars(for: model), "the selected shelf indicator still shows its own activity")
 
         model.settings.leftEar = .none
-        #expect(model.ears.contextualFallbackSide(for: model) == nil, "Nothing is an explicit empty side")
+        #expect(model.ears.showsEars(for: model), "Nothing remains an explicit empty side")
     }
 
     // MARK: - Broadcasts

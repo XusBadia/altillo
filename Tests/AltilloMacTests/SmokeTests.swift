@@ -47,10 +47,10 @@ struct SmokeTests {
         #expect(NotchChrome.drawerNavigationHeight >= DesvanHitTarget.minimum)
     }
 
-    /// The widest compact indicator is the usage ring with “100”; its side needs enough room to clear the island's
-    /// rounded edge instead of looking pinned to it.
+    /// A full calendar time and the usage ring with “100” keep enough room to clear the island's rounded edge
+    /// instead of looking pinned to it.
     @Test func restingIndicatorsKeepBreathingRoom() {
-        #expect(NotchChrome.earWidth >= 56)
+        #expect(NotchChrome.earWidth >= 68)
         let model = NotchModel.preview(.idleWithEars)
         for hasNotch in [true, false] {
             model.hasNotch = hasNotch

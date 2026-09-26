@@ -10,7 +10,7 @@ enum DesvanEdit {
     @MainActor static var didCustomizeOnLaunch = false
     /// How long the Undo button glows after a preset replaced the configuration.
     static let undoOffer: Duration = .seconds(6)
-    /// A slot's well inside an ear (`NotchChrome.earWidth` is 50: the pointer gets the whole ear).
+    /// A slot's well inside an ear (the pointer gets the whole ear).
     static let slotWidth: CGFloat = 48
     /// Height of the band's capsules (Undo, Done): they fit the island's 28 pt band with room to breathe.
     static let bandButtonHeight: CGFloat = 24

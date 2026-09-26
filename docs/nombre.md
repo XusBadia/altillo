@@ -58,7 +58,7 @@ Comprobado con RDAP (registros de Google para `.app`/`.dev`) y whois directo con
 
 | Dominio | Estado |
 |---|---|
-| `altillo.app` | libre (RDAP: "not found") |
+| `altillo.app` | registrado y en uso como dominio oficial |
 | `getaltillo.com` | libre ("No match") |
 | `altilloapp.com` | libre ("No match") |
 | `usealtillo.com` | libre ("No match") |
@@ -69,6 +69,6 @@ Comprobado con RDAP (registros de Google para `.app`/`.dev`) y whois directo con
 
 ## Recomendación final
 
-**Mantener «Altillo»**, sin matices: no hay ninguna app de macOS/notch/productividad con ese nombre en GitHub ni en las App Stores, el token de Homebrew está libre, los seis dominios candidatos están libres, y no aparece ningún indicio de marca registrada conflictiva en búsqueda web — el único paso que falta es una comprobación manual de 10 minutos en EUIPO/OEPM/USPTO (enlaces arriba) antes de anunciar el nombre públicamente, ya que esas bases de datos no son accesibles por fetch automatizado.
+**Mantener «Altillo»**, sin matices: no hay ninguna app de macOS/notch/productividad con ese nombre en GitHub ni en las App Stores, el token de Homebrew está libre, `altillo.app` ya está registrado como dominio oficial, y no aparece ningún indicio de marca registrada conflictiva en búsqueda web — queda documentada la recomendación de comprobar manualmente EUIPO/OEPM/USPTO (enlaces arriba), ya que esas bases de datos no son accesibles por fetch automatizado.
 
-Dominio recomendado para la web: **`altillo.app`** (coherente con el bundle id `me.badia.altillo` y con que la app vive en el ecosistema Apple); registrar también `altilloapp.com` como redirección defensiva es barato y evita que lo capture un tercero.
+Dominio definitivo de la web: **[`altillo.app`](https://altillo.app/)** (coherente con el bundle id `me.badia.altillo` y con que la app vive en el ecosistema Apple). `altilloapp.com` puede mantenerse como redirección defensiva si se registra.

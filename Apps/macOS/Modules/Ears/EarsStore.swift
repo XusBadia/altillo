@@ -46,25 +46,10 @@ final class EarsStore {
     /// Whether the resting notch grows ears right now.
     func showsEars(for model: NotchModel) -> Bool {
         let settings = model.settings
-        let configured = EarsLogic.showsEars(left: settings.leftEar, right: settings.rightEar,
-                                             visibility: settings.earsVisibility) { content in
+        return EarsLogic.showsEars(left: settings.leftEar, right: settings.rightEar,
+                                  visibility: settings.earsVisibility) { content in
             hasActivity(content, in: model)
         }
-        return configured || contextualFallbackSide(for: model) != nil
-    }
-
-    /// When both fixed indicators are quiet, Altillo can use one of their otherwise-empty spaces for the most
-    /// relevant live activity (notably playback). Explicit `Nothing` remains empty, and an Automatic side already
-    /// owns this job, so neither is overridden.
-    func contextualFallbackSide(for model: NotchModel) -> EarSide? {
-        let settings = model.settings
-        guard settings.earsVisibility == .withActivity,
-              settings.leftEar != .automatic, settings.rightEar != .automatic,
-              model.contextualActivity != .rest
-        else { return nil }
-        if settings.leftEar != .none, !hasActivity(settings.leftEar, in: model) { return .left }
-        if settings.rightEar != .none, !hasActivity(settings.rightEar, in: model) { return .right }
-        return nil
     }
 
     /// Whether an ear showing `content` has something to say right now.

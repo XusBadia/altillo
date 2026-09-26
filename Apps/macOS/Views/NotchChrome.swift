@@ -99,9 +99,11 @@ struct NotchChrome: Equatable {
     /// Room between the band (or each Drawer row) and what comes below it.
     static let expandedContentGap: CGFloat = 8
     static let expandedBottomInset: CGFloat = 16
-    /// Enough room for the widest compact indicator (the usage ring plus "100") to clear the island's curve.
-    static let earWidth: CGFloat = 56
-    static let peekEarWidth: CGFloat = 64
+    /// Enough room for the widest compact indicator (a calendar plus a full clock time) to keep visible air on
+    /// both sides instead of touching either the hardware notch or the outer fillet.
+    static let earWidth: CGFloat = 68
+    /// Peeks never narrow the ears that were already visible before the alert arrived.
+    static let peekEarWidth: CGFloat = 76
     static let peekLineHeight: CGFloat = 28
 
     /// Where the open notch's body starts, from the top of the shape: below the band and, when it shows, the
