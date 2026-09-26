@@ -97,6 +97,7 @@ if [ "${DEVELOPER_DIR:-}" != "/Applications/Xcode.app/Contents/Developer" ]; the
   exit 1
 fi
 command -v xcodegen >/dev/null 2>&1 || { echo "xcodegen not found. Install: brew install xcodegen" >&2; exit 1; }
+command -v create-dmg >/dev/null 2>&1 || { echo "create-dmg not found. Install: brew install create-dmg" >&2; exit 1; }
 command -v xcodebuild >/dev/null 2>&1 || { echo "xcodebuild not found (check DEVELOPER_DIR)." >&2; exit 1; }
 
 TEAM_ID="${ALTILLO_TEAM_ID:-9L2TD7KVV9}"
@@ -256,11 +257,26 @@ fi
 
 echo "==> building $DMG_PATH"
 STAGE="$(mktemp -d)"
+trap 'rm -rf "$STAGE"' EXIT
 cp -R "$APP_PATH" "$STAGE/$APP_NAME.app"
-ln -s /Applications "$STAGE/Applications"
-rm -f "$DMG_PATH"
-hdiutil create -volname "$APP_NAME" -srcfolder "$STAGE" -ov -format UDZO "$DMG_PATH" >/dev/null
+create-dmg \
+  --volname "$APP_NAME" \
+  --volicon "$APP_PATH/Contents/Resources/AppIcon.icns" \
+  --background "$ROOT_DIR/packaging/dmg/background.tiff" \
+  --window-pos 200 120 \
+  --window-size 660 400 \
+  --text-size 13 \
+  --icon-size 120 \
+  --icon "$APP_NAME.app" 165 215 \
+  --hide-extension "$APP_NAME.app" \
+  --app-drop-link 495 215 \
+  --no-internet-enable \
+  --format UDZO \
+  --overwrite \
+  "$DMG_PATH" \
+  "$STAGE"
 rm -rf "$STAGE"
+trap - EXIT
 codesign --force --timestamp --sign "$SIGN_IDENTITY" "$DMG_PATH"
 
 if [ "$NOTARIZE" = 1 ]; then

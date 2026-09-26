@@ -48,8 +48,8 @@ jobs:
           sudo xcode-select -s "${latest:-/Applications/Xcode.app}"
           xcodebuild -version
 
-      - name: Install XcodeGen
-        run: brew install xcodegen
+      - name: Install release tools
+        run: brew install xcodegen create-dmg
 
       - name: Resolve tag and version
         id: meta

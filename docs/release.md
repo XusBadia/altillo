@@ -130,6 +130,10 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
    script/release.sh 0.2.0 --dry-run
    ```
 
+   El empaquetado necesita `xcodegen` y `create-dmg`; se instalan una vez con
+   `brew install xcodegen create-dmg`. El fondo, su fuente y las instrucciones
+   para regenerarlo viven en [`packaging/dmg/`](../packaging/dmg/README.md).
+
 3. Genera la release real (firma y notariza de verdad, pero no publica):
 
    ```sh
