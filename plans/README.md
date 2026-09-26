@@ -16,7 +16,7 @@ respetar las condiciones de parada y actualizar su fila al terminar.
 | [005](005-spike-volume-hud.md) | Decisión técnica sobre un HUD de volumen público y fiable | P2 | S | — | REJECTED: NO-GO hasta probar Bluetooth, HDMI y coexistencia con el HUD nativo |
 | [006](006-harden-release-diagnostics.md) | Release sin herramientas internas ni rutas públicas en logs | P0 | M | — | DONE |
 | [007](007-publish-accurate-privacy-contract.md) | Contrato de privacidad exacto y enlazado | P0 | S/M | 006 | DONE |
-| [008](008-gate-and-smoke-test-releases.md) | CI verde y smoke del artefacto antes de publicar | P0 | M | 006, 007 | TODO |
+| [008](008-gate-and-smoke-test-releases.md) | CI verde y smoke del artefacto antes de publicar | P0 | M | 006, 007 | DONE |
 | [009](009-close-physical-launch-matrix.md) | Matriz física crítica cerrada y claims comprobados | P0 | M | 006–008 | BLOCKED: falta MacBook con notch/macOS 26 y sesiones/apps/permisos reales |
 | [010](010-add-support-and-safe-uninstall.md) | Soporte visible y desinstalación sin hooks rotos | P1 | S/M | 006 | DONE |
 

@@ -4,6 +4,7 @@
 
 ## Estado
 
+- **Estado**: DONE — CI candidato verde y smoke de artefacto incorporado al flujo de publicación (26-09-2026)
 - **Prioridad**: P0 · **Esfuerzo**: M · **Riesgo**: LOW/MED · **Depende de**: 006, 007
 - **Categoría**: tests/dx · **Planned at**: `7f80680`, 26-09-2026
 
