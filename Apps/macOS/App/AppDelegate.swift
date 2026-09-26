@@ -5,6 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = NotchCoordinator()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        SettingsWindowController.model = coordinator.model
         // Installed agent hooks call a stable path in Application Support; point it at this copy of the app.
         AgentHookInstaller.refreshStableHookPath()
         coordinator.start()

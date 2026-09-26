@@ -217,6 +217,8 @@ private struct DesvanEarsFace: View {
             } else if model.scenario?.isAgentWaitingEars == true {
                 // What the contextual ear shows for a knocking agent (`DesvanContextualEar`).
                 DesvanKnockingHand(size: 13)
+            } else if model.scenario == nil, model.ears.contextualFallbackSide(for: model) == .left {
+                DesvanContextualEar(model: model, style: restingStyle)
             } else if model.scenario == nil {
                 DesvanEarContent(content: model.settings.leftEar, model: model, style: restingStyle)
             }
@@ -226,6 +228,8 @@ private struct DesvanEarsFace: View {
             } else if model.scenario != nil {
                 // Design review: the shelf's sample count.
                 if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
+            } else if model.ears.contextualFallbackSide(for: model) == .right {
+                DesvanContextualEar(model: model, style: restingStyle)
             } else {
                 DesvanEarContent(content: model.settings.rightEar, model: model, style: restingStyle)
             }
@@ -293,6 +297,21 @@ struct DesvanEarContent: View {
             }
         }
         .transition(.opacity)
+        .help(helpText)
+    }
+
+    private var helpText: String {
+        switch content {
+        case .none: String(localized: "This side is empty")
+        case .automatic: NotchActivityLogic.accessibilityLabel(for: model.contextualActivity, now: .now)
+        case .shelf: model.shelf.isEmpty
+            ? String(localized: "The shelf is empty")
+            : String(localized: "\(model.shelf.count) items on the shelf")
+        case .nextEvent: model.ears.nextEvent?.title ?? String(localized: "No more timed events today")
+        case .nowPlaying: model.nowPlaying.track?.title ?? String(localized: "Nothing is playing")
+        case .usage: String(localized: "AI usage")
+        case .agents: String(localized: "Active agents and requests")
+        }
     }
 }
 

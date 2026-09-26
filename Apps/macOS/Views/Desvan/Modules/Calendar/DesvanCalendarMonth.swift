@@ -217,6 +217,7 @@ private struct DesvanDayCell: View {
         }
         .buttonStyle(.plain)
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+        .help(label)
         .accessibilityLabel(label)
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }

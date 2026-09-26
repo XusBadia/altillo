@@ -341,6 +341,22 @@
         }
       }
     },
+    "%@ in %@: %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ in %2$@: %3$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ en %2$@: %3$@"
+          }
+        }
+      }
+    },
     "%@ in %lld minutes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1630,6 +1646,16 @@
         }
       }
     },
+    "%lld items on the shelf" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld elementos en el altillo"
+          }
+        }
+      }
+    },
     "%lld knocking" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2406,6 +2432,16 @@
         }
       }
     },
+    "Active agents and requests" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agentes activos y solicitudes"
+          }
+        }
+      }
+    },
     "Add" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3120,6 +3156,26 @@
         }
       }
     },
+    "Altillo appears on every screen. It opens on the one you're using." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo aparece en todas las pantallas. Se abre en la que estás usando."
+          }
+        }
+      }
+    },
+    "Altillo behaves the same over videos, games and presentations." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo se comporta igual sobre vídeos, juegos y presentaciones."
+          }
+        }
+      }
+    },
     "Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3256,6 +3312,16 @@
         }
       }
     },
+    "Altillo expands a little for a few seconds and goes back on its own. Hover over it to keep it; click to open." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo se expande un poco durante unos segundos y vuelve solo. Pon el puntero encima para mantenerlo; haz clic para abrirlo."
+          }
+        }
+      }
+    },
     "Altillo finds them by itself, right here on your Mac. Nothing leaves it." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3375,6 +3441,16 @@
         }
       }
     },
+    "Altillo moves to whichever screen the pointer is on." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo se mueve a la pantalla donde está el puntero."
+          }
+        }
+      }
+    },
     "Altillo needs Accessibility access to read your menu bar icons." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3422,6 +3498,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo nunca aprueba nada por su cuenta. Si Altillo está cerrado o no respondes a tiempo, el agente pregunta en la terminal como siempre."
+          }
+        }
+      }
+    },
+    "Altillo open above the menu bar, and closed around the hardware notch." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo abierto sobre la barra de menús y cerrado alrededor del notch físico."
+          }
+        }
+      }
+    },
+    "Altillo open above the menu bar, and closed as a small island." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo abierto sobre la barra de menús y cerrado como una pequeña isla."
           }
         }
       }
@@ -3711,6 +3807,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Siempre la primera"
+          }
+        }
+      }
+    },
+    "Always visible" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siempre visibles"
           }
         }
       }
@@ -4208,6 +4314,26 @@
         }
       }
     },
+    "Automatic" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automático"
+          }
+        }
+      }
+    },
+    "Automatic glances" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vistazos automáticos"
+          }
+        }
+      }
+    },
     "Automatically check for updates" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4323,6 +4449,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Comportamiento"
+          }
+        }
+      }
+    },
+    "Beside the camera" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Junto a la cámara"
           }
         }
       }
@@ -4531,6 +4667,16 @@
         }
       }
     },
+    "Change how wide Altillo is when it opens" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cambiar el ancho de Altillo al abrirse"
+          }
+        }
+      }
+    },
     "Changes to the file" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4735,6 +4881,26 @@
         }
       }
     },
+    "Choose the global keyboard shortcut that opens Ask" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir el atajo global que abre Preguntar"
+          }
+        }
+      }
+    },
+    "Choose what Altillo shows while it's closed and when you open it." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elige qué muestra Altillo cuando está cerrado y al abrirlo."
+          }
+        }
+      }
+    },
     "Choose what goes up there, and in what order. Drag to reorder the tabs." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4765,6 +4931,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Elige qué vive ahí arriba. Cada uno fija las secciones del notch abierto y lo que hay a su lado."
+          }
+        }
+      }
+    },
+    "Choose what this side shows while Altillo is closed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir qué muestra este lado cuando Altillo está cerrado"
+          }
+        }
+      }
+    },
+    "Choose when Altillo removes old shelf references; original files are never deleted" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir cuándo retira Altillo las referencias antiguas del altillo; los archivos originales nunca se eliminan"
+          }
+        }
+      }
+    },
+    "Choose whether Altillo opens after a short hover or only after a click" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elegir si Altillo se abre al mantener brevemente el puntero encima o solo al hacer clic"
           }
         }
       }
@@ -5228,6 +5424,16 @@
         }
       }
     },
+    "Connections, replies and permission timing." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Conexiones, respuestas y tiempo de espera de permisos."
+          }
+        }
+      }
+    },
     "Continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5530,6 +5736,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Personalizar"
+          }
+        }
+      }
+    },
+    "Customize Altillo…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Personalizar Altillo…"
           }
         }
       }
@@ -5887,6 +6103,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Terminar de personalizar"
+          }
+        }
+      }
+    },
+    "Drag a row to change the order. Shelf always stays first." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arrastra una fila para cambiar el orden. El altillo siempre va primero."
           }
         }
       }
@@ -7166,6 +7392,16 @@
         }
       }
     },
+    "Hidden while inactive" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultos si están inactivos"
+          }
+        }
+      }
+    },
     "Hide" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7213,6 +7449,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esconder los iconos de la barra de menús"
+          }
+        }
+      }
+    },
+    "Hide these options" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar estas opciones"
           }
         }
       }
@@ -7417,6 +7663,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hooks quitados. Todo lo demás está como estaba."
+          }
+        }
+      }
+    },
+    "How Altillo opens, what it tells you on its own, and what the shelf does while you're not looking." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo se abre Altillo, qué te cuenta por sí solo y qué hace el estante mientras no miras."
           }
         }
       }
@@ -8509,6 +8765,16 @@
         }
       }
     },
+    "Layout, all-day events and visible calendars." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diseño, eventos de todo el día y calendarios visibles."
+          }
+        }
+      }
+    },
     "Leave Empty" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8590,6 +8856,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oreja izquierda: tócala y elige qué muestra"
+          }
+        }
+      }
+    },
+    "Left of the camera" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A la izquierda de la cámara"
+          }
+        }
+      }
+    },
+    "Left side" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lado izquierdo"
           }
         }
       }
@@ -9240,6 +9526,26 @@
         }
       }
     },
+    "Move Earlier" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover antes"
+          }
+        }
+      }
+    },
+    "Move Later" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mover después"
+          }
+        }
+      }
+    },
     "Move earlier" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9818,6 +10124,16 @@
         }
       }
     },
+    "No hardware notch found, so Altillo uses the display with the menu bar." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se ha encontrado ningún notch físico, así que Altillo usa la pantalla con la barra de menús."
+          }
+        }
+      }
+    },
     "No icons match your search." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9882,6 +10198,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "No hay más eventos hoy"
+          }
+        }
+      }
+    },
+    "No more timed events today" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No quedan más eventos con hora hoy"
           }
         }
       }
@@ -10222,6 +10548,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nada en marcha"
+          }
+        }
+      }
+    },
+    "Nothing is playing" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se está reproduciendo nada"
           }
         }
       }
@@ -10583,6 +10919,16 @@
         }
       }
     },
+    "On hover, the shelf opens after you rest the pointer on Altillo for a moment." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Al pasar el puntero, el estante se abre después de mantenerlo un momento sobre Altillo."
+          }
+        }
+      }
+    },
     "On the shelf" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10596,6 +10942,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "En el altillo"
+          }
+        }
+      }
+    },
+    "On this display, the indicators sit beside the hardware notch." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En esta pantalla, los indicadores quedan junto al notch físico."
+          }
+        }
+      }
+    },
+    "On this display, the indicators sit inside Altillo's small island." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "En esta pantalla, los indicadores están dentro de la pequeña isla de Altillo."
           }
         }
       }
@@ -11242,6 +11608,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Abre %@"
+          }
+        }
+      }
+    },
+    "Opens Altillo in edit mode so you can drag sections and side indicators directly." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Altillo en modo de edición para arrastrar directamente las secciones y los indicadores laterales."
+          }
+        }
+      }
+    },
+    "Opens Altillo on Ask from any app, ready to type. Press it again to close." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abre Altillo en Preguntar desde cualquier app, listo para escribir. Púlsalo otra vez para cerrar."
           }
         }
       }
@@ -11939,6 +12325,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Proveedores"
+          }
+        }
+      }
+    },
+    "Providers, limits and alerts." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proveedores, límites y avisos."
           }
         }
       }
@@ -12674,6 +13070,16 @@
         }
       }
     },
+    "Reset to a simple starting point, then make it yours. You can undo it right away." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restablece un punto de partida sencillo y adáptalo. Puedes deshacerlo inmediatamente."
+          }
+        }
+      }
+    },
     "Rest it there for a moment and Altillo opens. Try it now." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12738,6 +13144,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Oreja derecha: tócala y elige qué muestra"
+          }
+        }
+      }
+    },
+    "Right of the camera" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A la derecha de la cámara"
+          }
+        }
+      }
+    },
+    "Right side" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lado derecho"
+          }
+        }
+      }
+    },
+    "Right-click Altillo while Calendar is open to switch layout from there." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Haz clic derecho en Altillo con Calendario abierto para cambiar el diseño desde ahí."
           }
         }
       }
@@ -13320,6 +13756,16 @@
         }
       }
     },
+    "Sections in Altillo" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Secciones en Altillo"
+          }
+        }
+      }
+    },
     "Sections, %@ selected" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13537,6 +13983,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Configúrala en este Mac y aparecerá aquí."
+          }
+        }
+      }
+    },
+    "Set the open width to %lld points" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ajustar el ancho abierto a %lld puntos"
           }
         }
       }
@@ -13796,6 +14252,16 @@
         }
       }
     },
+    "Show Altillo on" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar Altillo en"
+          }
+        }
+      }
+    },
     "Show Backup" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13809,6 +14275,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar la copia"
+          }
+        }
+      }
+    },
+    "Show a short glance five minutes before a timed event" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar un vistazo breve cinco minutos antes de un evento con hora"
+          }
+        }
+      }
+    },
+    "Show a short glance when the track changes" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar un vistazo breve al cambiar de pista"
           }
         }
       }
@@ -13966,6 +14452,16 @@
         }
       }
     },
+    "Show the drop-files reminder when the shelf is empty" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar el recordatorio para soltar archivos cuando el altillo esté vacío"
+          }
+        }
+      }
+    },
     "Show the ears" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14034,6 +14530,16 @@
         }
       }
     },
+    "Show these options" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mostrar estas opciones"
+          }
+        }
+      }
+    },
     "Show what it's asking" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14051,6 +14557,36 @@
         }
       }
     },
+    "Shows active agents and requests that need your attention." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra los agentes activos y las solicitudes que requieren tu atención."
+          }
+        }
+      }
+    },
+    "Shows an equaliser while music, a podcast or a video is playing." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra un ecualizador mientras se reproduce música, un pódcast o un vídeo."
+          }
+        }
+      }
+    },
+    "Shows the AI limit that is closest to running out." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra el límite de IA al que le queda menos."
+          }
+        }
+      }
+    },
     "Shows the day's events" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14064,6 +14600,36 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Muestra los eventos del día"
+          }
+        }
+      }
+    },
+    "Shows the most relevant activity from your enabled sections." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra la actividad más relevante de las secciones activadas."
+          }
+        }
+      }
+    },
+    "Shows the next timed event today; all-day events don't appear here." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra el próximo evento con hora de hoy; los de todo el día no aparecen aquí."
+          }
+        }
+      }
+    },
+    "Shows the number of shelf items; inactive when the shelf is empty." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muestra cuántos elementos hay en el altillo; queda inactivo si está vacío."
           }
         }
       }
@@ -14544,6 +15110,16 @@
         }
       }
     },
+    "Start Altillo automatically when you sign in to this Mac" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Iniciar Altillo automáticamente al iniciar sesión en este Mac"
+          }
+        }
+      }
+    },
     "Start again" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14574,6 +15150,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Empezar desde"
+          }
+        }
+      }
+    },
+    "Start with a layout" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Empezar con un diseño"
           }
         }
       }
@@ -15180,6 +15766,36 @@
         }
       }
     },
+    "The compact indicators beside the hardware notch while Altillo is closed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los indicadores compactos junto al notch físico mientras Altillo está cerrado"
+          }
+        }
+      }
+    },
+    "The compact indicators immediately beside the camera notch while Altillo is closed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los indicadores compactos situados junto a la cámara cuando Altillo está cerrado"
+          }
+        }
+      }
+    },
+    "The compact indicators inside Altillo's island while it is closed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los indicadores compactos dentro de la isla de Altillo mientras está cerrado"
+          }
+        }
+      }
+    },
     "The file changed since you reviewed it. Nothing was written; review the new changes." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15227,6 +15843,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Lo último que has copiado, solo texto. Las contraseñas nunca se guardan."
+          }
+        }
+      }
+    },
+    "The left and right spaces are visible while Altillo is closed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los espacios izquierdo y derecho se ven mientras Altillo está cerrado."
           }
         }
       }
@@ -15486,6 +16112,26 @@
         }
       }
     },
+    "The sides remain visible; inactive items stay dim." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los lados permanecen visibles; los elementos inactivos se muestran atenuados."
+          }
+        }
+      }
+    },
+    "The sides stay hidden until a selected item has current information." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los lados permanecen ocultos hasta que un elemento seleccionado tenga información actual."
+          }
+        }
+      }
+    },
     "The sign-in expired. Open %@ once and it's back." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15724,6 +16370,46 @@
         }
       }
     },
+    "This appears immediately to the left of the camera notch while Altillo is closed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparece justo a la izquierda de la cámara cuando Altillo está cerrado."
+          }
+        }
+      }
+    },
+    "This appears immediately to the right of the camera notch while Altillo is closed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparece justo a la derecha de la cámara cuando Altillo está cerrado."
+          }
+        }
+      }
+    },
+    "This appears on the left side of Altillo while it is closed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparece en el lado izquierdo de Altillo cuando está cerrado."
+          }
+        }
+      }
+    },
+    "This appears on the right side of Altillo while it is closed." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aparece en el lado derecho de Altillo cuando está cerrado."
+          }
+        }
+      }
+    },
     "This build has no update feed configured, so it can't check for updates." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15788,6 +16474,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esto puede ser difícil de deshacer. Mantén pulsado Permitir un segundo para confirmar."
+          }
+        }
+      }
+    },
+    "This side is empty" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este lado está vacío"
+          }
+        }
+      }
+    },
+    "This side stays empty." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Este lado permanece vacío."
           }
         }
       }
@@ -15924,6 +16630,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nombre del temporizador, o un tiempo para empezar"
+          }
+        }
+      }
+    },
+    "Tip: What matters now can temporarily show music, an urgent event or an agent that needs you. Choosing the same item twice swaps the two sides." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consejo: Lo que importa ahora puede mostrar temporalmente música, un evento urgente o un agente que te necesita. Si eliges lo mismo dos veces, los dos lados se intercambian."
           }
         }
       }
@@ -16149,6 +16865,16 @@
         }
       }
     },
+    "Turn on Ask in Sections to use a shortcut" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa Preguntar en Secciones para usar un atajo"
+          }
+        }
+      }
+    },
     "Turn on Ask in Sections to use a shortcut." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16179,6 +16905,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Activa el Cajón para elegir qué iconos aparecen en Altillo."
+          }
+        }
+      }
+    },
+    "Turn one on to add it to the end of Altillo." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa una para añadirla al final de Altillo."
           }
         }
       }
@@ -16659,6 +17395,16 @@
         }
       }
     },
+    "Use a light trackpad tap for section changes and shelf landings" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usar un toque ligero del trackpad al cambiar de sección o colocar algo en el altillo"
+          }
+        }
+      }
+    },
     "Used Reminders" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16812,6 +17558,26 @@
         }
       }
     },
+    "Uses the display with the hardware notch." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la pantalla con el notch físico."
+          }
+        }
+      }
+    },
+    "Uses the display with the menu bar." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la pantalla con la barra de menús."
+          }
+        }
+      }
+    },
     "VPN" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16876,6 +17642,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ver el código en GitHub"
+          }
+        }
+      }
+    },
+    "Visibility" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Visibilidad"
           }
         }
       }
@@ -17305,6 +18081,16 @@
         }
       }
     },
+    "When active" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Con actividad"
+          }
+        }
+      }
+    },
     "When busy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17352,6 +18138,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cuando hay algo"
+          }
+        }
+      }
+    },
+    "While Altillo is closed" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cuando Altillo está cerrado"
           }
         }
       }

@@ -188,7 +188,8 @@ struct ContextualActivityTests {
         #expect(EarsLogic.watchesPlayback(left: .automatic, right: .shelf, modules: [.shelf, .nowPlaying]))
         #expect(!EarsLogic.watchesPlayback(left: .automatic, right: .shelf, modules: [.shelf]))
         #expect(EarsLogic.watchesPlayback(left: .none, right: .nowPlaying, modules: [.shelf]), "a chosen music ear")
-        #expect(!EarsLogic.watchesPlayback(left: .none, right: .shelf, modules: NotchModule.allCases))
+        #expect(EarsLogic.watchesPlayback(left: .nextEvent, right: .shelf, modules: NotchModule.allCases),
+                "an enabled Now Playing section stays ready before it is opened")
         #expect(EarsLogic.watchesCalendar(left: .automatic, right: .shelf, modules: [.calendar]))
         #expect(!EarsLogic.watchesCalendar(left: .automatic, right: .shelf, modules: [.shelf, .nowPlaying]))
     }
@@ -206,6 +207,25 @@ struct ContextualActivityTests {
         #expect(model.settings.rightEar == .shelf)
         #expect(model.ears.hasActivity(.shelf, in: model))
         #expect(model.ears.hasActivity(.automatic, in: model))
+    }
+
+    @Test func playbackUsesAQuietFixedEarWithoutOverwritingAnActiveOne() {
+        let model = makeModel()
+        model.settings.leftEar = .nextEvent
+        model.settings.rightEar = .shelf
+        model.ears.update(left: .nextEvent, right: .shelf, modules: model.settings.modules)
+
+        model.nowPlaying.receive(state: "Playing", track: .init(title: "Teardrop", artist: "Massive Attack"),
+                                 from: .spotify)
+        #expect(model.ears.contextualFallbackSide(for: model) == .left)
+        #expect(model.ears.showsEars(for: model), "music grows the notch without first opening Now Playing")
+
+        model.shelf = [ShelfItem(kind: .text("hello"), displayName: "hello")]
+        #expect(model.ears.contextualFallbackSide(for: model) == .left,
+                "the live activity uses the quiet side, leaving the active shelf count alone")
+
+        model.settings.leftEar = .none
+        #expect(model.ears.contextualFallbackSide(for: model) == nil, "Nothing is an explicit empty side")
     }
 
     // MARK: - Broadcasts

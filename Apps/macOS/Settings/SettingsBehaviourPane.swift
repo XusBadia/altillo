@@ -3,11 +3,12 @@ import SwiftUI
 /// How Altillo behaves: how it opens, whether it starts with you, and what the shelf does with what you leave in it.
 struct SettingsBehaviourPane: View {
     @Bindable var settings: AltilloSettings
+    let hasHardwareNotch: Bool
 
     var body: some View {
         SettingsPane(
             title: "Behaviour",
-            subtitle: "How the notch opens, what it tells you on its own, and what the shelf does while you're not looking."
+            subtitle: "How Altillo opens, what it tells you on its own, and what the shelf does while you're not looking."
         ) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {
@@ -22,8 +23,9 @@ struct SettingsBehaviourPane: View {
                                     .foregroundStyle(Desvan.Palette.paper)
                             }
                             .pickerStyle(.radioGroup)
+                            .help("Choose whether Altillo opens after a short hover or only after a click")
 
-                            Text("On hover, the shelf only opens if you rest a moment on the notch.")
+                            Text("On hover, the shelf opens after you rest the pointer on Altillo for a moment.")
                                 .settingsHint()
                         }
                     }
@@ -39,12 +41,13 @@ struct SettingsBehaviourPane: View {
                                     Text(mode.title).tag(mode)
                                 }
                             } label: {
-                                Text("Show the notch on")
+                                Text("Show Altillo on")
                                     .font(.system(size: 12.5))
                                     .foregroundStyle(Desvan.Palette.paper)
                             }
                             .pickerStyle(.menu)
                             .fixedSize()
+                            .help(displayModeHint)
 
                             Text(displayModeHint)
                                 .settingsHint()
@@ -62,6 +65,7 @@ struct SettingsBehaviourPane: View {
                             }
                             .pickerStyle(.menu)
                             .fixedSize()
+                            .help(fullScreenHint)
 
                             Text(fullScreenHint)
                                 .settingsHint()
@@ -77,6 +81,7 @@ struct SettingsBehaviourPane: View {
                             }
                             .toggleStyle(.switch)
                             .controlSize(.small)
+                            .help("Start Altillo automatically when you sign in to this Mac")
 
                             if let problem = settings.launchAtLoginProblem {
                                 Label(problem, systemImage: "exclamationmark.triangle.fill")
@@ -94,6 +99,7 @@ struct SettingsBehaviourPane: View {
                             }
                             .toggleStyle(.switch)
                             .controlSize(.small)
+                            .help("Show the drop-files reminder when the shelf is empty")
 
                             Text("It's the line that reminds you that you can drop files up here.")
                                 .settingsHint()
@@ -114,6 +120,9 @@ struct SettingsBehaviourPane: View {
                             .pickerStyle(.menu)
                             .fixedSize()
                             .disabled(!settings.isEnabled(.assistant))
+                            .help(settings.isEnabled(.assistant)
+                                ? "Choose the global keyboard shortcut that opens Ask"
+                                : "Turn on Ask in Sections to use a shortcut")
 
                             if let problem = settings.assistantHotKeyProblem {
                                 Label(problem, systemImage: "exclamationmark.triangle.fill")
@@ -123,7 +132,7 @@ struct SettingsBehaviourPane: View {
                             }
 
                             if settings.isEnabled(.assistant) {
-                                Text("Opens the notch on Ask from any app, ready to type. Press it again to close.")
+                                Text("Opens Altillo on Ask from any app, ready to type. Press it again to close.")
                                     .settingsHint()
                             } else {
                                 Text("Turn on Ask in Sections to use a shortcut.")
@@ -140,6 +149,7 @@ struct SettingsBehaviourPane: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                             .disabled(!settings.isEnabled(.assistant))
+                            .help(webSearchHint)
 
                             Text(webSearchHint)
                                 .settingsHint()
@@ -153,6 +163,7 @@ struct SettingsBehaviourPane: View {
                             }
                             .toggleStyle(.switch)
                             .controlSize(.small)
+                            .help("Use a light trackpad tap for section changes and shelf landings")
 
                             Text("A light tap when you swipe between sections or something lands on the shelf.")
                                 .settingsHint()
@@ -161,7 +172,7 @@ struct SettingsBehaviourPane: View {
 
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 10) {
-                            Text("Glance from the notch")
+                            Text("Automatic glances")
                                 .font(Desvan.Typeface.rounded(13, weight: .medium))
                                 .foregroundStyle(Desvan.Palette.paper)
 
@@ -173,6 +184,7 @@ struct SettingsBehaviourPane: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                             .disabled(!settings.isEnabled(.calendar))
+                            .help("Show a short glance five minutes before a timed event")
 
                             Toggle(isOn: $settings.alertsForNowPlaying) {
                                 Text("When a new song starts")
@@ -182,9 +194,10 @@ struct SettingsBehaviourPane: View {
                             .toggleStyle(.switch)
                             .controlSize(.small)
                             .disabled(!settings.isEnabled(.nowPlaying))
+                            .help("Show a short glance when the track changes")
 
                             Text("""
-                                 The notch grows a little for a few seconds and goes back on its own. Hover over it \
+                                 Altillo expands a little for a few seconds and goes back on its own. Hover over it \
                                  to keep it; click to open.
                                  """)
                                 .settingsHint()
@@ -204,6 +217,7 @@ struct SettingsBehaviourPane: View {
                             }
                             .pickerStyle(.menu)
                             .fixedSize()
+                            .help("Choose when Altillo removes old shelf references; original files are never deleted")
 
                             Text("""
                                  Altillo takes off the shelf anything that's been there longer than you choose. \
@@ -222,10 +236,13 @@ struct SettingsBehaviourPane: View {
 
     private var displayModeHint: LocalizedStringKey {
         switch settings.displayMode {
-        case .notch: "On a Mac without a notch, it's the screen with the menu bar."
-        case .main: "Only the screen with the menu bar, even if another one has a notch."
-        case .all: "Each screen gets its own notch. It opens on the one you're using."
-        case .cursor: "The notch moves to whichever screen the pointer is on."
+        case .notch:
+            hasHardwareNotch
+                ? "Uses the display with the hardware notch."
+                : "No hardware notch found, so Altillo uses the display with the menu bar."
+        case .main: "Uses the display with the menu bar."
+        case .all: "Altillo appears on every screen. It opens on the one you're using."
+        case .cursor: "Altillo moves to whichever screen the pointer is on."
         }
     }
 
@@ -248,7 +265,7 @@ struct SettingsBehaviourPane: View {
 
     private var fullScreenHint: LocalizedStringKey {
         switch settings.fullScreenBehaviour {
-        case .show: "The notch behaves the same over videos, games and presentations."
+        case .show: "Altillo behaves the same over videos, games and presentations."
         case .dragOnly: "Out of sight while you watch or present, but it still takes files you drag up to it."
         case .hide: "Out of sight entirely. The Ask shortcut still opens it."
         }

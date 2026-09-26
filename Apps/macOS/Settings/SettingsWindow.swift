@@ -13,6 +13,10 @@ final class SettingsNavigation {
 final class SettingsWindowController: NSObject, NSWindowDelegate {
     static let shared = SettingsWindowController()
 
+    /// Supplied at launch without instantiating the window controller. Keeping this on the type matters for the
+    /// XCTest host: it can wire the live model without constructing any AppKit settings state before test injection.
+    static weak var model: NotchModel?
+
     /// Small and legible at a glance (PLAN §4). The height is the whole window, title bar included (the tab bar
     /// lives in it), and fits the tallest pane that doesn't scroll (Size) with room to spare. It stays well under
     /// the ~630 pt a 13-inch MacBook Air leaves below the menu bar at its "Larger Text" resolution.
@@ -20,7 +24,6 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
 
     private var window: NSWindow?
     private let navigation = SettingsNavigation()
-
     /// Opens the window, activating Altillo first so it really takes focus from a menu bar app.
     func show(tab: SettingsTab? = nil) {
         if let tab { navigation.tab = tab }
@@ -32,7 +35,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     private func makeWindow() -> NSWindow {
-        let hosting = NSHostingController(rootView: SettingsRootView(navigation: navigation))
+        let hosting = NSHostingController(rootView: SettingsRootView(navigation: navigation, model: Self.model))
         // The window keeps `contentSize` (title bar included); SwiftUI fills it rather than sizing it.
         hosting.sizingOptions = []
         let window = NSWindow(contentViewController: hosting)

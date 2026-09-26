@@ -166,7 +166,9 @@ struct MenuBarIconCaptureTests {
             #expect(CGFloat(pixels.width) == glyph.size.width * scale)
             #expect(CGFloat(pixels.height) == glyph.size.height * scale)
             #expect(MenuBarGlyph.pixelScale(of: glyph) == scale)
-            #expect(MenuBarGlyph.size(of: glyph) == glyph.size)
+            let displaySize = MenuBarGlyph.size(of: glyph)
+            #expect(displaySize.width == MenuBarGlyph.box)
+            #expect(abs(displaySize.width / displaySize.height - glyph.size.width / glyph.size.height) < 0.001)
         }
     }
 
@@ -189,6 +191,28 @@ struct MenuBarIconCaptureTests {
         #expect(try #require(MenuBarIconCapture.normalizedGlyph(from: black, scale: 1)).isTemplate)
         #expect(!(try #require(MenuBarIconCapture.normalizedGlyph(from: colour, scale: 1)).isTemplate))
         #expect(!(try #require(MenuBarIconCapture.normalizedGlyph(from: mixed, scale: 1)).isTemplate))
+    }
+
+    @Test @MainActor func opaqueSharedMenuBarBackgroundBecomesTransparent() throws {
+        let context = try #require(CGContext(
+            data: nil, width: 32, height: 24, bitsPerComponent: 8, bytesPerRow: 32 * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        ))
+        context.setFillColor(gray: 0.03, alpha: 1)
+        context.fill(CGRect(x: 0, y: 0, width: 32, height: 24))
+        context.setFillColor(gray: 0.95, alpha: 1)
+        context.fillEllipse(in: CGRect(x: 10, y: 6, width: 12, height: 12))
+        let source = try #require(context.makeImage())
+        let normalized = try #require(MenuBarIconCapture.normalizedGlyph(
+            from: source, scale: 2, removesOpaqueBackground: true
+        ))
+        #expect(normalized.isTemplate)
+        #expect(normalized.size.width < 16)
+        #expect(normalized.size.height < 12)
+        let pixels = try #require(normalized.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        #expect(pixels.width < source.width)
+        #expect(pixels.height < source.height)
     }
 
     // MARK: - Glyph cache

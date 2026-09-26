@@ -3,6 +3,7 @@ import SwiftUI
 /// How wide the notch opens. The notch redraws while the slider moves.
 struct SettingsSizePane: View {
     @Bindable var settings: AltilloSettings
+    let hasHardwareNotch: Bool
 
     var body: some View {
         SettingsPane(
@@ -35,6 +36,7 @@ struct SettingsSizePane: View {
                                 Text("Wide").settingsHint()
                             }
                             .labelsHidden()
+                            .help("Change how wide Altillo is when it opens")
 
                             HStack(spacing: 8) {
                                 ForEach(AltilloSettings.widthPresets, id: \.name) { preset in
@@ -58,8 +60,11 @@ struct SettingsSizePane: View {
                                 .textCase(.uppercase)
                             SettingsNotchPreview(width: settings.openWidth, modules: settings.modules)
                             SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
-                                                visibility: settings.earsVisibility)
-                            Text("The open shelf over the menu bar at half its size, and the notch at rest with its ears.")
+                                                visibility: settings.earsVisibility,
+                                                hasHardwareNotch: hasHardwareNotch)
+                            Text(hasHardwareNotch
+                                 ? "Altillo open above the menu bar, and closed around the hardware notch."
+                                 : "Altillo open above the menu bar, and closed as a small island.")
                                 .settingsHint()
                         }
                     }
@@ -99,6 +104,7 @@ private struct SettingsPresetButton: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        .help("Set the open width to \(Int(value)) points")
         .accessibilityLabel("\(name), \(Int(value)) points")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
@@ -195,8 +201,10 @@ struct SettingsEarsPreview: View {
     let leftEar: EarContent
     let rightEar: EarContent
     let visibility: EarsVisibility
+    let hasHardwareNotch: Bool
 
     private static let notchWidth: CGFloat = 120
+    private static let islandGap: CGFloat = 12
     private static let earWidth: CGFloat = 48
 
     var body: some View {
@@ -212,25 +220,42 @@ struct SettingsEarsPreview: View {
             .overlay(alignment: .top) {
                 HStack(spacing: 0) {
                     ear(leftEar).frame(width: hasEars ? Self.earWidth : 0)
-                    Color.clear.frame(width: Self.notchWidth)
+                    Color.clear.frame(width: middleWidth(hasEars: hasEars))
                     ear(rightEar).frame(width: hasEars ? Self.earWidth : 0)
                 }
-                .frame(height: 24)
+                .frame(height: hasHardwareNotch ? 24 : 28)
                 .background {
-                    UnevenRoundedRectangle(bottomLeadingRadius: 9, bottomTrailingRadius: 9, style: .continuous)
-                        .fill(Desvan.Palette.notch)
+                    if hasHardwareNotch {
+                        UnevenRoundedRectangle(bottomLeadingRadius: 9, bottomTrailingRadius: 9, style: .continuous)
+                            .fill(Desvan.Palette.notch)
+                    } else {
+                        Capsule().fill(Desvan.Palette.notch)
+                    }
                 }
                 .clipped()
+                .padding(.top, hasHardwareNotch ? 0 : 6)
             }
             .overlay(alignment: .bottomTrailing) {
-                Text(visibility == .always ? "Always" : "When there's something")
+                Label(
+                    visibility == .always ? "Always visible" : "Hidden while inactive",
+                    systemImage: visibility == .always ? "eye" : "eye.slash"
+                )
                     .font(Desvan.Typeface.rounded(11, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .padding(6)
             }
             .animation(.spring(duration: 0.3, bounce: 0.15), value: [leftEar, rightEar])
+            .animation(.spring(duration: 0.3, bounce: 0.15), value: hasHardwareNotch)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel("Ears: \(leftEar.title) on the left, \(rightEar.title) on the right")
+            .help(hasHardwareNotch
+                ? "The compact indicators beside the hardware notch while Altillo is closed"
+                : "The compact indicators inside Altillo's island while it is closed")
+    }
+
+    private func middleWidth(hasEars: Bool) -> CGFloat {
+        if hasHardwareNotch { return Self.notchWidth }
+        return hasEars ? Self.islandGap : 76
     }
 
     @ViewBuilder
@@ -276,6 +301,7 @@ struct SettingsEarsPreview: View {
             }
         }
         .foregroundStyle(Desvan.Palette.paper)
+        .opacity(visibility == .withActivity ? 0.55 : 1)
         .transition(.scale(scale: 0.6).combined(with: .opacity))
     }
 }

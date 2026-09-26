@@ -35,7 +35,22 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
 struct SettingsRootView: View {
     @Bindable var navigation: SettingsNavigation
+    let model: NotchModel?
     @Bindable private var settings = AltilloSettings.shared
+
+    /// `model` follows the actual live display, including Pointer and All Displays modes. The fallback is only
+    /// used if a settings window is constructed outside the running app (for example, a design preview).
+    private var hasHardwareNotch: Bool {
+        if let model { return model.hasNotch }
+        let screens = ScreenService.descriptors
+        return ScreenService.plan(
+            for: settings.displayMode,
+            screens: screens,
+            pointer: NSEvent.mouseLocation,
+            currentLive: nil,
+            canMove: true
+        )?.live.hasNotch ?? false
+    }
 
     var body: some View {
         // The window draws its content under the title bar and the tab bar is the title bar, beside the traffic
@@ -62,10 +77,10 @@ struct SettingsRootView: View {
     @ViewBuilder
     private var pane: some View {
         switch navigation.tab {
-        case .modules: SettingsModulesPane(settings: settings)
+        case .modules: SettingsModulesPane(settings: settings, hasHardwareNotch: hasHardwareNotch)
         case .drawer: SettingsDrawerPane()
-        case .size: SettingsSizePane(settings: settings)
-        case .behaviour: SettingsBehaviourPane(settings: settings)
+        case .size: SettingsSizePane(settings: settings, hasHardwareNotch: hasHardwareNotch)
+        case .behaviour: SettingsBehaviourPane(settings: settings, hasHardwareNotch: hasHardwareNotch)
         case .about: SettingsAboutPane()
         }
     }

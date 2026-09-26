@@ -219,7 +219,11 @@ final class MenuBarIconCapture {
             }
             guard !Task.isCancelled, hasAccess else { continue }
             let actualScale = CGFloat(captured.height) / crop.height
-            guard let image = Self.normalizedGlyph(from: captured, scale: actualScale) else {
+            guard let image = Self.normalizedGlyph(
+                from: captured,
+                scale: actualScale,
+                removesOpaqueBackground: window == nil
+            ) else {
                 // Blank pixels: the item is covered, folded into the system overflow, or not drawn yet.
                 failed.insert(entry.id)
                 continue
@@ -238,9 +242,11 @@ final class MenuBarIconCapture {
     /// resolution: the image's point size is its pixel size divided by the capture scale, so drawing it at `size` maps
     /// one source pixel to one screen pixel (`MenuBarGlyph` never enlarges it). Single-colour glyphs (template symbols the
     /// menu bar drew white or black) are marked as templates so the Drawer can tint them for its own background.
-    static func normalizedGlyph(from image: CGImage, scale: CGFloat) -> NSImage? {
-        guard scale.isFinite, scale > 0, let bounds = inkBounds(of: image),
-              let cropped = image.cropping(to: bounds) else { return nil }
+    static func normalizedGlyph(from image: CGImage, scale: CGFloat,
+                                removesOpaqueBackground: Bool = false) -> NSImage? {
+        guard scale.isFinite, scale > 0 else { return nil }
+        let source = removesOpaqueBackground ? image.removingUniformOpaqueBorder() ?? image : image
+        guard let bounds = inkBounds(of: source), let cropped = source.cropping(to: bounds) else { return nil }
         let glyph = NSImage(cgImage: cropped, size: CGSize(width: bounds.width / scale, height: bounds.height / scale))
         glyph.isTemplate = isMonochrome(cropped)
         return glyph
@@ -380,13 +386,125 @@ final class MenuBarIconCapture {
     }
 }
 
+private extension CGImage {
+    /// A shared MenuBarAgent window is opaque even when ScreenCaptureKit is asked for transparency. Recover the
+    /// glyph instead of preserving the menu bar as a black/white rectangle. A neutral capture becomes a clean
+    /// alpha mask; a coloured capture only loses background pixels connected to its outside edge, preserving dark
+    /// detail inside the icon.
+    nonisolated func removingUniformOpaqueBorder() -> CGImage? {
+        let width = width, height = height
+        guard width > 2, height > 2,
+              let context = CGContext(
+                data: nil, width: width, height: height, bitsPerComponent: 8,
+                bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+              ), let data = context.data else { return nil }
+        context.setBlendMode(.copy)
+        context.draw(self, in: CGRect(x: 0, y: 0, width: width, height: height))
+        let pixels = data.assumingMemoryBound(to: UInt8.self)
+        let row = context.bytesPerRow
+
+        var border: [Int] = []
+        border.reserveCapacity(2 * width + 2 * height)
+        for x in 0..<width {
+            border.append(x)
+            border.append((height - 1) * width + x)
+        }
+        for y in 1..<(height - 1) {
+            border.append(y * width)
+            border.append(y * width + width - 1)
+        }
+        let opaque = border.filter { pixels[($0 / width) * row + ($0 % width) * 4 + 3] >= 240 }
+        guard opaque.count >= border.count * 3 / 4 else { return nil }
+        func average(_ channel: Int) -> Int {
+            opaque.reduce(0) { result, index in
+                result + Int(pixels[(index / width) * row + (index % width) * 4 + channel])
+            } / max(opaque.count, 1)
+        }
+        let background = [average(0), average(1), average(2)]
+        func distance(_ index: Int) -> Int {
+            let offset = (index / width) * row + (index % width) * 4
+            return max(
+                abs(Int(pixels[offset]) - background[0]),
+                abs(Int(pixels[offset + 1]) - background[1]),
+                abs(Int(pixels[offset + 2]) - background[2])
+            )
+        }
+        guard opaque.filter({ distance($0) <= 20 }).count >= opaque.count * 4 / 5 else { return nil }
+
+        let allNeutral = (0..<(width * height)).allSatisfy { index in
+            let offset = (index / width) * row + (index % width) * 4
+            guard pixels[offset + 3] >= 32 else { return true }
+            let r = Int(pixels[offset]), g = Int(pixels[offset + 1]), b = Int(pixels[offset + 2])
+            return max(r, g, b) - min(r, g, b) <= 28
+        }
+
+        var removed = 0
+        if allNeutral {
+            let backgroundLuma = (background[0] * 3 + background[1] * 6 + background[2]) / 10
+            var contrasts = [Int](repeating: 0, count: width * height)
+            var strongest = 0
+            for index in contrasts.indices {
+                let offset = (index / width) * row + (index % width) * 4
+                let luma = (Int(pixels[offset]) * 3 + Int(pixels[offset + 1]) * 6
+                    + Int(pixels[offset + 2])) / 10
+                contrasts[index] = abs(luma - backgroundLuma)
+                strongest = max(strongest, contrasts[index])
+            }
+            guard strongest >= 24 else { return nil }
+            for index in contrasts.indices {
+                let offset = (index / width) * row + (index % width) * 4
+                let alpha = UInt8(clamping: max(0, contrasts[index] - 3) * 255 / max(strongest - 3, 1))
+                if alpha == 0 { removed += 1 }
+                // A neutral status item is a template. White premultiplied pixels make its alpha unambiguous.
+                pixels[offset] = alpha
+                pixels[offset + 1] = alpha
+                pixels[offset + 2] = alpha
+                pixels[offset + 3] = alpha
+            }
+        } else {
+            var queue: [Int] = []
+            queue.reserveCapacity(width * height)
+            var visited = [Bool](repeating: false, count: width * height)
+            for index in border where !visited[index] && distance(index) <= 28 {
+                visited[index] = true
+                queue.append(index)
+            }
+            var cursor = 0
+            while cursor < queue.count {
+                let index = queue[cursor]
+                cursor += 1
+                let x = index % width, y = index / width
+                let offset = y * row + x * 4
+                pixels[offset] = 0
+                pixels[offset + 1] = 0
+                pixels[offset + 2] = 0
+                pixels[offset + 3] = 0
+                removed += 1
+                let neighbours = [index - 1, index + 1, index - width, index + width]
+                for neighbour in neighbours {
+                    guard neighbour >= 0, neighbour < width * height,
+                          !visited[neighbour],
+                          abs(neighbour % width - x) + abs(neighbour / width - y) == 1,
+                          distance(neighbour) <= 28
+                    else { continue }
+                    visited[neighbour] = true
+                    queue.append(neighbour)
+                }
+            }
+        }
+        guard removed >= width * height / 5 else { return nil }
+        return context.makeImage()
+    }
+}
+
 /// Identifies a captured glyph. Position is deliberately excluded: hiding the section or another item
 /// appearing moves every icon without changing its pixels. Size, owner, identity and the menu-bar
 /// appearance (light/dark, scale) are what change the rendered glyph.
 struct MenuBarGlyphKey: Hashable, Sendable {
     /// Bump when capture or normalization changes, so glyphs taken the old way are replaced.
-    /// 2: pixel-aligned capture rect at the exact backing pixel size, template detection.
-    static let version = 2
+    /// 3: common optical sizing and opaque shared-menu-bar background removal.
+    static let version = 3
 
     let version = MenuBarGlyphKey.version
     let bundleID: String

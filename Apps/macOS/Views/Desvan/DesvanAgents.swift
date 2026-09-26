@@ -64,6 +64,7 @@ struct DesvanAgentsView: View {
                     DesvanHooksHint(action: actions.installHooks)
                 }
             }
+            .frame(maxWidth: .infinity)
             .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion),
                        value: sessions.map { "\($0.id)|\($0.phase.rawValue)|\($0.pendingRequest?.id ?? "")" })
         }
@@ -665,7 +666,8 @@ private struct DesvanAgentRow: View {
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
                     .lineLimit(1)
-                    .fixedSize()
+                    .truncationMode(.middle)
+                    .frame(maxWidth: isCompact ? 92 : 150, alignment: .leading)
                 if session.source == .sessionFile {
                     Image(systemName: "doc.text.magnifyingglass")
                         .font(.system(size: 11, weight: .medium))
@@ -698,6 +700,7 @@ private struct DesvanAgentRow: View {
             .desvanCard(radius: 12, fill: isHovering ? Desvan.Palette.woodRaised : Desvan.Palette.wood)
             .contentShape(Rectangle())
             .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+            .help("\(session.agent.name) in \(session.project): \(activity)")
             .accessibilityElement(children: .combine)
             .accessibilityLabel(accessibilityLabel(now: context.date))
             .accessibilityActions {

@@ -82,8 +82,8 @@ struct NotchChrome: Equatable {
         static let emptyShelf: CGFloat = 130
         /// Ring, plan, countdown and pace, with the week's bar underneath.
         static let usage: CGFloat = 160
-        /// The one knocking on a tall card plus two rows.
-        static let agents: CGFloat = 180
+        /// The one knocking on a tall card plus a useful part of the vertical queue.
+        static let agents: CGFloat = 220
         /// The cardboard box and the paper plane.
         static let drop: CGFloat = 160
         /// Calendar (next event card plus rows), mirror and now playing.
@@ -93,13 +93,14 @@ struct NotchChrome: Equatable {
         /// Edit mode: the sections to arrange, the ears and the presets.
         static let editing: CGFloat = 200
         /// The calendar with its month grid (alone, or beside the chosen day's agenda).
-        static let calendarMonth: CGFloat = 200
+        static let calendarMonth: CGFloat = 220
     }
 
     /// Room between the band (or each Drawer row) and what comes below it.
     static let expandedContentGap: CGFloat = 8
     static let expandedBottomInset: CGFloat = 16
-    static let earWidth: CGFloat = 50
+    /// Enough room for the widest compact indicator (the usage ring plus "100") to clear the island's curve.
+    static let earWidth: CGFloat = 56
     static let peekEarWidth: CGFloat = 64
     static let peekLineHeight: CGFloat = 28
 

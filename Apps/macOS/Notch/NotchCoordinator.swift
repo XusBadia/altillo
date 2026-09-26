@@ -747,20 +747,28 @@ final class NotchCoordinator {
         indicatorTarget = indicatorModule(at: point)
     }
 
-    /// The section behind the contextual ear at `point` (screen coordinates): only on the resting ears or the hover
-    /// hint, where it is drawn, and only for a section that's on.
+    /// The section behind either indicator at `point` (screen coordinates), including a fixed Calendar/Shelf/etc.
+    /// indicator and the live contextual fallback.
     private func indicatorModule(at point: CGPoint) -> NotchModule? {
-        guard model.scenario == nil, model.settings.leftEar == .automatic, model.alert == nil,
+        guard model.scenario == nil, model.alert == nil,
               model.state == .idle || model.state == .peek,
-              let window, window.isShown,
-              let module = model.contextualActivity.module, model.settings.modules.contains(module)
+              let window, window.isShown
         else { return nil }
         let chrome = NotchChrome(model: model)
         guard chrome.face == .ears || chrome.face == .peek(.hint) else { return nil }
-        // The island's hint is one centred row, the indicator on its left half; elsewhere the ears flank a gap.
+        // The island's hint is one centred row; elsewhere the indicators flank the camera's clear band.
         let clearWidth = chrome.face == .ears || chrome.hasNotch ? chrome.clearWidth : 0
-        return NotchActivityLogic.isOnLeftEar(point, shape: window.visibleShapeScreenRect, clearWidth: clearWidth)
-            ? module : nil
+        let shape = window.visibleShapeScreenRect
+        guard shape.contains(point) else { return nil }
+        let side: EarSide
+        if point.x < shape.midX - clearWidth / 2 { side = .left }
+        else if point.x > shape.midX + clearWidth / 2 { side = .right }
+        else { return nil }
+        let fallback = model.ears.contextualFallbackSide(for: model)
+        let content = side == .left ? model.settings.leftEar : model.settings.rightEar
+        let module = fallback == side || content == .automatic ? model.contextualActivity.module : content.module
+        guard let module, model.settings.modules.contains(module) else { return nil }
+        return module
     }
 
     /// VoiceOver's action on the contextual ear: open straight on its section, like a click on it.

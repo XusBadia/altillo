@@ -2,29 +2,22 @@ import AppKit
 import SwiftUI
 
 /// The capture is already trimmed to its visible pixels and sized in native points (pixels / capture scale).
-/// Captured glyphs are shown at that native size and never resampled when they fit the menu bar's own
-/// 24 pt item height: a status item captured at 1x holds only 1x pixels, and fitting every glyph to a common
-/// 18 pt box (14 → 18 px up, 20 or 24 → 18 px down) is what made the Drawer blurry. Only glyphs taller than a
-/// status item shrink. Vector images (SF Symbols, the demo) still fill the 18 pt optical box.
+/// Every compact glyph is fitted to one optical box, so a 12 pt owner glyph and a 24 pt system glyph have the same
+/// visual weight in the Drawer. Wide status text keeps its aspect ratio and a variable width, at the same height.
 /// Monochrome captures arrive as templates and take the surrounding foreground style.
 struct MenuBarGlyph: View {
     let image: NSImage
 
     /// Optical box for vector symbols.
     static let box: CGFloat = 18
-    /// Tallest native capture shown unscaled: a full menu-bar status item.
-    static let nativeLimit: CGFloat = 24
-
     static func size(for imageSize: CGSize, allowsEnlarging: Bool = false) -> CGSize {
         guard imageSize.width > 0, imageSize.height > 0 else {
             return CGSize(width: box, height: box)
         }
         let isWide = imageSize.width / imageSize.height > 2
-        let limit = allowsEnlarging ? box : nativeLimit
-        var scale = isWide
-            ? min(limit / imageSize.height, 178 / imageSize.width)
-            : limit / max(imageSize.width, imageSize.height)
-        if !allowsEnlarging { scale = min(scale, 1) }
+        let scale = isWide
+            ? min(box / imageSize.height, 178 / imageSize.width)
+            : box / max(imageSize.width, imageSize.height)
         return CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
     }
 
@@ -38,7 +31,7 @@ struct MenuBarGlyph: View {
     }
 
     static func cellWidth(for imageSize: CGSize) -> CGFloat {
-        // 5 pt either side: a full 24 pt native status item still fits one 34 pt slot.
+        // 5 pt either side; wide indicators occupy whole grid slots so subsequent symbols align.
         let width = size(for: imageSize).width + 10
         // Wide indicators occupy whole grid slots so subsequent symbols align.
         return max(34, ceil((width + 6) / 40) * 40 - 6)
@@ -56,7 +49,7 @@ struct MenuBarGlyph: View {
 
     var body: some View {
         let size = Self.size(of: image)
-        // One source pixel per screen pixel: sample exactly, so a half-point position cannot soften it.
+        // Keep native captures sharp when they already land pixel-for-pixel; otherwise use the best filter.
         let isNative = size == image.size && Self.pixelScale(of: image) == displayScale
         Image(nsImage: image)
             .renderingMode(image.isTemplate ? .template : .original)

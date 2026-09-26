@@ -408,7 +408,7 @@ enum DisplayMode: String, CaseIterable, Identifiable, Codable, Sendable {
 
     var title: String {
         switch self {
-        case .notch: String(localized: "The one with the notch")
+        case .notch: String(localized: "Automatic")
         case .main: String(localized: "The one with the menu bar")
         case .all: String(localized: "All of them")
         case .cursor: String(localized: "The one with the pointer")
@@ -483,6 +483,18 @@ enum EarContent: String, CaseIterable, Identifiable, Codable, Sendable {
 
     /// Every ear has real data (agents since phase 4). Kept so a future ear can be offered before it's ready.
     var isAvailable: Bool { true }
+
+    /// The section a fixed indicator opens. Automatic resolves its section from the current activity.
+    var module: NotchModule? {
+        switch self {
+        case .none, .automatic: nil
+        case .shelf: .shelf
+        case .nextEvent: .calendar
+        case .nowPlaying: .nowPlaying
+        case .usage: .usage
+        case .agents: .agents
+        }
+    }
 }
 
 enum EarsVisibility: String, CaseIterable, Identifiable, Codable, Sendable {

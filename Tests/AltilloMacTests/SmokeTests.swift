@@ -47,6 +47,20 @@ struct SmokeTests {
         #expect(NotchChrome.drawerNavigationHeight >= DesvanHitTarget.minimum)
     }
 
+    /// The widest compact indicator is the usage ring with “100”; its side needs enough room to clear the island's
+    /// rounded edge instead of looking pinned to it.
+    @Test func restingIndicatorsKeepBreathingRoom() {
+        #expect(NotchChrome.earWidth >= 56)
+        let model = NotchModel.preview(.idleWithEars)
+        for hasNotch in [true, false] {
+            model.hasNotch = hasNotch
+            let chrome = NotchChrome(model: model)
+            #expect(chrome.face == .ears)
+            let expectedWidth = chrome.clearWidth + 2 * NotchChrome.earWidth + 2 * chrome.topRadius
+            #expect(abs(chrome.size.width - expectedWidth) < 0.001)
+        }
+    }
+
     /// The Settings window has to fit a 13-inch MacBook Air at its "Larger Text" resolution (≈ 630 pt below the menu
     /// bar) without clipping.
     @Test func settingsWindowFitsASmallScreen() {

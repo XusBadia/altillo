@@ -46,10 +46,25 @@ final class EarsStore {
     /// Whether the resting notch grows ears right now.
     func showsEars(for model: NotchModel) -> Bool {
         let settings = model.settings
-        return EarsLogic.showsEars(left: settings.leftEar, right: settings.rightEar,
-                                   visibility: settings.earsVisibility) { content in
+        let configured = EarsLogic.showsEars(left: settings.leftEar, right: settings.rightEar,
+                                             visibility: settings.earsVisibility) { content in
             hasActivity(content, in: model)
         }
+        return configured || contextualFallbackSide(for: model) != nil
+    }
+
+    /// When both fixed indicators are quiet, Altillo can use one of their otherwise-empty spaces for the most
+    /// relevant live activity (notably playback). Explicit `Nothing` remains empty, and an Automatic side already
+    /// owns this job, so neither is overridden.
+    func contextualFallbackSide(for model: NotchModel) -> EarSide? {
+        let settings = model.settings
+        guard settings.earsVisibility == .withActivity,
+              settings.leftEar != .automatic, settings.rightEar != .automatic,
+              model.contextualActivity != .rest
+        else { return nil }
+        if settings.leftEar != .none, !hasActivity(settings.leftEar, in: model) { return .left }
+        if settings.rightEar != .none, !hasActivity(settings.rightEar, in: model) { return .right }
+        return nil
     }
 
     /// Whether an ear showing `content` has something to say right now.
@@ -193,7 +208,7 @@ enum EarsLogic {
     /// The players are listened to for a music ear, or for the contextual one while Now playing is on.
     static func watchesPlayback(left: EarContent, right: EarContent, modules: [NotchModule]) -> Bool {
         let chosen: Set<EarContent> = [left, right]
-        return chosen.contains(.nowPlaying) || (chosen.contains(.automatic) && modules.contains(.nowPlaying))
+        return chosen.contains(.nowPlaying) || modules.contains(.nowPlaying)
     }
 
     /// Whether the resting notch grows ears: with `.always`, as soon as an ear is chosen; with `.withActivity`,

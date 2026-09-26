@@ -5,6 +5,7 @@ import SwiftUI
 /// the notch live; the same things (and more directly) can be done in the notch itself, in edit mode.
 struct SettingsModulesPane: View {
     @Bindable var settings: AltilloSettings
+    let hasHardwareNotch: Bool
     /// Keeps what a preset replaced, for its Undo.
     @State private var session = NotchEditSession()
 
@@ -15,78 +16,111 @@ struct SettingsModulesPane: View {
     var body: some View {
         SettingsPane(
             title: "Sections",
-            subtitle: "Choose what goes up there, and in what order. Drag to reorder the tabs."
+            subtitle: "Choose what Altillo shows while it's closed and when you open it."
         ) {
             ScrollViewReader { proxy in
-            List {
-                Section {
-                    SettingsPresetsRow(settings: settings, session: session)
-                } header: {
-                    SettingsListHeader("Start from")
-                }
-
-                Section {
-                    SettingsEarsRow(settings: settings, session: session)
-                } header: {
-                    SettingsListHeader("Ears")
-                }
-
-                Section {
-                    ForEach(settings.modules) { module in
-                        SettingsModuleRow(module: module, settings: settings)
-                    }
-                    .onMove { settings.move(fromOffsets: $0, toOffset: $1) }
-                } header: {
-                    SettingsListHeader("Up there")
-                } footer: {
-                    Text("The shelf can't be turned off: it's what the app does.")
-                        .settingsHint()
-                        .padding(.leading, 2)
-                        .padding(.bottom, 4)
-                }
-
-                if settings.isEnabled(.calendar) {
-                    Section {
-                        SettingsCalendarGroup(settings: settings)
-                            .id(Self.calendarAnchor)
-                    } header: {
-                        SettingsListHeader("Calendar")
-                    }
-                }
-
-                if settings.isEnabled(.usage) {
-                    Section {
-                        SettingsUsageGroup(settings: settings, store: UsageStore.live)
-                            .id(Self.usageAnchor)
-                    } header: {
-                        SettingsListHeader("Usage")
-                    }
-                }
-
-                // Always here, even with the agents section put away: hooks Altillo installed must stay one
-                // click from removal.
-                Section {
-                    SettingsAgentsGroup(settings: settings)
-                        .id(Self.agentsAnchor)
-                } header: {
-                    SettingsListHeader("Agents")
-                }
-
-                if !disabled.isEmpty {
-                    Section {
-                        ForEach(disabled) { module in
-                            SettingsModuleRow(module: module, settings: settings)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 12) {
+                    SettingsCard {
+                        VStack(alignment: .leading, spacing: 0) {
+                            SettingsGroupHeading(
+                                title: "While Altillo is closed",
+                                detail: hasHardwareNotch
+                                    ? "On this display, the indicators sit beside the hardware notch."
+                                    : "On this display, the indicators sit inside Altillo's small island."
+                            )
+                            SettingsCardDivider()
+                            SettingsEarsRow(settings: settings, session: session,
+                                            hasHardwareNotch: hasHardwareNotch)
                         }
-                    } header: {
-                        SettingsListHeader("Put away")
+                    }
+
+                    SettingsCard {
+                        VStack(alignment: .leading, spacing: 0) {
+                            SettingsGroupHeading(
+                                title: "Sections in Altillo",
+                                detail: "Drag a row to change the order. Shelf always stays first."
+                            )
+                            SettingsCardDivider()
+                            VStack(spacing: 0) {
+                                ForEach(settings.modules) { module in
+                                    SettingsModuleRow(module: module, settings: settings)
+                                        .draggable(module.rawValue)
+                                        .dropDestination(for: String.self) { identifiers, _ in
+                                            _ = reorder(identifiers.first, before: module)
+                                        }
+                                    if module != settings.modules.last { SettingsRowDivider() }
+                                }
+                            }
+                        }
+                    }
+
+                    if settings.isEnabled(.calendar) {
+                        SettingsOptionsCard(
+                            title: "Calendar",
+                            detail: "Layout, all-day events and visible calendars.",
+                            symbol: NotchModule.calendar.symbol
+                        ) {
+                            SettingsCalendarGroup(settings: settings)
+                        }
+                        .id(Self.calendarAnchor)
+                    }
+
+                    if settings.isEnabled(.usage) {
+                        SettingsOptionsCard(
+                            title: "Usage",
+                            detail: "Providers, limits and alerts.",
+                            symbol: NotchModule.usage.symbol
+                        ) {
+                            SettingsUsageGroup(settings: settings, store: UsageStore.live)
+                        }
+                        .id(Self.usageAnchor)
+                    }
+
+                    // Always here, even with the agents section put away: hooks Altillo installed must stay one
+                    // click from removal.
+                    SettingsOptionsCard(
+                        title: "Agents",
+                        detail: "Connections, replies and permission timing.",
+                        symbol: NotchModule.agents.symbol
+                    ) {
+                        SettingsAgentsGroup(settings: settings)
+                    }
+                    .id(Self.agentsAnchor)
+
+                    if !disabled.isEmpty {
+                        SettingsCard {
+                            VStack(alignment: .leading, spacing: 0) {
+                                SettingsGroupHeading(
+                                    title: "More sections",
+                                    detail: "Turn one on to add it to the end of Altillo."
+                                )
+                                SettingsCardDivider()
+                                VStack(spacing: 0) {
+                                    ForEach(disabled) { module in
+                                        SettingsModuleRow(module: module, settings: settings)
+                                        if module != disabled.last { SettingsRowDivider() }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    SettingsCard {
+                        VStack(alignment: .leading, spacing: 0) {
+                            SettingsGroupHeading(
+                                title: "Start with a layout",
+                                detail: "Reset to a simple starting point, then make it yours. You can undo it right away."
+                            )
+                            SettingsCardDivider()
+                            SettingsPresetsRow(settings: settings, session: session)
+                        }
                     }
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 18)
             }
-            .listStyle(.inset)
-            .scrollContentBackground(.hidden)
-            .environment(\.defaultMinListRowHeight, 40)
-            .padding(.horizontal, 12)
-            .padding(.bottom, 12)
+            .scrollBounceBehavior(.basedOnSize)
             .task {
                 // `-settingsSection calendar|usage|agents` (with `-settingsTab modules`) opens scrolled to that group.
                 // Once more after the rows above have measured themselves, or it stops short.
@@ -101,9 +135,84 @@ struct SettingsModulesPane: View {
         }
     }
 
+    private func reorder(_ rawValue: String?, before target: NotchModule) -> Bool {
+        guard let rawValue, let dragged = NotchModule(rawValue: rawValue),
+              dragged != target,
+              !dragged.isAlwaysOn,
+              let source = settings.modules.firstIndex(of: dragged),
+              let destination = settings.modules.firstIndex(of: target)
+        else { return false }
+        settings.move(
+            fromOffsets: IndexSet(integer: source),
+            toOffset: destination > source ? destination + 1 : destination
+        )
+        return true
+    }
+
     private static let calendarAnchor = "calendar"
     private static let usageAnchor = "usage"
     private static let agentsAnchor = "agents"
+}
+
+private struct SettingsGroupHeading: View {
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title)
+                .font(Desvan.Typeface.rounded(13, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paper)
+            Text(detail).settingsHint()
+        }
+    }
+}
+
+private struct SettingsCardDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Desvan.Palette.hairline)
+            .frame(height: 0.75)
+            .padding(.vertical, 10)
+    }
+}
+
+private struct SettingsRowDivider: View {
+    var body: some View {
+        Rectangle()
+            .fill(Desvan.Palette.hairline)
+            .frame(height: 0.75)
+            .padding(.leading, 52)
+    }
+}
+
+private struct SettingsOptionsCard<Content: View>: View {
+    let title: LocalizedStringKey
+    let detail: LocalizedStringKey
+    let symbol: String
+    @ViewBuilder var content: Content
+    @State private var isExpanded = false
+
+    var body: some View {
+        SettingsCard {
+            DisclosureGroup(isExpanded: $isExpanded) {
+                SettingsCardDivider()
+                content
+            } label: {
+                HStack(spacing: 10) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.bulb)
+                        .frame(width: 30, height: 30)
+                        .background(RoundedRectangle(cornerRadius: 7).fill(Desvan.Palette.plank.opacity(0.85)))
+                    SettingsGroupHeading(title: title, detail: detail)
+                }
+                .contentShape(Rectangle())
+            }
+            .tint(Desvan.Palette.paperSecondary)
+            .help(isExpanded ? "Hide these options" : "Show these options")
+        }
+    }
 }
 
 // MARK: - Presets
@@ -123,10 +232,10 @@ private struct SettingsPresetsRow: View {
                 }
             }
             HStack(spacing: 10) {
-                Button("Customize in the Notch…") {
+                Button("Customize Altillo…") {
                     NotificationCenter.default.post(name: .altilloCustomizeNotch, object: nil)
                 }
-                .help("Opens the notch in edit mode: drag the tabs and the ears right where they are.")
+                .help("Opens Altillo in edit mode so you can drag sections and side indicators directly.")
                 if let preset = session.justApplied {
                     Button("Undo \(preset.title)") {
                         withAnimation(.easeOut(duration: 0.15)) { _ = session.undo(in: settings) }
@@ -196,42 +305,61 @@ private struct SettingsStarterButton: View {
 private struct SettingsEarsRow: View {
     @Bindable var settings: AltilloSettings
     let session: NotchEditSession
+    let hasHardwareNotch: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 12) {
             SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
-                                visibility: settings.earsVisibility)
-            Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 8) {
-                GridRow {
-                    label(Text(EarSide.left.title))
-                    earPicker(.left)
-                }
-                GridRow {
-                    label(Text(EarSide.right.title))
-                    earPicker(.right)
-                }
-                GridRow {
-                    label(Text("Show them"))
-                    Picker(selection: visibility) {
-                        ForEach(EarsVisibility.allCases) { visibility in
-                            Text(visibility.title).tag(visibility)
-                        }
-                    } label: {
-                        Text("Show them")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .fixedSize()
-                }
+                                visibility: settings.earsVisibility, hasHardwareNotch: hasHardwareNotch)
+            HStack(alignment: .top, spacing: 10) {
+                sidePicker(.left, title: "Left side", symbol: "arrow.left")
+                sidePicker(.right, title: "Right side", symbol: "arrow.right")
             }
-            Text("Agents arrive with their section. The same ear twice isn't possible: they swap.")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Visibility")
+                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                Picker(selection: visibility) {
+                    Text("When active").tag(EarsVisibility.withActivity)
+                    Text("Always visible").tag(EarsVisibility.always)
+                } label: {
+                    Text("Visibility")
+                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                Text(visibilityExplanation)
+                    .settingsHint()
+            }
+            Text("Tip: What matters now can temporarily show music, an urgent event or an agent that needs you. Choosing the same item twice swaps the two sides.")
                 .settingsHint()
         }
-        .padding(.vertical, 6)
     }
 
     private var visibility: Binding<EarsVisibility> {
         Binding(get: { settings.earsVisibility }, set: { _ = session.setVisibility($0, in: settings) })
+    }
+
+    private func sidePicker(_ side: EarSide, title: LocalizedStringKey, symbol: String) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label(title, systemImage: symbol)
+                .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+            earPicker(side)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Text(earExplanation(session.ear(side, in: settings)))
+                .settingsHint()
+                .frame(minHeight: 28, alignment: .topLeading)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background {
+            RoundedRectangle(cornerRadius: 9, style: .continuous)
+                .fill(Desvan.Palette.plank.opacity(0.55))
+                .overlay { RoundedRectangle(cornerRadius: 9).strokeBorder(Desvan.Palette.hairline, lineWidth: 0.75) }
+        }
+        .help(side == .left
+            ? "This appears on the left side of Altillo while it is closed."
+            : "This appears on the right side of Altillo while it is closed.")
     }
 
     private func earPicker(_ side: EarSide) -> some View {
@@ -250,14 +378,26 @@ private struct SettingsEarsRow: View {
         }
         .labelsHidden()
         .pickerStyle(.menu)
-        .fixedSize()
+        .help("Choose what this side shows while Altillo is closed")
     }
 
-    private func label(_ text: Text) -> some View {
-        text
-            .font(.system(size: 12.5))
-            .foregroundStyle(Desvan.Palette.paper)
-            .gridColumnAlignment(.trailing)
+    private var visibilityExplanation: LocalizedStringKey {
+        switch settings.earsVisibility {
+        case .withActivity: "The sides stay hidden until a selected item has current information."
+        case .always: "The sides remain visible; inactive items stay dim."
+        }
+    }
+
+    private func earExplanation(_ content: EarContent) -> LocalizedStringKey {
+        switch content {
+        case .none: "This side stays empty."
+        case .automatic: "Shows the most relevant activity from your enabled sections."
+        case .shelf: "Shows the number of shelf items; inactive when the shelf is empty."
+        case .nextEvent: "Shows the next timed event today; all-day events don't appear here."
+        case .nowPlaying: "Shows an equaliser while music, a podcast or a video is playing."
+        case .usage: "Shows the AI limit that is closest to running out."
+        case .agents: "Shows active agents and requests that need your attention."
+        }
     }
 }
 
@@ -342,6 +482,21 @@ struct SettingsModuleRow: View {
         }
         .padding(.vertical, 4)
         .contentShape(Rectangle())
+        .help(module.explanation)
+        .contextMenu {
+            if settings.isEnabled(module), !module.isAlwaysOn {
+                if let index = settings.modules.firstIndex(of: module), index > 1 {
+                    Button("Move Earlier", systemImage: "arrow.up") {
+                        settings.move(fromOffsets: IndexSet(integer: index), toOffset: index - 1)
+                    }
+                }
+                if let index = settings.modules.firstIndex(of: module), index < settings.modules.count - 1 {
+                    Button("Move Later", systemImage: "arrow.down") {
+                        settings.move(fromOffsets: IndexSet(integer: index), toOffset: index + 2)
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -379,7 +534,7 @@ private struct SettingsCalendarGroup: View {
                     .toggleStyle(.checkbox)
                 }
             }
-            Text("Right-click the calendar in the notch to switch layout from there.")
+            Text("Right-click Altillo while Calendar is open to switch layout from there.")
                 .settingsHint()
 
             calendars
