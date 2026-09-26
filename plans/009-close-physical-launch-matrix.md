@@ -4,6 +4,7 @@
 
 ## Estado
 
+- **Estado**: BLOCKED — el equipo disponible es un Mac mini con macOS 27 y no puede representar notch físico ni macOS 26; evidencia parcial en `docs/launch-qa-2026-09-26.md`
 - **Prioridad**: P0 · **Esfuerzo**: M · **Riesgo**: LOW · **Depende de**: 006–008
 - **Categoría**: tests/direction · **Planned at**: `7f80680`, 26-09-2026
 
