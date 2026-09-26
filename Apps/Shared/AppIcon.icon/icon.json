@@ -6,14 +6,6 @@
     {
       "layers" : [
         {
-          "image-name" : "Structure.png",
-          "name" : "Structure"
-        },
-        {
-          "image-name" : "Attic.png",
-          "name" : "Attic"
-        },
-        {
           "fill-specializations" : [
             {
               "value" : "none"
@@ -25,13 +17,13 @@
           ],
           "glass" : false,
           "image-name" : "Background.png",
-          "name" : "Background"
+          "name" : "Generated Liquid Glass artwork"
         }
       ],
       "name" : "Altillo",
       "shadow" : {
         "kind" : "neutral",
-        "opacity" : 0.5
+        "opacity" : 0.35
       },
       "translucency" : {
         "enabled" : false,

@@ -2,7 +2,22 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title description">
   <title id="title">Altillo</title>
   <desc id="description">Una casa redondeada con una pequeña ventana encendida.</desc>
-  <rect width="1024" height="1024" fill="#171411"/>
-  <path d="M512 96 L912 432 L912 900 L112 900 L112 432 Z" fill="none" stroke="#F6EFE3" stroke-width="108" stroke-linecap="round" stroke-linejoin="round"/>
-  <rect x="392" y="474" width="240" height="240" rx="48" fill="#FFB547"/>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFD64A"/>
+      <stop offset="0.42" stop-color="#F46B0B"/>
+      <stop offset="1" stop-color="#6F160A"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="0.8" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.96"/>
+      <stop offset="0.55" stop-color="#FFF1D7" stop-opacity="0.78"/>
+      <stop offset="1" stop-color="#FFD39A" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="depth" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="24" stdDeviation="20" flood-color="#4A1205" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#background)"/>
+  <path d="M512 128 L862 422 L862 840 L162 840 L162 422 Z" fill="none" stroke="url(#glass)" stroke-width="112" stroke-linecap="round" stroke-linejoin="round" filter="url(#depth)"/>
+  <rect x="402" y="466" width="220" height="220" rx="52" fill="#FFBD32" stroke="#FFF0B2" stroke-width="16" filter="url(#depth)"/>
 </svg>
