@@ -97,12 +97,13 @@ struct DrawerGeometryTests {
         #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26).requiresIconAccess)
     }
 
-    @Test func macOS27KeepsTheStripMenusAndMovesButNotHiding() {
+    @Test func macOS27UsesNativeOverflowWithoutScreenRecording() {
         let support = DrawerSupport.decide(majorVersion: 27)
         #expect(support.catalog)
         #expect(support.arranging)
-        #expect(!support.hiding)
-        #expect(support.isPartial)
+        #expect(support.hiding)
+        #expect(support.hidingStyle == .overflow)
+        #expect(!support.isPartial)
         let storage = Self.makeDefaults()
         defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
         #expect(!MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).requiresIconAccess)
@@ -158,12 +159,12 @@ struct DrawerGeometryTests {
         #expect(!storage.defaults.bool(forKey: "drawer.enabled"))
     }
 
-    @Test func hidingIsANoOpWhereTheDividerCannotHide() {
+    @Test func hidingIsANoOpOnAnUnverifiedFutureMenuBar() {
         let storage = Self.makeDefaults()
         defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
         storage.defaults.set(true, forKey: "drawer.enabled")
 
-        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27)
+        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 28)
         store.hide()
         #expect(!store.isHidden)
         #expect(!store.isLoading)
@@ -186,9 +187,46 @@ struct DrawerGeometryTests {
         let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26)
 
         #expect(!store.enabled)
+        #expect(store.hidesDrawerIcons)
         #expect(!store.isHidden)
         #expect(!store.isLoading)
         #expect(store.entries.isEmpty)
+    }
+
+    @Test func hidingDrawerIconsDefaultsOnAndPersistsAnExplicitChoice() {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+
+        let initial = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27)
+        #expect(initial.hidesDrawerIcons)
+        initial.setHidesDrawerIcons(false)
+
+        let restored = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27)
+        #expect(!restored.hidesDrawerIcons)
+    }
+
+    // MARK: - Native overflow geometry
+
+    @Test func macOS27CollapseUnitStaysUnderPlainAndNotchedDisplayCliffs() {
+        typealias Display = DrawerCollapseGeometry.Display
+        let notched = Display(width: 1_512, statusWidth: 663.5)
+
+        #expect(DrawerCollapseGeometry.unitLength(displays: [Display(width: 2_056)]) == 964)
+        #expect(DrawerCollapseGeometry.unitLength(displays: [Display(width: 3_840)]) == 1_856)
+        #expect(DrawerCollapseGeometry.unitLength(displays: [notched]) == 433)
+        #expect(DrawerCollapseGeometry.unitLength(displays: [Display(width: 3_840), notched]) == 433)
+    }
+
+    @Test func macOS27SpacersCoverTheWidestStatusAreaAndStayCapped() {
+        typealias Display = DrawerCollapseGeometry.Display
+        let notched = Display(width: 1_512, statusWidth: 663.5)
+
+        #expect(DrawerCollapseGeometry.activeSpacers(unit: 433, displays: [notched]) == 1)
+        #expect(DrawerCollapseGeometry.activeSpacers(
+            unit: 433,
+            displays: [notched, Display(width: 3_840)]
+        ) == DrawerCollapseGeometry.spacerCount)
+        #expect(DrawerCollapseGeometry.activeSpacers(unit: 700, displays: [Display(width: 600)]) == 0)
     }
 
     @Test func storedPreferenceLoadsWithoutStartingOrRewritingIt() {

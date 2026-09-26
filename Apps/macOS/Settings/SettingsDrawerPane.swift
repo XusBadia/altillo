@@ -29,6 +29,7 @@ struct SettingsDrawerPane: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     enableCard
+                    if store.enabled, store.isSupported { visibilityCard }
                     stateContent
 
                     if let problem = store.problem {
@@ -52,6 +53,46 @@ struct SettingsDrawerPane: View {
             // finished it, return the window the user was arranging to the foreground.
             guard previous != nil, current == nil else { return }
             SettingsWindowController.shared.show(tab: .drawer)
+        }
+    }
+
+    private var visibilityCard: some View {
+        SettingsCard {
+            HStack(alignment: .center, spacing: 12) {
+                Image(systemName: store.hidesDrawerIcons ? "eye.slash.fill" : "eye.fill")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(store.hidesDrawerIcons ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
+                    .frame(width: 24)
+                    .accessibilityHidden(true)
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Hide Drawer icons from the menu bar")
+                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    if store.support.hidingStyle == .overflow {
+                        Text("Keeps them in Altillo and moves them into macOS's hidden area. macOS 27 may hide every icon from the same app together.")
+                            .settingsHint()
+                    } else {
+                        Text("Keeps them in Altillo without leaving a second copy visible in the menu bar.")
+                            .settingsHint()
+                    }
+                }
+                .fixedSize(horizontal: false, vertical: true)
+
+                Spacer(minLength: 8)
+
+                Toggle("Hide Drawer icons from the menu bar", isOn: Binding(
+                    get: { store.hidesDrawerIcons },
+                    set: { store.setHidesDrawerIcons($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .disabled(!store.support.hiding || store.movingEntryID != nil)
+                .help(store.hidesDrawerIcons
+                    ? "Drawer icons are hidden from the visible menu bar"
+                    : "Drawer icons also remain visible in the menu bar")
+            }
         }
     }
 

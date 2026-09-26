@@ -6487,6 +6487,40 @@
         }
       }
     },
+    "Drawer icons also remain visible in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drawer icons also remain visible in the menu bar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los iconos del Cajón también permanecen visibles en la barra de menús"
+          }
+        }
+      }
+    },
+    "Drawer icons are hidden from the visible menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Drawer icons are hidden from the visible menu bar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los iconos del Cajón están ocultos en la barra de menús visible"
+          }
+        }
+      }
+    },
     "Drawer Settings…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7547,6 +7581,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ocultar"
+          }
+        }
+      }
+    },
+    "Hide Drawer icons from the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide Drawer icons from the menu bar"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar los iconos del Cajón de la barra de menús"
           }
         }
       }
@@ -8672,6 +8723,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ten a mano en Altillo los iconos que elijas."
+          }
+        }
+      }
+    },
+    "Keeps them in Altillo and moves them into macOS's hidden area. macOS 27 may hide every icon from the same app together." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps them in Altillo and moves them into macOS's hidden area. macOS 27 may hide every icon from the same app together."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los mantiene en Altillo y los mueve al área oculta de macOS. macOS 27 puede ocultar juntos todos los iconos de una misma app."
+          }
+        }
+      }
+    },
+    "Keeps them in Altillo without leaving a second copy visible in the menu bar." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keeps them in Altillo without leaving a second copy visible in the menu bar."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Los mantiene en Altillo sin dejar una segunda copia visible en la barra de menús."
           }
         }
       }

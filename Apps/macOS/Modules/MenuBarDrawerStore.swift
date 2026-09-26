@@ -10,6 +10,7 @@ final class MenuBarDrawerStore: NSObject {
     static let shared = MenuBarDrawerStore()
 
     private(set) var enabled: Bool
+    private(set) var hidesDrawerIcons: Bool
     private(set) var hasAccess = false
     private(set) var isHidden = false
     private(set) var isLoading = false
@@ -19,11 +20,12 @@ final class MenuBarDrawerStore: NSObject {
     let iconCapture = MenuBarIconCapture()
     @ObservationIgnored private let menuPresenter = MenuBarMenuPresenter()
     var hasIconAccess: Bool { iconCapture.hasAccess }
-    /// macOS 26 can capture and hide individual status items. macOS 27's shared host cannot do so
-    /// reliably, so it uses stable application/system icons and needs no Screen Recording permission.
-    var requiresIconAccess: Bool { support.hiding }
+    /// macOS 26 captures actual status-item windows. macOS 27's shared host cannot expose those
+    /// pixels reliably, so it uses stable application/system icons and needs no Screen Recording.
+    var requiresIconAccess: Bool { support.hidingStyle == .legacy }
+    private var hasRequiredIconAccess: Bool { !requiresIconAccess || hasIconAccess }
     var isPerformingMenuBarInteraction: Bool {
-        activationTask != nil || movementTask != nil || menuSessionTask != nil
+        activationTask != nil || movementTask != nil || menuSessionTask != nil || restoreTask != nil
     }
     /// What this macOS can do, feature by feature (see `DrawerSupport.decide`).
     let support: DrawerSupport
@@ -46,6 +48,7 @@ final class MenuBarDrawerStore: NSObject {
     @ObservationIgnored private let accessibility = MenuBarAccessibility()
     @ObservationIgnored private var separator: NSStatusItem?
     @ObservationIgnored private var control: NSStatusItem?
+    @ObservationIgnored private var overflowSpacers: [NSStatusItem] = []
     @ObservationIgnored private var movementControlPosition: Int?
     private var selectedIDs: Set<String> = []
     @ObservationIgnored private var chosenIDs: Set<String>
@@ -58,6 +61,7 @@ final class MenuBarDrawerStore: NSObject {
     @ObservationIgnored private var currentMenuEntryID: String?
     @ObservationIgnored private var iconTask: Task<Void, Never>?
     @ObservationIgnored private var movementTask: Task<Void, Never>?
+    @ObservationIgnored private var restoreTask: Task<Void, Never>?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var distributedObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var started = false
@@ -91,6 +95,7 @@ final class MenuBarDrawerStore: NSObject {
         self.defaults = defaults
         self.support = DrawerSupport.decide(majorVersion: majorVersion)
         self.enabled = defaults.bool(forKey: "drawer.enabled")
+        self.hidesDrawerIcons = (defaults.object(forKey: "drawer.hidesIcons") as? Bool) ?? true
         self.chosenIDs = Set(defaults.stringArray(forKey: "drawer.chosenIDs") ?? [])
         self.drawerOrder = defaults.stringArray(forKey: "drawer.order") ?? []
         super.init()
@@ -103,14 +108,7 @@ final class MenuBarDrawerStore: NSObject {
         Self.log.debug("start enabled=\(self.enabled) ax=\(self.hasAccess) capture=\(self.hasIconAccess)")
         if enabled, support.catalog, hasAccess {
             installSection()
-            // Allow status-item positions to settle before discovering the user's section.
-            scanTask = Task { [weak self] in
-                try? await Task.sleep(for: .seconds(2))
-                guard !Task.isCancelled, let self else { return }
-                self.scanTask = nil
-                if self.support.hiding, self.hasIconAccess, !self.chosenIDs.isEmpty { self.hide() }
-                else { self.refresh() }
-            }
+            restoreChosenSelection(after: .seconds(2))
         }
         let workspace = NSWorkspace.shared.notificationCenter
         for (name, delay) in [(NSWorkspace.didLaunchApplicationNotification, Duration.milliseconds(1_200)),
@@ -148,10 +146,16 @@ final class MenuBarDrawerStore: NSObject {
             forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
         ) { [weak self] _ in
             MainActor.assumeIsolated {
-                // A display change can move the separator. Reopen rather than hide the wrong group.
-                self?.reveal()
-                self?.catalogIsStale = true
-                self?.scheduleRefresh(after: .milliseconds(500))
+                guard let self else { return }
+                // macOS 27 uses geometry derived from every display and can resize in place. The
+                // legacy model reopens first because its physical boundary may have moved.
+                if self.isHidden, self.support.hidingStyle == .overflow {
+                    self.applyCollapsedGeometry(collapsed: true)
+                } else {
+                    self.reveal()
+                }
+                self.catalogIsStale = true
+                self.scheduleRefresh(after: .milliseconds(500))
             }
         })
         observers.append(NotificationCenter.default.addObserver(
@@ -245,6 +249,8 @@ final class MenuBarDrawerStore: NSObject {
         iconTask?.cancel()
         iconTask = nil
         movementTask?.cancel()
+        restoreTask?.cancel()
+        restoreTask = nil
         scheduledRefresh.cancel()
         accessRecheckTask?.cancel()
         accessRecheckTask = nil
@@ -253,7 +259,7 @@ final class MenuBarDrawerStore: NSObject {
         isLoading = false
         // Leave the items alive through the final run loop: destroying the expanded separator in the
         // same tick can preserve offscreen positions. Process teardown removes the items afterwards.
-        separator?.length = 20
+        applyCollapsedGeometry(collapsed: false)
         isHidden = false
         updateControl()
         for observer in observers {
@@ -280,7 +286,7 @@ final class MenuBarDrawerStore: NSObject {
             if !hasAccess { requestAccess() }
             if hasAccess {
                 installSection()
-                beginArranging()
+                restoreChosenSelection(after: .milliseconds(180))
             }
         } else {
             menuPresenter.cancel()
@@ -288,12 +294,33 @@ final class MenuBarDrawerStore: NSObject {
             menuSessionTask = nil
             activationTask?.cancel()
             movementTask?.cancel()
+            restoreTask?.cancel()
+            restoreTask = nil
             permissionTask?.cancel()
             permissionTask = nil
             scheduledRefresh.cancel()
             Task { [accessibility] in await accessibility.stopObserving() }
             removeSection()
             selectedIDs.removeAll()
+        }
+    }
+
+    func setHidesDrawerIcons(_ value: Bool) {
+        guard !value || support.hiding else { return }
+        hidesDrawerIcons = value
+        defaults.set(value, forKey: "drawer.hidesIcons")
+        problem = nil
+        guard enabled, hasAccess else { return }
+        if value, !chosenIDs.isEmpty {
+            if support.hidingStyle == .overflow {
+                restoreChosenSelection(after: .zero)
+            } else {
+                hide()
+            }
+        } else {
+            restoreTask?.cancel()
+            restoreTask = nil
+            reveal()
         }
     }
 
@@ -361,13 +388,53 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     func beginArranging() {
+        restoreTask?.cancel()
+        restoreTask = nil
         reveal()
         problem = nil
         refresh()
     }
 
+    /// Restores persisted Drawer membership after launch or re-enabling the feature. macOS 27 no
+    /// longer exposes per-app position keys, so items selected by an older Altillo build must be
+    /// Command-dragged beside the new overflow divider once before the bar can collapse correctly.
+    private func restoreChosenSelection(after delay: Duration) {
+        restoreTask?.cancel()
+        restoreTask = Task { [weak self] in
+            // A cancelled restore may already have been replaced by a newer one. Only the current,
+            // non-cancelled task clears the busy state when it exits through one of the guards below.
+            defer {
+                if !Task.isCancelled { self?.restoreTask = nil }
+            }
+            if delay != .zero { try? await Task.sleep(for: delay) }
+            guard !Task.isCancelled, let self, self.enabled, self.hasAccess else { return }
+            self.reveal()
+            self.refresh()
+            let pendingScan = self.scanTask
+            await pendingScan?.value
+            guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
+
+            if self.support.hidingStyle == .overflow {
+                let ordered = DrawerOrder.sort(
+                    self.entries.filter { self.chosenIDs.contains($0.id) },
+                    preferredIDs: self.drawerOrder
+                )
+                for savedEntry in ordered {
+                    guard !Task.isCancelled, self.enabled, self.hasAccess,
+                          let current = self.entries.first(where: { $0.id == savedEntry.id }) else { continue }
+                    guard self.move(current, toDrawer: true) else { continue }
+                    let pendingMove = self.movementTask
+                    await pendingMove?.value
+                }
+            }
+
+            guard !Task.isCancelled else { return }
+            if self.hidesDrawerIcons, !self.chosenIDs.isEmpty { self.hide() }
+        }
+    }
+
     func hide() {
-        guard enabled, support.hiding, hasAccess, hasIconAccess, separator != nil,
+        guard enabled, hidesDrawerIcons, support.hiding, hasAccess, hasRequiredIconAccess, separator != nil,
               movementTask == nil, activationTask == nil else { return }
         guard !isHidden else { return }
         // A scan begun before the user finished dragging may contain the old layout.
@@ -381,7 +448,7 @@ final class MenuBarDrawerStore: NSObject {
         menuSessionTask?.cancel()
         menuSessionTask = nil
         hideAfterScan = false
-        separator?.length = 20
+        applyCollapsedGeometry(collapsed: false)
         isHidden = false
         defaults.set(false, forKey: "drawer.restoreHidden")
         updateControl()
@@ -506,8 +573,8 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     /// On systems where the divider can hide a native group, the two settings zones mirror that
-    /// native order. Newer systems cannot hide the group, so membership is deliberately logical:
-    /// the chosen item remains in the menu bar and is also available from Altillo.
+    /// native order. Unsupported future systems keep a logical fallback instead of risking an
+    /// unverified menu-bar mutation.
     @discardableResult
     func move(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry? = nil) -> Bool {
         checkAccess()
@@ -611,6 +678,25 @@ final class MenuBarDrawerStore: NSObject {
                 self.problem = "macOS couldn't move this icon. It stays in its current section."
                 return
             }
+            if self.support.hidingStyle == .overflow {
+                // macOS 27 can move every status item owned by one app as a native group. Mirror
+                // the layout macOS actually produced so the Drawer never promises a split that the
+                // system cannot keep, and so grouped icons survive the next launch consistently.
+                let applicationIDs = refreshed
+                    .filter { $0.application.bundleID == entry.application.bundleID }
+                    .map(\.id)
+                for applicationID in applicationIDs {
+                    if self.selectedIDs.contains(applicationID) {
+                        self.chosenIDs.insert(applicationID)
+                        if !self.drawerOrder.contains(applicationID) {
+                            self.drawerOrder.append(applicationID)
+                        }
+                    } else {
+                        self.chosenIDs.remove(applicationID)
+                        self.drawerOrder.removeAll { $0 == applicationID }
+                    }
+                }
+            }
             if toDrawer {
                 self.chosenIDs.insert(entry.id)
                 let currentOrder = self.drawerEntries.map(\.id)
@@ -625,13 +711,14 @@ final class MenuBarDrawerStore: NSObject {
                 self.problem = "Some menu bar icons couldn't be read. They stay visible; try Refresh."
                 return
             }
-            if !self.selectedIDs.isEmpty { self.collapseSection() }
+            if self.hidesDrawerIcons, self.restoreTask == nil, !self.selectedIDs.isEmpty {
+                self.collapseSection()
+            }
         }
         return true
     }
 
-    /// macOS 27's shared menu-bar host does not provide a stable separator boundary. A logical
-    /// selection is both reliable and honest: Settings already explains that the native icon stays put.
+    /// Conservative fallback for an unverified future menu-bar model.
     private func moveLogically(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry?) -> Bool {
         guard entries.contains(where: { $0.id == entry.id }) else { return false }
         problem = nil
@@ -650,10 +737,13 @@ final class MenuBarDrawerStore: NSObject {
         return true
     }
 
-    /// A physical divider is authoritative only where it can actually hide that group. Otherwise,
-    /// keep the persisted logical selection and discard IDs belonging to apps that are no longer running.
+    /// A physical divider is authoritative only while it is expanded. In macOS 27's native overflow,
+    /// collapsed items can receive off-strip frames, so preserve the verified persisted selection.
     private func selectionAfterScanning(_ scanned: [MenuBarEntry]) -> Set<String>? {
         if !support.hiding {
+            return chosenIDs.intersection(scanned.map(\.id))
+        }
+        if support.hidingStyle == .overflow, isHidden {
             return chosenIDs.intersection(scanned.map(\.id))
         }
         guard let boundary = separatorFrame else { return nil }
@@ -681,8 +771,8 @@ final class MenuBarDrawerStore: NSObject {
         scanTask = nil
         isLoading = false
         problem = nil
-        // Only where hiding works: elsewhere the item stays visible in the menu bar and opens from there.
-        let needsHiddenIcon = support.hiding && selectedIDs.contains(entry.id)
+        // When visible copies are intentionally kept, activation does not need to collapse the bar first.
+        let needsHiddenIcon = support.hiding && hidesDrawerIcons && selectedIDs.contains(entry.id)
         if needsHiddenIcon, !isHidden { hide() }
         let pendingHide = scanTask
         activationTask = Task { [weak self, accessibility] in
@@ -839,8 +929,9 @@ final class MenuBarDrawerStore: NSObject {
             problem = nil
             if enabled, support.catalog { installSection() }
             // Accessibility can be granted while Settings owns focus. Rebuild the catalog
-            // on the permission transition instead of waiting for another user action.
-            Task { [weak self] in self?.refresh() }
+            // and restore the physical hidden section on the permission transition instead of
+            // waiting for another user action.
+            if enabled { restoreChosenSelection(after: .milliseconds(180)) }
         }
     }
 
@@ -871,13 +962,27 @@ final class MenuBarDrawerStore: NSObject {
 
     private func installSection() {
         guard separator == nil else { return }
-        if defaults.object(forKey: Self.controlPositionKey) == nil,
+        if support.hidingStyle == .legacy,
+           defaults.object(forKey: Self.controlPositionKey) == nil,
            let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
             defaults.set(max(0, separatorPosition.intValue - 1), forKey: Self.controlPositionKey)
         }
+        // Creation order matters on macOS 27: every fresh autosave name lands to the left of the
+        // previous one. Control first, then spacers, then divider keeps the expandable block between
+        // the divider and the always-visible recovery control.
         installControl()
+        if support.hidingStyle == .overflow {
+            overflowSpacers = (0..<DrawerCollapseGeometry.spacerCount).map { index in
+                let spacer = NSStatusBar.system.statusItem(withLength: 0)
+                spacer.autosaveName = "Altillo.Drawer.Spacer.\(index).v27"
+                spacer.button?.setAccessibilityElement(false)
+                spacer.isVisible = false
+                return spacer
+            }
+        }
         let separator = NSStatusBar.system.statusItem(withLength: 20)
-        separator.autosaveName = "Altillo.Drawer.Separator"
+        separator.autosaveName = support.hidingStyle == .overflow
+            ? "Altillo.Drawer.Separator.v27" : "Altillo.Drawer.Separator"
         separator.button?.title = "│"
         separator.button?.setAccessibilityLabel("Drawer divider")
         separator.button?.toolTip = "Manage these icons in Altillo Settings → Drawer."
@@ -889,7 +994,8 @@ final class MenuBarDrawerStore: NSObject {
     private func installControl() {
         guard control == nil, support.hiding else { return }
         let control = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        control.autosaveName = "Altillo.Drawer.Control"
+        control.autosaveName = support.hidingStyle == .overflow
+            ? "Altillo.Drawer.Control.v27" : "Altillo.Drawer.Control"
         control.button?.target = self
         control.button?.action = #selector(toggleSection)
         self.control = control
@@ -897,7 +1003,7 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     private func compactChromeForMovement() -> Bool {
-        guard let separator else { return false }
+        guard support.hidingStyle == .legacy, let separator else { return false }
         if let control {
             movementControlPosition = (defaults.object(forKey: Self.controlPositionKey) as? NSNumber)?.intValue
             NSStatusBar.system.removeStatusItem(control)
@@ -925,7 +1031,8 @@ final class MenuBarDrawerStore: NSObject {
     private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
 
     private func collapseSection() {
-        guard enabled, support.hiding, hasAccess, hasIconAccess, separator != nil else { return }
+        guard enabled, hidesDrawerIcons, support.hiding, hasAccess, hasRequiredIconAccess,
+              separator != nil else { return }
         guard !selectedIDs.isEmpty else {
             reveal()
             problem = "Drag an icon into Altillo in Drawer settings."
@@ -943,8 +1050,7 @@ final class MenuBarDrawerStore: NSObject {
             reveal()
             return
         }
-        let widest = NSScreen.screens.map { $0.frame.width }.max() ?? 1440
-        separator?.length = min(10_000, max(500, widest * 2))
+        applyCollapsedGeometry(collapsed: true)
         isHidden = true
         defaults.set(true, forKey: "drawer.restoreHidden")
         problem = nil
@@ -955,8 +1061,54 @@ final class MenuBarDrawerStore: NSObject {
         reveal()
         if let separator { NSStatusBar.system.removeStatusItem(separator) }
         if let control { NSStatusBar.system.removeStatusItem(control) }
+        for spacer in overflowSpacers { NSStatusBar.system.removeStatusItem(spacer) }
         separator = nil
         control = nil
+        overflowSpacers.removeAll()
+    }
+
+    /// One geometry funnel for launch, toggles, display changes and teardown. macOS 26 keeps the
+    /// classic oversized-divider behaviour. macOS 27 must keep every individual status item below
+    /// MenuBarAgent's discard cliff, so several bounded items share the required width instead.
+    private func applyCollapsedGeometry(collapsed: Bool) {
+        guard let separator else { return }
+        guard collapsed else {
+            for spacer in overflowSpacers {
+                spacer.isVisible = false
+                spacer.length = 0
+            }
+            separator.length = 20
+            separator.button?.title = "│"
+            return
+        }
+
+        switch support.hidingStyle {
+        case .legacy:
+            let widest = NSScreen.screens.map { $0.frame.width }.max() ?? 1_440
+            separator.length = min(DrawerCollapseGeometry.legacyLength, max(500, widest * 2))
+        case .overflow:
+            let displays = Self.drawerDisplays()
+            let unit = DrawerCollapseGeometry.unitLength(displays: displays)
+            let active = DrawerCollapseGeometry.activeSpacers(unit: unit, displays: displays)
+            separator.button?.title = ""
+            separator.length = unit
+            for (index, spacer) in overflowSpacers.enumerated() {
+                let participates = index < active
+                spacer.isVisible = participates
+                spacer.length = participates ? unit : 0
+            }
+        case .unavailable:
+            break
+        }
+    }
+
+    private static func drawerDisplays() -> [DrawerCollapseGeometry.Display] {
+        NSScreen.screens.map { screen in
+            DrawerCollapseGeometry.Display(
+                width: screen.frame.width,
+                statusWidth: screen.auxiliaryTopRightArea?.width
+            )
+        }
     }
 
     private func updateControl() {
@@ -970,6 +1122,12 @@ final class MenuBarDrawerStore: NSObject {
     }
 }
 
+enum DrawerHidingStyle: Equatable, Sendable {
+    case unavailable
+    case legacy
+    case overflow
+}
+
 /// What the Drawer can do on this macOS, per feature, so a partial platform degrades one feature instead of
 /// disabling everything. Everything else is decided at run time: the catalog reads whatever Accessibility
 /// exposes, icon capture picks the path the system offers, and every move is verified by re-reading positions.
@@ -979,26 +1137,64 @@ struct DrawerSupport: Equatable, Sendable {
     /// Arrange items. Where hiding works this uses a native Command-drag and verifies the resulting order;
     /// where it does not, Altillo stores logical membership while leaving the native icon in place.
     var arranging: Bool
-    /// Hide the chosen group by widening Altillo's divider (only verified on macOS 26).
-    var hiding: Bool
+    /// How this menu-bar generation hides the chosen group.
+    var hidingStyle: DrawerHidingStyle
+    var hiding: Bool { hidingStyle != .unavailable }
 
-    static let unavailable = DrawerSupport(catalog: false, arranging: false, hiding: false)
-    static let full = DrawerSupport(catalog: true, arranging: true, hiding: true)
+    static let unavailable = DrawerSupport(catalog: false, arranging: false, hidingStyle: .unavailable)
+    static let full = DrawerSupport(catalog: true, arranging: true, hidingStyle: .legacy)
 
-    /// macOS 26: everything, as verified. macOS 27: the catalog and menus work, but the divider no longer hides
-    /// anything: MenuBarAgent folds items that don't fit into its own overflow menu, and a divider wider than the
-    /// free space is dropped itself while the icons stay visible. Drawer membership is therefore logical there.
-    /// Later versions keep the parts that verify themselves at run time and leave hiding off.
+    /// macOS 26 uses the classic oversized divider. macOS 27 moves the chosen group into MenuBarAgent's
+    /// native overflow using bounded divider units. Later versions remain conservative until verified.
     static func decide(majorVersion: Int) -> DrawerSupport {
         switch majorVersion {
         case ..<26: .unavailable
         case 26: .full
-        default: DrawerSupport(catalog: true, arranging: true, hiding: false)
+        case 27: DrawerSupport(catalog: true, arranging: true, hidingStyle: .overflow)
+        default: DrawerSupport(catalog: true, arranging: true, hidingStyle: .unavailable)
         }
     }
 
     /// Some of the Drawer works, but not all of it; Settings explains what's missing.
     var isPartial: Bool { catalog && !(arranging && hiding) }
+}
+
+/// Collapse widths for both menu-bar generations. On macOS 27 a status item is discarded when its
+/// length reaches a display-dependent cliff. Several smaller items can still displace the selected
+/// icons into the native overflow without any one item crossing that limit.
+enum DrawerCollapseGeometry {
+    struct Display: Equatable, Sendable {
+        let width: CGFloat
+        let statusWidth: CGFloat
+
+        init(width: CGFloat, statusWidth: CGFloat? = nil) {
+            self.width = width
+            self.statusWidth = statusWidth ?? width
+        }
+    }
+
+    static let legacyLength: CGFloat = 10_000
+    static let minimumUnit: CGFloat = 200
+    static let cliffMargin: CGFloat = 64
+    static let notchedCliffFactor: CGFloat = 0.75
+    static let spacerCount = 6
+
+    static func cliff(of display: Display) -> CGFloat {
+        display.statusWidth < display.width
+            ? display.statusWidth * notchedCliffFactor
+            : display.width / 2
+    }
+
+    static func unitLength(displays: [Display]) -> CGFloat {
+        guard let lowest = displays.map(cliff(of:)).min() else { return minimumUnit }
+        return max(minimumUnit, (lowest - cliffMargin).rounded(.down))
+    }
+
+    static func activeSpacers(unit: CGFloat, displays: [Display]) -> Int {
+        guard unit > 0, let widest = displays.map(\.statusWidth).max() else { return 0 }
+        let needed = Int((widest / unit).rounded(.up)) - 1
+        return min(max(needed, 0), spacerCount)
+    }
 }
 
 enum DrawerOrder {
