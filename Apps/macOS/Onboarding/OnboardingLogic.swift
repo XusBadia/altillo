@@ -109,6 +109,16 @@ enum OnboardingLogic {
         OnboardingStep.allCases.filter { applies($0, to: context) }
     }
 
+    /// Keep an AI Tools page already on screen in the progress row after an empty search removes it from future steps.
+    static func steps(for context: OnboardingContext, keeping current: OnboardingStep) -> [OnboardingStep] {
+        var result = steps(for: context)
+        if current == .aiTools, !result.contains(.aiTools) {
+            let insertion = result.firstIndex { $0.rawValue > current.rawValue } ?? result.endIndex
+            result.insert(.aiTools, at: insertion)
+        }
+        return result
+    }
+
     static func applies(_ step: OnboardingStep, to context: OnboardingContext) -> Bool {
         switch step {
         case .hello, .preset, .tricks, .done:

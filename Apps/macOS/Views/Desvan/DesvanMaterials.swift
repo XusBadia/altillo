@@ -448,7 +448,7 @@ private struct DesvanButtonBody: View {
             .background { background }
             .desvanHitTarget()
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
-            .animation(Desvan.Motion.pick(.spring(duration: 0.2, bounce: 0), reduceMotion: reduceMotion), value: configuration.isPressed)
+            .animation(Desvan.Motion.pick(Desvan.Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
             .animation(Desvan.Motion.hover, value: isHovering)
             .onHover { isHovering = $0 }
     }

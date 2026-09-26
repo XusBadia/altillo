@@ -306,6 +306,12 @@ private struct DesvanShelfTile: View {
         .accessibilityLabel(item.displayName)
         .accessibilityValue(NotchFormat.subtitle(for: item))
         .accessibilityAddTraits(isSelected ? [.isSelected, .isButton] : .isButton)
+        .accessibilityAction(named: Text("Open")) {
+            menuItems().forEach(model.actions.open)
+        }
+        .accessibilityAction(named: Text("Quick Look")) {
+            model.actions.quickLook(menuItems())
+        }
     }
 
     /// Full name and details, on hover.

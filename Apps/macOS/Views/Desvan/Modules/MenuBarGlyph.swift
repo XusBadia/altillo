@@ -9,7 +9,7 @@ struct MenuBarGlyph: View {
     let image: NSImage
 
     /// Optical box for vector symbols.
-    static let box: CGFloat = 18
+    nonisolated static let box: CGFloat = 18
     static func size(for imageSize: CGSize, allowsEnlarging: Bool = false) -> CGSize {
         guard imageSize.width > 0, imageSize.height > 0 else {
             return CGSize(width: box, height: box)
@@ -102,6 +102,51 @@ struct MenuBarGlyphGrid: Layout {
 /// What stands in for an item's captured glyph. The Drawer never shows a placeholder shape: an item whose
 /// pixels can't be read is drawn with a symbol (macOS's own items) or its app's icon, or left out.
 enum MenuBarGlyphFallback {
+    /// Compare rendered pixels, not image names or file extensions: LaunchServices can
+    /// supply its generic application tile as a perfectly valid, unnamed NSImage.
+    static func isGenericApplicationIcon(_ icon: NSImage, generic: NSImage) -> Bool {
+        guard let candidate = iconPixels(icon), let placeholder = iconPixels(generic) else { return true }
+        return candidate == placeholder
+    }
+
+    private static func iconPixels(_ image: NSImage) -> Data? {
+        guard let bitmap = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: 32, pixelsHigh: 32,
+                                            bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+                                            isPlanar: false, colorSpaceName: .deviceRGB,
+                                            bytesPerRow: 128, bitsPerPixel: 32),
+              let context = NSGraphicsContext(bitmapImageRep: bitmap), let pixels = bitmap.bitmapData else { return nil }
+        NSGraphicsContext.saveGraphicsState()
+        defer { NSGraphicsContext.restoreGraphicsState() }
+        NSGraphicsContext.current = context
+        let rect = CGRect(x: 0, y: 0, width: 32, height: 32)
+        NSColor.clear.setFill()
+        rect.fill(using: .copy)
+        image.draw(in: rect, from: .zero, operation: .sourceOver, fraction: 1)
+        context.flushGraphics()
+        return Data(bytes: pixels, count: 128 * 32)
+    }
+
+    static func initials(for name: String) -> String {
+        let words = name.split(whereSeparator: { !$0.isLetter && !$0.isNumber })
+        if words.count > 1 { return words.prefix(2).compactMap(\.first).map(String.init).joined().uppercased() }
+        return words.first.map { String($0.prefix(2)).uppercased() } ?? "?"
+    }
+
+    /// A legible identity when an app has no artwork, rather than a misleading generic square.
+    static func monogram(for name: String) -> NSImage {
+        let letters = initials(for: name)
+        let image = NSImage(size: CGSize(width: MenuBarGlyph.box, height: MenuBarGlyph.box), flipped: false) { rect in
+            let text = NSAttributedString(string: letters, attributes: [
+                .font: NSFont.systemFont(ofSize: 11, weight: .semibold), .foregroundColor: NSColor.white
+            ])
+            let size = text.size()
+            text.draw(at: CGPoint(x: rect.midX - size.width / 2, y: rect.midY - size.height / 2))
+            return true
+        }
+        image.isTemplate = true
+        return image
+    }
+
     enum Source: Equatable {
         case captured
         case systemSymbol(String)

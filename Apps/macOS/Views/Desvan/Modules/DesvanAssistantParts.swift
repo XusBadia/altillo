@@ -273,6 +273,7 @@ private struct DesvanSavedRow: View {
     @State private var isHovering = false
     @State private var copied = false
     @State private var putUp = false
+    @State private var expanded = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
@@ -291,9 +292,20 @@ private struct DesvanSavedRow: View {
                 .font(.system(size: 12.5))
                 .foregroundStyle(Desvan.Palette.paperSecondary)
                 .tint(Desvan.Palette.bulb)
-                .lineLimit(isHovering ? 6 : 2)
+                .lineLimit(expanded ? nil : 2)
                 .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
+            Button {
+                withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) {
+                    expanded.toggle()
+                }
+            } label: {
+                Label(expanded ? "Show less" : "Read full answer", systemImage: expanded ? "chevron.up" : "chevron.down")
+                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
+            .accessibilityValue(expanded ? "Expanded" : "Collapsed")
+            .frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 2) {
                 Button {
                     model.assistant.copy(answer)

@@ -39,7 +39,7 @@ struct SettingsModulesPane: View {
                         VStack(alignment: .leading, spacing: 0) {
                             SettingsGroupHeading(
                                 title: "Sections in Altillo",
-                                detail: "Drag a row to change the order. Shelf always stays first."
+                                detail: "Drag a row or open its menu to move it. Shelf always stays first."
                             )
                             SettingsCardDivider()
                             VStack(spacing: 0) {
@@ -492,6 +492,22 @@ struct SettingsModuleRow: View {
                 }
                 if let index = settings.modules.firstIndex(of: module), index < settings.modules.count - 1 {
                     Button("Move Later", systemImage: "arrow.down") {
+                        settings.move(fromOffsets: IndexSet(integer: index), toOffset: index + 2)
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityActions {
+            if settings.isEnabled(module), !module.isAlwaysOn,
+               let index = settings.modules.firstIndex(of: module) {
+                if index > 1 {
+                    Button("Move Earlier") {
+                        settings.move(fromOffsets: IndexSet(integer: index), toOffset: index - 1)
+                    }
+                }
+                if index < settings.modules.count - 1 {
+                    Button("Move Later") {
                         settings.move(fromOffsets: IndexSet(integer: index), toOffset: index + 2)
                     }
                 }

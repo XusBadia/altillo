@@ -6,6 +6,7 @@ import SwiftUI
 struct OnboardingHelloPage: View {
     let flow: OnboardingFlow
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var greetingProgress: CGFloat = 0
 
     private var model: NotchModel { flow.model }
 
@@ -13,15 +14,14 @@ struct OnboardingHelloPage: View {
         VStack(spacing: 0) {
             Spacer(minLength: 12)
 
-            DesvanHouseMark(size: 54, lit: flow.sawNotchOpen ? 1 : 0.75)
-                .frame(height: 96)
+            AltilloGreeting(progress: greetingProgress)
+                .frame(width: 300, height: 110)
                 .background {
-                    // The bulb's light around the house, fading out well before its frame so it has no edges.
-                    DesvanBulbGlow(intensity: flow.sawNotchOpen ? 0.2 : 0.11, radius: 120, originY: 150)
-                        .frame(width: 480, height: 300)
+                    DesvanBulbGlow(intensity: flow.sawNotchOpen ? 0.12 : 0.07, radius: 120, originY: 150)
+                        .frame(width: 420, height: 240)
                 }
-            .animation(Desvan.Motion.pick(.easeInOut(duration: 0.5), reduceMotion: reduceMotion),
-                       value: flow.sawNotchOpen)
+                .animation(Desvan.Motion.pick(.easeInOut(duration: 0.3), reduceMotion: reduceMotion),
+                           value: flow.sawNotchOpen)
 
             VStack(spacing: 8) {
                 Text("Welcome to your altillo")
@@ -48,10 +48,24 @@ struct OnboardingHelloPage: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { flow.notchStateChanged(model.state) }
         .onChange(of: model.state) { _, state in flow.notchStateChanged(state) }
+        .task {
+            let shouldPlay = flow.claimGreetingAnimation()
+            guard !reduceMotion, shouldPlay else {
+                greetingProgress = 1
+                return
+            }
+            withAnimation(.linear(duration: 2)) { greetingProgress = 1 }
+        }
+        .onChange(of: reduceMotion) { _, reduced in
+            guard reduced else { return }
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) { greetingProgress = 1 }
+        }
         .task(id: flow.sawNotchOpen) {
-            // A moment to enjoy it, then on to the next page.
+            // Leave the two-second handwritten welcome fully visible before moving on.
             guard flow.sawNotchOpen, flow.step == .hello else { return }
-            try? await Task.sleep(for: .milliseconds(1700))
+            try? await Task.sleep(for: .milliseconds(2200))
             guard !Task.isCancelled, flow.step == .hello else { return }
             flow.next()
         }

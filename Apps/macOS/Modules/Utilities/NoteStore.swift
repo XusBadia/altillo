@@ -48,9 +48,11 @@ final class NoteStore {
     private(set) var askAppend: AskAppend?
     /// Set by the view from its `@FocusState`: typing keeps the notch open.
     var isEditing = false
+    /// A Save panel launched by Note is using the notch as its presenting window.
+    var isExporting = false
 
-    /// While the user types in the note, the notch doesn't close when the pointer wanders off.
-    var holdsOpen: Bool { isEditing }
+    /// Keep the presenting view alive while typing or using its Save panel.
+    var holdsOpen: Bool { isEditing || isExporting }
 
     @ObservationIgnored let noteURL: URL?
     @ObservationIgnored let historyURL: URL?
@@ -88,6 +90,7 @@ final class NoteStore {
         users = max(0, users - 1)
         guard users == 0 else { return }
         isEditing = false
+        isExporting = false
         flush()
     }
 

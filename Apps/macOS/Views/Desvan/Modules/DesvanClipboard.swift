@@ -255,6 +255,9 @@ private struct DesvanClipboardSlip: View {
             items: { [ShelfItem(kind: .text(item.text), displayName: item.title)] },
             onEnded: { _, _ in }
         )
+        .focusable()
+        .onKeyPress(.return) { copy(); return .handled }
+        .onKeyPress(.space) { copy(); return .handled }
         .help("Click to copy · ⌥-click to throw away · drag it out")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(spoken)

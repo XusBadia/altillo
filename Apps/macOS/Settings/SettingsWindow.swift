@@ -25,6 +25,23 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private let navigation = SettingsNavigation()
     private var menuBarRefocusTask: Task<Void, Never>?
+    private var arrangingWindowLevel: NSWindow.Level?
+
+    /// Keep the existing settings surface above normal app windows while WindowServer
+    /// tracks a native status-item drag. Do not reactivate during the gesture itself.
+    func beginMenuBarArrangement() {
+        guard let window, window.isVisible, arrangingWindowLevel == nil else { return }
+        menuBarRefocusTask?.cancel()
+        arrangingWindowLevel = window.level
+        window.level = .floating
+    }
+
+    func endMenuBarArrangement(restoreFocus: Bool = true) {
+        guard let original = arrangingWindowLevel else { return }
+        arrangingWindowLevel = nil
+        if let window { window.level = original }
+        if restoreFocus { restoreAfterMenuBarInteraction() }
+    }
 
     /// Opens the window, activating Altillo first so it really takes focus from a menu bar app.
     func show(tab: SettingsTab? = nil) {

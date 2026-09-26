@@ -1,6 +1,7 @@
 import AltilloCore
 import AltilloDesign
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// The «Nota» section: one sheet of paper taped up in the attic. Type on it (it saves as you go), copy it, drag it
 /// out anywhere by its tape, put it on the shelf, or put it away with "New note" (the last five stay in the history).
@@ -10,6 +11,9 @@ struct DesvanNoteView: View {
     @FocusState private var isEditorFocused: Bool
     @State private var copied = false
     @State private var putUp = false
+    @State private var exporting = false
+    @State private var exported = false
+    @State private var exportError: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var store: NoteStore { model.note }
@@ -27,12 +31,44 @@ struct DesvanNoteView: View {
         .desvanCard(radius: 16)
         .onAppear { store.start() }
         .onDisappear {
+            exporting = false
             store.isEditing = false
+            store.isExporting = false
             store.stop()
         }
         .onChange(of: isEditorFocused) { _, focused in
             store.isEditing = focused
             if focused { model.actions.takeKeyboardFocus() }
+        }
+        .onChange(of: exporting) { _, presented in
+            if !presented { store.isExporting = false }
+        }
+        .fileExporter(
+            isPresented: $exporting,
+            document: NoteTextDocument(text: store.text),
+            contentType: .plainText,
+            defaultFilename: Self.title(for: store.text)
+        ) { result in
+            exporting = false
+            store.isExporting = false
+            switch result {
+            case .success:
+                flash($exported)
+            case .failure(let error):
+                let nsError = error as NSError
+                if nsError.domain != NSCocoaErrorDomain || nsError.code != NSUserCancelledError {
+                    exportError = error.localizedDescription
+                }
+            }
+        }
+        .alert("Couldn't save the note", isPresented: Binding(
+            get: { exportError != nil },
+            set: { if !$0 { exportError = nil } }
+        )) {
+            Button("Try Again") { beginExport() }
+            Button("Cancel", role: .cancel) { exportError = nil }
+        } message: {
+            Text(exportError ?? "Try saving the note again.")
         }
     }
 
@@ -159,8 +195,10 @@ struct DesvanNoteView: View {
                 model.actions.addToShelf(dragItems)
                 flash($putUp)
             }
-            tool("Drag the note out", symbol: "hand.draw", disabled: isEmpty) {}
+            tool(exported ? "Saved" : "Export note…", symbol: exported ? "checkmark" : "square.and.arrow.up",
+                 disabled: isEmpty) { beginExport() }
                 .shelfDraggable(items: { dragItems }, onEnded: { _, _ in })
+                .help("Click to save as a text file, or drag the note out")
             newNote
             if store.clearedText != nil && store.text.isEmpty {
                 tool("Undo clear", symbol: "arrow.uturn.backward", disabled: false) {
@@ -235,5 +273,26 @@ struct DesvanNoteView: View {
             try? await Task.sleep(for: .seconds(1.4))
             withAnimation(Desvan.Motion.fade) { flag.wrappedValue = false }
         }
+    }
+
+    private func beginExport() {
+        guard !isEmpty else { return }
+        store.isExporting = true
+        exporting = true
+    }
+}
+
+private struct NoteTextDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.plainText] }
+    var text: String
+
+    init(text: String) { self.text = text }
+
+    init(configuration: ReadConfiguration) throws {
+        text = String(decoding: configuration.file.regularFileContents ?? Data(), as: UTF8.self)
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: Data(text.utf8))
     }
 }

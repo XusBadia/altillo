@@ -24,32 +24,36 @@ struct DesvanEditBody: View {
     // + 32 (put away) + 32 (ears) + 46 (presets) + 3 × 12 (spacing) = 200.
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Self.rowSpacing) {
-            row { caption(Text("Tabs")).padding(.top, DesvanEditStrip.height - DesvanEditStrip.tileHeight) } content: {
-                DesvanEditStrip(model: model, session: session, namespace: namespace)
-            }
-            .frame(height: DesvanEditStrip.height)
-            .zIndex(3)
+        GeometryReader { geometry in
+            VStack(alignment: .leading, spacing: Self.rowSpacing) {
+                row(width: geometry.size.width) {
+                    caption(Text("Tabs")).padding(.top, DesvanEditStrip.height - DesvanEditStrip.tileHeight)
+                } content: {
+                    DesvanEditStrip(model: model, session: session, namespace: namespace)
+                }
+                .frame(height: DesvanEditStrip.height)
+                .zIndex(3)
 
-            row { caption(Text("Put away")) } content: {
-                DesvanEditTray(model: model, session: session, namespace: namespace)
-            }
-            .frame(height: Self.chipRowHeight)
-            .zIndex(2)
+                row(width: geometry.size.width) { caption(Text("Put away")) } content: {
+                    DesvanEditTray(model: model, session: session, namespace: namespace)
+                }
+                .frame(height: Self.chipRowHeight)
+                .zIndex(2)
 
-            row { earCaption } content: {
-                DesvanEditEarsRow(model: model, session: session)
-            }
-            .frame(height: Self.chipRowHeight)
-            .zIndex(1)
+                row(width: geometry.size.width) { earCaption } content: {
+                    DesvanEditEarsRow(model: model, session: session)
+                }
+                .frame(height: Self.chipRowHeight)
+                .zIndex(1)
 
-            row { caption(Text("Presets")) } content: {
-                DesvanEditPresets(model: model, session: session)
+                row(width: geometry.size.width) { caption(Text("Presets")) } content: {
+                    DesvanEditPresets(model: model, session: session)
+                }
+                .frame(height: Self.presetsHeight)
             }
-            .frame(height: Self.presetsHeight)
+            .padding(.top, Self.topPadding)
+            .frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
         }
-        .padding(.top, Self.topPadding)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .onChange(of: model.settings.modules) { _, modules in
             // A section put away (or dropped by a preset) can't stay the one the notch opens on.
             if !modules.contains(model.module) { model.jump(to: .shelf) }
@@ -57,14 +61,15 @@ struct DesvanEditBody: View {
     }
 
     private func row<Caption: View, Content: View>(
-        @ViewBuilder caption: () -> Caption, @ViewBuilder content: () -> Content
+        width: CGFloat, @ViewBuilder caption: () -> Caption, @ViewBuilder content: () -> Content
     ) -> some View {
         HStack(alignment: .center, spacing: 6) {
             caption()
                 .frame(width: Self.captionWidth, alignment: .leading)
             content()
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: max(0, width - Self.captionWidth - 6), alignment: .leading)
         }
+        .frame(width: width, alignment: .leading)
     }
 
     private func caption(_ text: Text) -> some View {
@@ -98,7 +103,7 @@ struct DesvanEditBody: View {
 /// pinned first.
 ///
 /// Keyboard: ← → walk the tabs, Space picks the focused one up, ← → then move it, Space or Return drops it.
-private struct DesvanEditStrip: View {
+struct DesvanEditStrip: View {
     let model: NotchModel
     let session: NotchEditSession
     let namespace: Namespace.ID
@@ -119,18 +124,39 @@ private struct DesvanEditStrip: View {
     static let spacing: CGFloat = 5
     /// Room for the longest name ("Now playing") beside its icon.
     static let maxTile: CGFloat = 108
+    static let minTile: CGFloat = 42
 
     var body: some View {
-        GeometryReader { proxy in
-            let modules = model.settings.modules
-            let width = Self.tileWidth(count: modules.count, in: proxy.size.width)
-            let pitch = width + Self.spacing
-            HStack(spacing: Self.spacing) {
-                ForEach(Array(modules.enumerated()), id: \.element) { index, module in
-                    tile(module, index: index, count: modules.count, width: width, pitch: pitch)
+        ScrollViewReader { reader in
+            GeometryReader { proxy in
+                let modules = model.settings.modules
+                let width = Self.tileWidth(count: modules.count, in: proxy.size.width)
+                let pitch = width + Self.spacing
+                ScrollView(.horizontal) {
+                    HStack(spacing: Self.spacing) {
+                        ForEach(Array(modules.enumerated()), id: \.element) { index, module in
+                            tile(module, index: index, count: modules.count, width: width, pitch: pitch)
+                                .id(module)
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                    .frame(minHeight: Self.height, alignment: .bottomLeading)
+                }
+                .scrollIndicators(.visible, axes: .horizontal)
+                .scrollBounceBehavior(.basedOnSize)
+                .scrollDisabled(session.tileDrag != nil)
+                .scrollClipDisabled(session.tileDrag != nil)
+            }
+            .onChange(of: cursor) { _, module in
+                guard usesKeyboard, let module else { return }
+                withAnimation(Desvan.Motion.pick(Desvan.Motion.hover, reduceMotion: reduceMotion)) {
+                    reader.scrollTo(module, anchor: .center)
                 }
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomLeading)
+            .onChange(of: model.settings.modules) {
+                guard usesKeyboard, session.tileDrag == nil, let cursor else { return }
+                reader.scrollTo(cursor, anchor: .center)
+            }
         }
         .focusable()
         .focusEffectDisabled()
@@ -179,7 +205,7 @@ private struct DesvanEditStrip: View {
     /// Equal widths (so a drag knows where each slot is), as roomy as the strip allows, never wider than a plaque.
     static func tileWidth(count: Int, in width: CGFloat) -> CGFloat {
         guard count > 0 else { return maxTile }
-        return min(maxTile, floor((width - CGFloat(count - 1) * spacing) / CGFloat(count)))
+        return min(maxTile, max(minTile, floor((width - CGFloat(count - 1) * spacing - 8) / CGFloat(count))))
     }
 
     private func tile(_ module: NotchModule, index: Int, count: Int, width: CGFloat, pitch: CGFloat) -> some View {
@@ -205,6 +231,17 @@ private struct DesvanEditStrip: View {
             if drag != nil { transaction.animation = nil }
         }
         .gesture(dragGesture(for: module, pitch: pitch))
+        .contextMenu {
+            if session.canMove(module, by: -1, in: model.settings) {
+                Button("Move left") { move(module, by: -1) }
+            }
+            if session.canMove(module, by: 1, in: model.settings) {
+                Button("Move right") { move(module, by: 1) }
+            }
+            if !module.isAlwaysOn {
+                Button("Put away") { putAway(module) }
+            }
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(module.title)
         .accessibilityValue(String(localized: "Tab \(index + 1) of \(count)"))
@@ -312,6 +349,8 @@ private struct DesvanEditStrip: View {
     }
 
     private func move(_ module: NotchModule, by offset: Int) {
+        cursor = module
+        usesKeyboard = true
         withAnimation(Desvan.Motion.pick(Desvan.Motion.section, reduceMotion: reduceMotion)) {
             if session.move(module, by: offset, in: model.settings) { model.actions.haptic(.snap) }
         }
@@ -500,21 +539,25 @@ private struct DesvanEditTray: View {
         let targeted = isTargeted
         let titles = width >= CGFloat(away.count) * 104
         let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
-        HStack(spacing: 5) {
-            ForEach(away) { module in
-                chip(module, titles: titles)
+        ScrollView(.horizontal) {
+            HStack(spacing: 5) {
+                ForEach(away) { module in
+                    chip(module, titles: titles)
+                }
+                if away.isEmpty {
+                    Text(targeted ? "Let go to put it away" : "Nothing put away. Tap − on a tab.")
+                        .font(.system(size: 12.5))
+                        .foregroundStyle(targeted ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
+                        .lineLimit(1)
+                        .padding(.leading, 6)
+                        .transition(.opacity)
+                }
             }
-            if away.isEmpty {
-                Text(targeted ? "Let go to put it away" : "Nothing put away. Tap − on a tab.")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(targeted ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
-                    .lineLimit(1)
-                    .padding(.leading, 6)
-                    .transition(.opacity)
-            }
-            Spacer(minLength: 0)
+            .padding(.horizontal, 2)
+            .frame(minHeight: DesvanEditBody.chipRowHeight)
         }
-        .padding(.horizontal, 2)
+        .scrollIndicators(.visible, axes: .horizontal)
+        .scrollBounceBehavior(.basedOnSize)
         .frame(maxHeight: .infinity)
         .background {
             // Kraft cardboard, a little open: warmer (and lit) while a tab hovers over it.
@@ -596,23 +639,23 @@ private struct DesvanEditEarsRow: View {
     let session: NotchEditSession
 
     var body: some View {
-        ViewThatFits(in: .horizontal) {
-            layout(titles: true, visibility: .long)
-            layout(titles: true, visibility: .short)
-            layout(titles: false, visibility: .short)
-            layout(titles: false, visibility: .tiny)
-        }
-    }
-
-    private func layout(titles: Bool, visibility: DesvanEditVisibility.Length) -> some View {
-        HStack(spacing: 8) {
-            HStack(spacing: 4) {
-                ForEach(EarContent.allCases) { content in
-                    DesvanEarChip(content: content, titles: titles, model: model, session: session)
+        GeometryReader { geometry in
+            HStack(spacing: 8) {
+                ScrollView(.horizontal) {
+                    HStack(spacing: 4) {
+                        ForEach(EarContent.allCases) { content in
+                            DesvanEarChip(content: content, titles: geometry.size.width > 660,
+                                          model: model, session: session)
+                        }
+                    }
+                    .frame(minHeight: DesvanEditBody.chipRowHeight)
                 }
+                .scrollIndicators(.visible, axes: .horizontal)
+                .scrollBounceBehavior(.basedOnSize)
+                DesvanEditVisibility(model: model, session: session,
+                                     length: geometry.size.width < 360 ? .tiny : (geometry.size.width < 520 ? .short : .long))
             }
-            Spacer(minLength: 0)
-            DesvanEditVisibility(model: model, session: session, length: visibility)
+            .frame(width: geometry.size.width, height: geometry.size.height)
         }
     }
 }

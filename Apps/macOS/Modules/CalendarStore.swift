@@ -102,10 +102,10 @@ final class CalendarStore {
         guard viewers == 1 else { return }
         // Access may have been granted (in Settings) or taken away since last time.
         let status = Self.access(for: EKEventStore.authorizationStatus(for: .event))
-        if status != .unknown { access = status }
+        access = status
         switch access {
         case .granted: begin()
-        case .unknown: Task { await requestAccess() }
+        case .unknown: break
         case .denied: break
         }
     }
@@ -233,6 +233,7 @@ final class CalendarStore {
         for month in monthEvents.keys.sorted(by: { distance($0) > distance($1) }).prefix(monthEvents.count - Self.cachedMonths) {
             monthEvents[month] = nil
             staleMonths.remove(month)
+            loadedMonths.remove(month)
         }
     }
 

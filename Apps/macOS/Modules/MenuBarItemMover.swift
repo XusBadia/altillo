@@ -58,38 +58,58 @@ enum MenuBarItemMover {
             DrawerGeometry.accessibilityFrame($0.frame, primaryScreenHeight: primary.frame.maxY)
         }
         guard let points = dragPoints(item: frame, divider: divider, toLeft: toLeft, screens: screens),
-              let source = CGEventSource(stateID: .privateState) else { return .unavailable }
-        // A SwiftUI drop can arrive just before the real mouse-up reaches WindowServer.
+              let source = CGEventSource(stateID: .hidSystemState) else { return .unavailable }
+        source.localEventsSuppressionInterval = 0
+        // A gesture's onEnded can arrive just before the real mouse-up reaches WindowServer.
         for _ in 0..<10 {
             if !mouseIsDown { break }
             try? await Task.sleep(for: .milliseconds(30))
         }
         guard !Task.isCancelled, !mouseIsDown else { return .busy }
         guard let down = event(.leftMouseDown, at: points.start, source: source),
-              let drag = event(.leftMouseDragged, at: points.end, source: source),
               let up = event(.leftMouseUp, at: points.end, source: source) else { return .unavailable }
         let cursor = CGEvent(source: nil)?.location
-        let originalFlags = CGEventSource.flagsState(.hidSystemState)
         let overlays = overlayMouseStates(at: [points.start, points.end], primaryTop: primary.frame.maxY)
         defer { overlays.forEach { $0.window.ignoresMouseEvents = $0.ignored } }
         overlays.forEach { $0.window.ignoresMouseEvents = true }
         down.post(tap: .cghidEventTap)
         // Always send mouse-up, including cancellation, so no synthetic button remains held.
-        try? await Task.sleep(for: .milliseconds(80))
+        // Cross the drag threshold near the source before travelling to the destination.
+        // One jump directly to the divider can be interpreted as a click by a status host
+        // which has not entered its tracking loop yet.
+        try? await Task.sleep(for: .milliseconds(100))
+        var releasePoint = points.start
+        for point in dragPath(from: points.start, to: points.end) {
+            guard !Task.isCancelled else { break }
+            overlays.forEach { $0.window.ignoresMouseEvents = true }
+            event(.leftMouseDragged, at: point, source: source)?.post(tap: .cghidEventTap)
+            releasePoint = point
+            try? await Task.sleep(for: .milliseconds(25))
+        }
         overlays.forEach { $0.window.ignoresMouseEvents = true }
-        drag.post(tap: .cghidEventTap)
-        try? await Task.sleep(for: .milliseconds(80))
-        overlays.forEach { $0.window.ignoresMouseEvents = true }
+        up.location = releasePoint
         up.post(tap: .cghidEventTap)
         try? await Task.sleep(for: .milliseconds(100))
         if let cursor, let current = CGEvent(source: nil)?.location,
-           hypot(current.x - points.end.x, current.y - points.end.y) < 3 {
-            let restore = CGEvent(mouseEventSource: source, mouseType: .mouseMoved,
-                                  mouseCursorPosition: cursor, mouseButton: .left)
-            restore?.flags = originalFlags
-            restore?.post(tap: .cghidEventTap)
+           hypot(current.x - releasePoint.x, current.y - releasePoint.y) < 3 {
+            // Restore position without a second synthetic mouse event. A mouseMoved
+            // at the user's original hot corner can open Mission Control, hiding the
+            // menu bar and causing every subsequent rearrangement to hit the desktop.
+            CGWarpMouseCursorPosition(cursor)
         }
         return .posted
+    }
+
+    static func dragPath(from start: CGPoint, to end: CGPoint) -> [CGPoint] {
+        let distance = hypot(end.x - start.x, end.y - start.y)
+        guard distance > 0 else { return [end] }
+        let threshold = min(6 / distance, 0.1)
+        return [CGPoint(x: start.x + (end.x - start.x) * threshold,
+                        y: start.y + (end.y - start.y) * threshold)] + (1...8).map { step in
+            let fraction = CGFloat(step) / 8
+            return CGPoint(x: start.x + (end.x - start.x) * fraction,
+                           y: start.y + (end.y - start.y) * fraction)
+        }
     }
 
     /// Both ends must be visible on one screen and the same menu-bar row. Never drag a
@@ -131,10 +151,11 @@ enum MenuBarItemMover {
         }
     }
 
-    private static func event(_ type: CGEventType, at point: CGPoint, source: CGEventSource) -> CGEvent? {
+    static func event(_ type: CGEventType, at point: CGPoint, source: CGEventSource) -> CGEvent? {
         guard let event = CGEvent(mouseEventSource: source, mouseType: type,
                                   mouseCursorPosition: point, mouseButton: .left) else { return nil }
         event.flags = .maskCommand
+        event.setIntegerValueField(.mouseEventClickState, value: 1)
         return event
     }
 }

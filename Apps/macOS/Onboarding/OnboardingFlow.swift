@@ -36,6 +36,8 @@ final class OnboardingFlow {
 
     /// The notch opened while the hello page was on screen.
     private(set) var sawNotchOpen = false
+    /// The handwritten welcome plays once per tour, including when Back returns to Hello.
+    private(set) var hasPlayedGreeting = false
 
     /// Closes the window (wired by the window controller).
     @ObservationIgnored var close: () -> Void = {}
@@ -70,7 +72,7 @@ final class OnboardingFlow {
         OnboardingContext(settings: settings, drawerEnabled: drawerEnabled(), detection: detection)
     }
 
-    var steps: [OnboardingStep] { OnboardingLogic.steps(for: context) }
+    var steps: [OnboardingStep] { OnboardingLogic.steps(for: context, keeping: step) }
 
     var permissions: [OnboardingPermission] { OnboardingLogic.permissions(for: context) }
 
@@ -122,6 +124,12 @@ final class OnboardingFlow {
     func notchStateChanged(_ state: NotchState) {
         guard step == .hello, state == .open, !sawNotchOpen else { return }
         sawNotchOpen = true
+    }
+
+    func claimGreetingAnimation() -> Bool {
+        guard !hasPlayedGreeting else { return false }
+        hasPlayedGreeting = true
+        return true
     }
 
     // MARK: AI tools

@@ -246,6 +246,9 @@ private struct DesvanShortcutsTile: View {
             withAnimation(Desvan.Motion.pick(Desvan.Motion.lift, reduceMotion: reduceMotion)) { isHovering = hovering }
         }
         .onTapGesture { if state != .running { run(nil) } }
+        .focusable()
+        .onKeyPress(.return) { if state != .running { run(nil) }; return .handled }
+        .onKeyPress(.space) { if state != .running { run(nil) }; return .handled }
         .contextMenu {
             DesvanShortcutsMenuItems(shortcut: shortcut, offers: offers(), isPinned: true, canPin: true,
                                      run: run, togglePin: unpin)
@@ -341,6 +344,9 @@ private struct DesvanShortcutsRow: View {
             withAnimation(Desvan.Motion.hover) { isHovering = hovering }
         }
         .onTapGesture { if state != .running { run(nil) } }
+        .focusable()
+        .onKeyPress(.return) { if state != .running { run(nil) }; return .handled }
+        .onKeyPress(.space) { if state != .running { run(nil) }; return .handled }
         .contextMenu {
             DesvanShortcutsMenuItems(shortcut: shortcut, offers: offers(), isPinned: isPinned, canPin: canPin,
                                      run: run, togglePin: togglePin)

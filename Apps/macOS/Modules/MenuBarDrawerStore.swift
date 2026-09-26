@@ -1,4 +1,5 @@
 import AppKit
+import UniformTypeIdentifiers
 import ApplicationServices
 import Observation
 import os
@@ -77,6 +78,7 @@ final class MenuBarDrawerStore: NSObject {
     @ObservationIgnored private var accessRecheckTask: Task<Void, Never>?
     @ObservationIgnored private var applicationCache = MenuBarApplicationCache()
     @ObservationIgnored private var applicationIcons: [Int32: NSImage] = [:]
+    @ObservationIgnored private lazy var genericApplicationIcon = NSWorkspace.shared.icon(for: .applicationBundle)
     /// A visible catalog older than this is rescanned when the Drawer appears. Scans are cheap AX reads;
     /// pixels are only recaptured when an item's glyph key changes or it is older than `glyphMaxAge`.
     static let catalogMaxAge: Duration = .seconds(30)
@@ -338,12 +340,13 @@ final class MenuBarDrawerStore: NSObject {
 
     /// Rescans the AX catalog and captures glyphs that are missing or changed.
     /// `forceIcons` recaptures every glyph (the explicit Refresh button).
-    func refresh(forceIcons: Bool = false) {
+    /// Passive catalog updates preserve operation errors until the user retries or refreshes.
+    func refresh(forceIcons: Bool = false, clearProblem: Bool = false) {
         checkAccess()
         if forceIcons { forceIconsOnNextScan = true }
         guard hasAccess, scanTask == nil, movingEntryID == nil else { return }
         scheduledRefresh.cancel()
-        problem = nil
+        if clearProblem { problem = nil }
         isLoading = true
         catalogIsStale = false
         let force = forceIconsOnNextScan
@@ -509,8 +512,14 @@ final class MenuBarDrawerStore: NSObject {
     private func applicationIcon(for entry: MenuBarEntry) -> NSImage? {
         let pid = entry.application.pid
         if let cached = applicationIcons[pid] { return cached }
-        guard pid > 0, let icon = NSRunningApplication(processIdentifier: pid)?.icon else { return nil }
-        let glyph = MenuBarGlyphFallback.glyph(fromApplicationIcon: icon)
+        guard pid > 0 else { return nil }
+        let glyph: NSImage
+        if let icon = NSRunningApplication(processIdentifier: pid)?.icon,
+           !MenuBarGlyphFallback.isGenericApplicationIcon(icon, generic: genericApplicationIcon) {
+            glyph = MenuBarGlyphFallback.glyph(fromApplicationIcon: icon)
+        } else {
+            glyph = MenuBarGlyphFallback.monogram(for: entry.application.name)
+        }
         applicationIcons[pid] = glyph
         return glyph
     }
@@ -611,14 +620,13 @@ final class MenuBarDrawerStore: NSObject {
             self.currentMenuEntryID = nil
             try? await Task.sleep(for: .milliseconds(180))
             guard !Task.isCancelled else { return }
-            let initial = await accessibility.scan(applications: self.runningApplications())
-            guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
-            self.setEntries(initial)
-            guard let target = initial.first(where: { $0.id == entry.id }),
-                  let boundary = self.separatorFrame else {
-                self.problem = "This icon is no longer available. Refresh and try again."
+            guard let layout = await self.settledLayout(for: entry.id) else {
+                self.problem = String(localized: "The menu bar is still changing. Wait a moment and try again.")
                 return
             }
+            let target = layout.entry
+            let boundary = layout.divider
+            Self.log.debug("move begin id=\(entry.id) item=\(String(describing: target.frame), privacy: .public) divider=\(String(describing: boundary), privacy: .public) toDrawer=\(toDrawer)")
             if DrawerGeometry.isBeforeSeparator(target.frame, separator: boundary) != toDrawer {
                 var result = await MenuBarItemMover.move(
                     frame: target.frame, beside: boundary, toLeft: toDrawer
@@ -632,11 +640,9 @@ final class MenuBarDrawerStore: NSObject {
                         try? await Task.sleep(for: .milliseconds(180))
                         // Removing a status item changes other items' coordinates too.
                         // Reusing the pre-compaction source can drag a neighbouring app.
-                        let compactEntries = await accessibility.scan(applications: self.runningApplications())
-                        if let compactTarget = compactEntries.first(where: { $0.id == entry.id }),
-                           let compactBoundary = self.separatorFrame {
+                        if let compact = await self.settledLayout(for: entry.id) {
                             result = await MenuBarItemMover.move(
-                                frame: compactTarget.frame, beside: compactBoundary, toLeft: toDrawer
+                                frame: compact.entry.frame, beside: compact.divider, toLeft: toDrawer
                             )
                         }
                     }
@@ -651,7 +657,16 @@ final class MenuBarDrawerStore: NSObject {
                     return
                 case .posted: break
                 }
-                try? await Task.sleep(for: .milliseconds(200))
+                // MenuBarAgent applies the layout asynchronously, particularly when revealing
+                // overflow. Posting mouse-up is not an acknowledgement of the move.
+                if !(await self.waitForPlacement(entry.id, toDrawer: toDrawer)),
+                   let retry = await self.settledLayout(for: entry.id),
+                   !Task.isCancelled,
+                   DrawerGeometry.isBeforeSeparator(retry.entry.frame, separator: retry.divider) != toDrawer {
+                    Self.log.debug("move retry id=\(entry.id)")
+                    _ = await MenuBarItemMover.move(frame: retry.entry.frame, beside: retry.divider, toLeft: toDrawer)
+                    _ = await self.waitForPlacement(entry.id, toDrawer: toDrawer)
+                }
                 if compactedChrome {
                     self.restoreChromeAfterMovement()
                     compactedChrome = false
@@ -675,6 +690,7 @@ final class MenuBarDrawerStore: NSObject {
             }.map(\.id))
             guard let moved = refreshed.first(where: { $0.id == entry.id }),
                   DrawerGeometry.isBeforeSeparator(moved.frame, separator: boundary) == toDrawer else {
+                Self.log.error("move unconfirmed id=\(entry.id)")
                 self.problem = "macOS couldn't move this icon. It stays in its current section."
                 return
             }
@@ -716,6 +732,47 @@ final class MenuBarDrawerStore: NSObject {
             }
         }
         return true
+    }
+
+    /// Resolve the item again after overflow/layout animation. Never retry with a coordinate
+    /// captured before the preceding gesture: that coordinate may now belong to another app.
+    private func settledLayout(for id: String) async -> (entry: MenuBarEntry, divider: CGRect)? {
+        var previous: (entry: MenuBarEntry, divider: CGRect)?
+        for _ in 0..<10 {
+            guard !Task.isCancelled, enabled, hasAccess else { return nil }
+            let snapshot = await accessibility.scan(applications: runningApplications())
+            guard !Task.isCancelled else { return nil }
+            setEntries(snapshot)
+            if let entry = snapshot.first(where: { $0.id == id }), let divider = separatorFrame {
+                if previous?.entry.frame == entry.frame, previous?.divider == divider {
+                    return (entry, divider)
+                }
+                previous = (entry, divider)
+            } else {
+                previous = nil
+            }
+            try? await Task.sleep(for: .milliseconds(100))
+        }
+        return nil
+    }
+
+    private func waitForPlacement(_ id: String, toDrawer: Bool) async -> Bool {
+        var confirmations = 0
+        for _ in 0..<8 {
+            try? await Task.sleep(for: .milliseconds(100))
+            guard !Task.isCancelled, enabled, hasAccess else { return false }
+            let snapshot = await accessibility.scan(applications: runningApplications())
+            guard !Task.isCancelled else { return false }
+            setEntries(snapshot)
+            if let entry = snapshot.first(where: { $0.id == id }), let divider = separatorFrame,
+               DrawerGeometry.isBeforeSeparator(entry.frame, separator: divider) == toDrawer {
+                confirmations += 1
+                if confirmations == 2 { return true }
+            } else {
+                confirmations = 0
+            }
+        }
+        return false
     }
 
     /// Conservative fallback for an unverified future menu-bar model.
@@ -793,7 +850,6 @@ final class MenuBarDrawerStore: NSObject {
                 if closesSamePanel { return }
             }
             if let snapshot = await accessibility.menuSnapshot(id: entry.id), !snapshot.nodes.isEmpty {
-                guard !Task.isCancelled, self.hasAccess else { return }
                 switch self.menuPresenter.present(snapshot.nodes, at: anchorRect,
                                                 hasUnsupportedContent: snapshot.hasUnsupportedContent) {
                 case .selected(let actionID):
@@ -955,8 +1011,13 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     private var separatorFrame: CGRect? {
-        guard let frame = separator?.button?.window?.frame,
+        statusItemFrame(separator)
+    }
+
+    private func statusItemFrame(_ item: NSStatusItem?) -> CGRect? {
+        guard let button = item?.button, let window = button.window,
               let primary = NSScreen.screens.first else { return nil }
+        let frame = window.convertToScreen(button.convert(button.bounds, to: nil))
         return DrawerGeometry.accessibilityFrame(frame, primaryScreenHeight: primary.frame.maxY)
     }
 
@@ -1044,8 +1105,8 @@ final class MenuBarDrawerStore: NSObject {
             return
         }
         // Keep a recovery control on the right. If the user moved it to the hidden side, fail open.
-        guard let divider = separator?.button?.window?.frame,
-              let toggle = control?.button?.window?.frame, toggle.minX >= divider.maxX - 1 else {
+        guard let divider = separatorFrame,
+              let toggle = statusItemFrame(control), toggle.minX >= divider.maxX - 1 else {
             problem = "Move the Drawer button to the right of the divider, then try again."
             reveal()
             return

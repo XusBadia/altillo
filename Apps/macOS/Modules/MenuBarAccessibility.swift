@@ -13,6 +13,17 @@ struct MenuBarEntry: Identifiable, Sendable, Equatable {
     let application: MenuBarApplication
     let title: String
     let frame: CGRect
+
+    var hoverName: String {
+        let name = application.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let detail = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        if application.bundleID == "com.apple.TextInputMenuAgent" { return String(localized: "Input menu") }
+        // System controls often belong to an implementation process, not the app named
+        // by their icon (for example Spotlight is hosted by Siri on newer systems).
+        if MenuBarAccessibility.systemOwners.contains(application.bundleID), !detail.isEmpty { return detail }
+        return detail.isEmpty || detail.localizedCaseInsensitiveCompare(name) == .orderedSame
+            ? name : "\(name) — \(detail)"
+    }
 }
 
 enum MenuBarActionResult: Sendable {
@@ -378,6 +389,7 @@ actor MenuBarAccessibility {
     /// System controls share a single application icon. Distinguish their exposed names
     /// without capturing pixels or requiring Screen Recording access.
     nonisolated static func systemSymbol(for entry: MenuBarEntry) -> String? {
+        if entry.application.bundleID == "com.apple.TextInputMenuAgent" { return "keyboard" }
         guard systemOwners.contains(entry.application.bundleID) else { return nil }
         let name = "\(entry.id) \(entry.title)".lowercased()
         let symbols: [(keywords: [String], symbol: String)] = [

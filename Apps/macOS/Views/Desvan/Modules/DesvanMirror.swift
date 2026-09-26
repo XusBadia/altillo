@@ -54,7 +54,7 @@ struct DesvanMirrorView: View {
             DesvanModuleNotice(
                 symbol: "video.slash",
                 title: "The camera is off",
-                message: "Altillo doesn't have permission to use it. Turn it on in System Settings and open the notch again.",
+                message: "Altillo doesn't have permission to use it. Turn it on in System Settings, then return to the mirror.",
                 actionTitle: "Open Settings"
             ) {
                 PrivacySettings.camera.open()
@@ -63,11 +63,35 @@ struct DesvanMirrorView: View {
     }
 
     private var mirror: some View {
-        HStack(spacing: 14) {
-            Spacer(minLength: 0)
-            frame
-            controls
-            Spacer(minLength: 0)
+        Group {
+            if let failure = store.failure {
+                VStack(spacing: 7) {
+                    Image(systemName: "video.slash")
+                        .font(.system(size: 24))
+                        .foregroundStyle(Desvan.Palette.paperTertiary)
+                    Text(failure == .input ? "Couldn't connect to this camera" : "The camera didn't start")
+                        .font(Desvan.Typeface.display(15.5, weight: 600))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    Text("Check that the camera is connected and available, or choose another one.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .multilineTextAlignment(.center)
+                    HStack(spacing: 8) {
+                        Button("Try again") { store.retry() }
+                            .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
+                        cameraPicker
+                    }
+                }
+                .padding(.horizontal, 16)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                HStack(spacing: 14) {
+                    Spacer(minLength: 0)
+                    frame
+                    controls
+                    Spacer(minLength: 0)
+                }
+            }
         }
     }
 
@@ -118,26 +142,7 @@ struct DesvanMirrorView: View {
             .accessibilityHint("Switches between the flipped, mirror-like image and the image as it is")
 
             if store.cameras.count > 1 {
-                Menu {
-                    ForEach(store.cameras) { camera in
-                        Button {
-                            store.selectedCameraID = camera.id
-                        } label: {
-                            if camera.id == store.selectedCameraID {
-                                Label(camera.name, systemImage: "checkmark")
-                            } else {
-                                Text(camera.name)
-                            }
-                        }
-                    }
-                } label: {
-                    Label(currentCameraName, systemImage: "camera")
-                }
-                .menuStyle(.button)
-                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
-                .menuIndicator(.hidden)
-                .fixedSize()
-                .help("Choose camera")
+                cameraPicker
             } else if let name = store.cameras.first?.name {
                 Label(name, systemImage: "camera")
                     .font(Desvan.Typeface.rounded(12, weight: .medium))
@@ -148,6 +153,35 @@ struct DesvanMirrorView: View {
         }
         .frame(maxWidth: 180, alignment: .leading)
         .fixedSize(horizontal: true, vertical: false)
+    }
+
+    @ViewBuilder
+    private var cameraPicker: some View {
+        if store.cameras.count > 1 {
+            Menu {
+                ForEach(store.cameras) { camera in
+                    Button {
+                        store.selectedCameraID = camera.id
+                        if store.failure != nil { store.retry() }
+                    } label: {
+                        if camera.id == store.selectedCameraID {
+                            Label(camera.name, systemImage: "checkmark")
+                        } else {
+                            Text(camera.name)
+                        }
+                    }
+                }
+            } label: {
+                Label(currentCameraName, systemImage: "camera")
+                    .lineLimit(1)
+                    .truncationMode(.middle)
+                    .frame(maxWidth: 150)
+            }
+            .menuStyle(.button)
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
+            .menuIndicator(.hidden)
+            .help("Choose camera")
+        }
     }
 
     private var currentCameraName: String {

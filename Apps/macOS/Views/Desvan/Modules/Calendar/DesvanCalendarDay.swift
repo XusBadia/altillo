@@ -122,7 +122,9 @@ struct DesvanCalendarDayPanel: View {
                     DesvanDayEventRow(event: first, isNext: false, isTomorrow: true, width: width, metrics: metrics)
                 }
             }
-        } else if agenda.isLoaded {
+        } else if !agenda.isLoaded {
+            quiet("Checking your calendar…", symbol: "calendar")
+        } else {
             quiet("Nothing on this day.", symbol: "sun.max")
         }
     }
@@ -214,6 +216,9 @@ struct DesvanDayEventRow: View {
         .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .onTapGesture { CalendarAppLink.open(event) }
+        .focusable()
+        .onKeyPress(.return) { CalendarAppLink.open(event); return .handled }
+        .onKeyPress(.space) { CalendarAppLink.open(event); return .handled }
         .help("Open in Calendar")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(DesvanEventFormat.spoken(event, isTomorrow: isTomorrow, isNext: isNext))

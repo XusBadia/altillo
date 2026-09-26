@@ -367,12 +367,33 @@ private struct DesvanSuggestionChip: View {
 
 // MARK: - Conversation
 
+/// Reading intent changes only with a person's scroll. A growing answer can move the geometric bottom by many
+/// points in one update, but that does not mean the person chose to stop following it.
+struct AssistantScrollFollow {
+    private(set) var follows = true
+    private(set) var userIsScrolling = false
+
+    static func nearBottom(offset: CGFloat, viewport: CGFloat, content: CGFloat) -> Bool {
+        offset + viewport >= content - 40
+    }
+
+    var shouldFollowNewContent: Bool { follows && !userIsScrolling }
+
+    mutating func scrollPhaseChanged(userIsScrolling: Bool) { self.userIsScrolling = userIsScrolling }
+    mutating func geometryChanged(nearBottom: Bool) {
+        if userIsScrolling { follows = nearBottom }
+    }
+    mutating func newExchange() { follows = true }
+    mutating func returnToLatest() { follows = true }
+}
+
 /// The exchanges, newest at the bottom, following the answer as it's written.
 private struct DesvanAssistantConversation: View {
     let model: NotchModel
     let exchanges: [AssistantStore.Exchange]
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var scrollFollow = AssistantScrollFollow()
 
     private static let bottom = "bottom"
 
@@ -396,6 +417,16 @@ private struct DesvanAssistantConversation: View {
             }
             .scrollIndicators(.automatic)
             .scrollBounceBehavior(.basedOnSize)
+            .onScrollGeometryChange(for: Bool.self) { geometry in
+                AssistantScrollFollow.nearBottom(offset: geometry.contentOffset.y,
+                                                 viewport: geometry.containerSize.height,
+                                                 content: geometry.contentSize.height)
+            } action: { _, nearBottom in
+                scrollFollow.geometryChanged(nearBottom: nearBottom)
+            }
+            .onScrollPhaseChange { _, phase in
+                scrollFollow.scrollPhaseChanged(userIsScrolling: phase == .interacting || phase == .decelerating)
+            }
             // The top edge fades into the tabs instead of cutting a line of text (or a question slip) in half.
             .mask {
                 VStack(spacing: 0) {
@@ -405,13 +436,34 @@ private struct DesvanAssistantConversation: View {
             }
             .onAppear { proxy.scrollTo(Self.bottom, anchor: .bottom) }
             .onChange(of: exchanges.count) {
+                scrollFollow.newExchange()
                 withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) {
                     proxy.scrollTo(Self.bottom, anchor: .bottom)
                 }
             }
             // While words arrive, follow them without animating every token.
-            .onChange(of: exchanges.last?.answer) { proxy.scrollTo(Self.bottom, anchor: .bottom) }
-            .onChange(of: exchanges.last?.status) { proxy.scrollTo(Self.bottom, anchor: .bottom) }
+            .onChange(of: exchanges.last?.answer) {
+                if scrollFollow.shouldFollowNewContent { proxy.scrollTo(Self.bottom, anchor: .bottom) }
+            }
+            .onChange(of: exchanges.last?.status) {
+                if scrollFollow.shouldFollowNewContent { proxy.scrollTo(Self.bottom, anchor: .bottom) }
+            }
+            .overlay(alignment: .bottomTrailing) {
+                if !scrollFollow.follows {
+                    Button {
+                        scrollFollow.returnToLatest()
+                        withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) {
+                            proxy.scrollTo(Self.bottom, anchor: .bottom)
+                        }
+                    } label: {
+                        Label("Latest answer", systemImage: "arrow.down")
+                            .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                    }
+                    .buttonStyle(DesvanButtonStyle(kind: .primary, height: 28))
+                    .padding(8)
+                    .accessibilityLabel("Go to the latest answer")
+                }
+            }
         }
     }
 }

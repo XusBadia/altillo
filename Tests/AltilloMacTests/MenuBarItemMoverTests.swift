@@ -7,6 +7,37 @@ struct MenuBarItemMoverTests {
     let screen = CGRect(x: 0, y: 0, width: 1440, height: 900)
     let divider = CGRect(x: 1100, y: 0, width: 20, height: 30)
 
+    @Test func nativeDragHoldsCommandThroughMouseUpAndSetsClickState() throws {
+        let source = try #require(CGEventSource(stateID: .privateState))
+        let point = CGPoint(x: 1200, y: 15)
+        for type in [CGEventType.leftMouseDown, .leftMouseDragged, .leftMouseUp] {
+            let event = try #require(MenuBarItemMover.event(type, at: point, source: source))
+            #expect(event.type == type)
+            #expect(event.location == point)
+            #expect(event.getIntegerValueField(.mouseEventClickState) == 1)
+            #expect(event.flags == .maskCommand)
+        }
+    }
+
+    @Test func nativeDragTravelsProgressivelyInBothDirectionsWithoutLeavingItsRow() throws {
+        for (startX, endX): (CGFloat, CGFloat) in [(1212, 1102), (980, 1118)] {
+            let start = CGPoint(x: startX, y: 15)
+            let end = CGPoint(x: endX, y: 15)
+            let path = MenuBarItemMover.dragPath(from: start, to: end)
+            let first = try #require(path.first)
+            #expect(path.count > 1)
+            #expect(first != start && first != end)
+            #expect(abs(first.x - start.x) <= 6)
+            #expect(path.last == end)
+            #expect(path.allSatisfy { $0.y == start.y })
+            #expect(path.allSatisfy { $0.x >= min(startX, endX) && $0.x <= max(startX, endX) })
+            let positions = [start] + path
+            for (previous, next) in zip(positions, positions.dropFirst()) {
+                #expect(startX < endX ? next.x > previous.x : next.x < previous.x)
+            }
+        }
+    }
+
     @Test func nativeClicksUseStatusItemCenterAndRejectHiddenAnchors() {
         #expect(MenuBarItemMover.clickPoint(frame: CGRect(x: 1200, y: 3, width: 24, height: 24),
                                            screens: [screen]) == CGPoint(x: 1212, y: 15))

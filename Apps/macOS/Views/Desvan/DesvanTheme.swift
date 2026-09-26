@@ -119,7 +119,7 @@ extension Desvan {
         /// Hover highlights: reads in ≈ 100 ms.
         static let hover = Animation.easeOut(duration: 0.12)
         /// Pressing something: it gives in ≈ 100 ms and comes back without a wobble.
-        static let press = Animation.spring(duration: 0.16, bounce: 0)
+        static let press = Animation.easeOut(duration: 0.12)
         /// A thing lifting under the pointer: quick, with a touch of spring.
         static let lift = Animation.spring(duration: 0.2, bounce: 0.2)
         static let fade = Animation.easeInOut(duration: 0.18)

@@ -22,30 +22,35 @@ final class MenuBarPopupAnchor {
 struct MenuBarPopupAnchorReader<Content: View>: View {
     @State private var anchor = MenuBarPopupAnchor()
     private let content: (MenuBarPopupAnchor) -> Content
+    private let toolTip: String?
 
-    init(@ViewBuilder content: @escaping (MenuBarPopupAnchor) -> Content) {
+    init(toolTip: String? = nil, @ViewBuilder content: @escaping (MenuBarPopupAnchor) -> Content) {
+        self.toolTip = toolTip
         self.content = content
     }
 
     var body: some View {
         content(anchor)
-            .background(MenuBarPopupAnchorProbe(anchor: anchor))
+            .background(MenuBarPopupAnchorProbe(anchor: anchor, toolTip: toolTip))
     }
 }
 
 @MainActor
 private struct MenuBarPopupAnchorProbe: NSViewRepresentable {
     let anchor: MenuBarPopupAnchor
+    let toolTip: String?
 
     func makeNSView(context: Context) -> ProbeView {
         let view = ProbeView()
         view.setAccessibilityElement(false)
+        view.toolTip = toolTip
         anchor.view = view
         return view
     }
 
     func updateNSView(_ view: ProbeView, context: Context) {
         anchor.view = view
+        view.toolTip = toolTip
     }
 
     final class ProbeView: NSView {

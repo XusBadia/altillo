@@ -31,6 +31,8 @@ Estados válidos: `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED: motivo` o
 ## Documento de investigación
 
 - [Auditoría competitiva: NotchView](competitive-notchview-2026-09-26.md)
+- [Auditoría UI/UX por pantalla](ui-ux-audit-2026-09-26.md): revisión previa del código, prioridades, criterios de aceptación y límites de la comprobación visual; su implementación se documenta a continuación.
+- [Implementación de la auditoría UI/UX](ui-ux-implementation-2026-09-26.md): cambios aplicados, motivos y estado de verificación.
 
 ## Hallazgos considerados y rechazados
 

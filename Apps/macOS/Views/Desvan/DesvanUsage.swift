@@ -162,7 +162,10 @@ private struct DesvanUsageCard: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paper)
                 .lineLimit(1)
-                .fixedSize()
+                .truncationMode(.middle)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .help(usage.displayName)
+                .accessibilityLabel(Text(verbatim: usage.displayName))
             if showsPlan, let plan = usage.plan, !plan.isEmpty {
                 Text(plan)
                     .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
@@ -217,6 +220,7 @@ private struct DesvanUsageCard: View {
             }
         }
         .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(usage.displayName), \(UsageText.name(for: window)), \(NotchFormat.percent(used)) used. \(barHelp(window))")
     }
 
     private func refill(_ text: String) -> some View {
@@ -296,6 +300,8 @@ private struct DesvanUsageCard: View {
             }
         }
         .lineLimit(1)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("\(UsageText.name(for: window)), \(NotchFormat.percent(window.used)) used. \(barHelp(window))")
     }
 
     private func barHelp(_ window: UsageWindow) -> String {

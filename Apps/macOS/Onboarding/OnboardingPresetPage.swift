@@ -8,39 +8,42 @@ struct OnboardingPresetPage: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            OnboardingHeader(
-                eyebrow: eyebrow,
-                title: "Pick a starting point",
-                subtitle: "Choose what lives up there. Each one sets the sections of the open notch and what sits beside it."
-            )
+        ScrollView(.vertical) {
+            VStack(alignment: .leading, spacing: 18) {
+                OnboardingHeader(
+                    eyebrow: eyebrow,
+                    title: "Pick a starting point",
+                    subtitle: "Choose what lives up there. Each one sets the sections of the open notch and what sits beside it."
+                )
 
-            HStack(alignment: .top, spacing: 12) {
-                ForEach(NotchPreset.allCases) { preset in
-                    OnboardingPresetCard(preset: preset, isSelected: flow.settings.matchingPreset == preset) {
-                        withAnimation(Desvan.Motion.pick(Desvan.Motion.lift, reduceMotion: reduceMotion)) {
-                            flow.settings.apply(preset)
+                HStack(alignment: .top, spacing: 12) {
+                    ForEach(NotchPreset.allCases) { preset in
+                        OnboardingPresetCard(preset: preset, isSelected: flow.settings.matchingPreset == preset) {
+                            withAnimation(Desvan.Motion.pick(Desvan.Motion.lift, reduceMotion: reduceMotion)) {
+                                flow.settings.apply(preset)
+                            }
                         }
                     }
                 }
-            }
 
-            HStack(spacing: 8) {
-                Image(systemName: "cursorarrow.click.2")
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.kraft)
-                    .accessibilityHidden(true)
-                Text(footnote)
-                    .font(.system(size: 12))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            .padding(.top, 2)
+                HStack(spacing: 8) {
+                    Image(systemName: "cursorarrow.click.2")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.kraft)
+                        .accessibilityHidden(true)
+                    Text(footnote)
+                        .font(.system(size: 12))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, 2)
 
-            Spacer(minLength: 0)
+            }
+            .padding(.horizontal, 30)
+            .padding(.top, 18)
+            .padding(.bottom, 18)
         }
-        .padding(.horizontal, 30)
-        .padding(.top, 18)
+        .scrollBounceBehavior(.basedOnSize)
     }
 
     private var footnote: String {

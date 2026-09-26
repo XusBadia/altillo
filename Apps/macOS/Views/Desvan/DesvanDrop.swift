@@ -86,7 +86,6 @@ private struct DesvanBoxZone: View {
                     subtitle(short, showsStack: false)
                 }
             }
-            .opacity(isHovering ? 1 : 0.6)
         }
         .padding(.leading, 2)
         .padding(.trailing, 14)
@@ -162,7 +161,6 @@ private struct DesvanAirDropZone: View {
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .multilineTextAlignment(.center)
             }
-            .opacity(isHovering ? 1 : 0.6)
         }
         .padding(.horizontal, 10)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

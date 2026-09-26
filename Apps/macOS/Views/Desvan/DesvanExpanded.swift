@@ -1,5 +1,6 @@
 import AltilloCore
 import AltilloDesign
+import AppKit
 import SwiftUI
 
 /// The open attic: a header band beside the notch (tabs left, context right) and the active tab below, lit by the
@@ -549,6 +550,8 @@ private struct DesvanSettingsButton: View {
 private struct DesvanHeaderAccessory: View {
     let model: NotchModel
     let isDropTarget: Bool
+    @State private var showsShelfProblem = false
+    @State private var copiedShelfProblem = false
 
     var body: some View {
         HStack(spacing: 4) {
@@ -558,6 +561,7 @@ private struct DesvanHeaderAccessory: View {
             }
         }
         .lineLimit(1)
+        .onChange(of: model.shelfProblem) { copiedShelfProblem = false }
     }
 
     @ViewBuilder
@@ -607,11 +611,48 @@ private struct DesvanHeaderAccessory: View {
                 Label(status == .long ? "Putting up…" : "…", systemImage: "arrow.down.circle")
                     .font(Self.caption)
                     .foregroundStyle(Desvan.Palette.bulb)
-            } else if model.shelfProblem != nil {
-                Image(systemName: "exclamationmark.triangle.fill")
+            } else if let problem = model.shelfProblem {
+                Button { showsShelfProblem = true } label: {
+                    Group {
+                        if status == .long {
+                            Label("Shelf issue", systemImage: "exclamationmark.triangle.fill")
+                                .padding(.horizontal, 5)
+                        } else {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                        }
+                    }
+                    .font(Self.caption)
                     .foregroundStyle(Desvan.Palette.warning)
-                    .help(model.shelfProblem ?? "")
-                    .accessibilityLabel(model.shelfProblem ?? String(localized: "Shelf problem"))
+                    .frame(minWidth: 28, minHeight: 28)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(DesvanPressStyle())
+                .help(problem)
+                .accessibilityLabel("Shelf issue: \(problem). Show details")
+                .popover(isPresented: $showsShelfProblem) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Label("Shelf issue", systemImage: "exclamationmark.triangle.fill")
+                            .font(.headline)
+                        Text(verbatim: problem)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                        Text("Items already on the shelf remain available. If a dropped item is missing, drop it again.")
+                            .font(.callout)
+                            .lineLimit(nil)
+                        Button("Copy details") {
+                            NSPasteboard.general.clearContents()
+                            NSPasteboard.general.setString(problem, forType: .string)
+                            copiedShelfProblem = true
+                        }
+                        if copiedShelfProblem {
+                            Label("Copied", systemImage: "checkmark")
+                                .font(.callout)
+                        }
+                    }
+                    .padding(16)
+                    .frame(width: 300)
+                }
             } else {
                 switch status {
                 case .long: shelfStatusLong

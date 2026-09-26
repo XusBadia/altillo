@@ -9,7 +9,14 @@ struct SettingsDrawerPane: View {
     @State private var menuBarIsTargeted = false
     @State private var dropTargetEntryID: String?
     @State private var selectedEntryID: String?
+    @State private var draggedEntryID: String?
+    @State private var dragLocation = CGPoint.zero
+    @State private var zoneFrames: [Destination: CGRect] = [:]
+    @State private var viewportFrames: [Destination: CGRect] = [:]
+    @State private var cellFrames: [String: CGRect] = [:]
+    @GestureState private var localDragIsActive = false
     @FocusState private var focusedEntryID: String?
+    nonisolated private static let arrangementSpace = "drawer-arrangement"
 
     private var canMove: Bool {
         store.enabled && store.hasAccess && store.support.arranging
@@ -24,14 +31,12 @@ struct SettingsDrawerPane: View {
     var body: some View {
         SettingsPane(
             title: "Drawer",
-            subtitle: "Drag menu bar icons between Altillo and the menu bar."
+            subtitle: "Drag menu bar icons between areas, or use each icon's menu."
         ) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     enableCard
                     if store.enabled, store.isSupported { visibilityCard }
-                    stateContent
-
                     if let problem = store.problem {
                         Label(problem, systemImage: "exclamationmark.triangle.fill")
                             .font(.system(size: 11))
@@ -40,6 +45,8 @@ struct SettingsDrawerPane: View {
                             .padding(.horizontal, 2)
                             .accessibilityLabel("Drawer error: \(problem)")
                     }
+
+                    stateContent
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 18)
@@ -47,12 +54,20 @@ struct SettingsDrawerPane: View {
             .scrollBounceBehavior(.basedOnSize)
         }
         .onAppear { store.setVisible(true, for: .settings) }
-        .onDisappear { store.setVisible(false, for: .settings) }
+        .onDisappear {
+            resetLocalDrag()
+            store.setVisible(false, for: .settings)
+            SettingsWindowController.shared.endMenuBarArrangement(restoreFocus: false)
+        }
+        .onChange(of: localDragIsActive) { _, active in
+            if !active { resetLocalDrag() }
+        }
         .onChange(of: store.movingEntryID) { previous, current in
-            // A native Command-drag necessarily activates the menu bar. Once macOS has
-            // finished it, return the window the user was arranging to the foreground.
-            guard previous != nil, current == nil else { return }
-            SettingsWindowController.shared.restoreAfterMenuBarInteraction(tab: .drawer)
+            if current != nil {
+                SettingsWindowController.shared.beginMenuBarArrangement()
+            } else if previous != nil {
+                SettingsWindowController.shared.endMenuBarArrangement()
+            }
         }
     }
 
@@ -70,7 +85,7 @@ struct SettingsDrawerPane: View {
                         .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paper)
                     if store.support.hidingStyle == .overflow {
-                        Text("Keeps them in Altillo and moves them into macOS's hidden area. macOS 27 may hide every icon from the same app together.")
+                        Text("On macOS 27, icons stay in the menu bar’s overflow area; they aren’t removed. Use Altillo’s arrow in the menu bar to reveal them. Icons from the same app may hide together.")
                             .settingsHint()
                     } else {
                         Text("Keeps them in Altillo without leaving a second copy visible in the menu bar.")
@@ -111,7 +126,7 @@ struct SettingsDrawerPane: View {
 
                 if store.hasAccess, store.isSupported {
                     Button {
-                        store.refresh(forceIcons: true)
+                        store.refresh(forceIcons: true, clearProblem: true)
                     } label: {
                         Image(systemName: "arrow.clockwise")
                             .frame(width: 16, height: 16)
@@ -260,7 +275,7 @@ struct SettingsDrawerPane: View {
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperTertiary)
                         .accessibilityHidden(true)
-                    Text("Drag icons between areas, or within Altillo to reorder them.")
+                    Text("Drag icons between areas, or open an icon's menu to move it.")
                         .settingsHint()
                 }
                 Spacer(minLength: 0)
@@ -287,6 +302,17 @@ struct SettingsDrawerPane: View {
                 )
             }
         }
+        .overlay(alignment: .topLeading) {
+            if let id = draggedEntryID, let entry = findEntry(withID: id) {
+                dragPreview(for: entry)
+                    .fixedSize()
+                    .shadow(color: .black.opacity(0.2), radius: 5, y: 2)
+                    .offset(x: dragLocation.x + 12, y: dragLocation.y + 12)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+        }
+        .coordinateSpace(name: Self.arrangementSpace)
     }
 
     private func dropZone(
@@ -306,21 +332,32 @@ struct SettingsDrawerPane: View {
                     .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
                 Spacer(minLength: 4)
-                Text(entries.count, format: .number)
-                    .font(.system(size: 11.5, weight: .medium, design: .rounded))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .accessibilityLabel("\(entries.count) icons")
+                if !store.isLoading || !entries.isEmpty {
+                    Text(entries.count, format: .number)
+                        .font(.system(size: 11.5, weight: .medium, design: .rounded))
+                        .foregroundStyle(Desvan.Palette.paperTertiary)
+                        .accessibilityLabel("\(entries.count) icons")
+                }
             }
 
             if entries.isEmpty {
                 VStack(spacing: 7) {
-                    Image(systemName: "square.dashed")
-                        .font(.system(size: 20, weight: .light))
-                        .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
-                        .accessibilityHidden(true)
-                    Text(isTargeted.wrappedValue ? "Drop here" : "Drag icons here")
-                        .font(.system(size: 11.5, weight: .medium))
-                        .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.paper : Desvan.Palette.paperTertiary)
+                    if store.isLoading {
+                        ProgressView()
+                            .controlSize(.small)
+                            .accessibilityHidden(true)
+                        Text("Finding menu bar icons…")
+                            .font(.system(size: 11.5, weight: .medium))
+                            .foregroundStyle(Desvan.Palette.paperSecondary)
+                    } else {
+                        Image(systemName: "square.dashed")
+                            .font(.system(size: 20, weight: .light))
+                            .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
+                            .accessibilityHidden(true)
+                        Text(isTargeted.wrappedValue ? "Drop here" : "Drag icons here")
+                            .font(.system(size: 11.5, weight: .medium))
+                            .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.paper : Desvan.Palette.paperTertiary)
+                    }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
@@ -335,6 +372,9 @@ struct SettingsDrawerPane: View {
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(Self.arrangementSpace)) }) {
+                    viewportFrames[destination] = $0
+                }
             }
         }
         .padding(12)
@@ -351,22 +391,17 @@ struct SettingsDrawerPane: View {
                 }
         }
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .dropDestination(for: String.self) { identifiers, _ in
-            guard canMove,
-                  let identifier = identifiers.first,
-                  let entry = findEntry(withID: identifier)
-            else { return false }
-
-            return handleDrop(entry, in: destination, before: nil)
-        } isTargeted: { targeted in
-            isTargeted.wrappedValue = targeted && canMove
+        .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(Self.arrangementSpace)) }) {
+            zoneFrames[destination] = $0
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("\(title), \(entries.count) icons")
+        .accessibilityLabel(store.isLoading && entries.isEmpty
+            ? String(localized: "\(title), finding menu bar icons")
+            : String(localized: "\(title), \(entries.count) icons"))
     }
 
     private func iconCell(_ entry: MenuBarEntry, destination: Destination) -> some View {
-        MenuBarPopupAnchorReader { anchor in
+        MenuBarPopupAnchorReader(toolTip: entry.hoverName) { anchor in
             anchoredIconCell(entry, destination: destination, anchor: anchor)
         }
     }
@@ -405,17 +440,11 @@ struct SettingsDrawerPane: View {
         .buttonStyle(.plain)
         .disabled(store.movingEntryID != nil)
         .opacity(store.movingEntryID == nil || isMoving ? 1 : 0.55)
-        .draggable(entry.id) { dragPreview(for: entry) }
-        .dropDestination(for: String.self) { identifiers, _ in
-            guard canMove,
-                  let identifier = identifiers.first,
-                  let dragged = findEntry(withID: identifier)
-            else { return false }
-            return handleDrop(dragged, in: destination, before: entry)
-        } isTargeted: { targeted in
-            if targeted { dropTargetEntryID = entry.id }
-            else if dropTargetEntryID == entry.id { dropTargetEntryID = nil }
+        .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(Self.arrangementSpace)) }) {
+            cellFrames[entry.id] = $0
         }
+        .onDisappear { cellFrames[entry.id] = nil }
+        .highPriorityGesture(localDrag(for: entry))
 
         return draggableCell
         .contextMenu { entryMenu(for: entry, destination: destination, anchor: anchor) }
@@ -429,7 +458,7 @@ struct SettingsDrawerPane: View {
         .accessibilityHint(destination == .drawer
             ? "Selects this icon. Drag to reorder or move it. Open its menu from the shortcut menu."
             : "Selects this icon. Drag to move it. Open its menu from the shortcut menu.")
-        .help("\(displayName(for: entry)) · \(entry.application.name)")
+        .help(entry.hoverName)
         .accessibilityAction {
             guard store.movingEntryID == nil else { return }
             selectedEntryID = entry.id
@@ -470,6 +499,48 @@ struct SettingsDrawerPane: View {
         .padding(.horizontal, 10)
         .padding(.vertical, 7)
         .background(.regularMaterial, in: Capsule())
+    }
+
+    /// These tiles only move inside Settings. Keeping the gesture local avoids an
+    /// NSDraggingSession competing with the subsequent native menu-bar gesture.
+    private func localDrag(for entry: MenuBarEntry) -> some Gesture {
+        DragGesture(minimumDistance: 6, coordinateSpace: .named(Self.arrangementSpace))
+            .updating($localDragIsActive) { _, active, _ in active = true }
+            .onChanged { value in
+                guard canMove else { resetLocalDrag(); return }
+                draggedEntryID = entry.id
+                selectedEntryID = entry.id
+                dragLocation = value.location
+                let target = localDropTarget(at: value.location)
+                drawerIsTargeted = target?.destination == .drawer
+                menuBarIsTargeted = target?.destination == .menuBar
+                dropTargetEntryID = target?.entry?.id
+            }
+            .onEnded { value in
+                defer { resetLocalDrag() }
+                guard canMove, draggedEntryID == entry.id,
+                      let current = findEntry(withID: entry.id),
+                      let target = localDropTarget(at: value.location) else { return }
+                _ = handleDrop(current, in: target.destination, before: target.entry)
+            }
+    }
+
+    private func localDropTarget(at point: CGPoint) -> (destination: Destination, entry: MenuBarEntry?)? {
+        guard let destination = [Destination.drawer, .menuBar].first(where: {
+            zoneFrames[$0]?.contains(point) == true
+        }) else { return nil }
+        let entries = destination == .drawer ? store.drawerEntries : store.menuBarEntries
+        // Cells outside a scrolled viewport must not become invisible drop targets.
+        let entry = viewportFrames[destination]?.contains(point) == true
+            ? entries.first(where: { cellFrames[$0.id]?.contains(point) == true }) : nil
+        return (destination, entry)
+    }
+
+    private func resetLocalDrag() {
+        draggedEntryID = nil
+        drawerIsTargeted = false
+        menuBarIsTargeted = false
+        dropTargetEntryID = nil
     }
 
     private func cellBackground(_ entry: MenuBarEntry) -> Color {
@@ -536,7 +607,7 @@ struct SettingsDrawerPane: View {
         store.settingsIcon(for: entry)
     }
 
-    private enum Destination: Equatable {
+    private enum Destination: Hashable {
         case drawer
         case menuBar
 

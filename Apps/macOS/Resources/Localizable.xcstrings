@@ -1,6 +1,199 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "altillo" : {
+      "extractionState" : "manual",
+      "shouldTranslate" : false
+    },
+    "Input menu" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Input menu" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Menú de entrada" } }
+      }
+    },
+    "The menu bar is still changing. Wait a moment and try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The menu bar is still changing. Wait a moment and try again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La barra de menús aún está cambiando. Espera un momento y vuelve a intentarlo." } }
+      }
+    },
+    "On macOS 27, icons stay in the menu bar’s overflow area; they aren’t removed. Use Altillo’s arrow in the menu bar to reveal them. Icons from the same app may hide together." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On macOS 27, icons stay in the menu bar’s overflow area; they aren’t removed. Use Altillo’s arrow in the menu bar to reveal them. Icons from the same app may hide together." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En macOS 27, los iconos permanecen en la zona de desbordamiento de la barra de menús; no se eliminan. Usa la flecha de Altillo en la barra de menús para mostrarlos. Los iconos de una misma app pueden ocultarse juntos." } }
+      }
+    },
+    "%@, %@ used. %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@, %@ used. %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@, %@ usado. %@" } }
+      }
+    },
+    "%@, %@, %@ used. %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@, %@, %@ used. %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@, %@, %@ usado. %@" } }
+      }
+    },
+    "%@, finding menu bar icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@, finding menu bar icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@, buscando iconos de la barra de menús" } }
+      }
+    },
+    "Altillo doesn't have permission to use it. Turn it on in System Settings, then return to the mirror." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo doesn't have permission to use it. Turn it on in System Settings, then return to the mirror." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo no tiene permiso para usarla. Actívalo en Ajustes del Sistema y vuelve al espejo." } }
+      }
+    },
+    "Altillo's reply window expired. Answer in the terminal." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo's reply window expired. Answer in the terminal." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se agotó el tiempo para responder desde Altillo. Responde en el terminal." } }
+      }
+    },
+    "Check that the camera is connected and available, or choose another one." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check that the camera is connected and available, or choose another one." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprueba que la cámara esté conectada y disponible, o elige otra." } }
+      }
+    },
+    "Click to save as a text file, or drag the note out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Click to save as a text file, or drag the note out" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Haz clic para guardarla como archivo de texto o arrástrala fuera" } }
+      }
+    },
+    "Copy details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy details" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar detalles" } }
+      }
+    },
+    "Copy reply" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy reply" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar respuesta" } }
+      }
+    },
+    "Couldn't connect to this camera" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't connect to this camera" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo conectar con esta cámara" } }
+      }
+    },
+    "Couldn't save the note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't save the note" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo guardar la nota" } }
+      }
+    },
+    "Drag a row or open its menu to move it. Shelf always stays first." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag a row or open its menu to move it. Shelf always stays first." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra una fila o abre su menú para moverla. El altillo siempre va primero." } }
+      }
+    },
+    "Drag icons between areas, or open an icon's menu to move it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag icons between areas, or open an icon's menu to move it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra los iconos entre las zonas o abre el menú de uno para moverlo." } }
+      }
+    },
+    "Drag menu bar icons between areas, or use each icon's menu." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag menu bar icons between areas, or use each icon's menu." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra los iconos de la barra de menús entre las zonas o usa el menú de cada icono." } }
+      }
+    },
+    "Export note…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Export note…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Exportar nota…" } }
+      }
+    },
+    "Go to the latest answer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go to the latest answer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ir a la última respuesta" } }
+      }
+    },
+    "Items already on the shelf remain available. If a dropped item is missing, drop it again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Items already on the shelf remain available. If a dropped item is missing, drop it again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los elementos que ya están en el altillo siguen disponibles. Si falta uno que has soltado, vuelve a soltarlo." } }
+      }
+    },
+    "Latest answer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Latest answer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Última respuesta" } }
+      }
+    },
+    "Read full answer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Read full answer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Leer respuesta completa" } }
+      }
+    },
+    "Shelf issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shelf issue" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Problema en el altillo" } }
+      }
+    },
+    "Shelf issue: %@. Show details" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shelf issue: %@. Show details" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Problema en el altillo: %@. Mostrar detalles" } }
+      }
+    },
+    "The camera didn't start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The camera didn't start" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La cámara no se inició" } }
+      }
+    },
+    "Try saving the note again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try saving the note again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Intenta guardar la nota de nuevo." } }
+      }
+    },
+    "Your unsent reply is preserved below." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your unsent reply is preserved below." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tu respuesta sin enviar se conserva abajo." } }
+      }
+    },
     "Selects this icon. Drag to move it. Open its menu from the shortcut menu." : {
       "extractionState" : "manual",
       "localizations" : {

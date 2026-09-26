@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 110" fill="none" aria-label="altillo">
+  <!-- Original connected lettering. The three paths mirror AltilloGreeting.swift. -->
+  <path d="M47 62 C42 49 28 48 19 56 C7 68 15 86 29 85 C42 84 48 72 47 62 C47 75 50 86 64 73 C76 55 81 20 73 17 C65 14 65 34 66 54 C67 83 73 88 88 71 C100 54 110 30 111 25 C108 44 103 63 107 78 C109 90 123 83 130 71 C136 60 138 55 141 57 C144 61 134 79 141 84 C147 88 154 80 160 71 C173 54 180 19 172 16 C163 15 166 43 165 61 C166 82 171 87 187 70 C203 50 208 18 201 16 C190 14 191 46 193 63 C194 85 201 87 216 70 C223 53 233 48 244 51 C257 54 260 68 254 78 C248 88 235 89 226 83 C216 77 217 65 227 57 C238 48 252 54 260 69 C267 79 274 81 282 71" stroke="#F6EFE3" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M96 44 C104 42 115 42 123 41" stroke="#F6EFE3" stroke-width="3.5" stroke-linecap="round"/>
+  <path d="M142 35 C143 34 144 34 145 34" stroke="#F6EFE3" stroke-width="5" stroke-linecap="round"/>
+</svg>

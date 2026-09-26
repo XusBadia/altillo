@@ -1,5 +1,6 @@
 import AltilloCore
 import AltilloDesign
+import AppKit
 import SwiftUI
 
 /// The agents tab (PLAN §5.3): whoever knocks first as a big card glowing with the bulb (what it wants, how long it
@@ -112,6 +113,9 @@ private struct DesvanAgentCard: View {
     var isCompact = false
 
     @State private var showsMore = false
+    @State private var replyDraft = ""
+    @State private var announcedReplyExpiry = false
+    @State private var copiedReply = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var request: AgentPermissionRequest? {
@@ -127,6 +131,15 @@ private struct DesvanAgentCard: View {
         guard session.phase == .waitingAnswer, let channel = session.reply else { return nil }
         if !channel.isClosed, let expiry = channel.expiresAt, expiry <= now { return nil }
         return channel
+    }
+
+    private func announceReplyExpiryIfNeeded(now: Date) {
+        guard !announcedReplyExpiry, session.phase == .waitingAnswer,
+              session.reply != nil, replyChannel(now: now) == nil else { return }
+        announcedReplyExpiry = true
+        AccessibilityNotification.Announcement(
+            String(localized: "Altillo's reply window expired. Answer in the terminal.")
+        ).post()
     }
 
     var body: some View {
@@ -159,7 +172,7 @@ private struct DesvanAgentCard: View {
                     if let channel = replyChannel(now: now) {
                         // Go to terminal shares the quick answers' row: a row of its own pushed the card past
                         // the section's height.
-                        DesvanReplyField(agentName: session.agent.name, channel: channel, now: now,
+                        DesvanReplyField(agentName: session.agent.name, channel: channel, now: now, text: $replyDraft,
                                          send: { actions.reply(session, $0) },
                                          letStop: { actions.letStop(session) }) {
                             terminalButton(prominent: true)
@@ -183,6 +196,10 @@ private struct DesvanAgentCard: View {
             .accessibilityElement(children: .contain)
             .accessibilityLabel(accessibilityLabel(now: now))
             .accessibilityActions { accessibilityActions(expired: expired) }
+            .onAppear { announceReplyExpiryIfNeeded(now: now) }
+            .onChange(of: replyChannel(now: now) == nil) {
+                announceReplyExpiryIfNeeded(now: now)
+            }
         }
     }
 
@@ -223,7 +240,9 @@ private struct DesvanAgentCard: View {
             .font(.system(size: 13.5))
             .foregroundStyle(Desvan.Palette.paperSecondary)
             .lineLimit(1)
-            .fixedSize()
+            .truncationMode(.middle)
+            .help("\(ask) in \(session.project)")
+            .accessibilityLabel("\(ask) in \(session.project)")
     }
 
     // MARK: Slip
@@ -365,10 +384,40 @@ private struct DesvanAgentCard: View {
             Text("It's asking in the terminal now")
                 .font(.system(size: 12))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
-        } else if session.phase == .waitingAnswer, session.reply == nil {
-            Text("Answer it in the terminal")
-                .font(.system(size: 12))
-                .foregroundStyle(Desvan.Palette.paperTertiary)
+        } else if session.phase == .waitingAnswer {
+            VStack(alignment: .leading, spacing: 3) {
+                if session.reply == nil {
+                    Text("Answer it in the terminal")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Desvan.Palette.warning)
+                } else {
+                    Text("Altillo's reply window expired. Answer in the terminal.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(Desvan.Palette.warning)
+                }
+                if !replyDraft.isEmpty {
+                    Text("Your unsent reply is preserved below.")
+                        .font(.system(size: 11))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                    Text(verbatim: replyDraft)
+                        .font(.system(size: 12))
+                        .lineLimit(2)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: 210, alignment: .leading)
+                        .textSelection(.enabled)
+                    Button("Copy reply") {
+                        NSPasteboard.general.clearContents()
+                        NSPasteboard.general.setString(replyDraft, forType: .string)
+                        copiedReply = true
+                    }
+                    .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
+                    if copiedReply {
+                        Text("Copied")
+                            .font(.system(size: 11))
+                            .foregroundStyle(Desvan.Palette.done)
+                    }
+                }
+            }
         } else if session.phase == .waitingPermission, request == nil {
             Text("Answer it in the terminal")
                 .font(.system(size: 12))
@@ -435,12 +484,12 @@ private struct DesvanReplyField<Trailing: View>: View {
     let agentName: String
     let channel: AgentReplyChannel
     let now: Date
+    @Binding var text: String
     let send: (String) -> AgentHub.ReplyOutcome
     let letStop: () -> Void
     /// At the end of the quick answers' row (Go to terminal).
     @ViewBuilder let trailing: () -> Trailing
 
-    @State private var text = ""
     @State private var outcome: AgentHub.ReplyOutcome?
     @FocusState private var focused: Bool
 

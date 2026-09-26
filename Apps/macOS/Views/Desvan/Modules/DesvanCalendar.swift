@@ -227,6 +227,9 @@ private struct DesvanNextEventCard: View {
         .desvanCard(radius: 12, glow: isImminent ? Desvan.Palette.bulb.opacity(0.75) : nil)
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onTapGesture { CalendarAppLink.open(event) }
+        .focusable()
+        .onKeyPress(.return) { CalendarAppLink.open(event); return .handled }
+        .onKeyPress(.space) { CalendarAppLink.open(event); return .handled }
         .help("Open in Calendar")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(DesvanEventFormat.spoken(event, isTomorrow: isTomorrow, isNext: true))
@@ -295,6 +298,9 @@ private struct DesvanEventRow: View {
         .contentShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .onTapGesture { CalendarAppLink.open(event) }
+        .focusable()
+        .onKeyPress(.return) { CalendarAppLink.open(event); return .handled }
+        .onKeyPress(.space) { CalendarAppLink.open(event); return .handled }
         .help("Open in Calendar")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(DesvanEventFormat.spoken(event, isTomorrow: false, isNext: false))

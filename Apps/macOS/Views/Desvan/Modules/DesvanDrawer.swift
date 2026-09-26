@@ -54,7 +54,7 @@ struct DesvanDrawerView: View {
                     HStack(spacing: 4) {
                         ForEach(items) { item in
                             let entry = item.entry
-                            MenuBarPopupAnchorReader { anchor in
+                            MenuBarPopupAnchorReader(toolTip: entry.hoverName) { anchor in
                                 Button {
                                     guard !isDemo else { return }
                                     store.activate(entry, anchor: anchor)
@@ -77,7 +77,7 @@ struct DesvanDrawerView: View {
                                             .disabled(store.movingEntryID != nil)
                                     }
                                 }
-                                .help("\(entry.title) · \(entry.application.name)")
+                                .help(entry.hoverName)
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityLabel("Open \(entry.title) from \(entry.application.name)")
                                 .accessibilityAction {

@@ -529,6 +529,9 @@ final class NotchCoordinator {
         guard let window, model.scenario == nil else { return }
         // A notch kept out of sight over a full-screen app has no shape to click.
         let onShape = window.isShown && NotchGeometry.containsPointer(point, in: window.visibleShapeScreenRect)
+        // The Save panel (including Go to Folder) belongs to Note's presenter. Its clicks are outside the notch,
+        // but closing that presenter would dismiss the export before macOS can return a result.
+        if !onShape, model.state == .open, model.module == .note, model.note.isExporting { return }
         // Right-click on the closed notch (or a peek): edit it in place. On the open notch, right-clicks belong to
         // the views (a shelf thing's menu); the open notch has its own way into edit mode.
         if isRight {

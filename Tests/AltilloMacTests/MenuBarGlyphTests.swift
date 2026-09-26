@@ -109,4 +109,36 @@ struct MenuBarGlyphSharpnessTests {
         let pixels = try #require(glyph.cgImage(forProposedRect: nil, context: nil, hints: nil))
         #expect(pixels.width > 0)
     }
+
+    @Test func genericArtworkIsRecognizedWithoutRejectingRealSquareLogos() {
+        let generic = NSImage(size: CGSize(width: 64, height: 64), flipped: false) { rect in
+            NSColor.white.setFill(); rect.fill(); return true
+        }
+        let real = NSImage(size: CGSize(width: 64, height: 64), flipped: false) { rect in
+            NSColor.systemBlue.setFill(); rect.fill(); return true
+        }
+        #expect(MenuBarGlyphFallback.isGenericApplicationIcon(generic, generic: generic))
+        #expect(!MenuBarGlyphFallback.isGenericApplicationIcon(real, generic: generic))
+    }
+
+    @Test func missingArtworkUsesReadableInitials() throws {
+        #expect(MenuBarGlyphFallback.initials(for: "OpenUsage Mobile Bridge") == "OM")
+        #expect(MenuBarGlyphFallback.initials(for: "  Ollama  ") == "OL")
+        #expect(MenuBarGlyphFallback.initials(for: "") == "?")
+        let icon = MenuBarGlyphFallback.monogram(for: "OpenUsage Mobile Bridge")
+        #expect(icon.isTemplate)
+        #expect(icon.size == CGSize(width: 18, height: 18))
+        #expect(icon.cgImage(forProposedRect: nil, context: nil, hints: nil) != nil)
+    }
+
+    @Test func hoverStartsWithAppNameAndAvoidsRepeatingIt() {
+        let app = MenuBarApplication(pid: 0, bundleID: "test", name: "Example")
+        let same = MenuBarEntry(id: "1", application: app, title: "Example", frame: .zero)
+        let detail = MenuBarEntry(id: "2", application: app, title: "Syncing", frame: .zero)
+        #expect(same.hoverName == "Example")
+        #expect(detail.hoverName == "Example — Syncing")
+        let keyboard = MenuBarEntry(id: "input", application: .init(pid: 0,
+            bundleID: "com.apple.TextInputMenuAgent", name: "TextInputMenuAgent"), title: "", frame: .zero)
+        #expect(MenuBarAccessibility.systemSymbol(for: keyboard) == "keyboard")
+    }
 }
