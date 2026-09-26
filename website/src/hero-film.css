@@ -22,6 +22,9 @@
 .hero-film-track {
   display: none;
 }
+.hero-canvas {
+  pointer-events: none;
+}
 .hero.has-film {
   height: 340svh;
   min-height: 1800px;

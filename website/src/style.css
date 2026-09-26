@@ -153,6 +153,7 @@ button {
   object-position: center 70%;
   z-index: -3;
   will-change: transform, opacity;
+  pointer-events: none;
 }
 .hero-shade {
   position: absolute;
@@ -161,12 +162,18 @@ button {
   background:
     linear-gradient(180deg, #08080754 0%, transparent 65%, #10100f 100%),
     linear-gradient(90deg, #100e0bbc 0%, #100e0b65 28%, transparent 65%);
+  pointer-events: none;
 }
 .hero-copy {
   position: relative;
   padding: 168px 0 0 7%;
   max-width: 1030px;
   will-change: transform, opacity;
+  pointer-events: none;
+}
+.hero-copy a,
+.hero-copy button {
+  pointer-events: auto;
 }
 .eyebrow {
   font-size: 10px;
@@ -1170,7 +1177,7 @@ h2 {
   padding: 0;
   border: 0;
   border-radius: 999px;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.001);
   color: transparent;
   cursor: pointer;
 }
@@ -1188,15 +1195,22 @@ h2 {
   place-items: center;
   font-size: 28px;
 }
+.egg-hotspot:active {
+  transform: none;
+}
 .egg-door-hotspot {
-  top: 30%;
-  left: 54%;
-  width: 18%;
-  height: 28%;
+  z-index: 22;
+  top: 42%;
+  left: 64%;
+  width: 13%;
+  height: 34%;
   min-width: 72px;
   min-height: 72px;
   transform: translate(-50%, -50%);
   perspective: 260px;
+}
+.egg-door-hotspot:active {
+  transform: translate(-50%, -50%);
 }
 .egg-attic-lamp {
   top: 10%;
@@ -1383,6 +1397,12 @@ body.egg-night .status-light {
   }
   .egg-overlay-card {
     padding: 36px 25px 31px;
+  }
+  .egg-door-hotspot {
+    top: 65%;
+    left: 75%;
+    width: 22%;
+    height: 24%;
   }
   .egg-attic-lamp {
     top: 8%;

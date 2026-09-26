@@ -52,6 +52,16 @@ test('three taps on the support label make Aurio wink without following the link
   await expect(page).toHaveURL(urlBefore);
 });
 
+test('the door hotspot receives three real pointer clicks above the hero copy', async ({ page }) => {
+  await page.goto('/');
+  const door = page.getByRole('button', { name: 'Llamar a la puerta' });
+  await door.click();
+  await door.click();
+  await door.click();
+  await expect(page.locator('body')).toHaveClass(/egg-door/);
+  await expect.poll(() => door.evaluate((node) => getComputedStyle(node, '::before').opacity)).not.toBe('0');
+});
+
 test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
   await page.goto('/');
   await chapter(page, 'shelf');
