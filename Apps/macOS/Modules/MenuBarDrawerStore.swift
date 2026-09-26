@@ -110,7 +110,10 @@ final class MenuBarDrawerStore: NSObject {
         Self.log.debug("start enabled=\(self.enabled) ax=\(self.hasAccess) capture=\(self.hasIconAccess)")
         if enabled, support.catalog, hasAccess {
             installSection()
-            restoreChosenSelection(after: .seconds(2))
+            // Launch must never synthesize Command-drags: posting those events moves the real
+            // pointer into the menu bar. Native status-item positions persist, so discover the
+            // existing section and collapse it without rearranging anything behind the user's back.
+            restoreChosenSelection(after: .seconds(2), allowMenuBarMovement: false)
         }
         let workspace = NSWorkspace.shared.notificationCenter
         for (name, delay) in [(NSWorkspace.didLaunchApplicationNotification, Duration.milliseconds(1_200)),
@@ -288,7 +291,7 @@ final class MenuBarDrawerStore: NSObject {
             if !hasAccess { requestAccess() }
             if hasAccess {
                 installSection()
-                restoreChosenSelection(after: .milliseconds(180))
+                restoreChosenSelection(after: .milliseconds(180), allowMenuBarMovement: true)
             }
         } else {
             menuPresenter.cancel()
@@ -315,7 +318,7 @@ final class MenuBarDrawerStore: NSObject {
         guard enabled, hasAccess else { return }
         if value, !chosenIDs.isEmpty {
             if support.hidingStyle == .overflow {
-                restoreChosenSelection(after: .zero)
+                restoreChosenSelection(after: .zero, allowMenuBarMovement: true)
             } else {
                 hide()
             }
@@ -399,9 +402,9 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     /// Restores persisted Drawer membership after launch or re-enabling the feature. macOS 27 no
-    /// longer exposes per-app position keys, so items selected by an older Altillo build must be
-    /// Command-dragged beside the new overflow divider once before the bar can collapse correctly.
-    private func restoreChosenSelection(after delay: Duration) {
+    /// longer exposes per-app position keys, so an explicit settings or permission action may need
+    /// to Command-drag older saved items beside the overflow divider. Passive launch only scans.
+    private func restoreChosenSelection(after delay: Duration, allowMenuBarMovement: Bool) {
         restoreTask?.cancel()
         restoreTask = Task { [weak self] in
             // A cancelled restore may already have been replaced by a newer one. Only the current,
@@ -417,7 +420,7 @@ final class MenuBarDrawerStore: NSObject {
             await pendingScan?.value
             guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
 
-            if self.support.hidingStyle == .overflow {
+            if allowMenuBarMovement, self.support.hidingStyle == .overflow {
                 let ordered = DrawerOrder.sort(
                     self.entries.filter { self.chosenIDs.contains($0.id) },
                     preferredIDs: self.drawerOrder
@@ -987,7 +990,9 @@ final class MenuBarDrawerStore: NSObject {
             // Accessibility can be granted while Settings owns focus. Rebuild the catalog
             // and restore the physical hidden section on the permission transition instead of
             // waiting for another user action.
-            if enabled { restoreChosenSelection(after: .milliseconds(180)) }
+            if enabled {
+                restoreChosenSelection(after: .milliseconds(180), allowMenuBarMovement: true)
+            }
         }
     }
 
