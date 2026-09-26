@@ -75,7 +75,7 @@ const mirrorIllustration = () => `
     </g>
   </svg>`;
 
-export function mountDemo(element, { locale = document.documentElement.lang || "es" } = {}) {
+export function mountDemo(element, { locale = document.documentElement.lang || "en" } = {}) {
   if (!element) return { setChapter() {}, setModule() {}, reset() {}, destroy() {} };
   element.classList.add("alt-demo");
   element.lang = String(locale).toLowerCase().startsWith("en") ? "en" : "es";

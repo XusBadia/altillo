@@ -28,7 +28,7 @@ test("the actual film advances with scrolling, introduces the next section and r
   expect(response.ok()).toBe(true);
   const manifest = await response.json();
   expect(manifest.count).toBeGreaterThan(1);
-  await page.goto("/");
+  await page.goto("/es/");
 
   const hero = page.locator(".hero");
   const canvas = page.locator(".hero-canvas");
@@ -72,7 +72,7 @@ test("reduced motion keeps a static hero without requesting film assets", async 
     if (request.resourceType() !== "image" && request.url().includes("/media/hero-sequence/")) filmRequests.push(request.url());
   });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await page.goto("/");
+  await page.goto("/es/");
   await expect(page.locator(".hero-canvas")).toBeAttached();
   await expect(page.locator(".hero-canvas")).toBeHidden();
   await expect(page.locator(".hero")).not.toHaveClass(/has-film/);
@@ -91,7 +91,7 @@ test("a missing film leaves the poster and the following content usable", async 
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.route("**/media/hero-sequence/manifest.json", (route) => route.fulfill({ status: 404, body: "Not found" }));
   const missingManifest = page.waitForResponse("**/media/hero-sequence/manifest.json");
-  await page.goto("/");
+  await page.goto("/es/");
   expect((await missingManifest).status()).toBe(404);
   await expect(page.locator(".hero")).not.toHaveClass(/has-film/);
   await expect(page.locator(".hero-canvas")).toBeHidden();
@@ -117,7 +117,7 @@ test("delayed frames never reverse a forward swipe and are reused on the way bac
     await new Promise((resolve) => setTimeout(resolve, index % 5 === 0 ? 65 : 15));
     await route.continue();
   });
-  await page.goto("/");
+  await page.goto("/es/");
   const canvas = page.locator(".hero-canvas");
   await expect(canvas).toHaveAttribute("data-frame", "0");
   const seen = await page.evaluate(() => new Promise((resolve) => {

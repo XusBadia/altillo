@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-async function music(page, path = '/') {
+async function music(page, path = '/es/') {
   // Audio assertions do not exercise scroll motion. Keeping that separate avoids
   // WebKit changing chapters when a late hero frame shifts the page during playback.
   await page.emulateMedia({ reducedMotion: 'reduce' });
@@ -51,7 +51,7 @@ test('calendar and mirror switch on the first pointer click', async ({ page }) =
 
 test('audio errors are visible and retryable in English', async ({ page }) => {
   await page.route('**/media/music/**', route => route.abort());
-  await music(page, '/en/');
+  await music(page, '/');
   await page.getByRole('button', { name: 'Play', exact: true }).click();
   await expect(page.locator('.ad-panel-footer')).toContainText('Playback failed. Press play to try again.');
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();

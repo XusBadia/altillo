@@ -1,0 +1,30 @@
+/* Match SettingsSupportCard's 180 ms crossfade in the macOS app. */
+.aurio-sign .aurio-mascot-base,
+.aurio-sign .aurio-mascot-wink {
+  transition: opacity 180ms ease-in-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .aurio-sign:hover .aurio-mascot-base { opacity: 0; }
+  .aurio-sign:hover .aurio-mascot-wink { opacity: 1; }
+}
+
+.aurio-sign:focus-visible .aurio-mascot-base { opacity: 0; }
+.aurio-sign:focus-visible .aurio-mascot-wink { opacity: 1; }
+
+/* Keyboard feedback is immediate; the existing secret wink keeps its animation. */
+.aurio-sign:focus-visible .aurio-mascot-base,
+.aurio-sign:focus-visible .aurio-mascot-wink {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurio-sign .aurio-mascot-base,
+  .aurio-sign .aurio-mascot-wink,
+  .aurio-sign.is-winking .aurio-mascot-stage,
+  .aurio-sign.is-winking .aurio-mascot-base,
+  .aurio-sign.is-winking .aurio-mascot-wink {
+    transition: none;
+    animation: none;
+  }
+}

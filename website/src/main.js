@@ -4,6 +4,8 @@ import { mountDemo } from "./demo.js";
 import { mountMotion } from "./motion.js";
 import { mountHeroFilm } from "./hero-film.js";
 import { mountEasterEggs } from "./easter-eggs.js";
+import "./site-polish.css";
+import "./aurio-wink.js";
 
 const demoElement = document.querySelector("#interactive-demo");
 const demo = mountDemo(demoElement, {

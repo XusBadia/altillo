@@ -271,7 +271,6 @@
   height: 13px;
 }
 .ad-shelf-wood,
-.ad-usage-card,
 .ad-agent-request,
 .ad-agent-task {
   background:
@@ -660,17 +659,23 @@
 }
 .ad-file-shelved {
   position: absolute;
-  top: 1px;
-  right: 9px;
+  top: 3px;
+  right: 10px;
   display: grid;
   place-items: center;
   background: #c39b59;
   color: #251f16;
   border: 1px solid #e6d3a0;
-  width: 17px;
-  height: 17px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
-  font-size: 12px;
+  box-shadow: 0 1px 3px #0004;
+  pointer-events: none;
+}
+.ad-file-shelved > svg {
+  width: 9px;
+  height: 9px;
+  display: block;
 }
 .ad-finder-bottom {
   display: flex;
@@ -874,14 +879,34 @@
   font-size: 20px;
 }
 .ad-dock-finder {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(90deg, #68a9d1 50%, #c8e4e9 50%);
   color: #294b61;
 }
+/* Draw the face within the icon: a font glyph drifts with platform metrics. */
+.ad-dock-finder::before,
+.ad-dock-finder::after {
+  content: "";
+  position: absolute;
+  top: 29%;
+  width: 5%;
+  height: 10%;
+  border-radius: 1px;
+  background: currentColor;
+}
+.ad-dock-finder::before { left: 27%; }
+.ad-dock-finder::after { right: 27%; }
 .ad-dock-finder i {
-  font-size: 33px;
-  font-style: normal;
-  line-height: 1;
-  margin-top: -13px;
+  position: absolute;
+  left: 23%;
+  top: 40%;
+  width: 54%;
+  height: 30%;
+  border-bottom: 1.5px solid currentColor;
+  border-radius: 0 0 50% 50%;
+  font-size: 0;
+  margin: 0;
 }
 .ad-dock-safari {
   background: #dce6e8;
@@ -975,8 +1000,11 @@
 .ad-usage-card {
   flex: 1;
   min-width: 0;
+  border: 1px solid #c6aa7924;
   border-radius: 10px;
-  padding: 11px;
+  padding: 12px;
+  background: linear-gradient(145deg, #292720, #201f1a);
+  box-shadow: inset 0 1px 0 #ffffff06;
 }
 .ad-usage-main {
   display: flex;
@@ -998,11 +1026,12 @@
   position: absolute;
   inset: 3px;
   border-radius: 50%;
-  background: #272218;
+  background: #25241e;
 }
 .ad-ring > span {
   position: relative;
   font-size: 17px;
+  font-variant-numeric: tabular-nums;
   font-weight: 650;
   letter-spacing: -0.6px;
   color: var(--ad-paper);
@@ -1063,12 +1092,13 @@
 .ad-usage-main p {
   font-size: 9px;
   margin: 3px 0 2px;
-  color: #cfc5b2;
+  color: #b4afa2;
 }
 .ad-usage-main em {
   display: block;
   font-size: 8px;
-  color: #e2b35b;
+  color: #dfb966;
+  font-style: normal;
   line-height: 1.4;
 }
 .ad-usage-card:nth-child(2) em {
@@ -1080,13 +1110,16 @@
   align-items: center;
   font-size: 8px;
   color: #9e9583;
-  margin-top: 13px;
+  margin-top: 12px;
+  padding-top: 9px;
+  border-top: 1px solid #ffffff0a;
+  font-variant-numeric: tabular-nums;
 }
 .ad-week > div {
   flex: 1;
-  height: 5px;
+  height: 4px;
   border-radius: 5px;
-  background: #4d4332;
+  background: #ffffff12;
 }
 .ad-week > div > i {
   display: block;
@@ -1408,10 +1441,6 @@
   .ad-dock-divider {
     height: 22px;
   }
-  .ad-dock-finder i {
-    font-size: 26px;
-    margin-top: -10px;
-  }
   .ad-dock-safari {
     font-size: 28px !important;
   }
@@ -1694,10 +1723,6 @@
   }
   .ad-dock-divider {
     height: 17px;
-  }
-  .ad-dock-finder i {
-    font-size: 21px;
-    margin-top: -9px;
   }
   .ad-dock-safari {
     font-size: 22px !important;

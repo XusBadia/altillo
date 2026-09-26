@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-for (const route of ['/', '/en/']) {
+for (const route of ['/', '/es/']) {
   test(`navigation stays available outside the demo ${route}`, async ({ page }) => {
     await page.goto(route);
     const header = page.locator('.site-header');
@@ -13,9 +13,9 @@ for (const route of ['/', '/en/']) {
     await expect(header).not.toHaveClass(/is-demo-hidden/);
     await expect(header).toBeVisible();
     await expect(header).toHaveJSProperty('inert', false);
-    const destination = route === '/' ? '/en/' : '/';
+    const destination = route === '/' ? '/es/' : '/';
     await header.locator(`.language-link[href="${destination}"]`).click();
-    await expect(page).toHaveURL(new RegExp(destination === '/' ? '/$' : '/en/$'));
+    await expect(page).toHaveURL(new RegExp(destination === '/' ? '/$' : '/es/$'));
   });
 }
 

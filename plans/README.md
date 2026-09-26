@@ -14,6 +14,11 @@ respetar las condiciones de parada y actualizar su fila al terminar.
 | [003](003-share-shelf-selection.md) | La selección del cajón se comparte y envía por AirDrop | P1 | S | 001 | DONE |
 | [004](004-add-keep-awake.md) | Keep Awake opt-in, temporal y sin sondeo | P2 | M | — | DONE |
 | [005](005-spike-volume-hud.md) | Decisión técnica sobre un HUD de volumen público y fiable | P2 | S | — | REJECTED: NO-GO hasta probar Bluetooth, HDMI y coexistencia con el HUD nativo |
+| [006](006-harden-release-diagnostics.md) | Release sin herramientas internas ni rutas públicas en logs | P0 | M | — | TODO |
+| [007](007-publish-accurate-privacy-contract.md) | Contrato de privacidad exacto y enlazado | P0 | S/M | 006 | TODO |
+| [008](008-gate-and-smoke-test-releases.md) | CI verde y smoke del artefacto antes de publicar | P0 | M | 006, 007 | TODO |
+| [009](009-close-physical-launch-matrix.md) | Matriz física crítica cerrada y claims comprobados | P0 | M | 006–008 | TODO |
+| [010](010-add-support-and-safe-uninstall.md) | Soporte visible y desinstalación sin hooks rotos | P1 | S/M | 006 | TODO |
 
 Estados válidos: `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED: motivo` o
 `REJECTED: motivo`.
@@ -27,12 +32,22 @@ Estados válidos: `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED: motivo` o
 - 005 es un spike con puerta de salida. Solo se convierte en implementación si
   puede observar volumen mediante APIs públicas, sin Accessibility ni eventos
   globales y sin duplicar el HUD nativo.
+- 006 precede al contrato de privacidad y al soporte porque ambos deben describir
+  el diagnóstico que realmente queda en Release.
+- 008 debe cerrar las puertas automáticas antes de ejecutar 009 sobre el
+  artefacto candidato; así la matriz manual se hace una sola vez sobre una build
+  publicable.
+- 010 puede avanzar en paralelo con 007–009 después de 006.
 
 ## Documento de investigación
 
 - [Auditoría competitiva: NotchView](competitive-notchview-2026-09-26.md)
 - [Auditoría UI/UX por pantalla](ui-ux-audit-2026-09-26.md): revisión previa del código, prioridades, criterios de aceptación y límites de la comprobación visual; su implementación se documenta a continuación.
 - [Implementación de la auditoría UI/UX](ui-ux-implementation-2026-09-26.md): cambios aplicados, motivos y estado de verificación.
+- [Preparación para lanzamiento público](prelaunch-readiness-2026-09-26.md):
+  estado actual, bloqueos, prioridades y alcance post-lanzamiento.
+- [Panorama competitivo actualizado](competitive-landscape-2026-09-26.md):
+  correcciones a la investigación anterior, nuevos rivales y posicionamiento.
 
 ## Hallazgos considerados y rechazados
 
@@ -76,3 +91,13 @@ Estados válidos: `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED: motivo` o
 - Ejecutar AltilloKit y Xcode simultáneamente provoca contención en las pruebas
   del socket global de `altillo-hook`; por eso ambas puertas se verifican en
   serie, como hacen sus ejecuciones normales.
+
+## Línea base de la auditoría pre-lanzamiento (26-09-2026)
+
+- Commit: `7f80680`; CI remoto verde en gitleaks, AltilloKit, macOS e iOS.
+- AltilloKit local: `swift test` verde.
+- macOS local: 755 tests en 56 suites, `TEST SUCCEEDED`.
+- DMG público 0.7.5 descargado de GitHub: SHA-256 coincide con el cask y
+  Gatekeeper informa `Notarized Developer ID`.
+- Web local con cambios no comprometidos: build verde; la puerta estable de
+  Playwright queda incorporada al plan 008 y no se atribuye al HEAD versionado.

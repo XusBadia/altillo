@@ -27,7 +27,7 @@ async function clickCurrentPanelControl(demo, selector) {
 }
 
 test('all seven modules are reachable within three chapters without tabs', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   await expect(page.locator('.story-step')).toHaveCount(3);
   await expect(page.locator('.story-step [data-module]')).toHaveCount(7);
   await expect(page.getByRole('tab')).toHaveCount(0);
@@ -39,17 +39,17 @@ test('all seven modules are reachable within three chapters without tabs', async
 });
 
 test('calendar joins remain a clearly labelled simulation', async ({ page, context }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const demo = await choose(page, 'calendar');
   const pagesBefore = context.pages().length;
   await demo.locator('[data-action="join"][data-event="0"]').click();
   await expect(demo.locator('.ad-meeting-status')).toContainText('Enlace preparado · videollamada simulada');
   expect(context.pages()).toHaveLength(pagesBefore);
-  await expect(page).toHaveURL(/\/$/);
+  await expect(page).toHaveURL(/\/es\/$/);
 });
 
 test('music responds to playback and next while preserving its state', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const demo = await choose(page, 'music');
   await expect(demo.locator('.ad-track-title')).toHaveText('Azotea');
   await demo.getByRole('button', { name: 'Reproducir', exact: true }).click();
@@ -75,7 +75,7 @@ test('mirror flips its sample without requesting camera access', async ({ page }
       };
     }
   });
-  await page.goto('/');
+  await page.goto('/es/');
   const demo = await choose(page, 'mirror');
   await expect(demo.getByText('Vista de ejemplo · cámara apagada', { exact: true })).toBeVisible();
   await expect(demo.locator('[data-action="mirror-flip"]')).toHaveAttribute('aria-pressed', 'true');
@@ -94,7 +94,7 @@ test('mirror flips its sample without requesting camera access', async ({ page }
 });
 
 test('drawer reveals its group and opens an example menu', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const demo = await choose(page, 'drawer');
   await expect(demo.locator('.ad-drawer-icons')).toBeHidden();
   await demo.locator('[data-action="drawer-toggle"]').click();
@@ -108,7 +108,7 @@ test('drawer reveals its group and opens an example menu', async ({ page }) => {
 });
 
 test('secret module gestures reveal object-specific visual changes', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const demo = await choose(page, 'drawer');
   for (let index = 0; index < 3; index += 1) await demo.locator('[data-action="drawer-toggle"]').click();
   await expect(demo.locator('.ad-drawer-surface')).toHaveClass(/is-secret/);
@@ -142,7 +142,7 @@ test('secret module gestures reveal object-specific visual changes', async ({ pa
 });
 
 test('reset clears the state of every daily module', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const demo = await choose(page, 'drawer');
   await demo.locator('[data-action="drawer-toggle"]').click();
   await choose(page, 'calendar');
@@ -165,7 +165,7 @@ test('reset clears the state of every daily module', async ({ page }) => {
 });
 
 test('English daily modules translate actions and simulation notices', async ({ page }) => {
-  await page.goto('/en/');
+  await page.goto('/');
   const demo = await choose(page, 'calendar');
   await demo.locator('[data-action="join"][data-event="0"]').click();
   await expect(demo.locator('.ad-meeting-status')).toContainText('Link ready · simulated video call');

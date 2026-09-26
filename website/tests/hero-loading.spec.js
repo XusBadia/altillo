@@ -34,7 +34,7 @@ async function screenshotDifference(page, before, after) {
   }, [before.toString("base64"), after.toString("base64")]);
 }
 
-for (const path of ["/", "/en/"]) {
+for (const path of ["/", "/es/"]) {
   test(`the opening image and layout stay stable when the film starts: ${path}`, async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "no-preference" });
     let releaseManifest;

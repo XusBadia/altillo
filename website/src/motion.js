@@ -2,6 +2,15 @@ import "./motion.css";
 
 const clamp = (value) => Math.min(1, Math.max(0, value));
 const chapters = new Set(["shelf", "day", "ai"]);
+const moduleChapters = {
+  shelf: "shelf",
+  drawer: "shelf",
+  calendar: "day",
+  music: "day",
+  mirror: "day",
+  usage: "ai",
+  agents: "ai",
+};
 
 /** Scroll enhances the page; native scrolling and the demo remain independent. */
 export function mountMotion({ demo } = {}) {
@@ -114,8 +123,19 @@ export function mountMotion({ demo } = {}) {
       )
     )
       return;
+    // The originating module control already records its chapter from stable
+    // metadata. Do not replace it with geometry that may still be settling.
+    if (event.type === "demo:interaction" && event.detail?.source === "module" && manualChapter)
+      return;
     const { closest } = measureSteps();
     manualChapter = closest >= 0 ? steps[closest].dataset.chapter : lastChapter;
+    if (event.type === "pointerdown") pointerHeld = true;
+  }
+
+  function preserveModuleInteraction(event) {
+    const chapter = moduleChapters[event.currentTarget?.dataset.module];
+    if (chapter) manualChapter = chapter;
+    else preserveInteraction(event);
     if (event.type === "pointerdown") pointerHeld = true;
   }
 
@@ -160,8 +180,8 @@ export function mountMotion({ demo } = {}) {
   demoElement?.addEventListener("keydown", preserveInteraction);
   demoElement?.addEventListener("demo:interaction", preserveInteraction);
   moduleControls.forEach(control => {
-    control.addEventListener('pointerdown', preserveInteraction, { passive: true });
-    control.addEventListener('keydown', preserveInteraction);
+    control.addEventListener('pointerdown', preserveModuleInteraction, { passive: true });
+    control.addEventListener('keydown', preserveModuleInteraction);
   });
   reducedMotion.addEventListener("change", motionPreferenceChanged);
   schedule();
@@ -181,8 +201,8 @@ export function mountMotion({ demo } = {}) {
       demoElement?.removeEventListener("keydown", preserveInteraction);
       demoElement?.removeEventListener("demo:interaction", preserveInteraction);
       moduleControls.forEach(control => {
-        control.removeEventListener('pointerdown', preserveInteraction);
-        control.removeEventListener('keydown', preserveInteraction);
+        control.removeEventListener('pointerdown', preserveModuleInteraction);
+        control.removeEventListener('keydown', preserveModuleInteraction);
       });
       header?.classList.remove('is-demo-hidden', 'is-scrolled');
       if (header) header.inert = false;

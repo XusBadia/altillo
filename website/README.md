@@ -2,7 +2,7 @@
 
 La web de producción vive en **[altillo.app](https://altillo.app/)**.
 
-Web en español (`/`) e inglés (`/en/`) para presentar Altillo y probar un escritorio Mac simulado. Usa HTML, CSS y JavaScript con Vite. No necesita servidor de aplicación ni base de datos.
+Web en inglés (`/`) y español (`/es/`) para presentar Altillo y probar un escritorio Mac simulado. Usa HTML, CSS y JavaScript con Vite. No necesita servidor de aplicación ni base de datos.
 
 La página abre con una secuencia cinematográfica del Mac y su puerta. El scroll controla el avance y el retroceso del vídeo, hasta entrar en el altillo y mostrar allí la explicación del estante. Después siguen tres capítulos interactivos, una escena del altillo y una sección compacta para conocer Aurio con su mascota oficial.
 
@@ -27,7 +27,7 @@ npm run build
 npm run preview
 ```
 
-La compilación genera `dist/index.html` y `dist/en/index.html`, junto con los recursos compartidos. La vista previa sirve ese resultado para revisarlo antes de publicar.
+La compilación genera `dist/index.html` y `dist/es/index.html`, junto con los recursos compartidos. La vista previa sirve ese resultado para revisarlo antes de publicar.
 
 ## Pruebas de navegador
 
@@ -42,7 +42,7 @@ La configuración arranca Vite en el puerto 4174 y contempla Safari de escritori
 
 ## Estructura
 
-- `index.html` y `en/index.html`: contenido, navegación y secciones en español e inglés.
+- `index.html` y `es/index.html`: contenido, navegación y secciones en inglés y español.
 - `vite.config.js`: entradas de compilación para ambas páginas.
 - `src/style.css`: composición responsive de la página.
 - `src/demo.js`, `src/demo.css` y `src/demo-modules.css`: escritorio, notch y siete módulos simulados.

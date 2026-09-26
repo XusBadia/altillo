@@ -12,14 +12,14 @@ async function chapter(page, name) {
 test('explains the product, offers a download and links to Aurio without overflow', async ({ page }) => {
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/');
+  await page.goto('/es/');
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
   await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
   await expect(page.locator('#proyecto')).toContainText('firmada y notarizada');
   await expect(page.locator('[data-module="music"] small')).toHaveText('Controles multimedia del Mac');
   const staleSpanishClaims = /función en desarro[l]lo|Apple Music y Spotif[y]/;
   await expect(page.locator('main')).not.toContainText(staleSpanishClaims);
-  await expect(page.getByRole('link', { name: 'Descargar para Mac' })).toHaveAttribute('href', 'https://github.com/XusBadia/altillo/releases/latest');
+  await expect(page.getByRole('link', { name: 'Descargar para Mac', exact: true })).toHaveAttribute('href', 'https://github.com/XusBadia/altillo/releases/latest');
   await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toHaveAttribute('href', 'https://www.aurioapp.com');
   await expect(page.getByRole('tab')).toHaveCount(0);
   await expect(page.locator('.story-step')).toHaveCount(3);
@@ -33,7 +33,7 @@ test('explains the product, offers a download and links to Aurio without overflo
 });
 
 test('English product claims match the shipped macOS app', async ({ page }) => {
-  await page.goto('/en/');
+  await page.goto('/');
   await expect(page.locator('[data-module="music"] small')).toHaveText('Mac media controls');
   const staleEnglishClaims = /feature in developmen[t]|Apple Music and Spotif[y]/;
   await expect(page.locator('main')).not.toContainText(staleEnglishClaims);
@@ -41,7 +41,7 @@ test('English product claims match the shipped macOS app', async ({ page }) => {
   await expect(page.locator('#interactive-demo')).toContainText('Sample request · you decide; Altillo never auto-approves');
 });
 
-for (const [route, canonical] of [['/', 'https://altillo.app/'], ['/en/', 'https://altillo.app/en/']]) {
+for (const [route, canonical] of [['/', 'https://altillo.app/'], ['/es/', 'https://altillo.app/es/']]) {
   test(`publishes canonical domain metadata for ${route}`, async ({ page }) => {
     await page.goto(route);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
@@ -50,21 +50,22 @@ for (const [route, canonical] of [['/', 'https://altillo.app/'], ['/en/', 'https
       'content',
       'https://altillo.app/media/mac-door.webp',
     );
-    await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute('href', 'https://altillo.app/');
-    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://altillo.app/en/');
+    await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute('href', 'https://altillo.app/es/');
+    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://altillo.app/');
+    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute('href', 'https://altillo.app/');
   });
 }
 
 test('double-clicking the Aurio mascot follows its external link', async ({ page }) => {
   await page.route('https://www.aurioapp.com/**', (route) => route.abort());
-  await page.goto('/');
+  await page.goto('/es/');
   const aurioRequest = page.waitForRequest((request) => request.url().startsWith('https://www.aurioapp.com'));
   await page.locator('.aurio-sign').dblclick();
   expect((await aurioRequest).url()).toBe('https://www.aurioapp.com/');
 });
 
 test('three taps on the support label make Aurio wink without following the link', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const trigger = page.locator('.support-top .eyebrow');
   const aurio = page.locator('.aurio-sign');
   const urlBefore = page.url();
@@ -79,7 +80,7 @@ test('three taps on the support label make Aurio wink without following the link
 });
 
 test('the door hotspot receives three real pointer clicks above the hero copy', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   const door = page.getByRole('button', { name: 'Llamar a la puerta' });
   await door.click();
   await door.click();
@@ -89,7 +90,7 @@ test('the door hotspot receives three real pointer clicks above the hero copy', 
 });
 
 test('the hidden night shortcut really toggles the scene on and off', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   await page.keyboard.press('d');
   await expect(page.locator('body')).toHaveClass(/egg-night/);
   await page.keyboard.press('d');
@@ -97,7 +98,7 @@ test('the hidden night shortcut really toggles the scene on and off', async ({ p
 });
 
 test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
-  await page.goto('/');
+  await page.goto('/es/');
   await chapter(page, 'shelf');
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'idle');
   await page.locator('.story-step [data-module="drawer"]').click();
@@ -115,7 +116,7 @@ test('scroll chapters preserve manual choice until the next chapter', async ({ p
 
 test('reduced motion disables parallax while chapters remain usable', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/');
+  await page.goto('/es/');
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await chapter(page, 'day');
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'calendar');
@@ -128,7 +129,7 @@ test('reduced motion disables parallax while chapters remain usable', async ({ p
 test('page remains readable without JavaScript', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false });
   const page = await context.newPage();
-  await page.goto(baseURL);
+  await page.goto(`${baseURL}/es/`);
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
   await expect(page.locator('.intro h2')).toBeVisible();
   await expect(page.locator('noscript p')).toBeVisible();

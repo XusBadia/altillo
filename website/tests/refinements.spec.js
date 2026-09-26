@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-async function ready(page, path = '/') {
+async function ready(page, path = '/es/') {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(path);
   const step = page.locator('.story-step[data-chapter="shelf"]');
@@ -9,7 +9,7 @@ async function ready(page, path = '/') {
     scrollTo({ top: scrollY + rect.top + rect.height / 2 - innerHeight * (innerWidth < 1000 ? .72 : .5), behavior: 'instant' });
   });
   await expect(step).toHaveClass(/is-active/);
-  await page.getByRole('button', { name: path.startsWith('/en') ? 'Reset demo' : 'Reiniciar demo' }).click();
+  await page.getByRole('button', { name: path === '/' ? 'Reset demo' : 'Reiniciar demo' }).click();
   await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'idle');
 }
 
@@ -73,7 +73,7 @@ test('keyboard focus protects an open hover panel until focus leaves', async ({ 
 
 test('touch enters without opening and the visible cue opens on tap', async ({ page, isMobile }) => {
   test.skip(!isMobile, 'Tests the touch-specific cue and pointer');
-  await ready(page, '/en/');
+  await ready(page, '/');
   await expect(page.getByRole('button', { name: 'Open Altillo', exact: true })).toContainText('Tap to open');
   await page.clock.install();
   await page.locator('.ad-notch').dispatchEvent('pointerenter', { pointerType: 'touch', isPrimary: true });
@@ -84,7 +84,7 @@ test('touch enters without opening and the visible cue opens on tap', async ({ p
 });
 
 test('English demo translates actions, outcomes and accessibility names throughout a full task', async ({ page }) => {
-  await ready(page, '/en/');
+  await ready(page, '/');
   const demo = page.locator('#interactive-demo');
   await expect(demo.getByRole('button', { name: 'Ideas.pdf, sample document', exact: true })).toBeVisible();
   await demo.getByRole('button', { name: 'Add to shelf', exact: true }).click();
@@ -117,7 +117,7 @@ test('English demo translates actions, outcomes and accessibility names througho
 for (const width of [390, 1280]) {
   test(`English and Spanish switch links stay within the viewport at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
-    await page.goto('/en/');
+    await page.goto('/');
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page.getByRole('link', { name: 'English', exact: true })).toHaveAttribute('aria-current', 'page');
     await expect(page.locator('.hero-function')).toContainText('files');
@@ -136,7 +136,7 @@ for (const width of [390, 1280]) {
     await expect(page.locator('.hero-function')).toContainText('Deja archivos');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await page.getByRole('link', { name: 'English', exact: true }).click();
-    await expect(page).toHaveURL(/\/en\/$/);
+    await expect(page).toHaveURL(/\/$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
   });
 }
