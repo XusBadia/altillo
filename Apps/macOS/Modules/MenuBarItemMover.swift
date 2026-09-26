@@ -67,11 +67,18 @@ enum MenuBarItemMover {
         }
         guard !Task.isCancelled, !mouseIsDown else { return .busy }
         guard let down = event(.leftMouseDown, at: points.start, source: source),
-              let up = event(.leftMouseUp, at: points.end, source: source) else { return .unavailable }
+              let up = event(.leftMouseUp, at: points.end, source: source),
+              let commandDown = commandEvent(keyDown: true, source: source),
+              let commandUp = commandEvent(keyDown: false, source: source) else { return .unavailable }
         let cursor = CGEvent(source: nil)?.location
         let overlays = overlayMouseStates(at: [points.start, points.end], primaryTop: primary.frame.maxY)
         defer { overlays.forEach { $0.window.ignoresMouseEvents = $0.ignored } }
         overlays.forEach { $0.window.ignoresMouseEvents = true }
+        // MenuBarAgent on macOS 27 checks the global modifier state rather than trusting
+        // only the flags attached to mouse events. Post the real Command transition around
+        // the gesture; every path below still releases it before returning.
+        commandDown.post(tap: .cghidEventTap)
+        try? await Task.sleep(for: .milliseconds(50))
         down.post(tap: .cghidEventTap)
         // Always send mouse-up, including cancellation, so no synthetic button remains held.
         // Cross the drag threshold near the source before travelling to the destination.
@@ -89,6 +96,7 @@ enum MenuBarItemMover {
         overlays.forEach { $0.window.ignoresMouseEvents = true }
         up.location = releasePoint
         up.post(tap: .cghidEventTap)
+        commandUp.post(tap: .cghidEventTap)
         try? await Task.sleep(for: .milliseconds(100))
         if let cursor, let current = CGEvent(source: nil)?.location,
            hypot(current.x - releasePoint.x, current.y - releasePoint.y) < 3 {
@@ -156,6 +164,16 @@ enum MenuBarItemMover {
                                   mouseCursorPosition: point, mouseButton: .left) else { return nil }
         event.flags = .maskCommand
         event.setIntegerValueField(.mouseEventClickState, value: 1)
+        return event
+    }
+
+    static func commandEvent(keyDown: Bool, source: CGEventSource) -> CGEvent? {
+        // kVK_Command is stable in the macOS virtual-key table and avoids importing Carbon
+        // solely for one constant.
+        guard let event = CGEvent(keyboardEventSource: source, virtualKey: 55, keyDown: keyDown) else {
+            return nil
+        }
+        event.flags = keyDown ? .maskCommand : []
         return event
     }
 }

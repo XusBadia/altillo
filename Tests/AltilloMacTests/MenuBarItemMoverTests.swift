@@ -19,6 +19,20 @@ struct MenuBarItemMoverTests {
         }
     }
 
+    @Test func nativeDragPostsExplicitCommandTransitionsForMenuBarAgent() throws {
+        let source = try #require(CGEventSource(stateID: .privateState))
+        let down = try #require(MenuBarItemMover.commandEvent(keyDown: true, source: source))
+        let up = try #require(MenuBarItemMover.commandEvent(keyDown: false, source: source))
+
+        // Modifier transitions are represented as flagsChanged by CoreGraphics.
+        #expect(down.type == .flagsChanged)
+        #expect(down.getIntegerValueField(.keyboardEventKeycode) == 55)
+        #expect(down.flags.contains(.maskCommand))
+        #expect(up.type == .flagsChanged)
+        #expect(up.getIntegerValueField(.keyboardEventKeycode) == 55)
+        #expect(!up.flags.contains(.maskCommand))
+    }
+
     @Test func nativeDragTravelsProgressivelyInBothDirectionsWithoutLeavingItsRow() throws {
         for (startX, endX): (CGFloat, CGFloat) in [(1212, 1102), (980, 1118)] {
             let start = CGPoint(x: startX, y: 15)
