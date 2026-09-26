@@ -1,6 +1,97 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Selects this icon. Drag to move it. Open its menu from the shortcut menu." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Selects this icon. Drag to move it. Open its menu from the shortcut menu." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Selecciona este icono. Arrástralo para moverlo. Abre su menú desde el menú contextual." } }
+      }
+    },
+    "Selects this icon. Drag to reorder or move it. Open its menu from the shortcut menu." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Selects this icon. Drag to reorder or move it. Open its menu from the shortcut menu." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Selecciona este icono. Arrástralo para reordenarlo o moverlo. Abre su menú desde el menú contextual." } }
+      }
+    },
+    "1 hour" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "1 hour" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "1 hora" } }
+      }
+    },
+    "2 hours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "2 hours" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "2 horas" } }
+      }
+    },
+    "30 minutes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "30 minutes" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "30 minutos" } }
+      }
+    },
+    "Choose a duration. It won't turn itself on again after you quit Altillo." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose a duration. It won't turn itself on again after you quit Altillo." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige una duración. No volverá a activarse al cerrar Altillo." } }
+      }
+    },
+    "Keep Awake" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep Awake" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantener activo" } }
+      }
+    },
+    "Keep your Mac awake" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep your Mac awake" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantén tu Mac activo" } }
+      }
+    },
+    "Keep your Mac awake for a while, only when you ask." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep your Mac awake for a while, only when you ask." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mantén tu Mac activo un rato, solo cuando tú lo pidas." } }
+      }
+    },
+    "Until %@. The display can still turn off." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Until %@. The display can still turn off." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hasta las %@. La pantalla puede seguir apagándose." } }
+      }
+    },
+    "Until I stop it" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Until I stop it" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hasta que lo detenga" } }
+      }
+    },
+    "Until you stop it. The display can still turn off." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Until you stop it. The display can still turn off." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hasta que lo detengas. La pantalla puede seguir apagándose." } }
+      }
+    },
+    "Your Mac will stay awake" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Mac will stay awake" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tu Mac se mantendrá activo" } }
+      }
+    },
     "" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2693,6 +2784,47 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "AirDrop"
+          }
+        }
+      }
+    },
+    "AirDrop %lld items" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "AirDrop %lld item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "AirDrop %lld items"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Enviar %lld elemento por AirDrop"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Enviar %lld elementos por AirDrop"
+                }
+              }
+            }
           }
         }
       }
@@ -14231,6 +14363,81 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Atajos no está aquí"
+          }
+        }
+      }
+    },
+    "Share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir"
+          }
+        }
+      }
+    },
+    "Share %lld items" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Share %lld item"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Share %lld items"
+                }
+              }
+            }
+          }
+        },
+        "es" : {
+          "variations" : {
+            "plural" : {
+              "one" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Compartir %lld elemento"
+                }
+              },
+              "other" : {
+                "stringUnit" : {
+                  "state" : "translated",
+                  "value" : "Compartir %lld elementos"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "Share…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Share…"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compartir…"
           }
         }
       }

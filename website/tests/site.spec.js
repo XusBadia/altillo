@@ -16,6 +16,9 @@ test('explains the product, offers a download and links to Aurio without overflo
   await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
   await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
   await expect(page.locator('#proyecto')).toContainText('firmada y notarizada');
+  await expect(page.locator('[data-module="music"] small')).toHaveText('Controles multimedia del Mac');
+  const staleSpanishClaims = /función en desarro[l]lo|Apple Music y Spotif[y]/;
+  await expect(page.locator('main')).not.toContainText(staleSpanishClaims);
   await expect(page.getByRole('link', { name: 'Descargar para Mac' })).toHaveAttribute('href', 'https://github.com/XusBadia/altillo/releases/latest');
   await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toHaveAttribute('href', 'https://www.aurioapp.com');
   await expect(page.getByRole('tab')).toHaveCount(0);
@@ -27,6 +30,15 @@ test('explains the product, offers a download and links to Aurio without overflo
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   }
   expect(errors).toEqual([]);
+});
+
+test('English product claims match the shipped macOS app', async ({ page }) => {
+  await page.goto('/en/');
+  await expect(page.locator('[data-module="music"] small')).toHaveText('Mac media controls');
+  const staleEnglishClaims = /feature in developmen[t]|Apple Music and Spotif[y]/;
+  await expect(page.locator('main')).not.toContainText(staleEnglishClaims);
+  await page.locator('[data-module="agents"]').click();
+  await expect(page.locator('#interactive-demo')).toContainText('Sample request · you decide; Altillo never auto-approves');
 });
 
 test('double-clicking the Aurio mascot follows its external link', async ({ page }) => {

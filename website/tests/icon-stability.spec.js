@@ -42,6 +42,9 @@ async function checkInlineIcons(page) {
 }
 
 async function checkStablePlaybackIcon(page) {
+  // This test owns SVG stability, not the scroll film. Avoid a late WebKit
+  // layout shift handing the demo back to another chapter during playback.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/');
   await choose(page, 'music');
   const button = page.locator('[data-action="music-play"]');

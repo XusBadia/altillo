@@ -7,10 +7,14 @@ import Testing
 /// Codex 0.152.0 `codex exec`, September 2026) with temporary hook settings; `*.docs.json` follow the documented
 /// schema for events a headless run can't trigger. Paths are anonymized.
 enum Fixtures {
-    static func payload(_ agent: String, _ name: String) throws -> JSONValue {
+    static func resource(_ folder: String, _ name: String) throws -> JSONValue {
         let url = try #require(Bundle.module.url(forResource: "Fixtures", withExtension: nil))
-            .appendingPathComponent(agent).appendingPathComponent(name + ".json")
+            .appendingPathComponent(folder).appendingPathComponent(name + ".json")
         return try #require(JSONValue.parse(try Data(contentsOf: url)))
+    }
+
+    static func payload(_ agent: String, _ name: String) throws -> JSONValue {
+        try resource(agent, name)
     }
 
     static func event(_ agent: AgentKind, _ name: String) throws -> AgentEvent {

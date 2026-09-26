@@ -19,6 +19,9 @@ final class MenuBarDrawerStore: NSObject {
     let iconCapture = MenuBarIconCapture()
     @ObservationIgnored private let menuPresenter = MenuBarMenuPresenter()
     var hasIconAccess: Bool { iconCapture.hasAccess }
+    /// macOS 26 can capture and hide individual status items. macOS 27's shared host cannot do so
+    /// reliably, so it uses stable application/system icons and needs no Screen Recording permission.
+    var requiresIconAccess: Bool { support.hiding }
     var isPerformingMenuBarInteraction: Bool {
         activationTask != nil || movementTask != nil || menuSessionTask != nil
     }
@@ -270,10 +273,10 @@ final class MenuBarDrawerStore: NSObject {
         enabled = value
         defaults.set(value, forKey: "drawer.enabled")
         if value {
-            if !hasAccess || !hasIconAccess { monitorAccess() }
+            if !hasAccess || (requiresIconAccess && !hasIconAccess) { monitorAccess() }
             // Enabling Drawer is the explicit user gesture that authorizes requesting
-            // its two required permissions; don't defer the image permission until a tile click.
-            if !hasIconAccess { requestIconAccess() }
+            // the permissions required on this OS; don't defer them until a tile click.
+            if requiresIconAccess, !hasIconAccess { requestIconAccess() }
             if !hasAccess { requestAccess() }
             if hasAccess {
                 installSection()
@@ -339,10 +342,8 @@ final class MenuBarDrawerStore: NSObject {
             self.isLoading = false
             self.scanTask = nil
             self.lastScan = .now
-            if self.enabled, let boundary = self.separatorFrame {
-                self.selectedIDs = Set(result.filter {
-                    DrawerGeometry.isBeforeSeparator($0.frame, separator: boundary)
-                }.map(\.id))
+            if self.enabled, let selection = self.selectionAfterScanning(result) {
+                self.selectedIDs = selection
             }
             if self.hideAfterScan {
                 self.hideAfterScan = false
@@ -390,10 +391,10 @@ final class MenuBarDrawerStore: NSObject {
         iconCapture.images[entry.id]
     }
 
-    /// The image the strip shows for an item, never a placeholder: its captured glyph; once a capture pass
-    /// couldn't read it, a symbol for macOS's own items or the owning app's icon; otherwise nil (skip it).
-    /// Items whose capture is still pending are skipped too, so the strip doesn't flash a fallback.
+    /// macOS 26 shows the captured status glyph and waits while it is pending. Newer systems use a stable
+    /// system/app identity because their shared menu-bar host cannot reliably expose per-item pixels.
     func stripIcon(for entry: MenuBarEntry) -> NSImage? {
+        if !requiresIconAccess { return stableCatalogIcon(for: entry) }
         let source = MenuBarGlyphFallback.source(
             for: entry, hasCapture: iconCapture.images[entry.id] != nil,
             captureFailed: iconCapture.failedIDs.contains(entry.id),
@@ -402,16 +403,29 @@ final class MenuBarDrawerStore: NSObject {
         return image(for: entry, source: source)
     }
 
-    /// Settings must list every item so it can be arranged, so pending captures fall back immediately
-    /// and an item without any icon of its own gets the generic application icon.
+    /// Settings must list every item so it can be arranged. macOS 26 uses actual status pixels; newer
+    /// systems consistently use system symbols and application icons, without changing after overflow opens.
     func settingsIcon(for entry: MenuBarEntry) -> NSImage {
-        let source = MenuBarGlyphFallback.source(
-            for: entry, hasCapture: iconCapture.images[entry.id] != nil, captureFailed: true,
-            hasApplicationIcon: applicationIcon(for: entry) != nil
-        )
-        return image(for: entry, source: source) ?? MenuBarGlyphFallback.glyph(
-            fromApplicationIcon: NSWorkspace.shared.icon(for: .application)
-        )
+        if !requiresIconAccess { return stableCatalogIcon(for: entry) }
+        if let captured = iconCapture.images[entry.id] { return captured }
+        if let symbol = MenuBarAccessibility.systemSymbol(for: entry),
+           let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) {
+            return image
+        }
+        return NSImage(systemSymbolName: "questionmark", accessibilityDescription: "Icon unavailable")
+            ?? NSImage(size: CGSize(width: MenuBarGlyph.box, height: MenuBarGlyph.box))
+    }
+
+    /// Shared menu-bar hosts can return another item's pixels or no pixels at all. Use one stable,
+    /// recognisable representation for the lifetime of the catalog instead of changing after overflow opens.
+    private func stableCatalogIcon(for entry: MenuBarEntry) -> NSImage {
+        if let symbol = MenuBarAccessibility.systemSymbol(for: entry),
+           let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) {
+            return image
+        }
+        return applicationIcon(for: entry)
+            ?? NSImage(systemSymbolName: "questionmark", accessibilityDescription: "Icon unavailable")
+            ?? NSImage(size: CGSize(width: MenuBarGlyph.box, height: MenuBarGlyph.box))
     }
 
     private func image(for entry: MenuBarEntry, source: MenuBarGlyphFallback.Source) -> NSImage? {
@@ -459,7 +473,7 @@ final class MenuBarDrawerStore: NSObject {
     /// Captures glyphs for the current catalog without rescanning it. Cached, unchanged glyphs are
     /// kept; while the Drawer is visible, glyphs older than `glyphMaxAge` are renewed.
     func refreshIcons(force: Bool = false) {
-        guard iconTask == nil, !entries.isEmpty else { return }
+        guard requiresIconAccess, iconTask == nil, !entries.isEmpty else { return }
         iconTask = Task { [weak self] in
             guard let self else { return }
             await self.captureIcons(for: self.entries, force: force)
@@ -468,6 +482,7 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     private func captureIcons(for entries: [MenuBarEntry], force: Bool = false) async {
+        guard requiresIconAccess else { return }
         await iconCapture.refresh(entries: entries, appearance: glyphAppearance,
                                   maxAge: isVisible ? Self.glyphMaxAge : nil, force: force)
     }
@@ -490,11 +505,17 @@ final class MenuBarDrawerStore: NSObject {
         if entries != newEntries { entries = newEntries }
     }
 
-    /// The two settings zones represent the real native order, never an optimistic selection.
-    /// macOS persists status-item positions; a failed gesture leaves all icons visible.
-    func move(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry? = nil) {
+    /// On systems where the divider can hide a native group, the two settings zones mirror that
+    /// native order. Newer systems cannot hide the group, so membership is deliberately logical:
+    /// the chosen item remains in the menu bar and is also available from Altillo.
+    @discardableResult
+    func move(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry? = nil) -> Bool {
         checkAccess()
-        guard enabled, support.arranging, hasAccess, movementTask == nil, activationTask == nil else { return }
+        guard enabled, support.arranging, hasAccess,
+              movementTask == nil, activationTask == nil, menuSessionTask == nil else { return false }
+        if !support.hiding {
+            return moveLogically(entry, toDrawer: toDrawer, before: target)
+        }
         scanTask?.cancel()
         scanTask = nil
         movingEntryID = entry.id
@@ -606,6 +627,39 @@ final class MenuBarDrawerStore: NSObject {
             }
             if !self.selectedIDs.isEmpty { self.collapseSection() }
         }
+        return true
+    }
+
+    /// macOS 27's shared menu-bar host does not provide a stable separator boundary. A logical
+    /// selection is both reliable and honest: Settings already explains that the native icon stays put.
+    private func moveLogically(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry?) -> Bool {
+        guard entries.contains(where: { $0.id == entry.id }) else { return false }
+        problem = nil
+        let currentOrder = drawerEntries.map(\.id)
+        if toDrawer {
+            chosenIDs.insert(entry.id)
+            selectedIDs.insert(entry.id)
+            drawerOrder = DrawerOrder.moving(entry.id, before: target?.id, in: currentOrder)
+        } else {
+            chosenIDs.remove(entry.id)
+            selectedIDs.remove(entry.id)
+            drawerOrder.removeAll { $0 == entry.id }
+        }
+        defaults.set(chosenIDs.sorted(), forKey: "drawer.chosenIDs")
+        defaults.set(drawerOrder, forKey: "drawer.order")
+        return true
+    }
+
+    /// A physical divider is authoritative only where it can actually hide that group. Otherwise,
+    /// keep the persisted logical selection and discard IDs belonging to apps that are no longer running.
+    private func selectionAfterScanning(_ scanned: [MenuBarEntry]) -> Set<String>? {
+        if !support.hiding {
+            return chosenIDs.intersection(scanned.map(\.id))
+        }
+        guard let boundary = separatorFrame else { return nil }
+        return Set(scanned.filter {
+            DrawerGeometry.isBeforeSeparator($0.frame, separator: boundary)
+        }.map(\.id))
     }
 
     /// Reorders the compact Drawer independently from the native menu-bar order.
@@ -802,7 +856,7 @@ final class MenuBarDrawerStore: NSObject {
                 guard !Task.isCancelled, let self else { return }
                 self.checkAccess()
                 self.reconcileIconAccess()
-                if self.hasAccess && self.hasIconAccess { break }
+                if self.hasAccess && (!self.requiresIconAccess || self.hasIconAccess) { break }
             }
             guard !Task.isCancelled else { return }
             self?.permissionTask = nil
@@ -922,8 +976,8 @@ final class MenuBarDrawerStore: NSObject {
 struct DrawerSupport: Equatable, Sendable {
     /// Read menu-bar items through Accessibility, show the strip and open items' menus from it.
     var catalog: Bool
-    /// Rearrange items with the native Command-drag. Each move is re-read through Accessibility and only
-    /// counts once confirmed, so an unverified macOS fails safely.
+    /// Arrange items. Where hiding works this uses a native Command-drag and verifies the resulting order;
+    /// where it does not, Altillo stores logical membership while leaving the native icon in place.
     var arranging: Bool
     /// Hide the chosen group by widening Altillo's divider (only verified on macOS 26).
     var hiding: Bool
@@ -931,9 +985,9 @@ struct DrawerSupport: Equatable, Sendable {
     static let unavailable = DrawerSupport(catalog: false, arranging: false, hiding: false)
     static let full = DrawerSupport(catalog: true, arranging: true, hiding: true)
 
-    /// macOS 26: everything, as verified. macOS 27: the catalog, menus and Command-drag moves work (verified on
-    /// 27.0), but the divider no longer hides anything: MenuBarAgent folds items that don't fit into its own
-    /// overflow menu, and a divider wider than the free space is dropped itself while the icons stay visible.
+    /// macOS 26: everything, as verified. macOS 27: the catalog and menus work, but the divider no longer hides
+    /// anything: MenuBarAgent folds items that don't fit into its own overflow menu, and a divider wider than the
+    /// free space is dropped itself while the icons stay visible. Drawer membership is therefore logical there.
     /// Later versions keep the parts that verify themselves at run time and leave hiding off.
     static func decide(majorVersion: Int) -> DrawerSupport {
         switch majorVersion {

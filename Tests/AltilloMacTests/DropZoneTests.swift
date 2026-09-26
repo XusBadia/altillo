@@ -64,4 +64,31 @@ struct DropZoneTests {
         #expect(items.map(\.kind) == [.text("hola")])
         #expect(shelf.isEmpty)
     }
+
+    @Test func airDropZoneDeliversRawImageAsOwnedCopy() async throws {
+        defer { pasteboard.releaseGlobally() }
+        let root = FileManager.default.temporaryDirectory
+            .appending(path: "AltilloDropZoneTests-\(UUID().uuidString)", directoryHint: .isDirectory)
+        defer { try? FileManager.default.removeItem(at: root) }
+        let view = makeView(zone: .airDrop)
+        view.ingest = FileIngest(inboxRoot: root)
+        pasteboard.clearContents()
+        let pasteboardItem = NSPasteboardItem()
+        pasteboardItem.setData(Data([0x89, 0x50, 0x4e, 0x47]), forType: .png)
+        pasteboard.writeObjects([pasteboardItem])
+        let info = FakeDraggingInfo(pasteboard: pasteboard, mask: .copy)
+
+        let items: [ShelfItem] = await withCheckedContinuation { continuation in
+            view.onAirDrop = { continuation.resume(returning: $0) }
+            #expect(view.performDragOperation(info))
+        }
+
+        let item = try #require(items.first)
+        guard case let .file(url, isOwnedCopy) = item.kind else {
+            Issue.record("expected the image to be ingested as a file")
+            return
+        }
+        #expect(isOwnedCopy)
+        #expect(FileManager.default.fileExists(atPath: url.path))
+    }
 }

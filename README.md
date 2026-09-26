@@ -3,7 +3,7 @@
 > 🇪🇸 Este README está en inglés para llegar a más gente, pero el plan de
 > desarrollo completo está en español: **[PLAN.md](PLAN.md)**.
 
-**Status: actively developed, current version 0.5.0.** Public, notarized
+**Status: actively developed, current version 0.7.1.** Public, notarized
 builds are available from [GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
 with Sparkle auto-update. It's a working app used daily, but still pre-1.0 —
 expect some rough edges and occasional breaking changes.
@@ -11,25 +11,30 @@ expect some rough edges and occasional breaking changes.
 Altillo turns your Mac's notch into a small, useful place at the top of your
 screen:
 
-- **Shelf** — drop files there for a moment, then drag them out wherever you
-  need them (reference, not a permanent home — like Yoink).
+- **Shelf** — drop files there for a moment, then drag them out, share them or
+  send the current selection by AirDrop (reference, not a permanent home — like Yoink).
 - **Ask** — an assistant that runs entirely on your Mac with Apple
   Intelligence and can read what Altillo knows: the files on your shelf, your
   calendar, what's playing and what you copied. Summon it from any app with
   ⌃⌥A; put an answer on the shelf and drag it wherever you need it.
 - **Glances** — the notch grows for a few seconds when something matters (a
   meeting in five minutes, a new song if you want it) and goes back on its own.
+- **Now Playing** — control the active system media session, including its
+  artwork and progress; Apple's Music app and Spotify have a compatibility fallback.
 - **AI usage** — how much of your Claude / Codex / … quota you have left, at a
   glance.
 - **Live agents** — see your AI coding agents (Claude Code, Codex, …) working,
   waiting for a permission, or done, and approve or deny requests right from
   the notch.
+- **Keep Awake** — explicitly keep the Mac awake for 30 minutes, one hour, two
+  hours or until you stop it; the display may still turn off and nothing is
+  restored after relaunch.
 - **Drawer** — keep the menu bar icons you choose in a compact shelf above Altillo's navigation and open their menus from there. Configure it by dragging icons between the Altillo and Menu Bar zones; hiding is available on macOS 26 and requires Accessibility access. [Setup and limitations](docs/cajon.md).
-- **iPhone/iPad companion** — the same modules, adapted to iOS/iPadOS, with
-  Live Activities in the Dynamic Island for your agents.
+- **iPhone/iPad groundwork** — app and widget targets compile, but the mobile
+  companion and Live Activities are placeholders, not shipped features yet.
 
-Altillo is a native macOS 26 app (Swift 6), with a matching iOS/iPadOS app,
-widgets, and a small CLI used by AI agent hooks. See [PLAN.md](PLAN.md) for
+Altillo is a native macOS 26 app (Swift 6), with iOS/iPadOS and widget
+scaffolds plus a small CLI used by AI agent hooks. See [PLAN.md](PLAN.md) for
 the full plan: principles, module design, phases, and open decisions.
 
 ## Screenshots
@@ -154,8 +159,8 @@ altillo/
 │  └─ AltilloDesign      design tokens, shared components (rings, bars, chips)
 ├─ Apps/
 │  ├─ macOS/             Altillo.app (the notch)
-│  ├─ iOS/               Altillo for iPhone and iPad (universal)
-│  ├─ Widgets/           WidgetKit + ActivityKit (Live Activities)
+│  ├─ iOS/               iPhone/iPad placeholder target (not shipped yet)
+│  ├─ Widgets/           WidgetKit + ActivityKit placeholder target
 │  └─ Hook/               altillo-hook: CLI bundled in Altillo.app, used by agent hooks
 ├─ Tests/                per-package tests and UI tests
 ├─ docs/                 research, decisions, and dev guides

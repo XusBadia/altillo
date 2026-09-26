@@ -99,7 +99,7 @@ test('English demo translates actions, outcomes and accessibility names througho
   await expect(demo.getByRole('meter', { name: 'Codex weekly usage' })).toHaveAttribute('aria-valuenow', '58');
   await demo.getByRole('button', { name: 'Close Altillo' }).click();
   await demo.getByRole('button', { name: /Request permission to continue/ }).click();
-  await expect(demo.getByText('Simulated request · feature in development')).toBeVisible();
+  await expect(demo.getByText('Sample request · you decide; Altillo never auto-approves')).toBeVisible();
   await demo.getByRole('button', { name: 'Allow', exact: true }).click();
   await expect(demo.getByRole('status')).toHaveText('Permission granted in the demo.');
   await expect(demo.locator('.ad-terminal-result')).toContainText('Changes published in the demo.');

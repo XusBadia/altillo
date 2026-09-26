@@ -92,6 +92,9 @@ struct DrawerGeometryTests {
     @Test func macOS26KeepsEveryVerifiedFeature() {
         #expect(DrawerSupport.decide(majorVersion: 26) == .full)
         #expect(!DrawerSupport.decide(majorVersion: 26).isPartial)
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26).requiresIconAccess)
     }
 
     @Test func macOS27KeepsTheStripMenusAndMovesButNotHiding() {
@@ -100,6 +103,9 @@ struct DrawerGeometryTests {
         #expect(support.arranging)
         #expect(!support.hiding)
         #expect(support.isPartial)
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+        #expect(!MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).requiresIconAccess)
     }
 
     @Test func laterVersionsStayConservative() {

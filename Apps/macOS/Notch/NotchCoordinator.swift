@@ -23,6 +23,7 @@ final class NotchCoordinator {
     private var displayMode: DisplayMode = .notch
     private var appliedScreenSettings: (mode: DisplayMode, fullScreen: FullScreenBehaviour)?
     private let input = InputMonitor()
+    private let sharingController = SharingController()
     private lazy var dragDetector = DragDetector(callbacks: .init(
         began: { [weak self] in
             // A new drag starts far away until it reports where it is (a stale value would flash the notch over a
@@ -92,6 +93,8 @@ final class NotchCoordinator {
             },
             revealInFinder: { items in NSWorkspace.shared.activateFileViewerSelecting(items.compactMap(\.fileURL)) },
             quickLook: { items in QuickLookPresenter.show(items.compactMap(\.fileURL)) },
+            share: { [weak self] items in self?.showSharePicker(for: items) },
+            airDrop: { [weak self] items in self?.sendViaAirDrop(items, cleanupOwnedCopies: false) },
             openSettings: { SettingsWindowController.shared.show() },
             openDrawerSettings: { SettingsWindowController.shared.show(tab: .drawer) },
             addToShelf: { [weak self] items in self?.add(items) },
@@ -140,6 +143,8 @@ final class NotchCoordinator {
         // Kitchen timers (phase 12): running ones come back from disk and ring with the notch closed.
         model.timers.postAlert = { [weak self] alert in self?.post(alert) }
         model.timers.start()
+        // Keep Awake only observes lifecycle events here; an assertion starts solely after an explicit button tap.
+        model.keepAwake.start()
         // `-openModule usage` (with `-openAltillo YES`) opens on that section: reviews of live data without a click.
         if let name = UserDefaults.standard.string(forKey: "openModule"), let module = NotchModule(rawValue: name),
            model.settings.modules.contains(module) {
@@ -204,6 +209,7 @@ final class NotchCoordinator {
         model.usage.stop()
         model.agentHub.stop()
         model.timers.stop()
+        model.keepAwake.stop()
         input.stop()
         dragDetector.stop()
         model.drawer.stop()
@@ -579,24 +585,26 @@ final class NotchCoordinator {
         model.assistant.requestFocus()
     }
 
-    private func sendViaAirDrop(_ items: [ShelfItem]) {
+    private func sendViaAirDrop(_ items: [ShelfItem], cleanupOwnedCopies: Bool = true) {
         model.isReceivingDrop = false
-        let payload: [Any] = items.compactMap { item in
-            switch item.kind {
-            case let .file(url, _): url
-            case let .link(url): url
-            case let .text(text): text
-            }
-        }
         send(.escape)
-        guard !payload.isEmpty, let service = NSSharingService(named: .sendViaAirDrop), service.canPerform(withItems: payload) else {
+        guard sharingController.sendViaAirDrop(items, cleanupOwnedCopies: cleanupOwnedCopies) else {
             SpikeLog.shared.record(SpikeLog.Category.drop, "AirDrop unavailable for \(items.count) item(s)")
             NSSound.beep()
             return
         }
         SpikeLog.shared.record(SpikeLog.Category.drop, "AirDrop: sending \(items.count) item(s)")
         NSApp.activate()
-        service.perform(withItems: payload)
+    }
+
+    private func showSharePicker(for items: [ShelfItem]) {
+        guard let anchor = window?.panel.contentView,
+              sharingController.showSharePicker(for: items, relativeTo: anchor)
+        else {
+            NSSound.beep()
+            return
+        }
+        NSApp.activate()
     }
 
     /// Altillo accepted a drop: end the drag right away instead of waiting for a mouse-up the global monitor
@@ -900,6 +908,8 @@ final class NotchCoordinator {
         // Usage refreshes while its section is on, or while something publishes the numbers (the iPhone).
         model.usage.setSectionEnabled(settings.modules.contains(.usage))
         model.usage.providersMayHaveChanged()
+        // Putting the section away is an explicit stop and must immediately release the power assertion.
+        model.keepAwake.setModuleEnabled(settings.modules.contains(.keepAwake))
         if appliedScreenSettings?.mode != settings.displayMode
             || appliedScreenSettings?.fullScreen != settings.fullScreenBehaviour {
             appliedScreenSettings = (settings.displayMode, settings.fullScreenBehaviour)

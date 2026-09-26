@@ -199,7 +199,7 @@ final class NotchEditSession {
         case .nowPlaying: .nowPlaying
         case .usage: .usage
         case .agents: .agents
-        case .assistant, .mirror, .timer, .note, .clipboard, .shortcuts: nil
+        case .assistant, .mirror, .timer, .note, .clipboard, .shortcuts, .keepAwake: nil
         }
     }
 

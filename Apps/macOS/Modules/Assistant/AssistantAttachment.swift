@@ -129,17 +129,7 @@ enum AssistantAttachments {
     /// Only ever inside Altillo's Inbox (like `ShelfStore.removeOwnedFiles`): anything else is left alone.
     @discardableResult
     static func discardCopy(at url: URL, inboxRoot: URL = FileIngest.standard.inboxRoot) -> Bool {
-        let root = FileIngest.canonicalPath(inboxRoot)
-        let path = FileIngest.canonicalPath(url)
-        guard path != root, FileIngest.isInside(path, root) else { return false }
-        let manager = FileManager.default
-        try? manager.removeItem(at: url)
-        let slot = url.deletingLastPathComponent()
-        guard FileIngest.canonicalPath(slot) != root else { return true }
-        if (try? manager.contentsOfDirectory(atPath: slot.path(percentEncoded: false)))?.isEmpty == true {
-            try? manager.removeItem(at: slot)
-        }
-        return true
+        OwnedInboxCopy.discard(at: url, inboxRoot: inboxRoot)
     }
 
     // MARK: - Images

@@ -50,6 +50,7 @@ final class NotchModel {
     let note = NoteStore()
     let clipboard = ClipboardStore()
     let shortcuts = ShortcutsStore()
+    let keepAwake = KeepAwakeStore()
     let drawer = MenuBarDrawerStore.shared
     /// AI usage: the numbers behind the usage section, its ear and alerts, and Ask's `usage` tool.
     let usage: UsageStore
@@ -172,6 +173,10 @@ struct NotchActions {
     var open: (ShelfItem) -> Void = { _ in }
     var revealInFinder: ([ShelfItem]) -> Void = { _ in }
     var quickLook: ([ShelfItem]) -> Void = { _ in }
+    /// Opens macOS's standard sharing services for the current shelf selection.
+    var share: ([ShelfItem]) -> Void = { _ in }
+    /// Sends the current shelf selection straight to AirDrop without removing it from the shelf.
+    var airDrop: ([ShelfItem]) -> Void = { _ in }
     var openSettings: () -> Void = {}
     var openDrawerSettings: () -> Void = {}
     /// Puts things on the shelf from inside Altillo (an answer from the assistant, say), with the landing.

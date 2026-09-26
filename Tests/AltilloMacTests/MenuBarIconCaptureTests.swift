@@ -215,6 +215,21 @@ struct MenuBarIconCaptureTests {
         #expect(pixels.height < source.height)
     }
 
+    @Test @MainActor func blankOpaqueSharedMenuBarCropIsNeverShownAsASquare() throws {
+        let context = try #require(CGContext(
+            data: nil, width: 32, height: 24, bitsPerComponent: 8, bytesPerRow: 32 * 4,
+            space: CGColorSpaceCreateDeviceRGB(),
+            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue
+        ))
+        context.setFillColor(gray: 0.96, alpha: 1)
+        context.fill(CGRect(x: 0, y: 0, width: 32, height: 24))
+        let source = try #require(context.makeImage())
+
+        #expect(MenuBarIconCapture.normalizedGlyph(
+            from: source, scale: 2, removesOpaqueBackground: true
+        ) == nil)
+    }
+
     // MARK: - Glyph cache
 
     private func cacheEntry(_ id: String = "status", width: CGFloat = 24, x: CGFloat = 500) -> MenuBarEntry {

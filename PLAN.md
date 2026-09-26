@@ -5,7 +5,8 @@
 > - cuánto te queda de tus agentes de IA y qué están haciendo ahora mismo;
 > - los iconos de la barra de menú que el notch esconde.
 >
-> En iPhone y iPad, Altillo es la misma app adaptada: uso de IA, agentes en vivo en la Dynamic Island y widgets.
+> La app entregada hoy es la de Mac. Los targets de iPhone, iPad y widgets son
+> scaffolds que compilan; la companion, la Dynamic Island y los widgets siguen planificados.
 >
 > Soporte: [investigación](docs/investigacion.md) · [uso de IA](docs/uso-ia.md) · [agentes en vivo](docs/agentes-en-vivo.md) · [barra de menú](docs/barra-de-menu.md) · [OmniNotch](docs/omninotch.md)
 
@@ -19,7 +20,7 @@
 | Distribución | Open source MIT. En Mac: Developer ID + notarización + Sparkle, **sin sandbox**, hardened runtime. En iOS: TestFlight / App Store. Team `9L2TD7KVV9` |
 | Versiones | **macOS 26 mínimo, probado en 26 y 27** (macOS 27 salió el 14-09-2026). iOS/iPadOS 26 mínimo |
 | Shelf | Referencia + mover al sacar (estilo Yoink). Lo temporal se copia |
-| Módulos | Shelf · **Pregunta** (asistente on-device) · Uso de IA · **Agentes en vivo** · Iconos de la barra de menú · AirDrop/compartir · Now Playing · Calendario · Espejo |
+| Módulos | Shelf · **Pregunta** (asistente on-device) · Uso de IA · **Agentes en vivo** · Iconos de la barra de menú · AirDrop/compartir · Now Playing · Calendario · Espejo · Utilidades (incluido Mantener despierto) |
 | UX | **Prioridad máxima.** Personalizable, con edición directa del notch y buenos defaults. Estética **«Desván»: cálida y skeuomórfica** (§3) |
 | Asistente | **Sí, desde el 22-09-2026**: «Pregunta», con Apple Intelligence (Foundation Models) en el propio Mac y tools sobre el contexto de Altillo. Nunca sale nada del Mac y nunca actúa por su cuenta: lee y responde (§5.7) |
 | Fuera de alcance por ahora | Agente que actúa por ti, HUDs de volumen/brillo, batería, tiempo, bolsa. El portapapeles pasa a la fase 12 como opción |
@@ -260,7 +261,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 | **9. Altillo compartido + iPad** | `ShelfItem` en CloudKit, extensión de compartir en iPhone, shelf en iPad, dashboard de iPad | 5 | 2 semanas |
 | **10. Publicación** | Icono, nombre, bienvenida, web/README, Homebrew Cask, App Store (iOS) | — | 1 semana |
 | **11. Vida: movimiento, avisos y Pregunta (M)** | Apertura «líquida», transiciones con dirección, swipe entre secciones, ⌘1…9, hápticos, avisos en vivo (calendario y música) y el asistente on-device con tools y atajo global (§5.7-5.9) | 1 | 1,5 semanas |
-| **12. Utilidades del altillo (M)** | Temporizador (un reloj de cocina que asoma al sonar), nota rápida, portapapeles de solo texto (opt-in, excluye contraseñas), lanzador de Atajos. Pregunta aprende a usarlos («pon 10 min», «apunta esto») | 11 | 1,5 semanas |
+| **12. Utilidades del altillo (M)** | Temporizador (un reloj de cocina que asoma al sonar), nota rápida, portapapeles de solo texto (opt-in, excluye contraseñas), lanzador de Atajos y Mantener despierto explícito/temporal. Pregunta aprende a usar las utilidades que actúan («pon 10 min», «apunta esto») | 11 | 1,5 semanas |
 | **13. Pregunta con todo el contexto (K+M)** | Los tools de uso y agentes ya llegaron con las fases 3 y 4. Queda: arrastrar un archivo a Pregunta para preguntarle por él, respuestas guardables, acciones (poner un temporizador, crear un recordatorio, responder a un agente) y dictado por voz | 3, 4, 11, 12 | 1 semana |
 | **14. Más agentes (K+M)** | Gemini CLI, Copilot CLI y Cursor CLI (hooks), OpenCode (API de `opencode serve`); responder desde el notch cuando un agente espera tu respuesta | 4 | 1 semana |
 | **15. Primer arranque (M)** | Bienvenida adelantada de la fase 10, ahora que ya hay releases públicas: plantilla, permisos explicados uno a uno (calendario, Automatización, Accesibilidad) solo cuando hacen falta, ofrecer los hooks y detectar qué proveedores de IA hay en el Mac | 4 | 3-4 días |
@@ -269,7 +270,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 
 ### Estado
 
-- **Fases 14, 13, 8, 10 y 7 (26-09-2026, 0.6.0):**
+- **Fases 14, 13, 8, 10 y 7 (26-09-2026, 0.7.1):**
   - **Más agentes (14):** Gemini CLI, Copilot CLI y Cursor por hooks; OpenCode sin instalar nada, por la API de `opencode serve`, con permisos y respuestas desde el notch. Cursor usa hooks y no ACP: ACP solo ve sesiones que abre la propia app.
     - **Responder desde el notch:** cuando un agente acaba su turno, el hook espera tu respuesta. Nunca espera si estás en su terminal, suelta en cuanto vuelves a ella y nunca en ejecuciones sin terminal (`-p`, `exec`, tuberías, editores) ni si Altillo no sabe qué terminal es (tmux, SSH). Activado por defecto en instalaciones nuevas de Claude Code y Codex; Gemini, Copilot y Cursor, opt-in.
     - Revisión independiente con 11 fallos corregidos (carreras de Cursor, colas y reconexión de OpenCode, trabajo en reposo sin OpenCode, desinstalación byte a byte).
@@ -277,9 +278,22 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - **Sonando universal (8):** cualquier app vía `mediaremote-adapter` (BSD-3, en `Vendor/`), que corre dentro de `/usr/bin/perl` porque desde macOS 15.4 MediaRemote solo responde a procesos de Apple. Sin sondeo, el ayudante vive solo mientras hace falta y muere con Altillo; si falla, vuelve a AppleScript con Música y Spotify. Arrastrar para saltar. Verificado en macOS 27.
   - **Publicación (10):** web con descarga y funciones reales (sin desplegar), capturas en el README, cask de Homebrew en `packaging/homebrew` con `script/update-cask.sh`, y [comprobación del nombre](docs/nombre.md). **Pendiente, que haces tú:** la búsqueda de marca en EUIPO/OEPM y decidir si creamos `XusBadia/homebrew-tap`.
   - **Cajón (7):** iconos capturados a la escala de la pantalla y sin reescalar; los monocromos se tiñen como plantillas. **macOS 27:** la barra la dibuja un solo proceso (MenuBarAgent), así que se recortan los iconos de su ventana; la estantería, mover y abrir menús funcionan, pero ocultar no (macOS manda lo que no cabe a su menú «), y se desactiva solo eso. Nunca se dibujan huecos punteados: sin captura, el icono de la app. [Detalle](docs/cajon.md).
+  - **Cierre competitivo (NotchView):** AirDrop retiene sus operaciones y elimina las copias temporales solo al terminar o fallar; el Shelf comparte o envía por AirDrop la selección actual sin retirarla. Nueva utilidad opt-in **Mantener despierto**, sin sondeo, sin impedir que se apague la pantalla y sin restaurarse sola. El spike público de volumen queda en NO-GO hasta verificar Bluetooth, HDMI y la convivencia con el HUD nativo ([evidencia](docs/spikes/volume-hud.md)).
   - **Calidad:** la mano que llama y la flecha de la bienvenida ya no animan sin parar (CPU en reposo con un agente esperando). `script/idle-cpu.sh` mide la CPU en reposo y `script/check-localization.py` impide publicar con textos sin traducir. En macOS 27 los tests se compilan en `/tmp` ([detalle](docs/desarrollo.md)).
-  - CPU en reposo 0,03 % (0,31 % con un agente esperando, antes ~5 %). 716 tests en macOS y 337 en `AltilloKit`, todos en verde, en macOS 27. La app de iOS compila.
+  - CPU en reposo 0,03 % (0,31 % con un agente esperando, antes ~5 %). Los 339 tests de `AltilloKit` pasan en macOS 27. La suite macOS ejecuta 738 tests en 53 suites, todos en verde; incluye 19 tests dirigidos de sharing/AirDrop y 7 de Mantener despierto. La app de iOS compila.
   - **Pendiente, que haces tú:** volver a elegir los iconos del Cajón en Ajustes (en 27 se quedaron del lado de la barra), probar Sonando con Safari o Spotify, un recordatorio real y el dictado, y responder a Claude desde el notch con la terminal detrás.
+
+  **Matriz de aceptación competitiva — 26-09-2026:**
+
+  | Capacidad | Estado | Evidencia / bloqueo concreto |
+  |---|---|---|
+  | Contrato `PermissionRequest` de Codex 0.152.0 | **PASS automático** | Fixture versionado extraído de los esquemas JSON de entrada/salida del binario instalado; tests de allow, deny, timeout/sin decisión y degradación segura de “permitir en la sesión”. No es una captura interactiva. |
+  | Permitir/denegar Codex desde el notch | **BLOCKED físico** | Hace falta abrir Altillo en un Mac con notch, instalar y confiar los hooks con `/hooks`, provocar una petición benigna y elegir ambas respuestas con trackpad. |
+  | Terminal exacta y hold de comando peligroso | **BLOCKED físico** | Hace falta una sesión interactiva real con la terminal detrás y entrada de trackpad; no se sustituye con mocks. |
+  | Sonando: Apple Music, Spotify y tercera app | **BLOCKED físico** | El proveedor universal y su fallback tienen tests, pero falta reproducir y controlar las tres apps en hardware en esta ronda. |
+  | Shelf: archivo, file promise, drag-out, multiselección, compartir, AirDrop y Quick Look | **PASS automático / BLOCKED físico** | 19 tests cubren payloads, selección, operaciones simultáneas y limpieza segura de copias. Falta recorrer el gesto completo con Finder/navegador, picker real, AirDrop y trackpad. |
+  | Calendario: cuenta atrás y Join | **BLOCKED físico** | Falta abrir un evento real con enlace y comprobar el salto a la app/navegador de reunión. |
+  | Claims públicos de macOS | **PASS automático** | README y web describen 0.6.0, Sonando y agentes como entregados; iOS/Dynamic Island/widgets quedan explícitamente como placeholders. La demo sigue marcada como datos/solicitudes de ejemplo y recuerda que Altillo nunca autoaprueba. |
 
 - **Fase 3 (24-09-2026):** implementación terminada y validación automática en verde.
   - **`AltilloUsage`:**
@@ -304,6 +318,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
     - **Nota:** se guarda sola, se arrastra fuera o se sube al altillo, y guarda un historial de 5.
     - **Portapapeles:** solo texto, nunca contraseñas ni nada copiado desde un gestor de contraseñas. El historial se guarda en memoria por defecto. La CPU pasa de 0,11 a 0,14 %.
     - **Atajos:** favoritos y buscador; solo se ejecutan con clic.
+    - **Mantener despierto:** 30 min, 1 h, 2 h o hasta pararlo; usa una sola actividad pública, permite apagar la pantalla, no sondea y nunca se restaura tras relanzar.
   - **Pregunta actúa:** pone temporizadores, apunta en la nota, lee el historial del portapapeles y ejecuta un atajo solo si se lo pides por su nombre. Siempre confirma qué ha hecho y se puede deshacer.
   - Las builds de desarrollo ya no le quitan el enlace del hook a la app instalada.
   - 539 tests en macOS y 305 en `AltilloKit`, todos en verde.
@@ -319,7 +334,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - **Revisión independiente:** no encontró ningún camino que envíe una decisión que el usuario no haya tomado. Se corrigieron la espera sin límite al escribir en el socket, que otra instancia de Altillo pudiera quitarle el socket, y una carrera con `umask`.
   - 459 tests en macOS y 305 en `AltilloKit`, todos en verde.
   - **Pendiente, que haces tú:** instalar los hooks desde Ajustes › Secciones › Agentes, confiar en ellos en Codex con `/hooks`, y probar aprobar desde el notch con un trackpad real.
-  - **Sin verificar en vivo:** los payloads de herramientas y permisos de Codex, porque la cuenta estaba en su límite de uso; se cubren con fixtures del esquema publicado.
+  - **Codex 0.152.0:** el contrato de `PermissionRequest` está comprobado contra los esquemas JSON incrustados en el binario instalado y cubierto por un fixture versionado. Sigue sin verificarse en vivo el recorrido Codex → hook → notch → allow/deny; requiere una sesión interactiva, hooks confiados y hardware, como recoge la matriz anterior.
 
 - **Independencia del uso de IA (24-09-2026, 0.3.1):**
   - Fuera la lectura de otras apps.

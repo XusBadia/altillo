@@ -245,7 +245,16 @@ final class MenuBarIconCapture {
     static func normalizedGlyph(from image: CGImage, scale: CGFloat,
                                 removesOpaqueBackground: Bool = false) -> NSImage? {
         guard scale.isFinite, scale > 0 else { return nil }
-        let source = removesOpaqueBackground ? image.removingUniformOpaqueBorder() ?? image : image
+        let source: CGImage
+        if removesOpaqueBackground {
+            // A shared menu-bar host is opaque. If its background cannot be removed with
+            // confidence, treating the original crop as ink produces the white/black squares
+            // people saw in Settings. Keep the last good glyph and mark this pass unavailable.
+            guard let transparent = image.removingUniformOpaqueBorder() else { return nil }
+            source = transparent
+        } else {
+            source = image
+        }
         guard let bounds = inkBounds(of: source), let cropped = source.cropping(to: bounds) else { return nil }
         let glyph = NSImage(cgImage: cropped, size: CGSize(width: bounds.width / scale, height: bounds.height / scale))
         glyph.isTemplate = isMonochrome(cropped)
@@ -503,8 +512,8 @@ private extension CGImage {
 /// appearance (light/dark, scale) are what change the rendered glyph.
 struct MenuBarGlyphKey: Hashable, Sendable {
     /// Bump when capture or normalization changes, so glyphs taken the old way are replaced.
-    /// 3: common optical sizing and opaque shared-menu-bar background removal.
-    static let version = 3
+    /// 4: reject opaque shared-menu-bar crops whose background cannot be removed safely.
+    static let version = 4
 
     let version = MenuBarGlyphKey.version
     let bundleID: String

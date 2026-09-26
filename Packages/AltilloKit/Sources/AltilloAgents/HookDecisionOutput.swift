@@ -8,9 +8,11 @@ import Foundation
 ///   "allow"|"deny", "updatedPermissions":[…]?, "message":"…"?}}}`. "Allow for this session" echoes the
 ///   request's `permission_suggestions` as `updatedPermissions` with `destination` forced to `session`
 ///   (nothing is ever written to the user's settings files).
-/// - Codex 0.152.0: `{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":
+/// - Codex 0.152.0 (input/output JSON schemas embedded in the installed binary):
+///   `{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":
 ///   "allow"|"deny","message":"…"?}}}`. `updatedPermissions`/`updatedInput`/`interrupt` are reserved and fail
-///   closed, so Codex never gets them; "allow for session" degrades to a plain allow.
+///   closed, so Codex never gets them; "allow for session" degrades to a plain allow. The schema contract is
+///   covered by a versioned test fixture; the interactive Codex → Altillo round trip remains a separate hardware test.
 /// No decision (timeout, the user ignored it, Altillo closed) → print nothing: the agent asks in the terminal.
 public enum HookDecisionOutput {
     public static let denyMessage = "The user denied this from Altillo."

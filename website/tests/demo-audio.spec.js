@@ -1,6 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 async function music(page, path = '/') {
+  // Audio assertions do not exercise scroll motion. Keeping that separate avoids
+  // WebKit changing chapters when a late hero frame shifts the page during playback.
+  await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto(path);
   const step = page.locator('.story-step[data-chapter="day"]');
   await step.evaluate(el => {

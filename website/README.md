@@ -57,7 +57,7 @@ Hay un único escritorio, sin pestañas de demostración, y solo tres capítulos
 
 1. **Archivos y orden:** estante y cajón de la barra de menús.
 2. **Tu día:** calendario, música y espejo.
-3. **IA:** consumo y agentes, marcados como prototipos en desarrollo.
+3. **IA:** consumo y agentes ya disponibles en la app, representados con datos de ejemplo en la demo.
 
 Los botones dentro de cada capítulo permiten probar sus funciones en el mismo notch. El escritorio conserva sus archivos y los estados de los módulos mientras se explora. Una selección manual permanece al hacer pequeños desplazamientos; al llegar al siguiente capítulo, el scroll presenta su módulo inicial.
 
@@ -67,7 +67,7 @@ Arrastra un documento desde Finder al notch y después desde el estante a Entreg
 
 El indicador del notch abre el consumo ficticio de Claude y Codex. La terminal permite pedir un permiso y probar Permitir o Denegar; no se ejecuta ningún comando. Reiniciar devuelve la demo al estado inicial.
 
-El calendario permite probar una invitación de ejemplo; no abre una reunión real. Música ofrece reproducción/pausa y cambio de pista simulados, sin audio. El espejo usa una ilustración de ejemplo y permite reflejarla, sin solicitar acceso a la cámara. El cajón muestra cómo recoger un grupo de iconos y acceder a sus menús.
+El calendario permite probar una invitación de ejemplo; no abre una reunión real. Música ofrece reproducción/pausa, cambio de pista y tres canciones originales de la demo. El espejo usa una ilustración de ejemplo y permite reflejarla, sin solicitar acceso a la cámara. El cajón muestra cómo recoger un grupo de iconos y acceder a sus menús.
 
 Todo sucede con archivos y datos ficticios en memoria. La demo no abre ni sube archivos personales, no conecta cuentas y no envía solicitudes a servicios para realizar las acciones simuladas. La carga de la página solo necesita sus recursos estáticos. Los enlaces externos conducen a GitHub y Aurio.
 
@@ -77,9 +77,9 @@ El póster HTML usa el primer fotograma de la película con el mismo encuadre, t
 
 Los iconos utilizan Phosphor Icons en peso regular. `scripts/build-icons.mjs` genera un sprite SVG con los símbolos usados durante `predev` y `build`. Los iconos de la página funcionan también sin JavaScript. La licencia se sirve en `public/phosphor-LICENSE.txt`.
 
-El consumo de IA y los agentes son prototipos en desarrollo, no integraciones disponibles. La app requiere macOS 26 o posterior; la web no requiere macOS. GitHub permite consultar el proyecto mientras no haya una descarga publicada.
+El consumo de IA y los agentes son integraciones disponibles en la app. En la web usan cifras, proyectos y solicitudes ficticios: permiten probar la interacción, pero no ejecutan comandos ni conectan cuentas. La app requiere macOS 26 o posterior; la web no requiere macOS. La descarga pública, firmada y notarizada, enlaza a la última release de GitHub.
 
-Las descripciones de los demás módulos se contrastaron con sus stores y vistas nativas: calendario lee eventos y enlaces de reunión; música controla Apple Music y Spotify; espejo muestra la cámara sin grabar; cajón requiere Accesibilidad para gestionar los iconos. La web no promete compatibilidad musical universal ni presenta iOS/widgets como funciones terminadas.
+Las descripciones de los demás módulos se contrastaron con sus stores y vistas nativas: calendario lee eventos y enlaces de reunión; Sonando controla la sesión multimedia activa del sistema, con respaldo específico para Música y Spotify; espejo muestra la cámara sin grabar; cajón requiere Accesibilidad para gestionar los iconos. La web no presenta iOS/widgets como funciones terminadas.
 
 ## Procedencia de los recursos
 

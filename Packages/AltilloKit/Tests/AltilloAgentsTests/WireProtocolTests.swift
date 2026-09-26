@@ -312,4 +312,43 @@ struct HookDecisionOutputTests {
         let deny = try #require(try decision(.codex, .deny, "PermissionRequest-Bash.docs"))
         #expect(deny.value(at: "hookSpecificOutput.decision")?.object?.keys.sorted() == ["behavior", "message"])
     }
+
+    @Test func codexOutputsMatchTheInstalled0152SchemaContract() throws {
+        let contract = try Fixtures.resource("contracts", "CodexPermissionRequest-0.152.0")
+        #expect(contract.value(at: "provenance.version")?.string == "0.152.0")
+        #expect(contract.value(at: "provenance.live_interactive_capture")?.bool == false)
+
+        let payload = try #require(contract["input"])
+        let event = try #require(HookPayloadParser.parse(agent: .codex, eventName: nil, payload: payload))
+        guard case .permissionRequested(let call, let suggestions) = event.kind else {
+            Issue.record("installed-schema fixture did not parse as a permission request")
+            return
+        }
+        #expect(call.name == "Bash")
+        #expect(call.command == "touch harmless-validation-file.txt")
+        #expect(suggestions.isEmpty)
+
+        let allow = try #require(HookDecisionOutput.output(agent: .codex, decision: .allow, payload: payload)
+            .flatMap(JSONValue.parse))
+        let deny = try #require(HookDecisionOutput.output(agent: .codex, decision: .deny, payload: payload)
+            .flatMap(JSONValue.parse))
+        #expect(allow == contract.value(at: "accepted_outputs.allow"))
+        #expect(deny == contract.value(at: "accepted_outputs.deny"))
+
+        let allowForSession = try #require(HookDecisionOutput.output(agent: .codex, decision: .allowForSession,
+                                                                     payload: payload).flatMap(JSONValue.parse))
+        #expect(allowForSession == allow)
+        let decision = try #require(allowForSession.value(at: "hookSpecificOutput.decision")?.object)
+        let reserved = Set(contract["reserved_decision_fields"]?.array?.compactMap(\.string) ?? [])
+        #expect(reserved.isDisjoint(with: decision.keys))
+        #expect(HookDecisionOutput.output(agent: .codex, decision: .none, payload: payload) == nil)
+    }
+
+    @Test func codexContractFixtureIsSanitized() throws {
+        let contract = try Fixtures.resource("contracts", "CodexPermissionRequest-0.152.0")
+        let text = String(decoding: contract.data, as: UTF8.self)
+        #expect(!text.contains(NSHomeDirectory()))
+        #expect(!text.localizedCaseInsensitiveContains("token"))
+        #expect(!text.contains("@"))
+    }
 }

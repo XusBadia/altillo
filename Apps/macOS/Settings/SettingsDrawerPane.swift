@@ -8,10 +8,12 @@ struct SettingsDrawerPane: View {
     @State private var drawerIsTargeted = false
     @State private var menuBarIsTargeted = false
     @State private var dropTargetEntryID: String?
+    @State private var selectedEntryID: String?
     @FocusState private var focusedEntryID: String?
 
     private var canMove: Bool {
-        store.enabled && store.hasAccess && store.support.arranging && store.movingEntryID == nil
+        store.enabled && store.hasAccess && store.support.arranging
+            && store.movingEntryID == nil && !store.isPerformingMenuBarInteraction
     }
 
     private var movingEntry: MenuBarEntry? {
@@ -45,6 +47,12 @@ struct SettingsDrawerPane: View {
         }
         .onAppear { store.setVisible(true, for: .settings) }
         .onDisappear { store.setVisible(false, for: .settings) }
+        .onChange(of: store.movingEntryID) { previous, current in
+            // A native Command-drag necessarily activates the menu bar. Once macOS has
+            // finished it, return the window the user was arranging to the foreground.
+            guard previous != nil, current == nil else { return }
+            SettingsWindowController.shared.show(tab: .drawer)
+        }
     }
 
     private var enableCard: some View {
@@ -94,7 +102,7 @@ struct SettingsDrawerPane: View {
             inactiveCard
         } else if !store.hasAccess {
             permissionCard
-        } else if !store.hasIconAccess {
+        } else if store.requiresIconAccess && !store.hasIconAccess {
             iconPermissionCard
         } else {
             if store.support.isPartial { partialSupportCard }
@@ -329,7 +337,7 @@ struct SettingsDrawerPane: View {
         let actionTitle = moveToDrawer ? "Move to Altillo" : "Move to Menu Bar"
 
         let draggableCell = Button {
-            store.activate(entry, anchor: anchor)
+            selectedEntryID = entry.id
         } label: {
             ZStack {
                 RoundedRectangle(cornerRadius: 7, style: .continuous)
@@ -371,17 +379,19 @@ struct SettingsDrawerPane: View {
         return draggableCell
         .contextMenu { entryMenu(for: entry, destination: destination, anchor: anchor) }
         .focusable()
+        .focusEffectDisabled()
         .focused($focusedEntryID, equals: entry.id)
         .accessibilityElement(children: .ignore)
         .accessibilityAddTraits(.isButton)
+        .accessibilityAddTraits(selectedEntryID == entry.id ? .isSelected : [])
         .accessibilityLabel("\(displayName(for: entry)), \(entry.application.name), in \(destination.title)")
         .accessibilityHint(destination == .drawer
-            ? "Click to open its menu. Drag to reorder or move this icon."
-            : "Click to open its menu. Drag to move this icon.")
+            ? "Selects this icon. Drag to reorder or move it. Open its menu from the shortcut menu."
+            : "Selects this icon. Drag to move it. Open its menu from the shortcut menu.")
         .help("\(displayName(for: entry)) · \(entry.application.name)")
         .accessibilityAction {
             guard store.movingEntryID == nil else { return }
-            store.activate(entry, anchor: anchor)
+            selectedEntryID = entry.id
         }
         .accessibilityAction(named: Text(actionTitle)) {
             guard canMove else { return }
@@ -422,20 +432,21 @@ struct SettingsDrawerPane: View {
     }
 
     private func cellBackground(_ entry: MenuBarEntry) -> Color {
-        if dropTargetEntryID == entry.id { return Desvan.Palette.bulb.opacity(0.16) }
-        if focusedEntryID == entry.id { return Desvan.Palette.paper.opacity(0.08) }
+        if dropTargetEntryID == entry.id { return Desvan.Palette.bulb.opacity(0.24) }
+        if selectedEntryID == entry.id { return Desvan.Palette.bulb.opacity(0.30) }
+        if focusedEntryID == entry.id { return Desvan.Palette.paper.opacity(0.10) }
         return Desvan.Palette.plank.opacity(0.72)
     }
 
     private func cellBorder(_ entry: MenuBarEntry) -> Color {
-        if dropTargetEntryID == entry.id || focusedEntryID == entry.id {
+        if dropTargetEntryID == entry.id {
             return Desvan.Palette.bulb.opacity(0.85)
         }
         return Desvan.Palette.hairlineStrong
     }
 
     private func cellBorderWidth(_ entry: MenuBarEntry) -> CGFloat {
-        dropTargetEntryID == entry.id || focusedEntryID == entry.id ? 1 : 0.75
+        dropTargetEntryID == entry.id ? 1 : 0.75
     }
 
     private func handleDrop(_ entry: MenuBarEntry, in destination: Destination,
@@ -445,8 +456,7 @@ struct SettingsDrawerPane: View {
             if toDrawer { store.reorderDrawerEntry(entry, before: target) }
             return true
         }
-        store.move(entry, toDrawer: toDrawer, before: toDrawer ? target : nil)
-        return true
+        return store.move(entry, toDrawer: toDrawer, before: toDrawer ? target : nil)
     }
 
     private func canReorder(_ entry: MenuBarEntry, offset: Int) -> Bool {

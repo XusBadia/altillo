@@ -44,7 +44,7 @@ test('shows both usage providers and closes the panel with Escape', async ({ pag
   await expect(demo.getByRole('img', { name: 'Codex: 34% consumido' })).toBeVisible();
   await expect(demo.getByRole('meter', { name: 'Consumo semanal de Claude' })).toHaveAttribute('aria-valuenow', '41');
   await expect(demo.getByRole('meter', { name: 'Consumo semanal de Codex' })).toHaveAttribute('aria-valuenow', '58');
-  await expect(demo.getByText('Consumo de ejemplo · función en desarrollo')).toBeVisible();
+  await expect(demo.getByText('Consumo de ejemplo · datos locales en la app')).toBeVisible();
   await trigger.press('Escape');
   await expect(trigger).toHaveAttribute('aria-expanded', 'false');
   await expect(demo.locator('.ad-notch-panel')).toBeHidden();
@@ -56,7 +56,7 @@ test('allows and denies simulated requests and resets desktop state', async ({ p
   await demo.getByRole('button', { name: 'Subir al estante' }).click();
   await demo.getByRole('button', { name: 'Cerrar Altillo' }).click();
   await demo.getByRole('button', { name: /Pedir permiso para continuar/ }).click();
-  await expect(demo.getByText('Solicitud simulada · función en desarrollo')).toBeVisible();
+  await expect(demo.getByText('Solicitud de ejemplo · tú decides; Altillo nunca autoaprueba')).toBeVisible();
   await demo.getByRole('button', { name: 'Permitir', exact: true }).click();
   await expect(demo.getByText('El agente puede continuar.')).toBeVisible();
   await expect(demo.locator('.ad-terminal-result')).toContainText('Cambios publicados en la demo');

@@ -201,7 +201,8 @@ struct NotchChrome: Equatable {
         case .assistant: return ExpandedContent.assistant
         case .calendar:
             return model.settings.calendarStyle == .agenda ? ExpandedContent.module : ExpandedContent.calendarMonth
-        case .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts: return ExpandedContent.module
+        case .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .keepAwake:
+            return ExpandedContent.module
         }
     }
 

@@ -3,6 +3,13 @@ import AltilloDesign
 import AppKit
 import SwiftUI
 
+enum ShelfSelection {
+    /// Context menus act on the visible Finder-style selection when the clicked item belongs to it.
+    static func targets(for item: ShelfItem, selection: Set<ShelfItem.ID>, in shelf: [ShelfItem]) -> [ShelfItem] {
+        selection.contains(item.id) ? shelf.filter { selection.contains($0.id) } : [item]
+    }
+}
+
 /// The shelf tab: things left on a plank, each standing on the board with its name written on the wall below it.
 /// Finder-like selection (click, ⌘-click, ⇧-click), double-click opens, context menu, drag out with `shelfDraggable`.
 struct DesvanShelfView: View {
@@ -192,7 +199,7 @@ struct DesvanShelfView: View {
     }
 
     private func targets(for item: ShelfItem) -> [ShelfItem] {
-        model.selection.contains(item.id) ? selectedItems : [item]
+        ShelfSelection.targets(for: item, selection: model.selection, in: model.shelf)
     }
 
     /// Finder semantics: click selects, ⌘-click toggles, ⇧-click extends from the anchor, double-click opens.
@@ -397,6 +404,10 @@ private struct DesvanShelfTile: View {
             Button("Show in Finder") { model.actions.revealInFinder(items) }
             Button("Quick Look") { model.actions.quickLook(items) }
         }
+        Button("Share…") { model.actions.share(items) }
+            .accessibilityLabel(items.count > 1 ? "Share \(items.count) items" : "Share")
+        Button("AirDrop") { model.actions.airDrop(items) }
+            .accessibilityLabel(items.count > 1 ? "AirDrop \(items.count) items" : "AirDrop")
         Divider()
         Button(items.count > 1 ? "Take \(items.count) things down" : "Take it down", role: .destructive) {
             model.actions.remove(Set(items.map(\.id)))

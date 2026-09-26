@@ -1,0 +1,54 @@
+{
+  "provenance": {
+    "product": "codex-cli",
+    "version": "0.152.0",
+    "source": "permission-request.command.input/output JSON schemas embedded in the locally installed Codex binary",
+    "checked_on": "2026-09-26",
+    "live_interactive_capture": false
+  },
+  "input": {
+    "session_id": "01a0d551-386c-70f1-83e7-4c541bb1ad08",
+    "turn_id": "01a0d551-3974-7eb0-a0b9-c81176a918af",
+    "transcript_path": "/Users/me/.codex/sessions/2026/09/26/rollout-demo.jsonl",
+    "cwd": "/Users/me/Projects/demo",
+    "model": "gpt-5.6-sol",
+    "permission_mode": "default",
+    "hook_event_name": "PermissionRequest",
+    "tool_name": "Bash",
+    "tool_input": {
+      "command": "touch harmless-validation-file.txt",
+      "description": "Create a harmless validation file"
+    }
+  },
+  "accepted_outputs": {
+    "allow": {
+      "hookSpecificOutput": {
+        "hookEventName": "PermissionRequest",
+        "decision": {
+          "behavior": "allow"
+        }
+      }
+    },
+    "deny": {
+      "hookSpecificOutput": {
+        "hookEventName": "PermissionRequest",
+        "decision": {
+          "behavior": "deny",
+          "message": "The user denied this from Altillo."
+        }
+      }
+    }
+  },
+  "reserved_decision_fields": [
+    "interrupt",
+    "updatedInput",
+    "updatedPermissions"
+  ],
+  "permission_modes": [
+    "default",
+    "acceptEdits",
+    "plan",
+    "dontAsk",
+    "bypassPermissions"
+  ]
+}

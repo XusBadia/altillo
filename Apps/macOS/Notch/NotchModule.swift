@@ -2,7 +2,7 @@ import Foundation
 
 /// A section of the open notch. The shelf is always present; the rest are opt-in and reorderable (PLAN §4).
 enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
-    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts
+    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts, keepAwake
 
     var id: Self { self }
 
@@ -20,6 +20,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .note: String(localized: "Note")
         case .clipboard: String(localized: "Clipboard")
         case .shortcuts: String(localized: "Shortcuts")
+        case .keepAwake: String(localized: "Keep Awake")
         }
     }
 
@@ -36,6 +37,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .note: "note.text"
         case .clipboard: "list.clipboard"
         case .shortcuts: "square.2.layers.3d"
+        case .keepAwake: "cup.and.heat.waves"
         }
     }
 
@@ -53,6 +55,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .note: String(localized: "A quick note you can drag out anywhere.")
         case .clipboard: String(localized: "The last things you copied, text only. Passwords are never kept.")
         case .shortcuts: String(localized: "Your favourite Shortcuts, one click away.")
+        case .keepAwake: String(localized: "Keep your Mac awake for a while, only when you ask.")
         }
     }
 
@@ -63,7 +66,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
     /// update, so the tab strip stays calm. The user adds them from edit mode or Settings.
     var isOptIn: Bool {
         switch self {
-        case .timer, .note, .clipboard, .shortcuts: true
+        case .timer, .note, .clipboard, .shortcuts, .keepAwake: true
         default: false
         }
     }
