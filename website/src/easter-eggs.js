@@ -166,13 +166,7 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
       if (logoTaps.length < 5) return;
       logoTaps = [];
       event.preventDefault();
-      document.body.classList.toggle("egg-night");
-      const night = document.body.classList.contains("egg-night");
-      reveal(
-        "night",
-        message(night ? "La casa se ve mejor cuando duerme el resto." : "La luz vuelve a la escalera.", night ? "The house looks better while the rest sleeps." : "The light returns to the stairs."),
-        { mood: night ? "night" : "door", sticky: true },
-      );
+      toggleNight();
     };
     brand.addEventListener("click", brandHandler);
     cleanups.push(() => brand.removeEventListener("click", brandHandler));
@@ -229,7 +223,8 @@ export function mountEasterEggs({ demoElement, locale = document.documentElement
   function toggleNight() {
     document.body.classList.toggle("egg-night");
     const night = document.body.classList.contains("egg-night");
-    reveal("night", message(night ? "La casa se ve mejor cuando duerme el resto." : "La luz vuelve a la escalera.", night ? "The house looks better while the rest sleeps." : "The light returns to the stairs."), { mood: night ? "night" : "door", sticky: true });
+    document.body.dataset.lastEgg = "night";
+    announce(message(night ? "La casa se ve mejor cuando duerme el resto." : "La luz vuelve a la escalera.", night ? "The house looks better while the rest sleeps." : "The light returns to the stairs."), { mood: night ? "night" : "door", sticky: true });
   }
 
   function processSequence(sequence) {

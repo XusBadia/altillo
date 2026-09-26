@@ -62,6 +62,14 @@ test('the door hotspot receives three real pointer clicks above the hero copy', 
   await expect.poll(() => door.evaluate((node) => getComputedStyle(node, '::before').opacity)).not.toBe('0');
 });
 
+test('the hidden night shortcut really toggles the scene on and off', async ({ page }) => {
+  await page.goto('/');
+  await page.keyboard.press('d');
+  await expect(page.locator('body')).toHaveClass(/egg-night/);
+  await page.keyboard.press('d');
+  await expect(page.locator('body')).not.toHaveClass(/egg-night/);
+});
+
 test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
   await page.goto('/');
   await chapter(page, 'shelf');
