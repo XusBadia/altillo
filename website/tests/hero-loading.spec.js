@@ -56,6 +56,12 @@ for (const path of ["/", "/es/"]) {
     await expect(page.locator(".hero")).toHaveClass(/has-film/);
     await expect(page.locator(".hero-canvas")).toHaveAttribute("data-frame", "0");
     await expect(page.locator(".hero-canvas")).toBeVisible();
+    // Give the browser two paints to settle the new sticky/composited layer.
+    // On busy CI runners, capturing in the activation paint can include a
+    // transient antialiasing state even though the final layout is unchanged.
+    await page.evaluate(() => new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    }));
     const after = await page.locator(".hero-stage").screenshot();
     expect(await openingLayout(page)).toEqual(beforeLayout);
     // The poster and canvas can use slightly different image interpolation.
