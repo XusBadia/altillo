@@ -33,6 +33,16 @@ struct MenuBarItemMoverTests {
         #expect(!up.flags.contains(.maskCommand))
     }
 
+    @Test func nativeDragRevealsAnAutoHiddenMenuBarWithoutLeakingCommand() throws {
+        let source = try #require(CGEventSource(stateID: .privateState))
+        let point = CGPoint(x: 1200, y: 15)
+        let hover = try #require(MenuBarItemMover.hoverEvent(at: point, source: source))
+
+        #expect(hover.type == .mouseMoved)
+        #expect(hover.location == point)
+        #expect(hover.flags.isEmpty)
+    }
+
     @Test func nativeDragTravelsProgressivelyInBothDirectionsWithoutLeavingItsRow() throws {
         for (startX, endX): (CGFloat, CGFloat) in [(1212, 1102), (980, 1118)] {
             let start = CGPoint(x: startX, y: 15)

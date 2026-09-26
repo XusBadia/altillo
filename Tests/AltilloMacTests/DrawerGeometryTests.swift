@@ -109,6 +109,12 @@ struct DrawerGeometryTests {
         #expect(!MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27).requiresIconAccess)
     }
 
+    @Test func crowdedMenuBarRecoveryAlsoCompactsMacOS27Chrome() {
+        #expect(DrawerMovementRecovery.canCompact(.legacy))
+        #expect(DrawerMovementRecovery.canCompact(.overflow))
+        #expect(!DrawerMovementRecovery.canCompact(.unavailable))
+    }
+
     @Test func laterVersionsStayConservative() {
         for version in [28, 29, 40] {
             let support = DrawerSupport.decide(majorVersion: version)

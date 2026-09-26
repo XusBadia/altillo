@@ -68,12 +68,22 @@ enum MenuBarItemMover {
         guard !Task.isCancelled, !mouseIsDown else { return .busy }
         guard let down = event(.leftMouseDown, at: points.start, source: source),
               let up = event(.leftMouseUp, at: points.end, source: source),
+              let hover = hoverEvent(at: points.start, source: source),
               let commandDown = commandEvent(keyDown: true, source: source),
               let commandUp = commandEvent(keyDown: false, source: source) else { return .unavailable }
         let cursor = CGEvent(source: nil)?.location
         let overlays = overlayMouseStates(at: [points.start, points.end], primaryTop: primary.frame.maxY)
         defer { overlays.forEach { $0.window.ignoresMouseEvents = $0.ignored } }
         overlays.forEach { $0.window.ignoresMouseEvents = true }
+        // A MacBook may auto-hide its menu bar. Moving and pressing in the same event burst hits
+        // the window underneath while the bar is still animating in, so reveal it first and let
+        // its native tracking regions settle before beginning the Command-drag.
+        hover.post(tap: .cghidEventTap)
+        try? await Task.sleep(for: .milliseconds(350))
+        guard !Task.isCancelled else {
+            if let cursor { CGWarpMouseCursorPosition(cursor) }
+            return .busy
+        }
         // MenuBarAgent on macOS 27 checks the global modifier state rather than trusting
         // only the flags attached to mouse events. Post the real Command transition around
         // the gesture; every path below still releases it before returning.
@@ -94,8 +104,20 @@ enum MenuBarItemMover {
             try? await Task.sleep(for: .milliseconds(25))
         }
         overlays.forEach { $0.window.ignoresMouseEvents = true }
+        // A real Command-drag pauses briefly at the insertion point. Give MenuBarAgent a chance
+        // to enter its destination tracking state before mouse-up; otherwise a busy WindowServer
+        // can display the movement but discard it when the pointer is released.
+        if !Task.isCancelled {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
         up.location = releasePoint
         up.post(tap: .cghidEventTap)
+        // Keep Command down until WindowServer has consumed mouse-up. Posting both events back to
+        // back made the global modifier state race the queued mouse event, so moves could appear
+        // momentarily and then snap back.
+        if !Task.isCancelled {
+            try? await Task.sleep(for: .milliseconds(100))
+        }
         commandUp.post(tap: .cghidEventTap)
         try? await Task.sleep(for: .milliseconds(100))
         if let cursor, let current = CGEvent(source: nil)?.location,
@@ -164,6 +186,13 @@ enum MenuBarItemMover {
                                   mouseCursorPosition: point, mouseButton: .left) else { return nil }
         event.flags = .maskCommand
         event.setIntegerValueField(.mouseEventClickState, value: 1)
+        return event
+    }
+
+    static func hoverEvent(at point: CGPoint, source: CGEventSource) -> CGEvent? {
+        guard let event = CGEvent(mouseEventSource: source, mouseType: .mouseMoved,
+                                  mouseCursorPosition: point, mouseButton: .left) else { return nil }
+        event.flags = []
         return event
     }
 

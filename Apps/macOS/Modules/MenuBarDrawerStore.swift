@@ -662,13 +662,26 @@ final class MenuBarDrawerStore: NSObject {
                 }
                 // MenuBarAgent applies the layout asynchronously, particularly when revealing
                 // overflow. Posting mouse-up is not an acknowledgement of the move.
-                if !(await self.waitForPlacement(entry.id, toDrawer: toDrawer)),
-                   let retry = await self.settledLayout(for: entry.id),
-                   !Task.isCancelled,
-                   DrawerGeometry.isBeforeSeparator(retry.entry.frame, separator: retry.divider) != toDrawer {
-                    Self.log.debug("move retry id=\(entry.id)")
-                    _ = await MenuBarItemMover.move(frame: retry.entry.frame, beside: retry.divider, toLeft: toDrawer)
-                    _ = await self.waitForPlacement(entry.id, toDrawer: toDrawer)
+                if !(await self.waitForPlacement(entry.id, toDrawer: toDrawer)) {
+                    // A MacBook's right-hand menu-bar area can be full even though both drag
+                    // coordinates are visible. MenuBarAgent then previews the move and snaps the
+                    // item back. Temporarily remove our recovery control before the retry to make
+                    // one icon's worth of real room, then resolve every coordinate again.
+                    if !compactedChrome {
+                        compactedChrome = self.compactChromeForMovement()
+                        if compactedChrome {
+                            try? await Task.sleep(for: .milliseconds(180))
+                        }
+                    }
+                    if let retry = await self.settledLayout(for: entry.id),
+                       !Task.isCancelled,
+                       DrawerGeometry.isBeforeSeparator(retry.entry.frame, separator: retry.divider) != toDrawer {
+                        Self.log.debug("move retry id=\(entry.id) compacted=\(compactedChrome)")
+                        _ = await MenuBarItemMover.move(
+                            frame: retry.entry.frame, beside: retry.divider, toLeft: toDrawer
+                        )
+                        _ = await self.waitForPlacement(entry.id, toDrawer: toDrawer)
+                    }
                 }
                 if compactedChrome {
                     self.restoreChromeAfterMovement()
@@ -1069,7 +1082,7 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     private func compactChromeForMovement() -> Bool {
-        guard support.hidingStyle == .legacy, let separator else { return false }
+        guard DrawerMovementRecovery.canCompact(support.hidingStyle), let separator else { return false }
         if let control {
             movementControlPosition = (defaults.object(forKey: Self.controlPositionKey) as? NSNumber)?.intValue
             NSStatusBar.system.removeStatusItem(control)
@@ -1192,6 +1205,14 @@ enum DrawerHidingStyle: Equatable, Sendable {
     case unavailable
     case legacy
     case overflow
+}
+
+enum DrawerMovementRecovery {
+    /// Both native implementations can briefly shed Altillo's own status-bar chrome to
+    /// make room for a rejected move. Future, unverified layouts must remain untouched.
+    static func canCompact(_ style: DrawerHidingStyle) -> Bool {
+        style != .unavailable
+    }
 }
 
 /// What the Drawer can do on this macOS, per feature, so a partial platform degrades one feature instead of
