@@ -1,6 +1,6 @@
 cask "altillo" do
-  version "0.7.8"
-  sha256 "d57a6e1fbc828b37c5060b17ffde599b999822cc521451dc06eb3fa5217433e8"
+  version "0.7.9"
+  sha256 "95e8e908e51f0a86f66bf9d57896d389975bc0415fea60f0aaddce79757c2646"
 
   url "https://github.com/XusBadia/altillo/releases/download/v#{version}/Altillo-#{version}.dmg"
   name "Altillo"
