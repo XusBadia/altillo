@@ -20697,6 +20697,13 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy as Plain Text" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar como texto sin formato" } }
       }
+    },
+    "Find Text in Images" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Find Text in Images" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar texto en imágenes" } }
+      }
     }
   },
   "version" : "1.0"

@@ -4,6 +4,7 @@ import Foundation
 import ImageIO
 import Observation
 import UniformTypeIdentifiers
+import Vision
 
 /// A copied image, as a slip keeps it: its PNG lives in `ClipboardImages`, named by its hash; the history (and its
 /// JSON) only holds this.
@@ -13,6 +14,9 @@ struct ClipboardImage: Codable, Hashable, Sendable {
     var width: Int
     var height: Int
     var byteCount: Int
+    /// The words Vision read in it, on this Mac, so search finds it: nil until it's been read, empty when there
+    /// were none.
+    var recognizedText: String?
 }
 
 /// The PNGs behind the image slips. In memory while the history is only in memory; also on disk, next to the
@@ -192,6 +196,22 @@ final class ClipboardImages {
 
     func dropScratch() {
         try? FileManager.default.removeItem(at: scratchFolder)
+    }
+
+    // MARK: - Reading the words in it
+
+    /// Most text kept from one image: enough to find it again, not a transcript of a scanned book.
+    nonisolated static let maxRecognizedText = 4_000
+
+    /// The lines of text in an image, top to bottom, read by Vision on this Mac (no network).
+    nonisolated static func recognizeText(in png: Data) async -> String {
+        var request = RecognizeTextRequest()
+        request.recognitionLevel = .accurate
+        request.automaticallyDetectsLanguage = true
+        let lines = (try? await request.perform(on: png))?
+            .compactMap { $0.topCandidates(1).first?.string } ?? []
+        let text = lines.joined(separator: "\n")
+        return text.count > maxRecognizedText ? String(text.prefix(maxRecognizedText)) : text
     }
 
     // MARK: - Thumbnails

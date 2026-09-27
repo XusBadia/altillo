@@ -74,8 +74,26 @@ final class ClipboardStore {
         }
     }
 
+    /// Read the words in copied images so search finds them (on by default; Vision, on this Mac). Off, what was
+    /// read is forgotten.
+    var readsTextInImages: Bool {
+        didSet {
+            guard readsTextInImages != oldValue else { return }
+            defaults.set(readsTextInImages, forKey: Self.readsTextInImagesKey)
+            if readsTextInImages {
+                readTextInImages()
+            } else {
+                reading?.cancel()
+                reading = nil
+                for hash in history.imageHashes { history.setRecognizedText(nil, forImage: hash) }
+                changed()
+            }
+        }
+    }
+
     static let keepsHistoryKey = "clipboardKeepsHistory"
     static let keepsImagesKey = "clipboardKeepsImages"
+    static let readsTextInImagesKey = "clipboardReadsTextInImages"
 
     /// The PNGs behind the image slips.
     let images: ClipboardImages
@@ -90,6 +108,7 @@ final class ClipboardStore {
     @ObservationIgnored private var copiedReset: Task<Void, Never>?
     @ObservationIgnored private var undoExpiry: Task<Void, Never>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
+    @ObservationIgnored private var reading: Task<Void, Never>?
     @ObservationIgnored private weak var settings: AltilloSettings?
 
     /// Tests pass a private pasteboard, their own defaults and a scratch archive: the user's are never touched.
@@ -106,6 +125,7 @@ final class ClipboardStore {
         images = ClipboardImages(folder: archive.url.deletingLastPathComponent().appending(path: "Images", directoryHint: .isDirectory))
         keepsHistory = defaults.bool(forKey: Self.keepsHistoryKey)
         keepsImages = defaults.object(forKey: Self.keepsImagesKey) as? Bool ?? true
+        readsTextInImages = defaults.object(forKey: Self.readsTextInImagesKey) as? Bool ?? true
         if Self.showsDemo { history = ClipboardHistory(items: ClipboardItem.samples()) }
     }
 
@@ -136,6 +156,7 @@ final class ClipboardStore {
             history = ClipboardHistory(items: saved.items.filter { $0.image.map(images.has) ?? true })
         }
         syncImages()
+        readTextInImages()
         lastChangeCount = pasteboard.changeCount
         refreshAccess()
         let timer = Timer(timeInterval: Self.interval, repeats: true) { [weak self] _ in
@@ -151,6 +172,8 @@ final class ClipboardStore {
     func stop() {
         guard isWatching else { return }
         let saved = history
+        reading?.cancel()
+        reading = nil
         isWatching = false
         timer?.invalidate()
         timer = nil
@@ -199,6 +222,7 @@ final class ClipboardStore {
         history.record(content, richText: richText, at: .now, sourceBundleID: bundleID,
                        sourceName: Self.appName(for: bundleID))
         changed()
+        if case .image = content { readTextInImages() }
     }
 
     /// What's on the pasteboard, as a slip: the text, or where the copied files are (never what's in them).
@@ -234,6 +258,27 @@ final class ClipboardStore {
         let rtf = types.contains(NSPasteboard.PasteboardType.rtf.rawValue) ? pasteboard.data(forType: .rtf) : nil
         let html = types.contains(NSPasteboard.PasteboardType.html.rawValue) ? pasteboard.data(forType: .html) : nil
         return ClipboardRichText(rtf: rtf, html: html)
+    }
+
+    /// Reads the words in the images not read yet, one at a time, off the main thread. Each result lands on every
+    /// slip showing that image (and is saved with a kept history).
+    func readTextInImages() {
+        guard readsTextInImages, reading == nil,
+              let image = history.items.compactMap(\.image).first(where: { $0.recognizedText == nil }) else { return }
+        guard let png = images.data(for: image) else {
+            // Nothing to read (its PNG is gone): don't try it again.
+            history.setRecognizedText("", forImage: image.hash)
+            readTextInImages()
+            return
+        }
+        reading = Task { [weak self] in
+            let text = await ClipboardImages.recognizeText(in: png)
+            guard !Task.isCancelled, let self else { return }
+            self.reading = nil
+            self.history.setRecognizedText(text, forImage: image.hash)
+            self.changed()
+            self.readTextInImages()
+        }
     }
 
     /// What's on disk follows what's kept: the history's images while it's kept after quitting, nothing otherwise.

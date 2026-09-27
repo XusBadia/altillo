@@ -371,13 +371,21 @@ private struct DesvanClipboardSlip: View {
                 Text("Image")
                     .font(.system(size: 12.5, weight: .medium))
                     .foregroundStyle(isMissing ? Desvan.Palette.paperTertiary : Desvan.Palette.paper)
-                Text(verbatim: isMissing ? String(localized: "No longer available") : "\(image.width) × \(image.height)")
+                Text(verbatim: isMissing ? String(localized: "No longer available") : imageDetail(image))
                     .font(.system(size: 11.5))
                     .monospacedDigit()
                     .foregroundStyle(Desvan.Palette.paperTertiary)
                     .lineLimit(1)
             }
         }
+    }
+
+    /// Under an image slip's name: its size and, when Vision read some, the first words in it.
+    private func imageDetail(_ image: ClipboardImage) -> String {
+        let size = "\(image.width) × \(image.height)"
+        let words = (image.recognizedText ?? "").split(whereSeparator: \.isNewline).first
+            .map { $0.trimmingCharacters(in: .whitespaces) } ?? ""
+        return words.isEmpty ? size : "\(size) · \(words)"
     }
 
     /// Under a file slip's name: the folder it's in, the names of several, or that they're gone.
@@ -619,6 +627,8 @@ private struct DesvanClipboardOptions: View {
     var body: some View {
         Toggle("Keep History After Quitting", isOn: Bindable(store).keepsHistory)
         Toggle("Keep Images", isOn: Bindable(store).keepsImages)
+        Toggle("Find Text in Images", isOn: Bindable(store).readsTextInImages)
+            .disabled(!store.keepsImages)
         Button("Clear History") { store.clear() }
             .disabled(store.history.recent.isEmpty)
         Divider()

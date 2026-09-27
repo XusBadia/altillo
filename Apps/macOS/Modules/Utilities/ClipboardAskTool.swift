@@ -78,7 +78,10 @@ enum ClipboardAsk {
                 let more = files.count > maxListed ? " and \(files.count - maxListed) more" : ""
                 return line + ": " + (files.count == 1 ? "a file " : "\(files.count) files ") + names + more
             case let .image(image):
+                let flat = (image.recognizedText ?? "").split(whereSeparator: \.isNewline).joined(separator: " ")
+                let excerpt = flat.count > excerptLength ? String(flat.prefix(excerptLength - 1)) + "…" : flat
                 return line + ": an image, \(image.width)×\(image.height) pixels"
+                    + (excerpt.isEmpty ? "" : ", with the text \"\(excerpt)\"")
             }
         }
         var text = "What the user copied, newest first:\n" + lines.joined(separator: "\n")

@@ -404,6 +404,53 @@ struct ClipboardShortcutsTests {
         relaunched.stop()
     }
 
+    /// A PNG with big black words on white, for Vision to read.
+    private static func pngWithWords(_ words: String) -> Data {
+        let size = NSSize(width: 900, height: 220)
+        let image = NSImage(size: size, flipped: false) { rect in
+            NSColor.white.setFill()
+            rect.fill()
+            (words as NSString).draw(at: NSPoint(x: 40, y: 70), withAttributes: [
+                .font: NSFont.systemFont(ofSize: 72, weight: .bold), .foregroundColor: NSColor.black,
+            ])
+            return true
+        }
+        let rep = NSBitmapImageRep(data: image.tiffRepresentation!)!
+        return rep.representation(using: .png, properties: [:])!
+    }
+
+    @Test func theWordsInAnImageMakeItSearchable() async throws {
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        #expect(store.readsTextInImages, "on by default")
+        Self.putImage(Self.pngWithWords("Invoice 4471"), on: pasteboard)
+        store.check()
+        let id = try #require(store.history.items.first?.id)
+        // Vision's first run on a machine compiles its model (tens of seconds); after that it takes a blink.
+        for _ in 0..<3_000 where store.history.items.first?.image?.recognizedText == nil {
+            try await Task.sleep(for: .milliseconds(20))
+        }
+        let text = try #require(store.history.items.first?.image?.recognizedText)
+        #expect(text.localizedCaseInsensitiveContains("invoice"), "\(text)")
+        #expect(store.history.matching("4471").map(\.id) == [id])
+
+        // Turned off: what was read is forgotten.
+        store.readsTextInImages = false
+        #expect(store.history.items.first?.image?.recognizedText == nil)
+        #expect(store.history.matching("4471").isEmpty)
+    }
+
+    @Test func whatWasReadSurvivesTheSameImageCopiedAgain() {
+        var history = ClipboardHistory()
+        let image = ClipboardImage(hash: "cafe", width: 10, height: 10, byteCount: 10)
+        history.record(.image(image), at: now)
+        history.setRecognizedText("Boarding pass", forImage: "cafe")
+        history.record("between", at: now)
+        history.record(.image(image), at: now)
+        #expect(history.items.first?.image?.recognizedText == "Boarding pass")
+        #expect(history.items.count == 2)
+    }
+
     // MARK: - The history
 
     @Test func copyingTheSameTextAgainMovesItToTheTop() {

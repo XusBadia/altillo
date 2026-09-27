@@ -160,7 +160,7 @@ struct ClipboardItem: Identifiable, Hashable, Sendable {
         switch content {
         case let .text(text): text
         case let .files(files): files.map(\.name).joined(separator: "\n")
-        case .image: ""
+        case let .image(image): image.recognizedText ?? ""
         }
     }
 
@@ -392,6 +392,11 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
                     return file
                 })
             }
+            // The same image again: what was read in it still holds.
+            if case var .image(new) = content, case let .image(old) = existing.content, new.recognizedText == nil {
+                new.recognizedText = old.recognizedText
+                item.content = .image(new)
+            }
             item.id = existing.id
             item.isPinned = existing.isPinned
             item.sourceBundleID = sourceBundleID ?? existing.sourceBundleID
@@ -406,6 +411,15 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
     mutating func record(_ text: String, at date: Date = .now, sourceBundleID: String? = nil,
                          sourceName: String? = nil) -> ClipboardItem {
         record(.text(text), at: date, sourceBundleID: sourceBundleID, sourceName: sourceName)
+    }
+
+    /// The words read in an image (nil forgets them), on every slip showing it.
+    mutating func setRecognizedText(_ text: String?, forImage hash: String) {
+        for index in items.indices {
+            guard case var .image(image) = items[index].content, image.hash == hash else { continue }
+            image.recognizedText = text
+            items[index].content = .image(image)
+        }
     }
 
     /// Copied back from the section: it becomes the newest.
