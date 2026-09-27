@@ -290,12 +290,17 @@ struct ClipboardShortcutsTests {
         pasteboard.setData(png, forType: .png)
     }
 
-    @Test func copiedImagesAreKeptAndCopiedBackAsPNG() throws {
+    /// Waits for copied images to become slips (they're prepared off the main thread).
+    private static func settle(_ store: ClipboardStore) async {
+        for _ in 0..<500 where store.pendingImages > 0 { try? await Task.sleep(for: .milliseconds(5)) }
+    }
+
+    @Test func copiedImagesAreKeptAndCopiedBackAsPNG() async throws {
         let (store, pasteboard) = Self.makeStore(frontmost: "com.apple.Preview")
         defer { pasteboard.releaseGlobally() }
         let png = Self.png(seed: 1, width: 40, height: 30)
         Self.putImage(png, on: pasteboard)
-        store.check()
+        store.check(); await Self.settle(store)
         let item = try #require(store.history.items.first)
         let image = try #require(item.image)
         #expect((image.width, image.height) == (40, 30))
@@ -305,49 +310,84 @@ struct ClipboardShortcutsTests {
 
         // The same image again: one slip. Then copied back, byte for byte.
         Self.put("between", on: pasteboard); store.check()
-        Self.putImage(png, on: pasteboard); store.check()
+        Self.putImage(png, on: pasteboard); store.check(); await Self.settle(store)
         #expect(store.history.items.count == 2)
         Self.put("after", on: pasteboard); store.check()
         #expect(store.copy(item))
         #expect(pasteboard.data(forType: .png) == png)
+        #expect(pasteboard.data(forType: .tiff).flatMap(NSBitmapImageRep.init(data:))?.pixelsWide == 40,
+                "TIFF too, made when asked")
         store.check()
         #expect(store.history.items.count == 3, "our own copy-back isn't recorded again")
     }
 
-    @Test func tiffIsKeptAsPNG() throws {
+    @Test func aBrowsersCopyImageIsAnImageNotItsAddress() async throws {
+        let (store, pasteboard) = Self.makeStore(frontmost: "org.mozilla.firefox")
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.clearContents()
+        pasteboard.setData(Self.png(seed: 7), forType: .png)
+        pasteboard.setString("https://example.com/cat.png", forType: .string)
+        store.check(); await Self.settle(store)
+        #expect(store.history.items.first?.image != nil)
+        #expect(store.history.items.count == 1)
+        #expect(ClipboardPrivacy.isJustAnAddress(" https://example.com/a.png\n"))
+        #expect(!ClipboardPrivacy.isJustAnAddress("see https://example.com"))
+        #expect(!ClipboardPrivacy.isJustAnAddress("Bold move"))
+    }
+
+    @Test func anImageStillBeingPreparedLandsByWhenItWasCopied() async throws {
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        Self.putImage(Self.png(seed: 8), on: pasteboard)
+        store.check()
+        Self.put("copied right after", on: pasteboard)
+        store.check()
+        await Self.settle(store)
+        #expect(store.history.items.map { $0.image == nil ? "text" : "image" } == ["text", "image"])
+
+        // The section turned off meanwhile: nothing lands after the fact.
+        store.start()
+        Self.putImage(Self.png(seed: 9), on: pasteboard)
+        store.check()
+        store.stop()
+        await Self.settle(store)
+        #expect(store.history.isEmpty)
+    }
+
+    @Test func tiffIsKeptAsPNG() async throws {
         let (store, pasteboard) = Self.makeStore()
         defer { pasteboard.releaseGlobally() }
         let tiff = try #require(NSBitmapImageRep(data: Self.png(seed: 2))?.tiffRepresentation)
         pasteboard.clearContents()
         pasteboard.setData(tiff, forType: .tiff)
-        store.check()
+        store.check(); await Self.settle(store)
         let image = try #require(store.history.items.first?.image)
         let kept = try #require(store.images.data(for: image))
         #expect(kept.starts(with: [0x89, 0x50, 0x4E, 0x47]), "PNG signature")
     }
 
-    @Test func imagesCanBeTurnedOffAndPrivateOnesAreNeverRead() {
+    @Test func imagesCanBeTurnedOffAndPrivateOnesAreNeverRead() async {
         let (store, pasteboard) = Self.makeStore()
         defer { pasteboard.releaseGlobally() }
         #expect(store.keepsImages, "on by default")
         pasteboard.declareTypes([.png, .init(ClipboardPrivacy.concealedType)], owner: nil)
         pasteboard.setData(Self.png(seed: 3), forType: .png)
-        store.check()
+        store.check(); await Self.settle(store)
         #expect(store.history.isEmpty)
 
         store.keepsImages = false
         Self.putImage(Self.png(seed: 4), on: pasteboard)
-        store.check()
+        store.check(); await Self.settle(store)
         #expect(store.history.isEmpty)
     }
 
-    @Test func imagesAreCappedAndTheirPNGsGoWithTheirSlips() throws {
+    @Test func imagesAreCappedAndTheirPNGsGoWithTheirSlips() async throws {
         let (store, pasteboard) = Self.makeStore()
         defer { pasteboard.releaseGlobally() }
         store.start()
         for seed in 0...ClipboardHistory.maxImages {
             Self.putImage(Self.png(seed: seed + 10, width: 20 + seed), on: pasteboard)
-            store.check()
+            store.check(); await Self.settle(store)
         }
         let images = store.history.items.compactMap(\.image)
         #expect(images.count == ClipboardHistory.maxImages, "the oldest image went")
@@ -366,7 +406,7 @@ struct ClipboardShortcutsTests {
         #expect(store.images.data(for: oldest) == nil, "the section off forgets every image")
     }
 
-    @Test func imagesOnlyReachTheDiskWhileTheHistoryIsKept() throws {
+    @Test func imagesOnlyReachTheDiskWhileTheHistoryIsKept() async throws {
         let defaults = Self.makeDefaults()
         let archive = Self.scratchArchive()
         defer { try? FileManager.default.removeItem(at: archive.url.deletingLastPathComponent()) }
@@ -375,12 +415,13 @@ struct ClipboardShortcutsTests {
         store.start()
         let png = Self.png(seed: 5)
         Self.putImage(png, on: pasteboard)
-        store.check()
+        store.check(); await Self.settle(store)
         let image = try #require(store.history.items.first?.image)
         let file = store.images.folder.appending(path: "\(image.hash).png")
         #expect(!FileManager.default.fileExists(atPath: file.path), "in memory only while the history is")
 
         store.keepsHistory = true
+        store.images.flush()
         #expect(FileManager.default.fileExists(atPath: file.path))
         let permissions = try FileManager.default.attributesOfItem(atPath: file.path)[.posixPermissions] as? Int
         #expect(permissions == 0o600)
@@ -394,13 +435,20 @@ struct ClipboardShortcutsTests {
         #expect(relaunched.images.data(for: back) == png)
 
         // Thrown away: gone from disk at once. Turning the option off takes the folder.
-        Self.putImage(Self.png(seed: 6), on: other); relaunched.check()
+        Self.putImage(Self.png(seed: 6), on: other); relaunched.check(); await Self.settle(relaunched)
         let second = try #require(relaunched.history.items.first?.image)
-        relaunched.delete(try #require(relaunched.history.items.first { $0.image == back }))
+        let backSlip = try #require(relaunched.history.items.first { $0.image == back })
+        relaunched.delete(backSlip)
+        relaunched.images.flush()
         #expect(!FileManager.default.fileExists(atPath: file.path))
+        relaunched.undo()
+        relaunched.images.flush()
+        #expect(FileManager.default.fileExists(atPath: file.path), "Undo writes it back")
         relaunched.keepsHistory = false
+        relaunched.images.flush()
         #expect(!FileManager.default.fileExists(atPath: relaunched.images.folder.path))
         #expect(relaunched.images.data(for: second) != nil, "still in memory")
+        #expect(relaunched.images.data(for: back) != nil, "loaded from disk before the folder went")
         relaunched.stop()
     }
 
@@ -424,7 +472,7 @@ struct ClipboardShortcutsTests {
         defer { pasteboard.releaseGlobally() }
         #expect(store.readsTextInImages, "on by default")
         Self.putImage(Self.pngWithWords("Invoice 4471"), on: pasteboard)
-        store.check()
+        store.check(); await Self.settle(store)
         let id = try #require(store.history.items.first?.id)
         // Vision's first run on a machine compiles its model (tens of seconds); after that it takes a blink.
         for _ in 0..<3_000 where store.history.items.first?.image?.recognizedText == nil {

@@ -109,6 +109,7 @@ final class ClipboardStore {
     @ObservationIgnored private var undoExpiry: Task<Void, Never>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var reading: Task<Void, Never>?
+    @ObservationIgnored private var tiffProvider: ClipboardTIFFProvider?
     @ObservationIgnored private weak var settings: AltilloSettings?
 
     /// Tests pass a private pasteboard, their own defaults and a scratch archive: the user's are never touched.
@@ -126,6 +127,8 @@ final class ClipboardStore {
         keepsHistory = defaults.bool(forKey: Self.keepsHistoryKey)
         keepsImages = defaults.object(forKey: Self.keepsImagesKey) as? Bool ?? true
         readsTextInImages = defaults.object(forKey: Self.readsTextInImagesKey) as? Bool ?? true
+        // Quick Look and drag-out files left by a crash.
+        images.dropScratch()
         if Self.showsDemo { history = ClipboardHistory(items: ClipboardItem.samples()) }
     }
 
@@ -172,6 +175,7 @@ final class ClipboardStore {
     func stop() {
         guard isWatching else { return }
         let saved = history
+        session += 1
         reading?.cancel()
         reading = nil
         isWatching = false
@@ -199,7 +203,7 @@ final class ClipboardStore {
         if count == ownChangeCount { return }
         let types = pasteboard.types?.map(\.rawValue) ?? []
         let frontmost = frontmostBundleID()
-        let decision = ClipboardPrivacy.decide(types: types, frontmostBundleID: frontmost)
+        var decision = ClipboardPrivacy.decide(types: types, frontmostBundleID: frontmost)
         switch decision {
         case .skipPrivate:
             DiagnosticLog.shared.record("clipboard", "skipped: private (marked, or from a password manager)")
@@ -216,13 +220,53 @@ final class ClipboardStore {
         let source = types.contains(ClipboardPrivacy.sourceType)
             ? pasteboard.string(forType: .init(ClipboardPrivacy.sourceType)) : nil
         // An app may copy on a password manager's behalf and say so.
-        guard !ClipboardPrivacy.isPasswordManager(source), let content = read(decision) else { return }
+        guard !ClipboardPrivacy.isPasswordManager(source) else { return }
         let bundleID = source ?? frontmost
+        // Some browsers' "Copy Image" put the image's address beside it as plain text: that's an image.
+        if decision == .record, keepsImages, types.contains(where: ClipboardPrivacy.imageTypes.contains),
+           ClipboardPrivacy.isJustAnAddress(pasteboard.string(forType: .string)) {
+            decision = .recordImage
+        }
+        if decision == .recordImage {
+            ingestImage(sourceBundleID: bundleID)
+            return
+        }
+        guard let content = read(decision) else { return }
         let richText = decision == .record ? readRichText(types) : nil
         history.record(content, richText: richText, at: .now, sourceBundleID: bundleID,
                        sourceName: Self.appName(for: bundleID))
         changed()
-        if case .image = content { readTextInImages() }
+    }
+
+    /// Images still being turned into slips (decoded, converted and hashed off the main thread).
+    @ObservationIgnored private(set) var pendingImages = 0
+    /// Bumped by `stop()`: an image still being prepared from before is dropped, not recorded after the fact.
+    @ObservationIgnored private var session = 0
+
+    /// Takes the image's bytes now and prepares the slip off the main thread (a 5K TIFF takes a moment to become
+    /// a PNG); it lands where it belongs by time even if something else was copied meanwhile.
+    private func ingestImage(sourceBundleID: String?) {
+        guard let raw = ClipboardImages.rawImage(from: pasteboard) else { return }
+        let copiedAt = Date.now
+        let sourceName = Self.appName(for: sourceBundleID)
+        let session = session
+        pendingImages += 1
+        Task { [weak self] in
+            let prepared = await Task.detached(priority: .userInitiated) {
+                ClipboardImages.prepare(raw.data, isPNG: raw.isPNG)
+            }.value
+            guard let self else { return }
+            self.pendingImages -= 1
+            guard session == self.session else { return }
+            guard let (image, png) = prepared else {
+                DiagnosticLog.shared.record("clipboard", "skipped an image: unreadable or over \(ClipboardImages.maxBytes / 1_048_576) MB")
+                return
+            }
+            self.images.add(png, for: image)
+            self.history.record(.image(image), at: copiedAt, sourceBundleID: sourceBundleID, sourceName: sourceName)
+            self.changed()
+            self.readTextInImages()
+        }
     }
 
     /// What's on the pasteboard, as a slip: the text, or where the copied files are (never what's in them).
@@ -241,14 +285,7 @@ final class ClipboardStore {
             return .files(urls.enumerated().map { index, url in
                 ClipboardFile(url: url, bookmarked: index < ClipboardPrivacy.maxBookmarkedFiles)
             })
-        case .recordImage:
-            guard let (image, png) = ClipboardImages.read(from: pasteboard) else {
-                DiagnosticLog.shared.record("clipboard", "skipped an image: unreadable or over \(ClipboardImages.maxBytes / 1_048_576) MB")
-                return nil
-            }
-            images.add(png, for: image)
-            return .image(image)
-        case .skipPrivate, .skipNotText:
+        case .recordImage, .skipPrivate, .skipNotText:
             return nil
         }
     }
@@ -266,7 +303,8 @@ final class ClipboardStore {
         guard readsTextInImages, reading == nil,
               let image = history.items.compactMap(\.image).first(where: { $0.recognizedText == nil }) else { return }
         guard let png = images.data(for: image) else {
-            // Nothing to read (its PNG is gone): don't try it again.
+            // Its PNG is gone for good: don't try it again. (Unreadable just now: leave it for next time.)
+            guard !images.has(image) else { return }
             history.setRecognizedText("", forImage: image.hash)
             readTextInImages()
             return
@@ -326,7 +364,13 @@ final class ClipboardStore {
         case let .image(image):
             guard let png = images.data(for: image) else { return false }
             pasteboard.clearContents()
-            pasteboard.setData(png, forType: .png)
+            // PNG now; TIFF only if an app asks for it (converting a big image up front would stall the click).
+            let pasteboardItem = NSPasteboardItem()
+            pasteboardItem.setData(png, forType: .png)
+            let provider = ClipboardTIFFProvider(png: png)
+            pasteboardItem.setDataProvider(provider, forTypes: [.tiff])
+            tiffProvider = provider
+            pasteboard.writeObjects([pasteboardItem])
         }
         if let id = Bundle.main.bundleIdentifier {
             pasteboard.setString(id, forType: .init(ClipboardPrivacy.sourceType))
@@ -376,6 +420,8 @@ final class ClipboardStore {
         self.undoable = nil
         undoExpiry?.cancel()
         changed()
+        // An image thrown away while it was being read comes back unread.
+        readTextInImages()
     }
 
     private func offerUndo(_ kind: Undoable.Kind, snapshot: ClipboardHistory) {
@@ -450,6 +496,20 @@ final class ClipboardStore {
     /// `-demoClipboard YES`: sample slips for design reviews and screenshots, so the user's clipboard never
     /// has to be read (or written) to review the look.
     static let showsDemo = UserDefaults.standard.bool(forKey: "demoClipboard")
+}
+
+/// Hands out an image slip's TIFF only when an app pastes asking for TIFF.
+final class ClipboardTIFFProvider: NSObject, NSPasteboardItemDataProvider, @unchecked Sendable {
+    private let png: Data
+
+    init(png: Data) {
+        self.png = png
+    }
+
+    func pasteboard(_ pasteboard: NSPasteboard?, item: NSPasteboardItem, provideDataForType type: NSPasteboard.PasteboardType) {
+        guard type == .tiff, let tiff = NSBitmapImageRep(data: png)?.tiffRepresentation else { return }
+        item.setData(tiff, forType: .tiff)
+    }
 }
 
 extension ClipboardItem {

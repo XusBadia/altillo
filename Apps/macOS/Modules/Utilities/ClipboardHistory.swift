@@ -328,8 +328,17 @@ enum ClipboardPrivacy {
     }
 
     static let imageTypes: Set<String> = [
-        "public.png", "public.tiff", "public.jpeg", "public.heic", "NeXT TIFF v4.0 pasteboard type",
+        "public.png", "public.tiff", "public.jpeg", "public.heic", "com.compuserve.gif", "org.webmproject.webp",
+        "com.microsoft.bmp", "NeXT TIFF v4.0 pasteboard type",
     ]
+
+    /// A single web or file address and nothing else: what a browser puts beside a copied image.
+    static func isJustAnAddress(_ text: String?) -> Bool {
+        guard let text = text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty,
+              !text.contains(where: \.isWhitespace), let url = URL(string: text),
+              let scheme = url.scheme?.lowercased() else { return false }
+        return ["http", "https", "file", "data", "blob"].contains(scheme)
+    }
 
     /// Most files one slip keeps: a copy of a whole folder's contents isn't something to keep here.
     static let maxFiles = 200
@@ -402,7 +411,8 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
             item.sourceBundleID = sourceBundleID ?? existing.sourceBundleID
             item.sourceName = sourceName ?? existing.sourceName
         }
-        items.insert(item, at: 0)
+        // Newest first: a copy that took a moment to prepare (an image) still lands by when it was copied.
+        items.insert(item, at: items.firstIndex { $0.copiedAt <= date } ?? items.count)
         trim()
         return item
     }

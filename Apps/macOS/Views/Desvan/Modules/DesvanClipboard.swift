@@ -338,7 +338,7 @@ private struct DesvanClipboardSlip: View {
             Button(item.isPinned ? "Unpin" : "Pin", action: togglePin)
             if let copyPlain { Button("Copy as Plain Text") { _ = copyPlain() } }
             Button("Put on the shelf", action: putOnShelf)
-            if let quickLook { Button("Quick Look", action: quickLook) }
+            if let quickLook, !isMissing { Button("Quick Look", action: quickLook) }
             Button("Throw away", action: delete)
         }
     }

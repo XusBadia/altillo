@@ -20607,13 +20607,6 @@
         }
       }
     },
-    "Copy some text or a file and it lands here, ready to copy again. Passwords are never kept." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy some text or a file and it lands here, ready to copy again. Passwords are never kept." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copia un texto o un archivo y aparecerá aquí, listo para volver a copiarlo. Las contraseñas nunca se guardan." } }
-      }
-    },
     "Moved or deleted" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20626,13 +20619,6 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "moved or deleted" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "movido o eliminado" } }
-      }
-    },
-    "Texts and files (never their contents). Passwords and anything marked private are never kept." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Texts and files (never their contents). Passwords and anything marked private are never kept." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Textos y archivos (nunca su contenido). Las contraseñas y lo marcado como privado nunca se guardan." } }
       }
     },
     "Copy some text, an image or a file and it lands here, ready to copy again. Passwords are never kept." : {
