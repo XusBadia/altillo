@@ -1107,7 +1107,7 @@ final class MenuBarDrawerStore: NSObject {
         if support.hidingStyle == .overflow {
             // A recreated item lands leftmost on macOS 27, i.e. left of the divider or folded. Put it back
             // just right of the divider's last verified position.
-            if let dividerPosition = defaults.object(forKey: Self.unfoldedPositionKey) as? NSNumber {
+            if let dividerPosition = defaults.object(forKey: Self.unfoldedPositionDefault) as? NSNumber {
                 defaults.set(dividerPosition.doubleValue - 2, forKey: Self.preferredPositionKey(Self.overflowControlName))
             }
         } else if let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
@@ -1127,7 +1127,7 @@ final class MenuBarDrawerStore: NSObject {
     private static let controlPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Control"
     private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
     /// The last divider position that macOS 27 verifiably kept visible (points from the right screen edge).
-    private static let unfoldedPositionKey = "drawer.v27.dividerPosition"
+    private static let unfoldedPositionDefault = "drawer.v27.dividerPosition"
     private static let foldedChromeProblem =
         "Altillo's divider is folded into the menu bar's overflow («). Close an unused menu bar app and try again."
 
@@ -1148,7 +1148,7 @@ final class MenuBarDrawerStore: NSObject {
         guard DrawerChromePlacement.isFolded(divider, among: entries.map(\.frame) + chrome) else { return true }
         guard let screenMaxX = separator?.button?.window?.screen?.frame.maxX else { return false }
         let visible = DrawerChromePlacement.visibleItems(entries.map(\.frame), chrome: [divider] + chrome, row: divider)
-        let remembered = (defaults.object(forKey: Self.unfoldedPositionKey) as? NSNumber).map { CGFloat($0.doubleValue) }
+        let remembered = (defaults.object(forKey: Self.unfoldedPositionDefault) as? NSNumber).map { CGFloat($0.doubleValue) }
         let positions = DrawerChromePlacement.candidatePositions(screenMaxX: screenMaxX, visibleItems: visible,
                                                                  remembered: remembered)
         Self.log.debug("unfold divider=\(String(describing: divider), privacy: .public) candidates=\(String(describing: positions), privacy: .public)")
@@ -1170,7 +1170,7 @@ final class MenuBarDrawerStore: NSObject {
                   !DrawerChromePlacement.isFolded(frame, among: snapshot.map(\.frame) + [toggle]),
                   toggle.minX >= frame.maxX - 1 else { continue }
             Self.log.debug("unfold placed position=\(Double(position)) divider=\(String(describing: frame), privacy: .public)")
-            defaults.set(Double(position), forKey: Self.unfoldedPositionKey)
+            defaults.set(Double(position), forKey: Self.unfoldedPositionDefault)
             // Whatever macOS keeps folded is left of the divider now. Adopt the layout it produced, as a
             // verified move does, so the Drawer lists every icon the notch hides and can collapse.
             let beforeDivider = snapshot.filter {
