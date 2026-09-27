@@ -539,3 +539,126 @@ struct ClipboardArchive: Sendable {
         try? FileManager.default.removeItem(at: url)
     }
 }
+
+// MARK: - What a text slip is
+
+/// A text slip that is a single web address and nothing else, split the way the slip shows it: the site, then the
+/// rest. Read from the text alone; nothing is ever fetched.
+struct ClipboardLink: Equatable, Sendable {
+    let url: URL
+    /// The site, without "www." (and with its port, when it has one): "github.com".
+    let host: String
+    /// Everything after the site (path, query, fragment), readable: "/xusbadia/altillo/pull/128". Empty for a bare
+    /// site.
+    let rest: String
+
+    /// Longest text looked at: an address, not a pasted page.
+    static let maxLength = 4_096
+
+    /// Only http and https, with a site, and no spaces anywhere; nil for anything else.
+    init?(_ text: String) {
+        guard text.utf16.count <= Self.maxLength else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, !trimmed.contains(where: \.isWhitespace),
+              let components = URLComponents(string: trimmed),
+              let scheme = components.scheme?.lowercased(), scheme == "http" || scheme == "https",
+              let rawHost = components.host, !rawHost.isEmpty,
+              let url = components.url else { return nil }
+        var host = rawHost.lowercased()
+        if host.hasPrefix("www."), host.count > 4 { host.removeFirst(4) }
+        if let port = components.port { host += ":\(port)" }
+        var rest = components.percentEncodedPath.removingPercentEncoding ?? components.percentEncodedPath
+        if rest == "/" { rest = "" }
+        if let query = components.percentEncodedQuery { rest += "?" + (query.removingPercentEncoding ?? query) }
+        if let fragment = components.percentEncodedFragment {
+            rest += "#" + (fragment.removingPercentEncoding ?? fragment)
+        }
+        self.url = url
+        self.host = host
+        self.rest = rest
+    }
+}
+
+/// A text slip that is only a colour code: `#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`, `rgb(…)` or `rgba(…)`. The
+/// components are sRGB, 0 to 1.
+struct ClipboardColor: Equatable, Sendable {
+    var red: Double
+    var green: Double
+    var blue: Double
+    var alpha: Double
+
+    init(red: Double, green: Double, blue: Double, alpha: Double = 1) {
+        self.red = red
+        self.green = green
+        self.blue = blue
+        self.alpha = alpha
+    }
+
+    /// nil unless the whole text (give or take surrounding spaces) is one colour code. Hex needs its "#": six bare
+    /// digits are just as likely a number.
+    init?(_ text: String) {
+        guard text.utf16.count <= 64 else { return nil }
+        let code = text.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let color: ClipboardColor? = if code.hasPrefix("#") {
+            Self.hex(code.dropFirst())
+        } else if code.hasPrefix("rgb") {
+            Self.functional(code)
+        } else {
+            nil
+        }
+        guard let color else { return nil }
+        self = color
+    }
+
+    /// 3, 4, 6 or 8 hex digits (the short forms doubled: "f80" is "ff8800").
+    private static func hex(_ digits: Substring) -> ClipboardColor? {
+        guard [3, 4, 6, 8].contains(digits.count), digits.allSatisfy(\.isHexDigit) else { return nil }
+        let pairs: [String] = digits.count <= 4
+            ? digits.map { String(repeating: $0, count: 2) }
+            : stride(from: 0, to: digits.count, by: 2).map { offset in
+                String(digits.dropFirst(offset).prefix(2))
+            }
+        let values = pairs.compactMap { UInt8($0, radix: 16) }.map { Double($0) / 255 }
+        guard values.count == pairs.count else { return nil }
+        return ClipboardColor(red: values[0], green: values[1], blue: values[2], alpha: values.count == 4 ? values[3] : 1)
+    }
+
+    /// `rgb(255, 136, 0)`, `rgba(255, 136, 0, 0.5)`, the space form `rgb(255 136 0 / 50%)`, and channels in percent.
+    private static func functional(_ code: String) -> ClipboardColor? {
+        let name = code.hasPrefix("rgba(") ? "rgba(" : "rgb("
+        guard code.hasPrefix(name), code.hasSuffix(")") else { return nil }
+        let inside = code.dropFirst(name.count).dropLast()
+        let parts = inside.split(whereSeparator: { $0 == "," || $0 == "/" || $0.isWhitespace }).map(String.init)
+        guard parts.count == 3 || parts.count == 4 else { return nil }
+        let channels = parts.prefix(3).compactMap { amount($0, upTo: 255) }
+        guard channels.count == 3 else { return nil }
+        var alpha = 1.0
+        if parts.count == 4 {
+            guard let value = amount(parts[3], upTo: 1) else { return nil }
+            alpha = value
+        }
+        return ClipboardColor(red: channels[0], green: channels[1], blue: channels[2], alpha: alpha)
+    }
+
+    /// A channel (0–255) or an opacity (0–1), or either in percent; as 0 to 1. nil when out of range.
+    private static func amount(_ text: String, upTo maximum: Double) -> Double? {
+        if text.hasSuffix("%") {
+            guard let percent = Double(text.dropLast()), (0 ... 100).contains(percent) else { return nil }
+            return percent / 100
+        }
+        guard let value = Double(text), (0 ... maximum).contains(value) else { return nil }
+        return value / maximum
+    }
+}
+
+extension ClipboardItem {
+    /// The web address a text slip is, when it's only that.
+    var link: ClipboardLink? {
+        if case let .text(text) = content { ClipboardLink(text) } else { nil }
+    }
+
+    /// The colour a text slip is, when it's only a colour code.
+    var color: ClipboardColor? {
+        if case let .text(text) = content { ClipboardColor(text) } else { nil }
+    }
+}
