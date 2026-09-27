@@ -1068,10 +1068,10 @@ final class MenuBarDrawerStore: NSObject {
                 return spacer
             }
         }
-        let separator = NSStatusBar.system.statusItem(withLength: 20)
+        let separator = NSStatusBar.system.statusItem(withLength: dividerLength)
         separator.autosaveName = support.hidingStyle == .overflow
             ? overflowSeparatorName : "Altillo.Drawer.Separator"
-        separator.button?.title = "│"
+        if !support.hiding { separator.button?.title = "│" }
         separator.button?.setAccessibilityLabel("Drawer divider")
         separator.button?.toolTip = "Manage these icons in Altillo Settings → Drawer."
         self.separator = separator
@@ -1103,7 +1103,7 @@ final class MenuBarDrawerStore: NSObject {
 
     private func restoreChromeAfterMovement() {
         guard enabled, separator != nil else { return }
-        separator?.length = 20
+        separator?.length = dividerLength
         if support.hidingStyle == .overflow {
             // A recreated item lands leftmost on macOS 27, i.e. left of the divider or folded. Put it back
             // just right of the divider's last verified position.
@@ -1133,13 +1133,16 @@ final class MenuBarDrawerStore: NSObject {
     private func overflowSpacerName(_ index: Int) -> String {
         DrawerChromePlacement.name("Altillo.Drawer.Spacer.\(index).v27", generation: chromeGeneration)
     }
+    /// Where the arrow exists it already marks the Drawer's edge, so the divider has no glyph. It stays a few
+    /// points wide so a Command-drag still has an insertion point on each side (compaction narrows it to 6 pt).
+    private var dividerLength: CGFloat { support.hiding ? 8 : 20 }
     private static let chromeGenerationDefault = "drawer.v27.chromeGeneration"
     private static let controlPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Control"
     private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
     /// The last divider position that macOS 27 verifiably kept visible (points from the right screen edge).
     private static let unfoldedPositionDefault = "drawer.v27.dividerPosition"
     private static let foldedChromeProblem =
-        "Altillo's divider is folded into the menu bar's overflow («). Close an unused menu bar app and try again."
+        "Altillo's Drawer arrow is folded into the menu bar's overflow («). Close an unused menu bar app and try again."
 
     private static func preferredPositionKey(_ autosaveName: String) -> String {
         "NSStatusItem Preferred Position \(autosaveName)"
@@ -1236,7 +1239,7 @@ final class MenuBarDrawerStore: NSObject {
         }
         guard selectedIDs.isSubset(of: chosenIDs) else {
             reveal()
-            problem = "Other icons are beside Altillo's divider. Move them to Menu bar in Drawer settings before hiding."
+            problem = "Other icons are left of the Drawer arrow. Move them to Menu bar in Drawer settings before hiding."
             return
         }
         // Keep a recovery control on the right. If the user moved it to the hidden side, fail open.
@@ -1273,8 +1276,7 @@ final class MenuBarDrawerStore: NSObject {
                 spacer.isVisible = false
                 spacer.length = 0
             }
-            separator.length = 20
-            separator.button?.title = "│"
+            separator.length = dividerLength
             return
         }
 
@@ -1286,7 +1288,6 @@ final class MenuBarDrawerStore: NSObject {
             let displays = Self.drawerDisplays()
             let unit = DrawerCollapseGeometry.unitLength(displays: displays)
             let active = DrawerCollapseGeometry.activeSpacers(unit: unit, displays: displays)
-            separator.button?.title = ""
             separator.length = unit
             for (index, spacer) in overflowSpacers.enumerated() {
                 let participates = index < active
