@@ -1,11 +1,15 @@
 import AltilloCore
+import AppKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 /// Which sections the open notch shows, in what order, and what sits in the ears beside it. Everything here changes
 /// the notch live; the same things (and more directly) can be done in the notch itself, in edit mode.
 struct SettingsModulesPane: View {
     @Bindable var settings: AltilloSettings
     let hasHardwareNotch: Bool
+    /// The clipboard section's own options live on its store (nil in previews).
+    var clipboard: ClipboardStore?
     /// Keeps what a preset replaced, for its Undo.
     @State private var session = NotchEditSession()
 
@@ -77,6 +81,17 @@ struct SettingsModulesPane: View {
                         .id(Self.usageAnchor)
                     }
 
+                    if settings.isEnabled(.clipboard), let clipboard {
+                        SettingsOptionsCard(
+                            title: "Clipboard",
+                            detail: "Shortcut, pasting, what's kept and apps left out.",
+                            symbol: NotchModule.clipboard.symbol
+                        ) {
+                            SettingsClipboardGroup(settings: settings, store: clipboard)
+                        }
+                        .id(Self.clipboardAnchor)
+                    }
+
                     // Always here, even with the agents section put away: hooks Altillo installed must stay one
                     // click from removal.
                     SettingsOptionsCard(
@@ -122,10 +137,11 @@ struct SettingsModulesPane: View {
             }
             .scrollBounceBehavior(.basedOnSize)
             .task {
-                // `-settingsSection calendar|usage|agents` (with `-settingsTab modules`) opens scrolled to that group.
+                // `-settingsSection calendar|usage|clipboard|agents` (with `-settingsTab modules`) opens scrolled to
+                // that group.
                 // Once more after the rows above have measured themselves, or it stops short.
                 if let anchor = UserDefaults.standard.string(forKey: "settingsSection"),
-                   [Self.calendarAnchor, Self.usageAnchor, Self.agentsAnchor].contains(anchor) {
+                   [Self.calendarAnchor, Self.usageAnchor, Self.clipboardAnchor, Self.agentsAnchor].contains(anchor) {
                     proxy.scrollTo(anchor, anchor: .top)
                     try? await Task.sleep(for: .milliseconds(400))
                     proxy.scrollTo(anchor, anchor: .top)
@@ -151,6 +167,7 @@ struct SettingsModulesPane: View {
 
     private static let calendarAnchor = "calendar"
     private static let usageAnchor = "usage"
+    private static let clipboardAnchor = "clipboard"
     private static let agentsAnchor = "agents"
 }
 
@@ -618,6 +635,175 @@ private struct SettingsCalendarGroup: View {
             .font(.system(size: 12.5))
             .foregroundStyle(Desvan.Palette.paper)
             .gridColumnAlignment(.trailing)
+    }
+}
+
+// MARK: - Clipboard
+
+/// The clipboard section's own settings: the shortcut that opens it (and whether picking then pastes), what it keeps,
+/// and the apps whose copies it never reads.
+private struct SettingsClipboardGroup: View {
+    @Bindable var settings: AltilloSettings
+    @Bindable var store: ClipboardStore
+    @State private var canPaste = ClipboardPaste.canPaste
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            shortcut
+            SettingsCardDivider()
+            kept
+            SettingsCardDivider()
+            excluded
+        }
+        .padding(.vertical, 6)
+        .onAppear { canPaste = ClipboardPaste.canPaste }
+        // Back from System Settings: Accessibility may have been granted.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            canPaste = ClipboardPaste.canPaste
+        }
+    }
+
+    private var shortcut: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker(selection: $settings.clipboardHotKey) {
+                ForEach(ClipboardHotKey.allCases) { key in
+                    Text(key.title).tag(key)
+                }
+            } label: {
+                Text("Shortcut to open")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paper)
+            }
+            .pickerStyle(.menu)
+            .fixedSize()
+            .help("Choose the global keyboard shortcut that opens the clipboard")
+
+            if let problem = settings.clipboardHotKeyProblem {
+                Label(problem, systemImage: "exclamationmark.triangle.fill")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Desvan.Palette.warning)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Text("Opens Altillo on the clipboard from any app, ready to search. Press it again to close.")
+                .settingsHint()
+
+            Toggle(isOn: $settings.clipboardPastesDirectly) {
+                Text("Paste into the app in front")
+                    .font(.system(size: 12.5))
+                    .foregroundStyle(Desvan.Palette.paper)
+            }
+            .toggleStyle(.checkbox)
+            .disabled(settings.clipboardHotKey == .off)
+
+            if settings.clipboardPastesDirectly, !canPaste {
+                HStack(spacing: 10) {
+                    Image(systemName: "hand.raised")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.bulb)
+                    Text("To press ⌘V for you, Altillo needs Accessibility. Until then, picking only copies.")
+                        .settingsHint()
+                    Spacer(minLength: 8)
+                    Button("Give Access…") { ClipboardPaste.requestAccess() }
+                        .controlSize(.small)
+                }
+            } else {
+                Text("After the shortcut, the slip you pick is pasted where you were. Off, picking only copies.")
+                    .settingsHint()
+            }
+        }
+    }
+
+    private var kept: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            toggle("Keep history after quitting", isOn: $store.keepsHistory)
+            toggle("Keep images", isOn: $store.keepsImages)
+            toggle("Find text in images", isOn: $store.readsTextInImages)
+                .disabled(!store.keepsImages)
+            Text("Everything stays on this Mac. A kept history is saved only for you and left out of backups.")
+                .settingsHint()
+        }
+    }
+
+    private var excluded: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Never keep copies from")
+                .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                .foregroundStyle(Desvan.Palette.paper)
+            if store.excludedApps.isEmpty {
+                Text("No apps yet.")
+                    .settingsHint()
+            } else {
+                VStack(spacing: 0) {
+                    ForEach(store.excludedApps, id: \.self) { bundleID in
+                        SettingsExcludedAppRow(bundleID: bundleID) {
+                            store.include(bundleID)
+                        }
+                    }
+                }
+            }
+            Button("Add App…", action: chooseApps)
+                .controlSize(.small)
+            Text("Copies made in these apps are never read. Password managers are always left out.")
+                .settingsHint()
+        }
+    }
+
+    private func toggle(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
+        Toggle(isOn: isOn) {
+            Text(title)
+                .font(.system(size: 12.5))
+                .foregroundStyle(Desvan.Palette.paper)
+        }
+        .toggleStyle(.checkbox)
+    }
+
+    private func chooseApps() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.application]
+        panel.allowsMultipleSelection = true
+        panel.canChooseDirectories = false
+        panel.directoryURL = URL(filePath: "/Applications")
+        panel.prompt = String(localized: "Leave Out")
+        panel.message = String(localized: "Choose the apps whose copies Altillo should never keep.")
+        guard panel.runModal() == .OK else { return }
+        for url in panel.urls {
+            if let id = Bundle(url: url)?.bundleIdentifier { store.exclude(id) }
+        }
+    }
+}
+
+/// An app left out of the clipboard: its icon and name (or its bundle id, if it's no longer installed) and a way
+/// to let it back in.
+private struct SettingsExcludedAppRow: View {
+    let bundleID: String
+    let remove: () -> Void
+
+    private var appURL: URL? { NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) }
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Group {
+                if let appURL {
+                    Image(nsImage: NSWorkspace.shared.icon(forFile: appURL.path)).resizable()
+                } else {
+                    Image(systemName: "app.dashed").foregroundStyle(Desvan.Palette.paperTertiary)
+                }
+            }
+            .frame(width: 18, height: 18)
+            Text(verbatim: appURL.map { FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "") } ?? bundleID)
+                .font(.system(size: 12.5))
+                .foregroundStyle(Desvan.Palette.paper)
+                .lineLimit(1)
+            Spacer(minLength: 8)
+            Button(action: remove) {
+                Image(systemName: "minus.circle.fill")
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+            }
+            .buttonStyle(.plain)
+            .help("Keep copies from this app again")
+            .accessibilityLabel("Remove")
+        }
+        .padding(.vertical, 4)
     }
 }
 

@@ -46,6 +46,8 @@ final class NotchCoordinator {
     private var scrollMonitor: Any?
     private var swipe = SwipeTracker()
     private let hotKey = GlobalHotKey()
+    /// The app in front when the clipboard's shortcut opened the notch: where a picked slip is pasted.
+    private var pasteTarget: NSRunningApplication?
     private lazy var calendarAlerts = CalendarAlertSource { [weak self] in self?.post($0) }
     private lazy var nowPlayingAlerts = NowPlayingAlertSource { [weak self] in self?.post($0) }
     /// The user's shelf, kept aside while a design scenario shows demo items.
@@ -138,6 +140,8 @@ final class NotchCoordinator {
         model.usage.start()
         // Live agents: hook events over the socket plus the agents' own session files (phase 4).
         model.agentHub.postAlert = { [weak self] alert in self?.post(alert) }
+        // A slip picked after the clipboard's shortcut, with "paste into the app in front" on.
+        model.clipboard.onPasteRequest = { [weak self] in self?.pasteIntoFrontApp() }
         model.agentHub.isModuleEnabled = { [weak model] in model?.settings.isEnabled(.agents) ?? true }
         model.agentHub.start()
         // Kitchen timers (phase 12): running ones come back from disk and ring with the notch closed.
@@ -869,6 +873,51 @@ final class NotchCoordinator {
         model.assistant.requestFocus()
     }
 
+    /// The clipboard's global shortcut: opens the notch on the clipboard with the cursor in its search, or closes it
+    /// when it's already there. With "paste into the app in front" on, the slip picked next is pasted there too.
+    func summonClipboard() {
+        guard model.scenario == nil, model.settings.modules.contains(.clipboard) else {
+            NSSound.beep()
+            return
+        }
+        if model.state == .open, model.module == .clipboard {
+            model.clipboard.pastesNextCopy = false
+            send(.escape)
+            return
+        }
+        guard model.state == .idle || model.state == .peek || model.state == .open else { return }
+        let front = NSWorkspace.shared.frontmostApplication
+        pasteTarget = front?.bundleIdentifier == Bundle.main.bundleIdentifier ? nil : front
+        moveLiveForAttention()
+        indicatorTarget = nil
+        model.alert = nil
+        cancel(.alert)
+        model.jump(to: .clipboard)
+        machine = NotchStateMachine(state: .open, opensOnHover: model.settings.opensOnHover)
+        apply()
+        window?.panel.makeKey()
+        model.clipboard.pastesNextCopy = model.settings.clipboardPastesDirectly && pasteTarget != nil
+        model.clipboard.requestSearchFocus()
+    }
+
+    /// Closes the notch, brings back the app that was in front and presses ⌘V there. Only with Accessibility
+    /// (macOS asks for it to send keys to another app); without it the slip is copied and that's all.
+    private func pasteIntoFrontApp() {
+        let target = pasteTarget
+        pasteTarget = nil
+        send(.escape)
+        guard let target, ClipboardPaste.canPaste else {
+            DiagnosticLog.shared.record("clipboard", "paste skipped: \(target == nil ? "no app in front" : "no Accessibility")")
+            return
+        }
+        target.activate()
+        Task { @MainActor in
+            // Let the app take the keyboard back before the keystroke lands.
+            try? await Task.sleep(for: .milliseconds(150))
+            ClipboardPaste.pressCommandV()
+        }
+    }
+
     // MARK: - Settings
 
     /// Observation callbacks fire once, so re-arm after every change.
@@ -878,6 +927,7 @@ final class NotchCoordinator {
         withObservationTracking {
             let settings = model.settings
             _ = (settings.assistantHotKey, settings.modules, settings.alertsForCalendar, settings.alertsForNowPlaying)
+            _ = settings.clipboardHotKey
             _ = (settings.leftEar, settings.rightEar, settings.calendarHiddenIDs)
             _ = (settings.displayMode, settings.fullScreenBehaviour)
             _ = settings.usageDisabledProviders
@@ -898,6 +948,13 @@ final class NotchCoordinator {
             [weak self] in self?.summonAssistant()
         }
         settings.assistantHotKeyProblem = accepted
+            ? nil
+            : String(localized: "Another app already uses this shortcut. Pick a different one.")
+        let clipboardCombo = settings.modules.contains(.clipboard) ? settings.clipboardHotKey.combo : nil
+        let clipboardAccepted = hotKey.register(.clipboard, combo: clipboardCombo) { [weak self] in
+            self?.summonClipboard()
+        }
+        settings.clipboardHotKeyProblem = clipboardAccepted
             ? nil
             : String(localized: "Another app already uses this shortcut. Pick a different one.")
         calendarAlerts.update(enabled: settings.alertsForCalendar && settings.modules.contains(.calendar))

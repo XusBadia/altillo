@@ -20680,6 +20680,146 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "The last things you copied: texts, images and files. Passwords are never kept." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Lo último que has copiado: textos, imágenes y archivos. Las contraseñas nunca se guardan." } }
       }
+    },
+    "Add App…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add App…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir app…" } }
+      }
+    },
+    "After the shortcut, the slip you pick is pasted where you were. Off, picking only copies." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "After the shortcut, the slip you pick is pasted where you were. Off, picking only copies." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tras el atajo, lo que elijas se pega donde estabas. Desactivado, elegir solo copia." } }
+      }
+    },
+    "Choose the apps whose copies Altillo should never keep." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose the apps whose copies Altillo should never keep." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige las apps cuyas copias Altillo no debe guardar nunca." } }
+      }
+    },
+    "Choose the global keyboard shortcut that opens the clipboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose the global keyboard shortcut that opens the clipboard" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige el atajo de teclado global que abre el portapapeles" } }
+      }
+    },
+    "Copies made in these apps are never read. Password managers are always left out." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copies made in these apps are never read. Password managers are always left out." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Lo que copies en estas apps nunca se lee. Los gestores de contraseñas siempre quedan fuera." } }
+      }
+    },
+    "Everything stays on this Mac. A kept history is saved only for you and left out of backups." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Everything stays on this Mac. A kept history is saved only for you and left out of backups." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Todo se queda en este Mac. El historial conservado solo lo puedes leer tú y no entra en las copias de seguridad." } }
+      }
+    },
+    "Find text in images" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Find text in images" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar texto en imágenes" } }
+      }
+    },
+    "Keep copies from this app again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep copies from this app again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Volver a guardar lo copiado en esta app" } }
+      }
+    },
+    "Keep history after quitting" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep history after quitting" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conservar el historial al salir" } }
+      }
+    },
+    "Keep images" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep images" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conservar imágenes" } }
+      }
+    },
+    "Leave Out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Leave Out" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dejar fuera" } }
+      }
+    },
+    "Never keep copies from" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Never keep copies from" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No guardar nunca lo copiado en" } }
+      }
+    },
+    "No apps yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No apps yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ninguna app todavía." } }
+      }
+    },
+    "Opens Altillo on the clipboard from any app, ready to search. Press it again to close." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens Altillo on the clipboard from any app, ready to search. Press it again to close." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre Altillo en el portapapeles desde cualquier app, listo para buscar. Púlsalo otra vez para cerrarlo." } }
+      }
+    },
+    "Opens what you copied, ready to search. ⇧-click copies it without formatting." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens what you copied, ready to search. ⇧-click copies it without formatting." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre lo que has copiado, listo para buscar. ⇧-clic lo copia sin formato." } }
+      }
+    },
+    "Paste into the app in front" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste into the app in front" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pegar en la app de delante" } }
+      }
+    },
+    "Paste something from before" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste something from before" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pega algo de antes" } }
+      }
+    },
+    "Shortcut to open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shortcut to open" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atajo para abrir" } }
+      }
+    },
+    "Shortcut, pasting, what's kept and apps left out." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shortcut, pasting, what's kept and apps left out." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atajo, pegado, qué se guarda y apps excluidas." } }
+      }
+    },
+    "To press ⌘V for you, Altillo needs Accessibility. Until then, picking only copies." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "To press ⌘V for you, Altillo needs Accessibility. Until then, picking only copies." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Para pulsar ⌘V por ti, Altillo necesita Accesibilidad. Mientras tanto, elegir solo copia." } }
+      }
     }
   },
   "version" : "1.0"

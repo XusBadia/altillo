@@ -135,6 +135,72 @@ struct ClipboardShortcutsTests {
         #expect(store.history.items.map(\.text) == ["first", "second"], "moved to the top, not added twice")
     }
 
+    // MARK: - Apps left out, the shortcut and pasting
+
+    @Test func appsTheUserLeftOutAreNeverRead() {
+        let defaults = Self.makeDefaults()
+        let (store, pasteboard) = Self.makeStore(frontmost: "com.apple.Terminal", defaults: defaults)
+        defer { pasteboard.releaseGlobally() }
+        store.exclude("com.apple.terminal")
+        store.exclude("COM.APPLE.TERMINAL")
+        #expect(store.excludedApps == ["com.apple.terminal"], "once, whatever the case")
+        Self.put("ssh deploy@prod", on: pasteboard)
+        store.check()
+        #expect(store.history.isEmpty)
+
+        // Copied on an excluded app's behalf, and saying so.
+        let (other, otherBoard) = Self.makeStore(frontmost: "com.apple.TextEdit", defaults: defaults)
+        defer { otherBoard.releaseGlobally() }
+        #expect(other.isExcluded("com.apple.Terminal"), "the list is remembered")
+        Self.put("token", on: otherBoard, source: "com.apple.Terminal")
+        other.check()
+        #expect(other.history.isEmpty)
+
+        other.include("com.apple.Terminal")
+        Self.put("fine now", on: otherBoard, source: "com.apple.Terminal")
+        other.check()
+        #expect(other.history.items.map(\.text) == ["fine now"])
+    }
+
+    @Test func pickingAfterTheShortcutPastesOnceWhenAsked() throws {
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        var pastes = 0
+        store.onPasteRequest = { pastes += 1 }
+        Self.put("hello", on: pasteboard); store.check()
+        let item = try #require(store.history.items.first)
+
+        store.copy(item)
+        #expect(pastes == 0, "a plain pick only copies")
+        store.pastesNextCopy = true
+        store.copy(item)
+        store.copy(item)
+        #expect(pastes == 1, "once per shortcut")
+        #expect(!store.pastesNextCopy)
+
+        let before = store.searchFocusRequest
+        store.requestSearchFocus()
+        #expect(store.searchFocusRequest == before + 1)
+    }
+
+    @Test func theClipboardShortcutIsRememberedAndNeverClashesWithAsk() {
+        let defaults = Self.makeDefaults()
+        let settings = AltilloSettings(defaults: defaults)
+        #expect(settings.clipboardHotKey == .controlOptionV)
+        #expect(!settings.clipboardPastesDirectly, "picking only copies by default")
+        settings.clipboardHotKey = .controlShiftV
+        settings.clipboardPastesDirectly = true
+        let relaunched = AltilloSettings(defaults: defaults)
+        #expect(relaunched.clipboardHotKey == .controlShiftV)
+        #expect(relaunched.clipboardPastesDirectly)
+
+        let assistant = Set(AssistantHotKey.allCases.compactMap { $0.combo.map { "\($0.keyCode)-\($0.modifiers)" } })
+        let clipboard = ClipboardHotKey.allCases.compactMap { $0.combo.map { "\($0.keyCode)-\($0.modifiers)" } }
+        #expect(Set(clipboard).count == clipboard.count)
+        #expect(assistant.isDisjoint(with: clipboard))
+        #expect(ClipboardHotKey.off.combo == nil)
+    }
+
     // MARK: - Files
 
     /// Scratch files for a test, removed by the caller.

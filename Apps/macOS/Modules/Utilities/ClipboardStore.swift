@@ -44,6 +44,17 @@ final class ClipboardStore {
     /// The slip picked with ↑↓ (Return copies it).
     var selection: ClipboardItem.ID?
 
+    /// Bumped to put the cursor in the search field (the global shortcut opens the section ready to type).
+    private(set) var searchFocusRequest = 0
+
+    func requestSearchFocus() { searchFocusRequest += 1 }
+
+    /// Opened from the global shortcut with "paste into the app in front" on: the next slip copied is pasted there
+    /// too (`onPasteRequest`). Cleared once used, and when the section goes away.
+    var pastesNextCopy = false
+    /// Presses ⌘V in the app that was in front (the coordinator's job: it knows that app and closes the notch).
+    @ObservationIgnored var onPasteRequest: (() -> Void)?
+
     /// Typing in the search field, or a search on screen: don't close under the user.
     var holdsOpen: Bool { isSearchFocused || !query.isEmpty }
 
@@ -94,6 +105,30 @@ final class ClipboardStore {
         }
     }
 
+    /// Apps whose copies are never kept (the user's own list, on top of the password managers Altillo already
+    /// skips), by bundle id, in the order they were added.
+    var excludedApps: [String] {
+        didSet {
+            guard excludedApps != oldValue else { return }
+            defaults.set(excludedApps, forKey: Self.excludedAppsKey)
+        }
+    }
+
+    func exclude(_ bundleID: String) {
+        guard !isExcluded(bundleID) else { return }
+        excludedApps.append(bundleID)
+    }
+
+    func include(_ bundleID: String) {
+        excludedApps.removeAll { $0.caseInsensitiveCompare(bundleID) == .orderedSame }
+    }
+
+    func isExcluded(_ bundleID: String?) -> Bool {
+        guard let bundleID, !bundleID.isEmpty else { return false }
+        return excludedApps.contains { $0.caseInsensitiveCompare(bundleID) == .orderedSame }
+    }
+
+    static let excludedAppsKey = "clipboardExcludedApps"
     static let keepsHistoryKey = "clipboardKeepsHistory"
     static let keepsImagesKey = "clipboardKeepsImages"
     static let readsTextInImagesKey = "clipboardReadsTextInImages"
@@ -130,6 +165,7 @@ final class ClipboardStore {
         keepsHistory = defaults.bool(forKey: Self.keepsHistoryKey)
         keepsImages = defaults.object(forKey: Self.keepsImagesKey) as? Bool ?? true
         readsTextInImages = defaults.object(forKey: Self.readsTextInImagesKey) as? Bool ?? true
+        excludedApps = defaults.stringArray(forKey: Self.excludedAppsKey) ?? []
         // Quick Look and drag-out files left by a crash.
         images.dropScratch()
         if Self.showsDemo { history = ClipboardHistory(items: ClipboardItem.samples()) }
@@ -192,6 +228,8 @@ final class ClipboardStore {
         images.dropScratch()
         query = ""
         selection = nil
+        kindFilter = nil
+        pastesNextCopy = false
         DiagnosticLog.shared.record("clipboard", "stopped watching")
     }
 
@@ -206,6 +244,11 @@ final class ClipboardStore {
         if count == ownChangeCount { return }
         let types = pasteboard.types?.map(\.rawValue) ?? []
         let frontmost = frontmostBundleID()
+        // An app the user excluded: nothing is read, as with a password manager.
+        if isExcluded(frontmost) {
+            DiagnosticLog.shared.record("clipboard", "skipped: an excluded app")
+            return
+        }
         var decision = ClipboardPrivacy.decide(types: types, frontmostBundleID: frontmost)
         switch decision {
         case .skipPrivate:
@@ -222,8 +265,8 @@ final class ClipboardStore {
         guard !isAccessDenied else { return }
         let source = types.contains(ClipboardPrivacy.sourceType)
             ? pasteboard.string(forType: .init(ClipboardPrivacy.sourceType)) : nil
-        // An app may copy on a password manager's behalf and say so.
-        guard !ClipboardPrivacy.isPasswordManager(source) else { return }
+        // An app may copy on a password manager's (or an excluded app's) behalf and say so.
+        guard !ClipboardPrivacy.isPasswordManager(source), !isExcluded(source) else { return }
         let bundleID = source ?? frontmost
         // Some browsers' "Copy Image" put the image's address beside it as plain text: that's an image.
         if decision == .record, keepsImages, types.contains(where: ClipboardPrivacy.imageTypes.contains),
@@ -390,6 +433,10 @@ final class ClipboardStore {
             self?.justCopied = nil
         }
         changed()
+        if pastesNextCopy {
+            pastesNextCopy = false
+            onPasteRequest?()
+        }
         return true
     }
 

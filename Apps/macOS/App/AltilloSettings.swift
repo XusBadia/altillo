@@ -116,6 +116,20 @@ final class AltilloSettings {
     /// Set when macOS refused the shortcut (another app already uses it); shown next to the picker.
     var assistantHotKeyProblem: String?
 
+    /// Global shortcut that opens the notch on the clipboard, ready to search.
+    var clipboardHotKey: ClipboardHotKey {
+        didSet { defaults.set(clipboardHotKey.rawValue, forKey: Key.clipboardHotKey) }
+    }
+
+    /// Set when macOS refused the clipboard's shortcut; shown next to its picker.
+    var clipboardHotKeyProblem: String?
+
+    /// After picking a slip from the shortcut, paste it straight into the app you were in (needs Accessibility, to
+    /// press ⌘V there). Off by default: picking only copies.
+    var clipboardPastesDirectly: Bool {
+        didSet { defaults.set(clipboardPastesDirectly, forKey: Key.clipboardPastesDirectly) }
+    }
+
     /// Peek five minutes before an event starts (only with the calendar section on and access granted).
     var alertsForCalendar: Bool {
         didSet { defaults.set(alertsForCalendar, forKey: Key.alertsForCalendar) }
@@ -229,6 +243,8 @@ final class AltilloSettings {
         static let knownModules = "knownModules"
         static let hapticsEnabled = "hapticsEnabled"
         static let assistantHotKey = "assistantHotKey"
+        static let clipboardHotKey = "clipboardHotKey"
+        static let clipboardPastesDirectly = "clipboardPastesDirectly"
         static let alertsForCalendar = "alertsForCalendar"
         static let alertsForNowPlaying = "alertsForNowPlaying"
         static let timerSound = "timerSound"
@@ -281,6 +297,8 @@ final class AltilloSettings {
         shelfExpiry = (defaults.string(forKey: Key.shelfExpiry).flatMap(ShelfExpiry.init)) ?? .never
         hapticsEnabled = defaults.object(forKey: Key.hapticsEnabled) as? Bool ?? true
         assistantHotKey = defaults.string(forKey: Key.assistantHotKey).flatMap(AssistantHotKey.init) ?? .controlOptionA
+        clipboardHotKey = defaults.string(forKey: Key.clipboardHotKey).flatMap(ClipboardHotKey.init) ?? .controlOptionV
+        clipboardPastesDirectly = defaults.bool(forKey: Key.clipboardPastesDirectly)
         alertsForCalendar = defaults.object(forKey: Key.alertsForCalendar) as? Bool ?? true
         alertsForNowPlaying = defaults.object(forKey: Key.alertsForNowPlaying) as? Bool ?? false
         timerSound = defaults.object(forKey: Key.timerSound) as? Bool ?? true
@@ -603,6 +621,25 @@ enum AssistantHotKey: String, CaseIterable, Identifiable, Codable, Sendable {
         case .controlOptionA: "⌃⌥A"
         case .optionSpace: "⌥Space"
         case .controlOptionSpace: "⌃⌥Space"
+        }
+    }
+}
+
+// MARK: - Clipboard shortcut
+
+/// The global shortcut that opens the clipboard history. Combinations apps rarely use (⇧⌘V is "Paste and Match
+/// Style" in many, ⌥⌘V is Finder's "Move Item Here").
+enum ClipboardHotKey: String, CaseIterable, Identifiable, Codable, Sendable {
+    case off, controlOptionV, controlOptionC, controlShiftV
+
+    var id: Self { self }
+
+    var title: String {
+        switch self {
+        case .off: String(localized: "None")
+        case .controlOptionV: "⌃⌥V"
+        case .controlOptionC: "⌃⌥C"
+        case .controlShiftV: "⌃⇧V"
         }
     }
 }

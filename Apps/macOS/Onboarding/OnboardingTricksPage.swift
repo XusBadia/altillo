@@ -22,6 +22,11 @@ struct OnboardingTricksPage: View {
                                 title: String(localized: "Ask anything"),
                                 detail: String(localized: "Opens Ask from any app, ready to type.")))
         }
+        if settings.modules.contains(.clipboard), settings.clipboardHotKey != .off {
+            tricks.append(Trick(id: "clipboard", keys: [settings.clipboardHotKey.title], symbol: nil,
+                                title: String(localized: "Paste something from before"),
+                                detail: String(localized: "Opens what you copied, ready to search. ⇧-click copies it without formatting.")))
+        }
         tricks.append(Trick(id: "keep", keys: [], symbol: "arrow.up.doc",
                             title: String(localized: "Keep a file up there"),
                             detail: String(localized: "Drag it to the notch and let go. Drag it out when you need it.")))
