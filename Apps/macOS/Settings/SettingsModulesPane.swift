@@ -63,7 +63,8 @@ struct SettingsModulesPane: View {
                         SettingsOptionsCard(
                             title: "Calendar",
                             detail: "Layout, all-day events and visible calendars.",
-                            symbol: NotchModule.calendar.symbol
+                            symbol: NotchModule.calendar.symbol,
+                            anchor: Self.calendarAnchor
                         ) {
                             SettingsCalendarGroup(settings: settings)
                         }
@@ -74,7 +75,8 @@ struct SettingsModulesPane: View {
                         SettingsOptionsCard(
                             title: "Usage",
                             detail: "Providers, limits and alerts.",
-                            symbol: NotchModule.usage.symbol
+                            symbol: NotchModule.usage.symbol,
+                            anchor: Self.usageAnchor
                         ) {
                             SettingsUsageGroup(settings: settings, store: UsageStore.live)
                         }
@@ -85,7 +87,8 @@ struct SettingsModulesPane: View {
                         SettingsOptionsCard(
                             title: "Clipboard",
                             detail: "Shortcut, pasting, what's kept and apps left out.",
-                            symbol: NotchModule.clipboard.symbol
+                            symbol: NotchModule.clipboard.symbol,
+                            anchor: Self.clipboardAnchor
                         ) {
                             SettingsClipboardGroup(settings: settings, store: clipboard)
                         }
@@ -97,7 +100,8 @@ struct SettingsModulesPane: View {
                     SettingsOptionsCard(
                         title: "Agents",
                         detail: "Connections, replies and permission timing.",
-                        symbol: NotchModule.agents.symbol
+                        symbol: NotchModule.agents.symbol,
+                        anchor: Self.agentsAnchor
                     ) {
                         SettingsAgentsGroup(settings: settings)
                     }
@@ -207,6 +211,8 @@ private struct SettingsOptionsCard<Content: View>: View {
     let title: LocalizedStringKey
     let detail: LocalizedStringKey
     let symbol: String
+    /// `-settingsSection <anchor>` opens scrolled to this card, and unfolded.
+    var anchor: String?
     @ViewBuilder var content: Content
     @State private var isExpanded = false
 
@@ -228,6 +234,9 @@ private struct SettingsOptionsCard<Content: View>: View {
             }
             .tint(Desvan.Palette.paperSecondary)
             .help(isExpanded ? "Hide these options" : "Show these options")
+        }
+        .onAppear {
+            if let anchor, UserDefaults.standard.string(forKey: "settingsSection") == anchor { isExpanded = true }
         }
     }
 }

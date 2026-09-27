@@ -19,11 +19,15 @@ struct DesvanClipboardView: View {
     var body: some View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .onAppear(perform: takeSearchFocusRequest)
+            .onChange(of: store.searchFocusRequest) { takeSearchFocusRequest() }
             .onDisappear {
                 store.isSearchFocused = false
                 store.query = ""
                 store.kindFilter = nil
                 store.selection = nil
+                // Left for another section: coming back and picking only copies.
+                store.pastesNextCopy = false
             }
             .onChange(of: isSearchFocused) { _, focused in
                 store.isSearchFocused = focused
@@ -221,6 +225,18 @@ struct DesvanClipboardView: View {
     }
 
     // MARK: - Actions
+
+    /// The global shortcut opened the section: the cursor goes to the search field (the request is used up even
+    /// when there's no field yet, so it can't land later on an ordinary hover-open).
+    private func takeSearchFocusRequest() {
+        guard store.takeSearchFocusRequest(), !store.history.isEmpty, !store.isAccessDenied else { return }
+        model.actions.takeKeyboardFocus()
+        // The panel has to be key before the field can take focus; give AppKit a turn.
+        Task { @MainActor in
+            await Task.yield()
+            isSearchFocused = true
+        }
+    }
 
     @discardableResult
     private func copy(_ item: ClipboardItem, plain: Bool = false) -> Bool {

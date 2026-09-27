@@ -20820,6 +20820,69 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "To press ⌘V for you, Altillo needs Accessibility. Until then, picking only copies." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Para pulsar ⌘V por ti, Altillo necesita Accesibilidad. Mientras tanto, elegir solo copia." } }
       }
+    },
+    "Images" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Images" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Imágenes" } }
+      }
+    },
+    "Files" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Files" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Archivos" } }
+      }
+    },
+    "Filter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Filter" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Filtro" } }
+      }
+    },
+    "No text here yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No text here yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay textos." } }
+      }
+    },
+    "No images here yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No images here yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay imágenes." } }
+      }
+    },
+    "No files here yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No files here yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay archivos." } }
+      }
+    },
+    "Click to copy · ⇧-click without formatting · Space to preview · ⌥-click to throw away" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Click to copy · ⇧-click without formatting · Space to preview · ⌥-click to throw away" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Clic para copiar · ⇧-clic sin formato · Espacio para ver · ⌥-clic para tirar" } }
+      }
+    },
+    "Link to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Link to %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enlace a %@" } }
+      }
+    },
+    "Color %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Color %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Color %@" } }
+      }
     }
   },
   "version" : "1.0"
