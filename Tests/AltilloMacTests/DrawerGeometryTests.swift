@@ -115,6 +115,53 @@ struct DrawerGeometryTests {
         #expect(!DrawerMovementRecovery.canCompact(.unavailable))
     }
 
+    /// Measured on a full 1710 pt MacBook bar: folded items all report the overflow control's frame.
+    private static let overflowStack = CGRect(x: 980, y: 0, width: 36, height: 34)
+
+    @Test func dividerStackedOnTheOverflowControlIsFolded() {
+        let foldedIcon = Self.overflowStack
+        let neighbour = CGRect(x: 1_016, y: 0, width: 36, height: 34)
+
+        #expect(DrawerChromePlacement.isFolded(Self.overflowStack, among: [foldedIcon, neighbour]))
+        #expect(!DrawerChromePlacement.isFolded(neighbour, among: [CGRect(x: 1_052, y: 0, width: 36, height: 34)]))
+        // Touching AX frames on a crowded bar are not a stack.
+        #expect(!DrawerChromePlacement.isFolded(neighbour, among: [CGRect(x: 1_050, y: 0, width: 36, height: 34)]))
+    }
+
+    @Test func visibleItemsSkipTheFoldedStackAndOtherRows() {
+        let visible = CGRect(x: 1_032, y: 0, width: 30, height: 34)
+        let otherDisplay = CGRect(x: 2_000, y: -1_080, width: 30, height: 24)
+
+        let items = DrawerChromePlacement.visibleItems(
+            [Self.overflowStack, Self.overflowStack, visible, otherDisplay],
+            chrome: [Self.overflowStack], row: Self.overflowStack
+        )
+
+        #expect(items == [visible])
+    }
+
+    @Test func unfoldingStartsBesideTheLeftmostVisibleIconAndStepsRight() {
+        let leftmost = CGRect(x: 1_032, y: 0, width: 28, height: 34)
+        let right = CGRect(x: 1_400, y: 0, width: 28, height: 34)
+
+        let positions = DrawerChromePlacement.candidatePositions(
+            screenMaxX: 1_710, visibleItems: [right, leftmost], remembered: nil
+        )
+
+        #expect(positions == [650, 590, 530, 470, 410, 350])
+    }
+
+    @Test func unfoldingTriesTheLastVerifiedPositionFirstAndNeverLeavesTheScreenEdge() {
+        let nearEdge = CGRect(x: 1_580, y: 0, width: 30, height: 34)
+
+        let positions = DrawerChromePlacement.candidatePositions(
+            screenMaxX: 1_710, visibleItems: [nearEdge], remembered: 540
+        )
+
+        #expect(positions == [540, 100, 40])
+        #expect(DrawerChromePlacement.candidatePositions(screenMaxX: 1_710, visibleItems: [], remembered: nil).isEmpty)
+    }
+
     @Test func laterVersionsStayConservative() {
         for version in [28, 29, 40] {
             let support = DrawerSupport.decide(majorVersion: version)

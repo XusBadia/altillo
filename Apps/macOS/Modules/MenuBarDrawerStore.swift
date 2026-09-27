@@ -419,6 +419,10 @@ final class MenuBarDrawerStore: NSObject {
             let pendingScan = self.scanTask
             await pendingScan?.value
             guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
+            guard await self.unfoldChromeIfNeeded() else {
+                if !Task.isCancelled { self.problem = Self.foldedChromeProblem }
+                return
+            }
 
             if allowMenuBarMovement, self.support.hidingStyle == .overflow {
                 let ordered = DrawerOrder.sort(
@@ -623,6 +627,11 @@ final class MenuBarDrawerStore: NSObject {
             self.currentMenuEntryID = nil
             try? await Task.sleep(for: .milliseconds(180))
             guard !Task.isCancelled else { return }
+            // A folded divider shares the overflow control's frame: there is nowhere to drop beside it.
+            guard await self.unfoldChromeIfNeeded() else {
+                if !Task.isCancelled { self.problem = Self.foldedChromeProblem }
+                return
+            }
             guard let layout = await self.settledLayout(for: entry.id) else {
                 self.problem = String(localized: "The menu bar is still changing. Wait a moment and try again.")
                 return
@@ -1053,7 +1062,7 @@ final class MenuBarDrawerStore: NSObject {
         if support.hidingStyle == .overflow {
             overflowSpacers = (0..<DrawerCollapseGeometry.spacerCount).map { index in
                 let spacer = NSStatusBar.system.statusItem(withLength: 0)
-                spacer.autosaveName = "Altillo.Drawer.Spacer.\(index).v27"
+                spacer.autosaveName = Self.overflowSpacerName(index)
                 spacer.button?.setAccessibilityElement(false)
                 spacer.isVisible = false
                 return spacer
@@ -1061,7 +1070,7 @@ final class MenuBarDrawerStore: NSObject {
         }
         let separator = NSStatusBar.system.statusItem(withLength: 20)
         separator.autosaveName = support.hidingStyle == .overflow
-            ? "Altillo.Drawer.Separator.v27" : "Altillo.Drawer.Separator"
+            ? Self.overflowSeparatorName : "Altillo.Drawer.Separator"
         separator.button?.title = "│"
         separator.button?.setAccessibilityLabel("Drawer divider")
         separator.button?.toolTip = "Manage these icons in Altillo Settings → Drawer."
@@ -1074,7 +1083,7 @@ final class MenuBarDrawerStore: NSObject {
         guard control == nil, support.hiding else { return }
         let control = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         control.autosaveName = support.hidingStyle == .overflow
-            ? "Altillo.Drawer.Control.v27" : "Altillo.Drawer.Control"
+            ? Self.overflowControlName : "Altillo.Drawer.Control"
         control.button?.target = self
         control.button?.action = #selector(toggleSection)
         self.control = control
@@ -1095,7 +1104,13 @@ final class MenuBarDrawerStore: NSObject {
     private func restoreChromeAfterMovement() {
         guard enabled, separator != nil else { return }
         separator?.length = 20
-        if let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
+        if support.hidingStyle == .overflow {
+            // A recreated item lands leftmost on macOS 27, i.e. left of the divider or folded. Put it back
+            // just right of the divider's last verified position.
+            if let dividerPosition = defaults.object(forKey: Self.unfoldedPositionKey) as? NSNumber {
+                defaults.set(dividerPosition.doubleValue - 2, forKey: Self.preferredPositionKey(Self.overflowControlName))
+            }
+        } else if let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
             let immediatelyRight = max(0, separatorPosition.intValue - 1)
             defaults.set(min(movementControlPosition ?? immediatelyRight, immediatelyRight),
                          forKey: Self.controlPositionKey)
@@ -1106,8 +1121,71 @@ final class MenuBarDrawerStore: NSObject {
         installControl()
     }
 
+    private static let overflowControlName = "Altillo.Drawer.Control.v27"
+    private static let overflowSeparatorName = "Altillo.Drawer.Separator.v27"
+    private static func overflowSpacerName(_ index: Int) -> String { "Altillo.Drawer.Spacer.\(index).v27" }
     private static let controlPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Control"
     private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
+    /// The last divider position that macOS 27 verifiably kept visible (points from the right screen edge).
+    private static let unfoldedPositionKey = "drawer.v27.dividerPosition"
+    private static let foldedChromeProblem =
+        "Altillo's divider is folded into the menu bar's overflow («). Close an unused menu bar app and try again."
+
+    private static func preferredPositionKey(_ autosaveName: String) -> String {
+        "NSStatusItem Preferred Position \(autosaveName)"
+    }
+
+    /// macOS 27 folds whatever doesn't fit into its overflow control («), starting from the left, and every
+    /// fresh autosave name lands leftmost. On a MacBook the area beside the notch is often already full, so
+    /// the divider and the arrow start folded: their frames stack on « and no Command-drag can reach them.
+    /// MenuBarAgent still honours a preferred position written before an item is created, though only
+    /// approximately, so recreate the chrome beside the leftmost visible icon, stepping right until the
+    /// divider is verifiably visible. Items macOS had already folded stay left of it, in the Drawer.
+    private func unfoldChromeIfNeeded() async -> Bool {
+        guard support.hidingStyle == .overflow, enabled, hasAccess, !isHidden,
+              let divider = separatorFrame else { return true }
+        let chrome = [statusItemFrame(control)].compactMap { $0 }
+        guard DrawerChromePlacement.isFolded(divider, among: entries.map(\.frame) + chrome) else { return true }
+        guard let screenMaxX = separator?.button?.window?.screen?.frame.maxX else { return false }
+        let visible = DrawerChromePlacement.visibleItems(entries.map(\.frame), chrome: [divider] + chrome, row: divider)
+        let remembered = (defaults.object(forKey: Self.unfoldedPositionKey) as? NSNumber).map { CGFloat($0.doubleValue) }
+        let positions = DrawerChromePlacement.candidatePositions(screenMaxX: screenMaxX, visibleItems: visible,
+                                                                 remembered: remembered)
+        Self.log.debug("unfold divider=\(String(describing: divider), privacy: .public) candidates=\(String(describing: positions), privacy: .public)")
+        for position in positions {
+            guard !Task.isCancelled, enabled, hasAccess else { return false }
+            removeSection()
+            defaults.set(Double(position - 2), forKey: Self.preferredPositionKey(Self.overflowControlName))
+            for index in 0..<DrawerCollapseGeometry.spacerCount {
+                defaults.set(Double(position - 1), forKey: Self.preferredPositionKey(Self.overflowSpacerName(index)))
+            }
+            defaults.set(Double(position), forKey: Self.preferredPositionKey(Self.overflowSeparatorName))
+            installSection()
+            try? await Task.sleep(for: .milliseconds(400))
+            guard !Task.isCancelled, enabled, hasAccess else { return false }
+            let snapshot = await accessibility.scan(applications: runningApplications())
+            guard !Task.isCancelled else { return false }
+            setEntries(snapshot)
+            guard let frame = separatorFrame, let toggle = statusItemFrame(control),
+                  !DrawerChromePlacement.isFolded(frame, among: snapshot.map(\.frame) + [toggle]),
+                  toggle.minX >= frame.maxX - 1 else { continue }
+            Self.log.debug("unfold placed position=\(Double(position)) divider=\(String(describing: frame), privacy: .public)")
+            defaults.set(Double(position), forKey: Self.unfoldedPositionKey)
+            // Whatever macOS keeps folded is left of the divider now. Adopt the layout it produced, as a
+            // verified move does, so the Drawer lists every icon the notch hides and can collapse.
+            let beforeDivider = snapshot.filter {
+                DrawerGeometry.isBeforeSeparator($0.frame, separator: frame)
+            }.map(\.id)
+            selectedIDs = Set(beforeDivider)
+            chosenIDs.formUnion(beforeDivider)
+            drawerOrder += beforeDivider.filter { !drawerOrder.contains($0) }
+            defaults.set(chosenIDs.sorted(), forKey: "drawer.chosenIDs")
+            defaults.set(drawerOrder, forKey: "drawer.order")
+            return true
+        }
+        Self.log.error("unfold failed")
+        return false
+    }
 
     private func collapseSection() {
         guard enabled, hidesDrawerIcons, support.hiding, hasAccess, hasRequiredIconAccess,
@@ -1281,6 +1359,49 @@ enum DrawerCollapseGeometry {
         guard unit > 0, let widest = displays.map(\.statusWidth).max() else { return 0 }
         let needed = Int((widest / unit).rounded(.up)) - 1
         return min(max(needed, 0), spacerCount)
+    }
+}
+
+/// Where to recreate Altillo's macOS 27 chrome when MenuBarAgent has folded it into the overflow control.
+/// Positions are `NSStatusItem Preferred Position` values: points from the right edge of the screen.
+enum DrawerChromePlacement {
+    /// MenuBarAgent maps a preferred position to a slot only approximately (measured on a 1710 pt
+    /// MacBook: the leftmost icon's own edge distance folded the item, ~100 pt less kept it visible).
+    static let step: CGFloat = 60
+    static let attempts = 6
+    static let minimumPosition: CGFloat = 40
+
+    /// Folded items share the overflow control's frame. Neighbours touch by a point or two at most.
+    static func isFolded(_ item: CGRect, among others: [CGRect]) -> Bool {
+        others.contains { other in
+            let overlap = other.intersection(item)
+            return !overlap.isNull && overlap.height > 2 && overlap.width >= min(item.width, other.width) / 2
+        }
+    }
+
+    /// Items drawn in their own slot on the divider's menu bar, excluding the folded stack.
+    static func visibleItems(_ frames: [CGRect], chrome: [CGRect], row: CGRect) -> [CGRect] {
+        frames.enumerated().filter { index, frame in
+            guard frame.width > 0, frame.height > 0,
+                  frame.midY >= row.minY, frame.midY <= row.maxY else { return false }
+            let others = frames.enumerated().filter { $0.offset != index }.map(\.element) + chrome
+            return !isFolded(frame, among: others)
+        }.map(\.element)
+    }
+
+    /// The last verified position first, then from the leftmost visible icon towards the right.
+    static func candidatePositions(screenMaxX: CGFloat, visibleItems: [CGRect], remembered: CGFloat?) -> [CGFloat] {
+        var positions: [CGFloat] = []
+        if let remembered, remembered >= minimumPosition { positions.append(remembered.rounded(.down)) }
+        if let leftmost = visibleItems.min(by: { $0.minX < $1.minX }) {
+            let base = (screenMaxX - leftmost.maxX).rounded(.down)
+            for attempt in 0..<attempts {
+                let position = base - CGFloat(attempt) * step
+                guard position >= minimumPosition else { break }
+                if !positions.contains(position) { positions.append(position) }
+            }
+        }
+        return positions
     }
 }
 
