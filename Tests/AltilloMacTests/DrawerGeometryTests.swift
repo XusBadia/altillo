@@ -162,6 +162,11 @@ struct DrawerGeometryTests {
         #expect(DrawerChromePlacement.candidatePositions(screenMaxX: 1_710, visibleItems: [], remembered: nil).isEmpty)
     }
 
+    @Test func pinnedChromeNamesMoveToAFreshGenerationOnlyWhenNeeded() {
+        #expect(DrawerChromePlacement.name("Altillo.Drawer.Separator.v27", generation: 0) == "Altillo.Drawer.Separator.v27")
+        #expect(DrawerChromePlacement.name("Altillo.Drawer.Separator.v27", generation: 2) == "Altillo.Drawer.Separator.v27.g2")
+    }
+
     @Test func laterVersionsStayConservative() {
         for version in [28, 29, 40] {
             let support = DrawerSupport.decide(majorVersion: version)

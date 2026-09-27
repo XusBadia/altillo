@@ -1062,7 +1062,7 @@ final class MenuBarDrawerStore: NSObject {
         if support.hidingStyle == .overflow {
             overflowSpacers = (0..<DrawerCollapseGeometry.spacerCount).map { index in
                 let spacer = NSStatusBar.system.statusItem(withLength: 0)
-                spacer.autosaveName = Self.overflowSpacerName(index)
+                spacer.autosaveName = overflowSpacerName(index)
                 spacer.button?.setAccessibilityElement(false)
                 spacer.isVisible = false
                 return spacer
@@ -1070,7 +1070,7 @@ final class MenuBarDrawerStore: NSObject {
         }
         let separator = NSStatusBar.system.statusItem(withLength: 20)
         separator.autosaveName = support.hidingStyle == .overflow
-            ? Self.overflowSeparatorName : "Altillo.Drawer.Separator"
+            ? overflowSeparatorName : "Altillo.Drawer.Separator"
         separator.button?.title = "│"
         separator.button?.setAccessibilityLabel("Drawer divider")
         separator.button?.toolTip = "Manage these icons in Altillo Settings → Drawer."
@@ -1083,7 +1083,7 @@ final class MenuBarDrawerStore: NSObject {
         guard control == nil, support.hiding else { return }
         let control = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         control.autosaveName = support.hidingStyle == .overflow
-            ? Self.overflowControlName : "Altillo.Drawer.Control"
+            ? overflowControlName : "Altillo.Drawer.Control"
         control.button?.target = self
         control.button?.action = #selector(toggleSection)
         self.control = control
@@ -1108,7 +1108,7 @@ final class MenuBarDrawerStore: NSObject {
             // A recreated item lands leftmost on macOS 27, i.e. left of the divider or folded. Put it back
             // just right of the divider's last verified position.
             if let dividerPosition = defaults.object(forKey: Self.unfoldedPositionDefault) as? NSNumber {
-                defaults.set(dividerPosition.doubleValue - 2, forKey: Self.preferredPositionKey(Self.overflowControlName))
+                defaults.set(dividerPosition.doubleValue - 2, forKey: Self.preferredPositionKey(overflowControlName))
             }
         } else if let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
             let immediatelyRight = max(0, separatorPosition.intValue - 1)
@@ -1121,9 +1121,19 @@ final class MenuBarDrawerStore: NSObject {
         installControl()
     }
 
-    private static let overflowControlName = "Altillo.Drawer.Control.v27"
-    private static let overflowSeparatorName = "Altillo.Drawer.Separator.v27"
-    private static func overflowSpacerName(_ index: Int) -> String { "Altillo.Drawer.Spacer.\(index).v27" }
+    /// macOS 27 names carry a generation: MenuBarAgent can keep a stored slot for a name that overrides any
+    /// preferred position (seen for the installed app, not for a copy elsewhere), and only a new name escapes it.
+    private var chromeGeneration: Int { defaults.integer(forKey: Self.chromeGenerationDefault) }
+    private var overflowControlName: String {
+        DrawerChromePlacement.name("Altillo.Drawer.Control.v27", generation: chromeGeneration)
+    }
+    private var overflowSeparatorName: String {
+        DrawerChromePlacement.name("Altillo.Drawer.Separator.v27", generation: chromeGeneration)
+    }
+    private func overflowSpacerName(_ index: Int) -> String {
+        DrawerChromePlacement.name("Altillo.Drawer.Spacer.\(index).v27", generation: chromeGeneration)
+    }
+    private static let chromeGenerationDefault = "drawer.v27.chromeGeneration"
     private static let controlPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Control"
     private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
     /// The last divider position that macOS 27 verifiably kept visible (points from the right screen edge).
@@ -1152,14 +1162,34 @@ final class MenuBarDrawerStore: NSObject {
         let positions = DrawerChromePlacement.candidatePositions(screenMaxX: screenMaxX, visibleItems: visible,
                                                                  remembered: remembered)
         Self.log.debug("unfold divider=\(String(describing: divider), privacy: .public) candidates=\(String(describing: positions), privacy: .public)")
+        guard !positions.isEmpty else {
+            Self.log.error("unfold failed: no visible icon to place beside")
+            return false
+        }
+        for pass in 0..<2 {
+            if pass == 1 {
+                // Every position was ignored: MenuBarAgent pinned these names. Retry once under fresh ones.
+                forgetChromeNames()
+                defaults.set(chromeGeneration + 1, forKey: Self.chromeGenerationDefault)
+                Self.log.debug("unfold retry generation=\(self.chromeGeneration)")
+            }
+            if await placeChrome(at: positions) { return true }
+            guard !Task.isCancelled, enabled, hasAccess else { return false }
+        }
+        Self.log.error("unfold failed")
+        return false
+    }
+
+    /// Recreates the chrome at each position in turn until the divider is visible with the arrow on its right.
+    private func placeChrome(at positions: [CGFloat]) async -> Bool {
         for position in positions {
             guard !Task.isCancelled, enabled, hasAccess else { return false }
             removeSection()
-            defaults.set(Double(position - 2), forKey: Self.preferredPositionKey(Self.overflowControlName))
+            defaults.set(Double(position - 2), forKey: Self.preferredPositionKey(overflowControlName))
             for index in 0..<DrawerCollapseGeometry.spacerCount {
-                defaults.set(Double(position - 1), forKey: Self.preferredPositionKey(Self.overflowSpacerName(index)))
+                defaults.set(Double(position - 1), forKey: Self.preferredPositionKey(overflowSpacerName(index)))
             }
-            defaults.set(Double(position), forKey: Self.preferredPositionKey(Self.overflowSeparatorName))
+            defaults.set(Double(position), forKey: Self.preferredPositionKey(overflowSeparatorName))
             installSection()
             try? await Task.sleep(for: .milliseconds(400))
             guard !Task.isCancelled, enabled, hasAccess else { return false }
@@ -1183,8 +1213,17 @@ final class MenuBarDrawerStore: NSObject {
             defaults.set(drawerOrder, forKey: "drawer.order")
             return true
         }
-        Self.log.error("unfold failed")
         return false
+    }
+
+    /// Drops AppKit's leftovers for the current generation's names before they are abandoned.
+    private func forgetChromeNames() {
+        let names = [overflowControlName, overflowSeparatorName]
+            + (0..<DrawerCollapseGeometry.spacerCount).map { overflowSpacerName($0) }
+        for name in names {
+            defaults.removeObject(forKey: Self.preferredPositionKey(name))
+            defaults.removeObject(forKey: "NSStatusItem VisibleCC \(name)")
+        }
     }
 
     private func collapseSection() {
@@ -1370,6 +1409,11 @@ enum DrawerChromePlacement {
     static let step: CGFloat = 60
     static let attempts = 6
     static let minimumPosition: CGFloat = 40
+
+    /// Generation 0 keeps the original names, so existing installations don't move until a retry is needed.
+    static func name(_ base: String, generation: Int) -> String {
+        generation > 0 ? "\(base).g\(generation)" : base
+    }
 
     /// Folded items share the overflow control's frame. Neighbours touch by a point or two at most.
     static func isFolded(_ item: CGRect, among others: [CGRect]) -> Bool {
