@@ -11,6 +11,19 @@ enum ClipboardContent: Hashable, Sendable {
     /// A copied image; its PNG is in `ClipboardImages`.
     case image(ClipboardImage)
 
+    /// What kind of slip it is, for the section's filter.
+    enum Kind: String, CaseIterable, Sendable {
+        case text, image, files
+    }
+
+    var kind: Kind {
+        switch self {
+        case .text: .text
+        case .image: .image
+        case .files: .files
+        }
+    }
+
     /// Two copies with the same key are the same slip.
     var dedupeKey: String {
         switch self {
@@ -23,11 +36,11 @@ enum ClipboardContent: Hashable, Sendable {
 
 extension ClipboardContent: Codable {
     private enum CodingKeys: String, CodingKey { case kind, text, files, image }
-    private enum Kind: String, Codable { case text, files, image }
+    private enum StoredKind: String, Codable { case text, files, image }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
-        switch try container.decode(Kind.self, forKey: .kind) {
+        switch try container.decode(StoredKind.self, forKey: .kind) {
         case .text: self = .text(try container.decode(String.self, forKey: .text))
         case .files: self = .files(try container.decode([ClipboardFile].self, forKey: .files))
         case .image: self = .image(try container.decode(ClipboardImage.self, forKey: .image))
@@ -38,13 +51,13 @@ extension ClipboardContent: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
         case let .text(text):
-            try container.encode(Kind.text, forKey: .kind)
+            try container.encode(StoredKind.text, forKey: .kind)
             try container.encode(text, forKey: .text)
         case let .files(files):
-            try container.encode(Kind.files, forKey: .kind)
+            try container.encode(StoredKind.files, forKey: .kind)
             try container.encode(files, forKey: .files)
         case let .image(image):
-            try container.encode(Kind.image, forKey: .kind)
+            try container.encode(StoredKind.image, forKey: .kind)
             try container.encode(image, forKey: .image)
         }
     }
@@ -462,10 +475,12 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
     }
 
     /// Slips whose words (`ClipboardItem.text`) contain every word of `query` (case- and accent-insensitive), in section order.
-    func matching(_ query: String) -> [ClipboardItem] {
+    /// Only slips of `kind`, when one is given.
+    func matching(_ query: String, kind: ClipboardContent.Kind? = nil) -> [ClipboardItem] {
         let words = query.split(whereSeparator: \.isWhitespace).map(String.init)
-        guard !words.isEmpty else { return ordered }
-        return ordered.filter { item in
+        let shown: [ClipboardItem] = if let kind { ordered.filter { $0.content.kind == kind } } else { ordered }
+        guard !words.isEmpty else { return shown }
+        return shown.filter { item in
             words.allSatisfy { item.text.range(of: $0, options: [.caseInsensitive, .diacriticInsensitive]) != nil }
         }
     }

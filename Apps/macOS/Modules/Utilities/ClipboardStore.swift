@@ -47,8 +47,11 @@ final class ClipboardStore {
     /// Typing in the search field, or a search on screen: don't close under the user.
     var holdsOpen: Bool { isSearchFocused || !query.isEmpty }
 
-    /// Slips for the current search, in the order the section shows them.
-    var visibleItems: [ClipboardItem] { history.matching(query) }
+    /// Only one kind of slip on screen (texts, images or files), or all of them.
+    var kindFilter: ClipboardContent.Kind?
+
+    /// Slips for the current search and filter, in the order the section shows them.
+    var visibleItems: [ClipboardItem] { history.matching(query, kind: kindFilter) }
 
     /// Keep the history after quitting (off by default). Stored in the store's own defaults key.
     var keepsHistory: Bool {
