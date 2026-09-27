@@ -22,6 +22,7 @@ struct DesvanClipboardView: View {
             .onDisappear {
                 store.isSearchFocused = false
                 store.query = ""
+                store.kindFilter = nil
                 store.selection = nil
             }
             .onChange(of: isSearchFocused) { _, focused in
@@ -29,6 +30,7 @@ struct DesvanClipboardView: View {
                 if focused { model.actions.takeKeyboardFocus() }
             }
             .onChange(of: store.query) { store.selection = nil }
+            .onChange(of: store.kindFilter) { store.selection = nil }
             .onChange(of: store.justCopied) { _, copied in
                 guard copied != nil else { return }
                 AccessibilityNotification.Announcement(String(localized: "Copied")).post()
@@ -48,11 +50,14 @@ struct DesvanClipboardView: View {
                 DesvanClipboardPrivacyPane.open()
             }
         } else if store.history.isEmpty {
-            DesvanModuleNotice(
-                symbol: "list.clipboard",
-                title: "Nothing copied yet",
-                message: "Copy some text, an image or a file and it lands here, ready to copy again. Passwords are never kept."
-            )
+            VStack(spacing: 0) {
+                DesvanModuleNotice(
+                    symbol: "list.clipboard",
+                    title: "Nothing copied yet",
+                    message: "Copy some text, an image or a file and it lands here, ready to copy again. Passwords are never kept."
+                )
+                gestures
+            }
             .overlay(alignment: .topTrailing) { undoButton.padding(2) }
         } else {
             VStack(spacing: 8) {
@@ -63,7 +68,26 @@ struct DesvanClipboardView: View {
         }
     }
 
+    /// Under the empty notice: what a slip does once there is one, so the gestures aren't a secret.
+    private var gestures: some View {
+        Text("Click to copy · ⇧-click without formatting · Space to preview · ⌥-click to throw away")
+            .font(.system(size: 11))
+            .foregroundStyle(Desvan.Palette.paperTertiary)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .minimumScaleFactor(0.9)
+            .padding(.horizontal, 24)
+            .padding(.bottom, 6)
+    }
+
     // MARK: - Header
+
+    /// The kinds of slip in the history, and the one being shown even if its last slip just went (so its chip
+    /// stays to switch back from).
+    private var kinds: [ClipboardContent.Kind] {
+        let present = Set(store.history.items.map(\.content.kind))
+        return ClipboardContent.Kind.allCases.filter { present.contains($0) || $0 == store.kindFilter }
+    }
 
     private var header: some View {
         HStack(spacing: 6) {
@@ -74,6 +98,14 @@ struct DesvanClipboardView: View {
                 isFocused: $isSearchFocused,
                 onClick: { model.actions.takeKeyboardFocus() }
             )
+            if kinds.count > 1 {
+                DesvanClipboardKindChips(kinds: kinds, selection: store.kindFilter) { kind in
+                    withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) {
+                        store.kindFilter = kind
+                    }
+                }
+                .transition(.opacity)
+            }
             if let undoable = store.undoable {
                 undoButton
                     .help(undoable.kind == .clear ? "Put the history back" : "Put the slip back")
@@ -124,10 +156,16 @@ struct DesvanClipboardView: View {
         let items = store.visibleItems
         return Group {
             if items.isEmpty {
-                Text("No slips with “\(store.query)”.")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                Group {
+                    if let kind = store.kindFilter, store.query.isEmpty {
+                        Text(kind.nothingYet)
+                    } else {
+                        Text("No slips with “\(store.query)”.")
+                    }
+                }
+                .font(.system(size: 12.5))
+                .foregroundStyle(Desvan.Palette.paperTertiary)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollViewReader { proxy in
                     ScrollView(.vertical) {
@@ -245,8 +283,9 @@ struct DesvanClipboardView: View {
 // MARK: - A slip
 
 /// One copy on a wood slip: the app it came from (or the file's icon), its first two lines (or the file's name and
-/// folder) and when. Pinned slips are held with a strip of masking tape. Hovering shows pin, "Put on the shelf"
-/// and ×. A file slip whose files are all gone stays, dimmed, until it's thrown away.
+/// folder) and when. A web address shows its site over the rest of it, by a link glyph; a colour code shows its
+/// colour in place of the app's icon. Pinned slips are held with a strip of masking tape. Hovering shows pin,
+/// "Put on the shelf" and ×. A file slip whose files are all gone stays, dimmed, until it's thrown away.
 private struct DesvanClipboardSlip: View {
     let item: ClipboardItem
     let now: Date
@@ -347,12 +386,29 @@ private struct DesvanClipboardSlip: View {
     private var words: some View {
         switch item.content {
         case .text:
-            Text(item.preview)
-                .font(.system(size: 12.5))
-                .foregroundStyle(Desvan.Palette.paper)
-                .lineLimit(2)
-                .lineSpacing(1.5)
-                .multilineTextAlignment(.leading)
+            if let link = item.link {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: link.host)
+                        .font(.system(size: 12.5, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paper)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    if !link.rest.isEmpty {
+                        Text(verbatim: link.rest)
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                }
+            } else {
+                Text(item.preview)
+                    .font(item.color == nil ? .system(size: 12.5) : .system(size: 12.5, design: .monospaced))
+                    .foregroundStyle(Desvan.Palette.paper)
+                    .lineLimit(2)
+                    .lineSpacing(1.5)
+                    .multilineTextAlignment(.leading)
+            }
         case let .files(files):
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: files.count == 1 ? files[0].name : String(localized: "\(files.count) files"))
@@ -478,7 +534,14 @@ private struct DesvanClipboardSlip: View {
     }
 
     private var spoken: String {
-        var parts = [item.title.isEmpty ? String(localized: "Blank text") : item.title]
+        let name = if let link = item.link {
+            String(localized: "Link to \(link.host)")
+        } else if item.color != nil {
+            String(localized: "Color \(item.title)")
+        } else {
+            item.title.isEmpty ? String(localized: "Blank text") : item.title
+        }
+        var parts = [name]
         if filesAreGone { parts.append(String(localized: "moved or deleted")) }
         if isImageGone { parts.append(String(localized: "no longer available")) }
         if let app = item.sourceName { parts.append(String(localized: "from \(app)")) }
@@ -513,13 +576,19 @@ private struct DesvanClipboardToolBody: View {
 }
 
 /// The source app's icon (or, for files, the files' own icon), looked up once each; a plain text glyph when
-/// it's unknown.
+/// it's unknown. A link gets a link glyph and a colour code a swatch of its colour instead.
 private struct DesvanClipboardSlipIcon: View {
     let item: ClipboardItem
 
     var body: some View {
         Group {
-            if let icon = DesvanClipboardIcons.icon(for: item) {
+            if let color = item.color {
+                DesvanClipboardSwatch(color: color)
+            } else if item.link != nil {
+                Image(systemName: "link")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+            } else if let icon = DesvanClipboardIcons.icon(for: item) {
                 Image(nsImage: icon).resizable().interpolation(.high)
             } else {
                 Image(systemName: "doc.plaintext")
@@ -586,6 +655,111 @@ extension ClipboardContent {
     /// Images and files open in Quick Look.
     var isPreviewable: Bool {
         if case .text = self { false } else { true }
+    }
+}
+
+/// A colour code's colour, on a small rounded tile. The hairline keeps a dark colour from vanishing into the wood;
+/// a see-through one shows over a checkerboard, as design apps do.
+private struct DesvanClipboardSwatch: View {
+    let color: ClipboardColor
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 5, style: .continuous)
+        ZStack {
+            if color.alpha < 1 {
+                Canvas { context, size in
+                    let side = size.width / 4
+                    context.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(white: 0.85)))
+                    for row in 0 ..< 4 {
+                        for column in 0 ..< 4 where (row + column).isMultiple(of: 2) {
+                            let square = CGRect(x: CGFloat(column) * side, y: CGFloat(row) * side, width: side, height: side)
+                            context.fill(Path(square), with: .color(Color(white: 0.6)))
+                        }
+                    }
+                }
+            }
+            shape.fill(Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: color.alpha))
+        }
+        .frame(width: 18, height: 18)
+        .clipShape(shape)
+        .overlay(shape.strokeBorder(Desvan.Palette.paper.opacity(0.3), lineWidth: 0.75))
+        .shadow(color: .black.opacity(0.35), radius: 0.5, y: 0.5)
+    }
+}
+
+/// The type filter beside the search: "All" and one chip per kind of slip in the history. The one shown is lit
+/// by the bulb.
+private struct DesvanClipboardKindChips: View {
+    let kinds: [ClipboardContent.Kind]
+    /// nil: all of them.
+    let selection: ClipboardContent.Kind?
+    let select: (ClipboardContent.Kind?) -> Void
+
+    var body: some View {
+        HStack(spacing: 4) {
+            DesvanClipboardKindChip(title: "All", isOn: selection == nil) { select(nil) }
+            ForEach(kinds, id: \.self) { kind in
+                DesvanClipboardKindChip(title: kind.chipTitle, isOn: selection == kind) { select(kind) }
+            }
+        }
+        .fixedSize()
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Filter")
+    }
+}
+
+/// One chip of the type filter: a small capsule, lit by the bulb while it's the one shown.
+private struct DesvanClipboardKindChip: View {
+    let title: LocalizedStringKey
+    let isOn: Bool
+    let action: () -> Void
+    @State private var isHovering = false
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
+                .foregroundStyle(isOn ? Desvan.Palette.bulb : Desvan.Palette.paper.opacity(isHovering ? 1 : 0.8))
+                .lineLimit(1)
+                .padding(.horizontal, 9)
+                .frame(minHeight: 24)
+                .background {
+                    Capsule()
+                        .fill(isOn ? Desvan.Palette.woodRaised : Desvan.Palette.paper.opacity(isHovering ? 0.08 : 0.03))
+                        .overlay {
+                            Capsule().strokeBorder(
+                                isOn ? Desvan.Palette.bulb.opacity(0.7) : Desvan.Palette.paper.opacity(0.16), lineWidth: 1
+                            )
+                        }
+                }
+                .contentShape(Capsule())
+                .fixedSize()
+        }
+        .buttonStyle(.plain)
+        .focusable(false)
+        .onHover { isHovering = $0 }
+        .animation(Desvan.Motion.hover, value: isHovering)
+        .animation(Desvan.Motion.hover, value: isOn)
+        .accessibilityAddTraits(isOn ? [.isButton, .isSelected] : .isButton)
+    }
+}
+
+private extension ClipboardContent.Kind {
+    var chipTitle: LocalizedStringKey {
+        switch self {
+        case .text: "Text"
+        case .image: "Images"
+        case .files: "Files"
+        }
+    }
+
+    /// What the list says when the filter is on and none of this kind is left.
+    var nothingYet: LocalizedStringKey {
+        switch self {
+        case .text: "No text here yet."
+        case .image: "No images here yet."
+        case .files: "No files here yet."
+        }
     }
 }
 
