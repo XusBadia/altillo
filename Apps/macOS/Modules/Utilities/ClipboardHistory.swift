@@ -105,7 +105,26 @@ extension ClipboardFile: Codable {
     }
 }
 
-/// One thing the user copied: a text, some files or an image.
+/// A copied text's formatting, as the app that copied it offered it: put back beside the text when it's copied
+/// again, so pasting into Pages or Mail keeps bold, links and lists.
+struct ClipboardRichText: Codable, Hashable, Sendable {
+    var rtf: Data?
+    var html: Data?
+
+    /// Largest formatting kept per kind: a styled page, not a copied document with pictures inside.
+    static let maxBytes = 256 * 1024
+
+    /// Only what fits; nil when nothing does.
+    init?(rtf: Data?, html: Data?) {
+        let rtf = rtf.flatMap { $0.isEmpty || $0.count > Self.maxBytes ? nil : $0 }
+        let html = html.flatMap { $0.isEmpty || $0.count > Self.maxBytes ? nil : $0 }
+        guard rtf != nil || html != nil else { return nil }
+        self.rtf = rtf
+        self.html = html
+    }
+}
+
+/// One thing the user copied: a text (maybe with its formatting), some files or an image.
 struct ClipboardItem: Identifiable, Hashable, Sendable {
     var id: UUID
     var content: ClipboardContent
@@ -115,11 +134,14 @@ struct ClipboardItem: Identifiable, Hashable, Sendable {
     var sourceBundleID: String?
     var sourceName: String?
     var isPinned: Bool
+    /// A text slip's formatting, when it had some.
+    var richText: ClipboardRichText?
 
     init(id: UUID = UUID(), content: ClipboardContent, copiedAt: Date = .now, sourceBundleID: String? = nil,
-         sourceName: String? = nil, isPinned: Bool = false) {
+         sourceName: String? = nil, isPinned: Bool = false, richText: ClipboardRichText? = nil) {
         self.id = id
         self.content = content
+        self.richText = richText
         self.copiedAt = copiedAt
         self.sourceBundleID = sourceBundleID
         self.sourceName = sourceName
@@ -176,7 +198,7 @@ struct ClipboardItem: Identifiable, Hashable, Sendable {
 
 extension ClipboardItem: Codable {
     private enum CodingKeys: String, CodingKey {
-        case id, content, text, copiedAt, sourceBundleID, sourceName, isPinned
+        case id, content, text, copiedAt, sourceBundleID, sourceName, isPinned, richText
     }
 
     /// Histories saved before slips could hold files have only `text`; one saved by a newer Altillo may hold a kind
@@ -193,6 +215,7 @@ extension ClipboardItem: Codable {
         sourceBundleID = try container.decodeIfPresent(String.self, forKey: .sourceBundleID)
         sourceName = try container.decodeIfPresent(String.self, forKey: .sourceName)
         isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
+        richText = try? container.decodeIfPresent(ClipboardRichText.self, forKey: .richText)
     }
 
     func encode(to encoder: Encoder) throws {
@@ -205,6 +228,7 @@ extension ClipboardItem: Codable {
         try container.encodeIfPresent(sourceBundleID, forKey: .sourceBundleID)
         try container.encodeIfPresent(sourceName, forKey: .sourceName)
         try container.encode(isPinned, forKey: .isPinned)
+        try container.encodeIfPresent(richText, forKey: .richText)
     }
 }
 
@@ -351,11 +375,12 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
     var imageHashes: Set<String> { Set(items.compactMap(\.image?.hash)) }
 
     /// Keeps a copy. The same thing copied again moves to the top (keeping its pin) instead of appearing twice.
+    /// A text copied again takes the formatting of this copy (or none): copying it back gives what was copied last.
     @discardableResult
-    mutating func record(_ content: ClipboardContent, at date: Date = .now, sourceBundleID: String? = nil,
-                         sourceName: String? = nil) -> ClipboardItem {
+    mutating func record(_ content: ClipboardContent, richText: ClipboardRichText? = nil, at date: Date = .now,
+                         sourceBundleID: String? = nil, sourceName: String? = nil) -> ClipboardItem {
         var item = ClipboardItem(content: content, copiedAt: date, sourceBundleID: sourceBundleID,
-                                 sourceName: sourceName)
+                                 sourceName: sourceName, richText: richText)
         let key = content.dedupeKey
         if let index = items.firstIndex(where: { $0.content.dedupeKey == key }) {
             let existing = items.remove(at: index)

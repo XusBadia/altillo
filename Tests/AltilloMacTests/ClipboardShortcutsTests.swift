@@ -234,6 +234,45 @@ struct ClipboardShortcutsTests {
         #expect(items.map { $0["text"] as? String } == ["a.txt", "old note"])
     }
 
+    // MARK: - Formatting
+
+    @Test func formattedTextGoesBackWithItsFormattingUnlessPlainIsAsked() throws {
+        let (store, pasteboard) = Self.makeStore(frontmost: "com.apple.iWork.Pages")
+        defer { pasteboard.releaseGlobally() }
+        let rtf = Data(#"{\rtf1\ansi {\b Bold} move}"#.utf8)
+        let html = Data("<b>Bold</b> move".utf8)
+        pasteboard.clearContents()
+        pasteboard.setString("Bold move", forType: .string)
+        pasteboard.setData(rtf, forType: .rtf)
+        pasteboard.setData(html, forType: .html)
+        store.check()
+        let item = try #require(store.history.items.first)
+        #expect(item.text == "Bold move")
+        #expect(item.richText?.rtf == rtf && item.richText?.html == html)
+
+        Self.put("other", on: pasteboard); store.check()
+        #expect(store.copy(item))
+        #expect(pasteboard.string(forType: .string) == "Bold move")
+        #expect(pasteboard.data(forType: .rtf) == rtf)
+        #expect(pasteboard.data(forType: .html) == html)
+
+        #expect(store.copy(item, plain: true))
+        #expect(pasteboard.string(forType: .string) == "Bold move")
+        #expect(pasteboard.data(forType: .rtf) == nil, "plain text only")
+
+        // The same words copied again without formatting: copying back gives what was copied last.
+        Self.put("Bold move", on: pasteboard); store.check()
+        #expect(store.history.items.first?.id == item.id)
+        #expect(store.history.items.first?.richText == nil)
+    }
+
+    @Test func oversizedFormattingIsLeftBehind() {
+        #expect(ClipboardRichText(rtf: nil, html: nil) == nil)
+        #expect(ClipboardRichText(rtf: Data(count: ClipboardRichText.maxBytes + 1), html: nil) == nil)
+        let kept = ClipboardRichText(rtf: Data(count: ClipboardRichText.maxBytes + 1), html: Data("<i>x</i>".utf8))
+        #expect(kept?.rtf == nil && kept?.html != nil)
+    }
+
     // MARK: - Images
 
     /// A small PNG, different for each `seed`.

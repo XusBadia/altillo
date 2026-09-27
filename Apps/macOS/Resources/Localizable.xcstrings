@@ -20683,6 +20683,20 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Texts, images and files (files by reference). Passwords and anything marked private are never kept." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Textos, imágenes y archivos (los archivos, por referencia). Las contraseñas y lo marcado como privado nunca se guardan." } }
       }
+    },
+    "Click to copy with its formatting · ⇧-click for plain text · ⌥-click to throw away · drag it out" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Click to copy with its formatting · ⇧-click for plain text · ⌥-click to throw away · drag it out" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Haz clic para copiar con su formato · ⇧-clic para texto sin formato · ⌥-clic para tirarlo · arrástralo fuera" } }
+      }
+    },
+    "Copy as Plain Text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy as Plain Text" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copiar como texto sin formato" } }
+      }
     }
   },
   "version" : "1.0"

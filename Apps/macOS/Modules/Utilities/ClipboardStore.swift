@@ -195,7 +195,9 @@ final class ClipboardStore {
         // An app may copy on a password manager's behalf and say so.
         guard !ClipboardPrivacy.isPasswordManager(source), let content = read(decision) else { return }
         let bundleID = source ?? frontmost
-        history.record(content, at: .now, sourceBundleID: bundleID, sourceName: Self.appName(for: bundleID))
+        let richText = decision == .record ? readRichText(types) : nil
+        history.record(content, richText: richText, at: .now, sourceBundleID: bundleID,
+                       sourceName: Self.appName(for: bundleID))
         changed()
     }
 
@@ -227,6 +229,13 @@ final class ClipboardStore {
         }
     }
 
+    /// The formatting beside a copied text (RTF, HTML), when the app offered some that fits.
+    private func readRichText(_ types: [String]) -> ClipboardRichText? {
+        let rtf = types.contains(NSPasteboard.PasteboardType.rtf.rawValue) ? pasteboard.data(forType: .rtf) : nil
+        let html = types.contains(NSPasteboard.PasteboardType.html.rawValue) ? pasteboard.data(forType: .html) : nil
+        return ClipboardRichText(rtf: rtf, html: html)
+    }
+
     /// What's on disk follows what's kept: the history's images while it's kept after quitting, nothing otherwise.
     private func diskImages(for history: ClipboardHistory) -> Set<String>? {
         keepsHistory ? history.imageHashes : nil
@@ -250,14 +259,18 @@ final class ClipboardStore {
 
     // MARK: - Actions
 
-    /// Puts a slip back on the clipboard, with a short "Copied" moment. Says it came from Altillo. False when
-    /// there's nothing left to copy (every file it points to is gone).
+    /// Puts a slip back on the clipboard, with a short "Copied" moment. Says it came from Altillo. A text goes back
+    /// with its formatting unless `plain`. False when there's nothing left to copy (the files or the image are gone).
     @discardableResult
-    func copy(_ item: ClipboardItem) -> Bool {
+    func copy(_ item: ClipboardItem, plain: Bool = false) -> Bool {
         switch item.content {
         case let .text(text):
             pasteboard.clearContents()
             pasteboard.setString(text, forType: .string)
+            if !plain, let rich = item.richText {
+                if let rtf = rich.rtf { pasteboard.setData(rtf, forType: .rtf) }
+                if let html = rich.html { pasteboard.setData(html, forType: .html) }
+            }
         case let .files(files):
             let urls = files.compactMap { $0.resolvedURL() }
             guard !urls.isEmpty else { return false }

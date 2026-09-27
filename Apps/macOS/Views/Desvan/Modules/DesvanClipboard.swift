@@ -167,6 +167,7 @@ struct DesvanClipboardView: View {
             isCopied: store.justCopied == item.id,
             canPin: item.isPinned || store.history.canPinMore,
             copy: { copy(item) },
+            copyPlain: item.richText == nil ? nil : { copy(item, plain: true) },
             delete: {
                 withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) { store.delete(item) }
             },
@@ -184,9 +185,9 @@ struct DesvanClipboardView: View {
     // MARK: - Actions
 
     @discardableResult
-    private func copy(_ item: ClipboardItem) -> Bool {
+    private func copy(_ item: ClipboardItem, plain: Bool = false) -> Bool {
         let copied = withAnimation(Desvan.Motion.pick(Desvan.Motion.lift, reduceMotion: reduceMotion)) {
-            store.copy(item)
+            store.copy(item, plain: plain)
         }
         if copied {
             model.actions.haptic(.snap)
@@ -258,6 +259,8 @@ private struct DesvanClipboardSlip: View {
     let canPin: Bool
     /// False when there was nothing to copy (the files are gone).
     let copy: () -> Bool
+    /// ⇧-click or ⇧Return: the text without its formatting (only for slips that have some).
+    let copyPlain: (() -> Bool)?
     let delete: () -> Void
     let togglePin: () -> Void
     let putOnShelf: () -> Void
@@ -302,19 +305,30 @@ private struct DesvanClipboardSlip: View {
         .contentShape(RoundedRectangle(cornerRadius: 9, style: .continuous))
         .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .onTapGesture {
-            if NSEvent.modifierFlags.contains(.option) { delete() } else { copyOrNotice() }
+            let flags = NSEvent.modifierFlags
+            if flags.contains(.option) {
+                delete()
+            } else if flags.contains(.shift), let copyPlain {
+                _ = copyPlain()
+            } else {
+                copyOrNotice()
+            }
         }
         .shelfDraggable(
             items: { isMissing ? [] : dragItems() },
             onEnded: { _, _ in }
         )
         .focusable()
-        .onKeyPress(.return) { copyOrNotice(); return .handled }
+        .onKeyPress(keys: [.return]) { press in
+            if press.modifiers.contains(.shift), let copyPlain { _ = copyPlain() } else { copyOrNotice() }
+            return .handled
+        }
         .onKeyPress(.space) {
             if let quickLook, !isMissing { quickLook() } else { copyOrNotice() }
             return .handled
         }
-        .help("Click to copy · ⌥-click to throw away · drag it out")
+        .help(copyPlain == nil ? "Click to copy · ⌥-click to throw away · drag it out"
+                               : "Click to copy with its formatting · ⇧-click for plain text · ⌥-click to throw away · drag it out")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(spoken)
         .accessibilityHint("Copies it again.")
@@ -322,6 +336,7 @@ private struct DesvanClipboardSlip: View {
         .accessibilityAction { copyOrNotice() }
         .accessibilityActions {
             Button(item.isPinned ? "Unpin" : "Pin", action: togglePin)
+            if let copyPlain { Button("Copy as Plain Text") { _ = copyPlain() } }
             Button("Put on the shelf", action: putOnShelf)
             if let quickLook { Button("Quick Look", action: quickLook) }
             Button("Throw away", action: delete)
