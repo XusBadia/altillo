@@ -16428,23 +16428,6 @@
         }
       }
     },
-    "The last things you copied, text only. Passwords are never kept." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "The last things you copied, text only. Passwords are never kept."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Lo último que has copiado, solo texto. Las contraseñas nunca se guardan."
-          }
-        }
-      }
-    },
     "The left and right spaces are visible while Altillo is closed." : {
       "localizations" : {
         "es" : {
@@ -20689,6 +20672,13 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Find Text in Images" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar texto en imágenes" } }
+      }
+    },
+    "The last things you copied: texts, images and files. Passwords are never kept." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The last things you copied: texts, images and files. Passwords are never kept." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Lo último que has copiado: textos, imágenes y archivos. Las contraseñas nunca se guardan." } }
       }
     }
   },

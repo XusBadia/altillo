@@ -53,7 +53,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .nowPlaying: String(localized: "What's playing, with its controls.")
         case .timer: String(localized: "A kitchen timer that peeks when it rings.")
         case .note: String(localized: "A quick note you can drag out anywhere.")
-        case .clipboard: String(localized: "The last things you copied, text only. Passwords are never kept.")
+        case .clipboard: String(localized: "The last things you copied: texts, images and files. Passwords are never kept.")
         case .shortcuts: String(localized: "Your favourite Shortcuts, one click away.")
         case .keepAwake: String(localized: "Keep your Mac awake for a while, only when you ask.")
         }
