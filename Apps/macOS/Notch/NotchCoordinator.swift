@@ -489,6 +489,11 @@ final class NotchCoordinator {
         }
         if state == .idle || state == .open { model.dropZone = nil }
         if state != .open { cancel(.closeGrace) }
+        // Closed any way at all (the pointer leaving, Esc, a click outside): a later pick only copies.
+        if state != .open {
+            pasteTarget = nil
+            model.clipboard.pastesNextCopy = false
+        }
         updatePanelVisibility()
     }
 
@@ -910,10 +915,15 @@ final class NotchCoordinator {
             DiagnosticLog.shared.record("clipboard", "paste skipped: \(target == nil ? "no app in front" : "no Accessibility")")
             return
         }
-        target.activate()
+        // The notch never takes the app in front's place, so it's still there; if the user switched apps meanwhile,
+        // the keystroke would land somewhere else: only copy then.
+        guard NSWorkspace.shared.frontmostApplication?.processIdentifier == target.processIdentifier else {
+            DiagnosticLog.shared.record("clipboard", "paste skipped: another app is in front now")
+            return
+        }
         Task { @MainActor in
-            // Let the app take the keyboard back before the keystroke lands.
-            try? await Task.sleep(for: .milliseconds(150))
+            // Let the panel give the keyboard back before the keystroke lands.
+            try? await Task.sleep(for: .milliseconds(60))
             ClipboardPaste.pressCommandV()
         }
     }

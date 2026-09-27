@@ -695,7 +695,7 @@ private struct SettingsClipboardGroup: View {
             .toggleStyle(.checkbox)
             .disabled(settings.clipboardHotKey == .off)
 
-            if settings.clipboardPastesDirectly, !canPaste {
+            if settings.clipboardPastesDirectly, settings.clipboardHotKey != .off, !canPaste {
                 HStack(spacing: 10) {
                     Image(systemName: "hand.raised")
                         .font(.system(size: 14, weight: .medium))
@@ -780,6 +780,10 @@ private struct SettingsExcludedAppRow: View {
 
     private var appURL: URL? { NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID) }
 
+    private var name: String {
+        appURL.map { FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "") } ?? bundleID
+    }
+
     var body: some View {
         HStack(spacing: 8) {
             Group {
@@ -790,7 +794,7 @@ private struct SettingsExcludedAppRow: View {
                 }
             }
             .frame(width: 18, height: 18)
-            Text(verbatim: appURL.map { FileManager.default.displayName(atPath: $0.path).replacingOccurrences(of: ".app", with: "") } ?? bundleID)
+            Text(verbatim: name)
                 .font(.system(size: 12.5))
                 .foregroundStyle(Desvan.Palette.paper)
                 .lineLimit(1)
@@ -801,7 +805,7 @@ private struct SettingsExcludedAppRow: View {
             }
             .buttonStyle(.plain)
             .help("Keep copies from this app again")
-            .accessibilityLabel("Remove")
+            .accessibilityLabel(Text("Remove \(name)"))
         }
         .padding(.vertical, 4)
     }

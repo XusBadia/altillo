@@ -46,8 +46,17 @@ final class ClipboardStore {
 
     /// Bumped to put the cursor in the search field (the global shortcut opens the section ready to type).
     private(set) var searchFocusRequest = 0
+    /// The last request the view acted on, so one made before the view was there is honoured on appear.
+    @ObservationIgnored private var handledSearchFocusRequest = 0
 
     func requestSearchFocus() { searchFocusRequest += 1 }
+
+    /// True once per request; the view then moves the cursor to the search field (when there is one).
+    func takeSearchFocusRequest() -> Bool {
+        guard searchFocusRequest != handledSearchFocusRequest else { return false }
+        handledSearchFocusRequest = searchFocusRequest
+        return true
+    }
 
     /// Opened from the global shortcut with "paste into the app in front" on: the next slip copied is pasted there
     /// too (`onPasteRequest`). Cleared once used, and when the section goes away.
@@ -147,6 +156,9 @@ final class ClipboardStore {
     @ObservationIgnored private var undoExpiry: Task<Void, Never>?
     @ObservationIgnored private var saveTask: Task<Void, Never>?
     @ObservationIgnored private var reading: Task<Void, Never>?
+    /// The app that was in front until a moment ago, and when it stopped being.
+    @ObservationIgnored private var leftApp: (bundleID: String?, at: Date)?
+    @ObservationIgnored private var activationObserver: NSObjectProtocol?
     @ObservationIgnored private var tiffProvider: ClipboardTIFFProvider?
     @ObservationIgnored private weak var settings: AltilloSettings?
 
@@ -207,6 +219,16 @@ final class ClipboardStore {
         timer.tolerance = Self.tolerance
         RunLoop.main.add(timer, forMode: .common)
         self.timer = timer
+        var front = frontmostBundleID()
+        activationObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didActivateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            let app = note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+            MainActor.assumeIsolated {
+                self?.leftApp = (front, .now)
+                front = app?.bundleIdentifier
+            }
+        }
         DiagnosticLog.shared.record("clipboard", "watching (every \(Self.interval) s)")
     }
 
@@ -220,6 +242,9 @@ final class ClipboardStore {
         isWatching = false
         timer?.invalidate()
         timer = nil
+        if let activationObserver { NSWorkspace.shared.notificationCenter.removeObserver(activationObserver) }
+        activationObserver = nil
+        leftApp = nil
         if keepsHistory { saveNow() }
         if !Self.showsDemo { history = ClipboardHistory() }
         undoable = nil
@@ -244,8 +269,9 @@ final class ClipboardStore {
         if count == ownChangeCount { return }
         let types = pasteboard.types?.map(\.rawValue) ?? []
         let frontmost = frontmostBundleID()
-        // An app the user excluded: nothing is read, as with a password manager.
-        if isExcluded(frontmost) {
+        // An app the user excluded: nothing is read, as with a password manager. Also when it was in front a moment
+        // ago (copied, then switched away before this tick came round).
+        if isExcluded(frontmost) || isExcluded(recentlyLeftApp()) {
             DiagnosticLog.shared.record("clipboard", "skipped: an excluded app")
             return
         }
@@ -379,6 +405,12 @@ final class ClipboardStore {
         } else {
             images.retain(memory: memory, disk: diskImages(for: history))
         }
+    }
+
+    /// The app left within the last tick and a bit: a copy made there may only be seen now.
+    private func recentlyLeftApp() -> String? {
+        guard let leftApp, Date.now.timeIntervalSince(leftApp.at) < Self.interval + Self.tolerance + 0.2 else { return nil }
+        return leftApp.bundleID
     }
 
     private func refreshAccess() {
