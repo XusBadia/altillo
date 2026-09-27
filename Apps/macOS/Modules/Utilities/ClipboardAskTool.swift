@@ -7,7 +7,7 @@ import FoundationModels
 /// memory. Only while that section is on (it keeps nothing otherwise); the `clipboard` tool reads the current item.
 struct ClipboardHistoryTool: Tool {
     let name = "clipboardHistory"
-    let description = "Texts and files the user copied earlier, newest first. Pass words to find one."
+    let description = "Texts, images and files the user copied earlier, newest first. Pass words to find one."
 
     @Generable
     struct Arguments {
@@ -49,10 +49,10 @@ enum ClipboardAsk {
 
     static func answer(_ reading: Reading, search: String?, now: Date) -> String {
         guard reading.isEnabled else {
-            return "Altillo's Clipboard section is off, so it keeps no history of what the user copied. Tell the user they can turn it on in Settings › Sections (it keeps texts and files, never passwords)."
+            return "Altillo's Clipboard section is off, so it keeps no history of what the user copied. Tell the user they can turn it on in Settings › Sections (it keeps texts, images and files, never passwords)."
         }
         guard !reading.items.isEmpty else {
-            return "Nothing copied since the Clipboard section was turned on (it keeps texts and files, never passwords)."
+            return "Nothing copied since the Clipboard section was turned on (it keeps texts, images and files, never passwords)."
         }
         var items = reading.items
         let words = (search ?? "").split(whereSeparator: \.isWhitespace).map(String.init)
@@ -77,6 +77,8 @@ enum ClipboardAsk {
                 let names = files.prefix(maxListed).map { "\"\($0.name)\"" }.joined(separator: ", ")
                 let more = files.count > maxListed ? " and \(files.count - maxListed) more" : ""
                 return line + ": " + (files.count == 1 ? "a file " : "\(files.count) files ") + names + more
+            case let .image(image):
+                return line + ": an image, \(image.width)×\(image.height) pixels"
             }
         }
         var text = "What the user copied, newest first:\n" + lines.joined(separator: "\n")

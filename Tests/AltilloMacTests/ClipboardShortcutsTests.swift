@@ -60,7 +60,13 @@ struct ClipboardShortcutsTests {
                 "a Finder copy is files, not their names as text")
         #expect(ClipboardPrivacy.decide(types: ["public.file-url", ClipboardPrivacy.concealedType], frontmostBundleID: nil) == .skipPrivate)
         #expect(ClipboardPrivacy.decide(types: ["public.file-url"], frontmostBundleID: "com.bitwarden.desktop") == .skipPrivate)
-        #expect(ClipboardPrivacy.decide(types: ["public.png", "public.tiff"], frontmostBundleID: nil) == .skipNotText)
+        #expect(ClipboardPrivacy.decide(types: ["public.png", "public.tiff"], frontmostBundleID: nil) == .recordImage)
+        #expect(ClipboardPrivacy.decide(types: ["public.tiff", "public.url"], frontmostBundleID: nil) == .recordImage,
+                "a browser's Copy Image adds the image's address")
+        #expect(ClipboardPrivacy.decide(types: ["public.utf8-plain-text", "public.tiff"], frontmostBundleID: nil) == .record,
+                "copied cells or text come with a picture of themselves: the text wins")
+        #expect(ClipboardPrivacy.decide(types: ["public.png", ClipboardPrivacy.concealedType], frontmostBundleID: nil) == .skipPrivate)
+        #expect(ClipboardPrivacy.decide(types: ["com.adobe.pdf"], frontmostBundleID: nil) == .skipNotText)
         #expect(ClipboardPrivacy.decide(types: [], frontmostBundleID: nil) == .skipNotText)
     }
 
@@ -226,6 +232,137 @@ struct ClipboardShortcutsTests {
         let raw = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
         let items = try #require(raw["items"] as? [[String: Any]])
         #expect(items.map { $0["text"] as? String } == ["a.txt", "old note"])
+    }
+
+    // MARK: - Images
+
+    /// A small PNG, different for each `seed`.
+    private static func png(seed: Int, width: Int = 40, height: Int = 30) -> Data {
+        let rep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: width, pixelsHigh: height, bitsPerSample: 8,
+                                   samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                                   bytesPerRow: 0, bitsPerPixel: 0)!
+        rep.setColor(NSColor(red: CGFloat(seed % 7) / 7, green: 0.4, blue: CGFloat(seed % 5) / 5, alpha: 1), atX: 0, y: 0)
+        rep.setColor(NSColor(white: CGFloat(seed % 11) / 11, alpha: 1), atX: 1, y: 1)
+        return rep.representation(using: .png, properties: [:])!
+    }
+
+    private static func putImage(_ png: Data, on pasteboard: NSPasteboard) {
+        pasteboard.clearContents()
+        pasteboard.setData(png, forType: .png)
+    }
+
+    @Test func copiedImagesAreKeptAndCopiedBackAsPNG() throws {
+        let (store, pasteboard) = Self.makeStore(frontmost: "com.apple.Preview")
+        defer { pasteboard.releaseGlobally() }
+        let png = Self.png(seed: 1, width: 40, height: 30)
+        Self.putImage(png, on: pasteboard)
+        store.check()
+        let item = try #require(store.history.items.first)
+        let image = try #require(item.image)
+        #expect((image.width, image.height) == (40, 30))
+        #expect(image.byteCount == png.count)
+        #expect(item.title == "Image, 40 × 30")
+        #expect(store.images.data(for: image) == png)
+
+        // The same image again: one slip. Then copied back, byte for byte.
+        Self.put("between", on: pasteboard); store.check()
+        Self.putImage(png, on: pasteboard); store.check()
+        #expect(store.history.items.count == 2)
+        Self.put("after", on: pasteboard); store.check()
+        #expect(store.copy(item))
+        #expect(pasteboard.data(forType: .png) == png)
+        store.check()
+        #expect(store.history.items.count == 3, "our own copy-back isn't recorded again")
+    }
+
+    @Test func tiffIsKeptAsPNG() throws {
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        let tiff = try #require(NSBitmapImageRep(data: Self.png(seed: 2))?.tiffRepresentation)
+        pasteboard.clearContents()
+        pasteboard.setData(tiff, forType: .tiff)
+        store.check()
+        let image = try #require(store.history.items.first?.image)
+        let kept = try #require(store.images.data(for: image))
+        #expect(kept.starts(with: [0x89, 0x50, 0x4E, 0x47]), "PNG signature")
+    }
+
+    @Test func imagesCanBeTurnedOffAndPrivateOnesAreNeverRead() {
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        #expect(store.keepsImages, "on by default")
+        pasteboard.declareTypes([.png, .init(ClipboardPrivacy.concealedType)], owner: nil)
+        pasteboard.setData(Self.png(seed: 3), forType: .png)
+        store.check()
+        #expect(store.history.isEmpty)
+
+        store.keepsImages = false
+        Self.putImage(Self.png(seed: 4), on: pasteboard)
+        store.check()
+        #expect(store.history.isEmpty)
+    }
+
+    @Test func imagesAreCappedAndTheirPNGsGoWithTheirSlips() throws {
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        store.start()
+        for seed in 0...ClipboardHistory.maxImages {
+            Self.putImage(Self.png(seed: seed + 10, width: 20 + seed), on: pasteboard)
+            store.check()
+        }
+        let images = store.history.items.compactMap(\.image)
+        #expect(images.count == ClipboardHistory.maxImages, "the oldest image went")
+        let oldest = try #require(images.last)
+        let first = ClipboardImages.describe(Self.png(seed: 10, width: 20))!
+        #expect(store.images.data(for: first) == nil, "its PNG went with it")
+
+        // Thrown away: kept only while Undo can bring it back.
+        let slip = try #require(store.history.items.first { $0.image == oldest })
+        store.delete(slip)
+        #expect(store.images.data(for: oldest) != nil, "Undo can still put it back")
+        store.undo()
+        #expect(store.history.items.contains { $0.image == oldest })
+        store.clear()
+        store.stop()
+        #expect(store.images.data(for: oldest) == nil, "the section off forgets every image")
+    }
+
+    @Test func imagesOnlyReachTheDiskWhileTheHistoryIsKept() throws {
+        let defaults = Self.makeDefaults()
+        let archive = Self.scratchArchive()
+        defer { try? FileManager.default.removeItem(at: archive.url.deletingLastPathComponent()) }
+        let (store, pasteboard) = Self.makeStore(defaults: defaults, archive: archive)
+        defer { pasteboard.releaseGlobally() }
+        store.start()
+        let png = Self.png(seed: 5)
+        Self.putImage(png, on: pasteboard)
+        store.check()
+        let image = try #require(store.history.items.first?.image)
+        let file = store.images.folder.appending(path: "\(image.hash).png")
+        #expect(!FileManager.default.fileExists(atPath: file.path), "in memory only while the history is")
+
+        store.keepsHistory = true
+        #expect(FileManager.default.fileExists(atPath: file.path))
+        let permissions = try FileManager.default.attributesOfItem(atPath: file.path)[.posixPermissions] as? Int
+        #expect(permissions == 0o600)
+        store.stop()
+
+        // Relaunched: the image comes back from disk.
+        let (relaunched, other) = Self.makeStore(defaults: defaults, archive: archive)
+        defer { other.releaseGlobally() }
+        relaunched.start()
+        let back = try #require(relaunched.history.items.first?.image)
+        #expect(relaunched.images.data(for: back) == png)
+
+        // Thrown away: gone from disk at once. Turning the option off takes the folder.
+        Self.putImage(Self.png(seed: 6), on: other); relaunched.check()
+        let second = try #require(relaunched.history.items.first?.image)
+        relaunched.delete(try #require(relaunched.history.items.first { $0.image == back }))
+        #expect(!FileManager.default.fileExists(atPath: file.path))
+        relaunched.keepsHistory = false
+        #expect(!FileManager.default.fileExists(atPath: relaunched.images.folder.path))
+        #expect(relaunched.images.data(for: second) != nil, "still in memory")
+        relaunched.stop()
     }
 
     // MARK: - The history
@@ -573,18 +710,21 @@ struct ClipboardShortcutsTests {
         let items = [
             ClipboardItem(text: "Tracking 1Z999", copiedAt: now.addingTimeInterval(-7_200), sourceName: "Mail", isPinned: true),
             ClipboardItem(text: "Meet at 6\nby the window", copiedAt: now.addingTimeInterval(-60), sourceName: "Messages"),
+            ClipboardItem(content: .image(ClipboardImage(hash: "ab", width: 1200, height: 800, byteCount: 10)),
+                          copiedAt: now.addingTimeInterval(-30), sourceName: "Preview"),
         ]
         let answer = ClipboardAsk.answer(.init(isEnabled: true, items: items), search: nil, now: now)
         let meet = try! #require(answer.range(of: "Meet at 6 by the window"))
         let tracking = try! #require(answer.range(of: "Tracking 1Z999"))
         #expect(meet.lowerBound < tracking.lowerBound, "newest first")
+        #expect(answer.contains("an image, 1200×800 pixels"))
         #expect(answer.contains("from Mail (pinned)"))
         #expect(answer.contains("1 min ago"))
 
         let found = ClipboardAsk.answer(.init(isEnabled: true, items: items), search: "tracking", now: now)
         #expect(found.contains("Tracking 1Z999") && !found.contains("Meet"))
         let missing = ClipboardAsk.answer(.init(isEnabled: true, items: items), search: "invoice", now: now)
-        #expect(missing.contains("None of the 2"))
+        #expect(missing.contains("None of the 3"))
     }
 
     @Test func askRunsANamedShortcutOnceAndSaysHowItWent() async {

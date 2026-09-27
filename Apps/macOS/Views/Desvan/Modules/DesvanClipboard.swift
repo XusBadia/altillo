@@ -2,9 +2,9 @@ import AltilloCore
 import AppKit
 import SwiftUI
 
-/// The «Clipboard» tab: the last texts and files you copied, as slips on the wood. Click one to copy it again, drag
-/// it out anywhere, ⌥-click (or ×) to throw it away, pin the ones worth keeping. Search at the top; ↑↓ and Return
-/// work once the field has focus.
+/// The «Clipboard» tab: the last texts, images and files you copied, as slips on the wood. Click one to copy it
+/// again, drag it out anywhere, ⌥-click (or ×) to throw it away, pin the ones worth keeping; Space shows an image or
+/// a file in Quick Look. Search at the top; ↑↓ and Return work once the field has focus.
 ///
 /// Files are kept by reference (never their contents), and nothing marked private or copied in a password manager
 /// is ever kept (`ClipboardPrivacy`). It only watches the pasteboard while the section is on (`ClipboardStore`).
@@ -51,7 +51,7 @@ struct DesvanClipboardView: View {
             DesvanModuleNotice(
                 symbol: "list.clipboard",
                 title: "Nothing copied yet",
-                message: "Copy some text or a file and it lands here, ready to copy again. Passwords are never kept."
+                message: "Copy some text, an image or a file and it lands here, ready to copy again. Passwords are never kept."
             )
             .overlay(alignment: .topTrailing) { undoButton.padding(2) }
         } else {
@@ -161,6 +161,8 @@ struct DesvanClipboardView: View {
         DesvanClipboardSlip(
             item: item,
             now: now,
+            thumbnail: item.image.flatMap { store.images.thumbnail(for: $0) },
+            isImageGone: item.image.map { !store.images.has($0) } ?? false,
             isSelected: store.selection == item.id,
             isCopied: store.justCopied == item.id,
             canPin: item.isPinned || store.history.canPinMore,
@@ -173,7 +175,9 @@ struct DesvanClipboardView: View {
                     _ = store.togglePin(item)
                 }
             },
-            putOnShelf: { putOnShelf(item) }
+            putOnShelf: { putOnShelf(item) },
+            dragItems: { dragItems(for: item) },
+            quickLook: item.content.isPreviewable ? { quickLook(item) } : nil
         )
     }
 
@@ -193,9 +197,33 @@ struct DesvanClipboardView: View {
     }
 
     private func putOnShelf(_ item: ClipboardItem) {
+        if let image = item.image {
+            // The shelf gets a copy of its own, in its inbox: it outlives the slip.
+            guard let png = store.images.data(for: image),
+                  let shelved = try? FileIngest.standard.ingest(data: png, suggestedName: String(localized: "Image") + ".png")
+            else { return }
+            model.actions.addToShelf([shelved])
+            return
+        }
         let items = item.shelfItems
         guard !items.isEmpty else { return }
         model.actions.addToShelf(items)
+    }
+
+    /// A drag out: the text, the files, or the image as a PNG file.
+    private func dragItems(for item: ClipboardItem) -> [ShelfItem] {
+        guard let image = item.image else { return item.shelfItems }
+        guard let url = store.images.scratchFile(for: image) else { return [] }
+        return [ShelfItem(kind: .file(url, isOwnedCopy: false), displayName: item.title)]
+    }
+
+    private func quickLook(_ item: ClipboardItem) {
+        let urls: [URL] = if let image = item.image {
+            store.images.scratchFile(for: image).map { [$0] } ?? []
+        } else {
+            item.files.compactMap { $0.resolvedURL() }
+        }
+        QuickLookPresenter.show(urls)
     }
 
     private func move(_ offset: Int) -> Bool {
@@ -221,6 +249,10 @@ struct DesvanClipboardView: View {
 private struct DesvanClipboardSlip: View {
     let item: ClipboardItem
     let now: Date
+    /// An image slip's picture (nil while it's being made).
+    let thumbnail: NSImage?
+    /// An image slip whose PNG is gone.
+    let isImageGone: Bool
     let isSelected: Bool
     let isCopied: Bool
     let canPin: Bool
@@ -229,17 +261,27 @@ private struct DesvanClipboardSlip: View {
     let delete: () -> Void
     let togglePin: () -> Void
     let putOnShelf: () -> Void
+    let dragItems: () -> [ShelfItem]
+    /// Space: Quick Look, for images and files.
+    let quickLook: (() -> Void)?
 
     @State private var isHovering = false
     /// Every file the slip points to is gone (looked at when it appears).
-    @State private var isMissing = false
+    @State private var filesAreGone = false
+
+    private var isMissing: Bool { filesAreGone || isImageGone }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(alignment: .top, spacing: 10) {
-            DesvanClipboardSlipIcon(item: item)
-                .padding(.top, 1)
-                .opacity(isMissing ? 0.45 : 1)
+        HStack(alignment: item.image == nil ? .top : .center, spacing: 10) {
+            if item.image != nil {
+                DesvanClipboardThumbnail(image: thumbnail)
+                    .opacity(isMissing ? 0.45 : 1)
+            } else {
+                DesvanClipboardSlipIcon(item: item)
+                    .padding(.top, 1)
+                    .opacity(isMissing ? 0.45 : 1)
+            }
             words
                 .frame(maxWidth: .infinity, alignment: .leading)
             trailing
@@ -263,12 +305,15 @@ private struct DesvanClipboardSlip: View {
             if NSEvent.modifierFlags.contains(.option) { delete() } else { copyOrNotice() }
         }
         .shelfDraggable(
-            items: { item.shelfItems },
+            items: { isMissing ? [] : dragItems() },
             onEnded: { _, _ in }
         )
         .focusable()
         .onKeyPress(.return) { copyOrNotice(); return .handled }
-        .onKeyPress(.space) { copyOrNotice(); return .handled }
+        .onKeyPress(.space) {
+            if let quickLook, !isMissing { quickLook() } else { copyOrNotice() }
+            return .handled
+        }
         .help("Click to copy · ⌥-click to throw away · drag it out")
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(spoken)
@@ -278,6 +323,7 @@ private struct DesvanClipboardSlip: View {
         .accessibilityActions {
             Button(item.isPinned ? "Unpin" : "Pin", action: togglePin)
             Button("Put on the shelf", action: putOnShelf)
+            if let quickLook { Button("Quick Look", action: quickLook) }
             Button("Throw away", action: delete)
         }
     }
@@ -305,6 +351,17 @@ private struct DesvanClipboardSlip: View {
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
+        case let .image(image):
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Image")
+                    .font(.system(size: 12.5, weight: .medium))
+                    .foregroundStyle(isMissing ? Desvan.Palette.paperTertiary : Desvan.Palette.paper)
+                Text(verbatim: isMissing ? String(localized: "No longer available") : "\(image.width) × \(image.height)")
+                    .font(.system(size: 11.5))
+                    .monospacedDigit()
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                    .lineLimit(1)
+            }
         }
     }
 
@@ -323,11 +380,11 @@ private struct DesvanClipboardSlip: View {
         let missing = await Task.detached(priority: .utility) {
             !files.contains { $0.resolvedURL() != nil }
         }.value
-        if missing != isMissing { isMissing = missing }
+        if missing != filesAreGone { filesAreGone = missing }
     }
 
     private func copyOrNotice() {
-        if !copy() { isMissing = !item.files.isEmpty }
+        if !copy() { filesAreGone = !item.files.isEmpty }
     }
 
     /// Time and pin at rest; the tools while hovered; "Copied" for a moment after a click.
@@ -399,7 +456,8 @@ private struct DesvanClipboardSlip: View {
 
     private var spoken: String {
         var parts = [item.title.isEmpty ? String(localized: "Blank text") : item.title]
-        if isMissing { parts.append(String(localized: "moved or deleted")) }
+        if filesAreGone { parts.append(String(localized: "moved or deleted")) }
+        if isImageGone { parts.append(String(localized: "no longer available")) }
         if let app = item.sourceName { parts.append(String(localized: "from \(app)")) }
         parts.append(NotchFormat.ago(item.copiedAt, now: now))
         if item.isPinned { parts.append(String(localized: "pinned")) }
@@ -459,6 +517,7 @@ private enum DesvanClipboardIcons {
         switch item.content {
         case .text: appIcon(for: item.sourceBundleID)
         case let .files(files): fileIcon(for: files.prefix(3).map(\.path))
+        case .image: nil
         }
     }
 
@@ -493,7 +552,45 @@ extension ClipboardItem {
             return files.compactMap { file in
                 file.resolvedURL().map { ShelfItem(kind: .file($0, isOwnedCopy: false), displayName: FileIngest.displayName(of: $0)) }
             }
+        case .image:
+            // Needs the PNG as a file: the section makes one (`ClipboardImages.scratchFile`).
+            return []
         }
+    }
+}
+
+extension ClipboardContent {
+    /// Images and files open in Quick Look.
+    var isPreviewable: Bool {
+        if case .text = self { false } else { true }
+    }
+}
+
+/// An image slip's picture, small and rounded, on a dark mat while it's being made.
+private struct DesvanClipboardThumbnail: View {
+    let image: NSImage?
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 5, style: .continuous)
+                .fill(Color.black.opacity(0.28))
+            if let image {
+                Image(nsImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .aspectRatio(contentMode: .fit)
+                    .transition(.opacity)
+            } else {
+                Image(systemName: "photo")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Desvan.Palette.paperTertiary)
+            }
+        }
+        .frame(width: 52, height: 36)
+        .clipShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).strokeBorder(Color.white.opacity(0.08)))
+        .animation(.easeOut(duration: 0.18), value: image != nil)
+        .accessibilityHidden(true)
     }
 }
 
@@ -506,10 +603,11 @@ private struct DesvanClipboardOptions: View {
 
     var body: some View {
         Toggle("Keep History After Quitting", isOn: Bindable(store).keepsHistory)
+        Toggle("Keep Images", isOn: Bindable(store).keepsImages)
         Button("Clear History") { store.clear() }
             .disabled(store.history.recent.isEmpty)
         Divider()
-        Text("Texts and files (never their contents). Passwords and anything marked private are never kept.")
+        Text("Texts, images and files (files by reference). Passwords and anything marked private are never kept.")
     }
 }
 

@@ -3,15 +3,16 @@ import AppKit
 import Foundation
 import Observation
 
-/// The clipboard section («Portapapeles»): the last things the user copied (texts, and files by reference) while
-/// the section is on.
+/// The clipboard section («Portapapeles»): the last things the user copied (texts, images, and files by reference)
+/// while the section is on.
 ///
 /// macOS has no pasteboard-changed notification, so it looks at `NSPasteboard.changeCount` (one integer, no
 /// contents, never the privacy alert) every 0.75 s with a generous timer tolerance, **only while the Clipboard
 /// section is enabled**; turning it off stops the timer and forgets everything. Contents are read only after the
-/// types say it's text or file references that aren't marked private and don't come from a password manager
-/// (`ClipboardPrivacy`); a copied file's contents are never read, only where it is. Everything lives in memory; surviving a relaunch is an opt-in (`keepsHistory`), saved by
-/// `ClipboardArchive`. Nothing ever leaves the Mac.
+/// types say it's text, an image or file references that aren't marked private and don't come from a password
+/// manager (`ClipboardPrivacy`); a copied file's contents are never read, only where it is. Everything lives in
+/// memory; surviving a relaunch is an opt-in (`keepsHistory`), saved by `ClipboardArchive` (images beside it, by
+/// `ClipboardImages`). Nothing ever leaves the Mac.
 @MainActor
 @Observable
 final class ClipboardStore {
@@ -54,11 +55,30 @@ final class ClipboardStore {
         didSet {
             guard keepsHistory != oldValue else { return }
             defaults.set(keepsHistory, forKey: Self.keepsHistoryKey)
-            if keepsHistory { persist() } else { archive.delete() }
+            if keepsHistory {
+                persist()
+            } else {
+                // The images only on disk come back into memory before the folder goes.
+                for image in history.items.compactMap(\.image) { _ = images.data(for: image) }
+                archive.delete()
+                syncImages()
+            }
+        }
+    }
+
+    /// Keep copied images too (on by default). Off, new images are let by; the ones already here stay.
+    var keepsImages: Bool {
+        didSet {
+            guard keepsImages != oldValue else { return }
+            defaults.set(keepsImages, forKey: Self.keepsImagesKey)
         }
     }
 
     static let keepsHistoryKey = "clipboardKeepsHistory"
+    static let keepsImagesKey = "clipboardKeepsImages"
+
+    /// The PNGs behind the image slips.
+    let images: ClipboardImages
 
     @ObservationIgnored private let pasteboard: NSPasteboard
     @ObservationIgnored private let defaults: UserDefaults
@@ -83,7 +103,9 @@ final class ClipboardStore {
         self.defaults = defaults
         self.archive = archive
         self.frontmostBundleID = frontmostBundleID
+        images = ClipboardImages(folder: archive.url.deletingLastPathComponent().appending(path: "Images", directoryHint: .isDirectory))
         keepsHistory = defaults.bool(forKey: Self.keepsHistoryKey)
+        keepsImages = defaults.object(forKey: Self.keepsImagesKey) as? Bool ?? true
         if Self.showsDemo { history = ClipboardHistory(items: ClipboardItem.samples()) }
     }
 
@@ -109,7 +131,11 @@ final class ClipboardStore {
     func start() {
         guard !isWatching else { return }
         isWatching = true
-        if keepsHistory, history.isEmpty, let saved = archive.load() { history = saved }
+        if keepsHistory, history.isEmpty, let saved = archive.load() {
+            // An image whose PNG went missing can't be copied back: its slip goes too.
+            history = ClipboardHistory(items: saved.items.filter { $0.image.map(images.has) ?? true })
+        }
+        syncImages()
         lastChangeCount = pasteboard.changeCount
         refreshAccess()
         let timer = Timer(timeInterval: Self.interval, repeats: true) { [weak self] _ in
@@ -124,12 +150,16 @@ final class ClipboardStore {
     /// Stops watching and forgets what's in memory (a saved history stays on disk if the user keeps one).
     func stop() {
         guard isWatching else { return }
+        let saved = history
         isWatching = false
         timer?.invalidate()
         timer = nil
         if keepsHistory { saveNow() }
         if !Self.showsDemo { history = ClipboardHistory() }
         undoable = nil
+        // Nothing in memory; on disk only what a kept history still points to.
+        if Self.showsDemo { images.retainInMemory([]) } else { images.retain(memory: [], disk: diskImages(for: saved)) }
+        images.dropScratch()
         query = ""
         selection = nil
         DiagnosticLog.shared.record("clipboard", "stopped watching")
@@ -153,7 +183,9 @@ final class ClipboardStore {
             return
         case .skipNotText:
             return
-        case .record, .recordFiles:
+        case .recordImage where !keepsImages:
+            return
+        case .record, .recordFiles, .recordImage:
             break
         }
         refreshAccess()
@@ -183,8 +215,31 @@ final class ClipboardStore {
             return .files(urls.enumerated().map { index, url in
                 ClipboardFile(url: url, bookmarked: index < ClipboardPrivacy.maxBookmarkedFiles)
             })
+        case .recordImage:
+            guard let (image, png) = ClipboardImages.read(from: pasteboard) else {
+                DiagnosticLog.shared.record("clipboard", "skipped an image: unreadable or over \(ClipboardImages.maxBytes / 1_048_576) MB")
+                return nil
+            }
+            images.add(png, for: image)
+            return .image(image)
         case .skipPrivate, .skipNotText:
             return nil
+        }
+    }
+
+    /// What's on disk follows what's kept: the history's images while it's kept after quitting, nothing otherwise.
+    private func diskImages(for history: ClipboardHistory) -> Set<String>? {
+        keepsHistory ? history.imageHashes : nil
+    }
+
+    /// Drops every PNG the history (and Undo) no longer points to, from memory and disk alike. Design reviews
+    /// (`-demoClipboard`) never touch the disk.
+    private func syncImages() {
+        let memory = history.imageHashes.union(undoable?.snapshot.imageHashes ?? [])
+        if Self.showsDemo {
+            images.retainInMemory(memory)
+        } else {
+            images.retain(memory: memory, disk: diskImages(for: history))
         }
     }
 
@@ -210,6 +265,10 @@ final class ClipboardStore {
             pasteboard.writeObjects(urls as [NSURL])
             // Like Finder: the names as text too, so pasting into a text field gives them.
             pasteboard.setString(urls.map(\.lastPathComponent).joined(separator: "\n"), forType: .string)
+        case let .image(image):
+            guard let png = images.data(for: image) else { return false }
+            pasteboard.clearContents()
+            pasteboard.setData(png, forType: .png)
         }
         if let id = Bundle.main.bundleIdentifier {
             pasteboard.setString(id, forType: .init(ClipboardPrivacy.sourceType))
@@ -263,11 +322,13 @@ final class ClipboardStore {
 
     private func offerUndo(_ kind: Undoable.Kind, snapshot: ClipboardHistory) {
         undoable = Undoable(kind: kind, snapshot: snapshot)
+        syncImages()
         undoExpiry?.cancel()
         undoExpiry = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(8))
             guard !Task.isCancelled else { return }
             self?.undoable = nil
+            self?.syncImages()
         }
     }
 
@@ -295,6 +356,7 @@ final class ClipboardStore {
     // MARK: - Saving
 
     private func changed() {
+        syncImages()
         guard keepsHistory else { return }
         saveTask?.cancel()
         saveTask = Task { @MainActor [weak self] in
@@ -306,6 +368,7 @@ final class ClipboardStore {
 
     private func persist() {
         saveNow()
+        syncImages()
     }
 
     private func saveNow() {

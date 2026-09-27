@@ -20634,6 +20634,55 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Texts and files (never their contents). Passwords and anything marked private are never kept." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Textos y archivos (nunca su contenido). Las contraseñas y lo marcado como privado nunca se guardan." } }
       }
+    },
+    "Copy some text, an image or a file and it lands here, ready to copy again. Passwords are never kept." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Copy some text, an image or a file and it lands here, ready to copy again. Passwords are never kept." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Copia un texto, una imagen o un archivo y aparecerá aquí, listo para volver a copiarlo. Las contraseñas nunca se guardan." } }
+      }
+    },
+    "Image" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Image" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Imagen" } }
+      }
+    },
+    "Image, %lld × %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Image, %lld × %lld" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Imagen, %lld × %lld" } }
+      }
+    },
+    "Keep Images" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep Images" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conservar imágenes" } }
+      }
+    },
+    "No longer available" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No longer available" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ya no está disponible" } }
+      }
+    },
+    "no longer available" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "no longer available" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "ya no está disponible" } }
+      }
+    },
+    "Texts, images and files (files by reference). Passwords and anything marked private are never kept." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Texts, images and files (files by reference). Passwords and anything marked private are never kept." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Textos, imágenes y archivos (los archivos, por referencia). Las contraseñas y lo marcado como privado nunca se guardan." } }
+      }
     }
   },
   "version" : "1.0"

@@ -8,25 +8,29 @@ enum ClipboardContent: Hashable, Sendable {
     case text(String)
     /// Files copied in Finder (or any app that copies file references): where they are, never their contents.
     case files([ClipboardFile])
+    /// A copied image; its PNG is in `ClipboardImages`.
+    case image(ClipboardImage)
 
     /// Two copies with the same key are the same slip.
     var dedupeKey: String {
         switch self {
         case let .text(text): "text:" + text
         case let .files(files): "files:" + files.map(\.path).joined(separator: "\n")
+        case let .image(image): "image:" + image.hash
         }
     }
 }
 
 extension ClipboardContent: Codable {
-    private enum CodingKeys: String, CodingKey { case kind, text, files }
-    private enum Kind: String, Codable { case text, files }
+    private enum CodingKeys: String, CodingKey { case kind, text, files, image }
+    private enum Kind: String, Codable { case text, files, image }
 
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         switch try container.decode(Kind.self, forKey: .kind) {
         case .text: self = .text(try container.decode(String.self, forKey: .text))
         case .files: self = .files(try container.decode([ClipboardFile].self, forKey: .files))
+        case .image: self = .image(try container.decode(ClipboardImage.self, forKey: .image))
         }
     }
 
@@ -39,6 +43,9 @@ extension ClipboardContent: Codable {
         case let .files(files):
             try container.encode(Kind.files, forKey: .kind)
             try container.encode(files, forKey: .files)
+        case let .image(image):
+            try container.encode(Kind.image, forKey: .kind)
+            try container.encode(image, forKey: .image)
         }
     }
 }
@@ -98,7 +105,7 @@ extension ClipboardFile: Codable {
     }
 }
 
-/// One thing the user copied: a text or some files.
+/// One thing the user copied: a text, some files or an image.
 struct ClipboardItem: Identifiable, Hashable, Sendable {
     var id: UUID
     var content: ClipboardContent
@@ -125,16 +132,22 @@ struct ClipboardItem: Identifiable, Hashable, Sendable {
                   sourceName: sourceName, isPinned: isPinned)
     }
 
-    /// The slip's words, what search looks through: the copied text, or the files' names (one per line).
+    /// The slip's words, what search looks through: the copied text, or the files' names (one per line); none for
+    /// an image.
     var text: String {
         switch content {
         case let .text(text): text
         case let .files(files): files.map(\.name).joined(separator: "\n")
+        case .image: ""
         }
     }
 
     var files: [ClipboardFile] {
         if case let .files(files) = content { files } else { [] }
+    }
+
+    var image: ClipboardImage? {
+        if case let .image(image) = content { image } else { nil }
     }
 
     /// The first two non-empty lines, trimmed: what a text slip shows.
@@ -155,6 +168,8 @@ struct ClipboardItem: Identifiable, Hashable, Sendable {
             let name = files.first?.name ?? ""
             let short = name.count > 40 ? String(name.prefix(39)) + "…" : name
             return files.count > 1 ? String(localized: "\(short) and \(files.count - 1) more") : short
+        case let .image(image):
+            return String(localized: "Image, \(image.width) × \(image.height)")
         }
     }
 }
@@ -265,6 +280,8 @@ enum ClipboardPrivacy {
         case record
         /// File references (a Finder copy): read the URLs, never the files.
         case recordFiles
+        /// An image, with no text beside it: read it and keep it as PNG.
+        case recordImage
         /// Marked private, or copied in a password manager: never read.
         case skipPrivate
         /// Nothing this history keeps.
@@ -275,12 +292,20 @@ enum ClipboardPrivacy {
 
     /// Decides from the types alone (reading them never shows the pasteboard privacy alert) whether the contents
     /// may be read at all, and as what. Files win over text: Finder puts the names on the pasteboard as text too.
+    /// Text wins over an image (apps put a picture of copied text or cells beside it), but a web address doesn't:
+    /// "Copy Image" in a browser adds the image's URL.
     static func decide(types: [String], frontmostBundleID: String?) -> Decision {
         if isPrivate(types: types) || isPasswordManager(frontmostBundleID) { return .skipPrivate }
         if types.contains(fileURLType) { return .recordFiles }
-        let textTypes: Set<String> = ["public.utf8-plain-text", "NSStringPboardType", "public.url"]
-        return types.contains(where: textTypes.contains) ? .record : .skipNotText
+        let plainText: Set<String> = ["public.utf8-plain-text", "NSStringPboardType"]
+        let hasText = types.contains(where: plainText.contains)
+        if !hasText, types.contains(where: imageTypes.contains) { return .recordImage }
+        return hasText || types.contains("public.url") ? .record : .skipNotText
     }
+
+    static let imageTypes: Set<String> = [
+        "public.png", "public.tiff", "public.jpeg", "public.heic", "NeXT TIFF v4.0 pasteboard type",
+    ]
 
     /// Most files one slip keeps: a copy of a whole folder's contents isn't something to keep here.
     static let maxFiles = 200
@@ -305,6 +330,9 @@ enum ClipboardPrivacy {
 struct ClipboardHistory: Codable, Equatable, Sendable {
     static let maxItems = 50
     static let maxPinned = 20
+    /// Image slips kept at most, and how much their PNGs may weigh together (they're in memory).
+    static let maxImages = 12
+    static let maxImageBytes = 64 * 1024 * 1024
 
     private(set) var items: [ClipboardItem] = []
 
@@ -319,6 +347,8 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
     var ordered: [ClipboardItem] { pinned + recent }
     var isEmpty: Bool { items.isEmpty }
     var canPinMore: Bool { pinned.count < Self.maxPinned }
+    /// The images the slips point to, by hash.
+    var imageHashes: Set<String> { Set(items.compactMap(\.image?.hash)) }
 
     /// Keeps a copy. The same thing copied again moves to the top (keeping its pin) instead of appearing twice.
     @discardableResult
@@ -391,9 +421,16 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
         }
     }
 
-    /// Drops the oldest unpinned slips beyond the cap.
+    /// Drops the oldest unpinned slips beyond the cap, and the oldest unpinned images beyond theirs.
     private mutating func trim() {
         while items.count > Self.maxItems, let index = items.lastIndex(where: { !$0.isPinned }) {
+            items.remove(at: index)
+        }
+        func overImages() -> Bool {
+            let images = items.compactMap(\.image)
+            return images.count > Self.maxImages || images.reduce(0) { $0 + $1.byteCount } > Self.maxImageBytes
+        }
+        while overImages(), let index = items.lastIndex(where: { !$0.isPinned && $0.image != nil }) {
             items.remove(at: index)
         }
     }
