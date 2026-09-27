@@ -3,13 +3,14 @@ import AppKit
 import Foundation
 import Observation
 
-/// The clipboard section («Portapapeles»): the last things the user copied, text only, while the section is on.
+/// The clipboard section («Portapapeles»): the last things the user copied (texts, and files by reference) while
+/// the section is on.
 ///
 /// macOS has no pasteboard-changed notification, so it looks at `NSPasteboard.changeCount` (one integer, no
 /// contents, never the privacy alert) every 0.75 s with a generous timer tolerance, **only while the Clipboard
 /// section is enabled**; turning it off stops the timer and forgets everything. Contents are read only after the
-/// types say it's plain text that isn't marked private and doesn't come from a password manager
-/// (`ClipboardPrivacy`). Everything lives in memory; surviving a relaunch is an opt-in (`keepsHistory`), saved by
+/// types say it's text or file references that aren't marked private and don't come from a password manager
+/// (`ClipboardPrivacy`); a copied file's contents are never read, only where it is. Everything lives in memory; surviving a relaunch is an opt-in (`keepsHistory`), saved by
 /// `ClipboardArchive`. Nothing ever leaves the Mac.
 @MainActor
 @Observable
@@ -145,13 +146,14 @@ final class ClipboardStore {
         if count == ownChangeCount { return }
         let types = pasteboard.types?.map(\.rawValue) ?? []
         let frontmost = frontmostBundleID()
-        switch ClipboardPrivacy.decide(types: types, frontmostBundleID: frontmost) {
+        let decision = ClipboardPrivacy.decide(types: types, frontmostBundleID: frontmost)
+        switch decision {
         case .skipPrivate:
             DiagnosticLog.shared.record("clipboard", "skipped: private (marked, or from a password manager)")
             return
         case .skipNotText:
             return
-        case .record:
+        case .record, .recordFiles:
             break
         }
         refreshAccess()
@@ -159,12 +161,31 @@ final class ClipboardStore {
         let source = types.contains(ClipboardPrivacy.sourceType)
             ? pasteboard.string(forType: .init(ClipboardPrivacy.sourceType)) : nil
         // An app may copy on a password manager's behalf and say so.
-        guard !ClipboardPrivacy.isPasswordManager(source) else { return }
-        let text = pasteboard.string(forType: .string) ?? pasteboard.string(forType: .URL)
-        guard let text = ClipboardPrivacy.keepable(text) else { return }
+        guard !ClipboardPrivacy.isPasswordManager(source), let content = read(decision) else { return }
         let bundleID = source ?? frontmost
-        history.record(text, at: .now, sourceBundleID: bundleID, sourceName: Self.appName(for: bundleID))
+        history.record(content, at: .now, sourceBundleID: bundleID, sourceName: Self.appName(for: bundleID))
         changed()
+    }
+
+    /// What's on the pasteboard, as a slip: the text, or where the copied files are (never what's in them).
+    private func read(_ decision: ClipboardPrivacy.Decision) -> ClipboardContent? {
+        switch decision {
+        case .record:
+            let text = pasteboard.string(forType: .string) ?? pasteboard.string(forType: .URL)
+            return ClipboardPrivacy.keepable(text).map(ClipboardContent.text)
+        case .recordFiles:
+            let urls = (pasteboard.readObjects(forClasses: [NSURL.self],
+                                               options: [.urlReadingFileURLsOnly: true]) as? [URL]) ?? []
+            guard !urls.isEmpty, urls.count <= ClipboardPrivacy.maxFiles else { return nil }
+            // Copied again: the bookmarks the slip has are reused, so a repeat copy costs no disk work.
+            let key = ClipboardContent.files(urls.map { ClipboardFile(url: $0, bookmarked: false) }).dedupeKey
+            if let existing = history.items.first(where: { $0.content.dedupeKey == key }) { return existing.content }
+            return .files(urls.enumerated().map { index, url in
+                ClipboardFile(url: url, bookmarked: index < ClipboardPrivacy.maxBookmarkedFiles)
+            })
+        case .skipPrivate, .skipNotText:
+            return nil
+        }
     }
 
     private func refreshAccess() {
@@ -174,10 +195,22 @@ final class ClipboardStore {
 
     // MARK: - Actions
 
-    /// Puts a slip back on the clipboard, with a short "Copied" moment. Says it came from Altillo.
-    func copy(_ item: ClipboardItem) {
-        pasteboard.clearContents()
-        pasteboard.setString(item.text, forType: .string)
+    /// Puts a slip back on the clipboard, with a short "Copied" moment. Says it came from Altillo. False when
+    /// there's nothing left to copy (every file it points to is gone).
+    @discardableResult
+    func copy(_ item: ClipboardItem) -> Bool {
+        switch item.content {
+        case let .text(text):
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+        case let .files(files):
+            let urls = files.compactMap { $0.resolvedURL() }
+            guard !urls.isEmpty else { return false }
+            pasteboard.clearContents()
+            pasteboard.writeObjects(urls as [NSURL])
+            // Like Finder: the names as text too, so pasting into a text field gives them.
+            pasteboard.setString(urls.map(\.lastPathComponent).joined(separator: "\n"), forType: .string)
+        }
         if let id = Bundle.main.bundleIdentifier {
             pasteboard.setString(id, forType: .init(ClipboardPrivacy.sourceType))
         }
@@ -193,6 +226,7 @@ final class ClipboardStore {
             self?.justCopied = nil
         }
         changed()
+        return true
     }
 
     func delete(_ item: ClipboardItem) {
@@ -254,8 +288,7 @@ final class ClipboardStore {
     @discardableResult
     func copySelection() -> ClipboardItem? {
         let items = visibleItems
-        guard let item = items.first(where: { $0.id == selection }) ?? items.first else { return nil }
-        copy(item)
+        guard let item = items.first(where: { $0.id == selection }) ?? items.first, copy(item) else { return nil }
         return item
     }
 

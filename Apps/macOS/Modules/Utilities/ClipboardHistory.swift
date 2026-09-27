@@ -1,30 +1,143 @@
 import Foundation
 
-// The clipboard section's plain logic, none of it touching the pasteboard: what may be kept, the history itself
-// (dedupe, pins, the cap) and where it's saved when the user wants it to survive a relaunch.
+// The clipboard section's plain logic, none of it touching the pasteboard: what a slip holds, what may be kept, the
+// history itself (dedupe, pins, the cap) and where it's saved when the user wants it to survive a relaunch.
 
-/// One thing the user copied: text only.
-struct ClipboardItem: Identifiable, Codable, Hashable, Sendable {
+/// What a slip holds.
+enum ClipboardContent: Hashable, Sendable {
+    case text(String)
+    /// Files copied in Finder (or any app that copies file references): where they are, never their contents.
+    case files([ClipboardFile])
+
+    /// Two copies with the same key are the same slip.
+    var dedupeKey: String {
+        switch self {
+        case let .text(text): "text:" + text
+        case let .files(files): "files:" + files.map(\.path).joined(separator: "\n")
+        }
+    }
+}
+
+extension ClipboardContent: Codable {
+    private enum CodingKeys: String, CodingKey { case kind, text, files }
+    private enum Kind: String, Codable { case text, files }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        switch try container.decode(Kind.self, forKey: .kind) {
+        case .text: self = .text(try container.decode(String.self, forKey: .text))
+        case .files: self = .files(try container.decode([ClipboardFile].self, forKey: .files))
+        }
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case let .text(text):
+            try container.encode(Kind.text, forKey: .kind)
+            try container.encode(text, forKey: .text)
+        case let .files(files):
+            try container.encode(Kind.files, forKey: .kind)
+            try container.encode(files, forKey: .files)
+        }
+    }
+}
+
+/// A copied file, by reference: its path and name when it was copied plus (for the first few of a copy) a small
+/// bookmark, so a file Finder moves or renames afterwards is still found. Its contents are never read.
+nonisolated struct ClipboardFile: Hashable, Sendable {
+    var path: String
+    /// Its name when copied, extension included (what search and the slip use, without touching the disk).
+    var name: String
+    var bookmark: Data?
+
+    init(path: String, name: String? = nil, bookmark: Data? = nil) {
+        self.path = path
+        self.name = name ?? (path as NSString).lastPathComponent
+        self.bookmark = bookmark
+    }
+
+    init(url: URL, bookmarked: Bool = true) {
+        self.init(path: url.path, name: url.lastPathComponent,
+                  bookmark: bookmarked ? try? url.bookmarkData(options: .minimalBookmark) : nil)
+    }
+
+    /// The folder it was in, by name.
+    var folderName: String {
+        ((path as NSString).deletingLastPathComponent as NSString).lastPathComponent
+    }
+
+    /// Where the file is now: its old path if it's still there, else wherever the bookmark finds it; nil once
+    /// it's gone. Touches the disk: keep it off the main thread where a slow volume could stall it.
+    func resolvedURL() -> URL? {
+        if FileManager.default.fileExists(atPath: path) { return URL(filePath: path) }
+        guard let bookmark else { return nil }
+        var stale = false
+        guard let url = try? URL(resolvingBookmarkData: bookmark, options: [.withoutUI, .withoutMounting],
+                                 relativeTo: nil, bookmarkDataIsStale: &stale),
+              FileManager.default.fileExists(atPath: url.path) else { return nil }
+        return url
+    }
+}
+
+extension ClipboardFile: Codable {
+    private enum CodingKeys: String, CodingKey { case path, name, bookmark }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.init(path: try container.decode(String.self, forKey: .path),
+                  name: try container.decodeIfPresent(String.self, forKey: .name),
+                  bookmark: try container.decodeIfPresent(Data.self, forKey: .bookmark))
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(path, forKey: .path)
+        try container.encode(name, forKey: .name)
+        try container.encodeIfPresent(bookmark, forKey: .bookmark)
+    }
+}
+
+/// One thing the user copied: a text or some files.
+struct ClipboardItem: Identifiable, Hashable, Sendable {
     var id: UUID
-    var text: String
-    /// When it was last copied (copying the same text again brings it back to the top).
+    var content: ClipboardContent
+    /// When it was last copied (copying the same thing again brings it back to the top).
     var copiedAt: Date
     /// The app it came from: `org.nspasteboard.source` when the app says so, else the frontmost app.
     var sourceBundleID: String?
     var sourceName: String?
     var isPinned: Bool
 
-    init(id: UUID = UUID(), text: String, copiedAt: Date = .now, sourceBundleID: String? = nil,
+    init(id: UUID = UUID(), content: ClipboardContent, copiedAt: Date = .now, sourceBundleID: String? = nil,
          sourceName: String? = nil, isPinned: Bool = false) {
         self.id = id
-        self.text = text
+        self.content = content
         self.copiedAt = copiedAt
         self.sourceBundleID = sourceBundleID
         self.sourceName = sourceName
         self.isPinned = isPinned
     }
 
-    /// The first two non-empty lines, trimmed: what a slip shows.
+    init(id: UUID = UUID(), text: String, copiedAt: Date = .now, sourceBundleID: String? = nil,
+         sourceName: String? = nil, isPinned: Bool = false) {
+        self.init(id: id, content: .text(text), copiedAt: copiedAt, sourceBundleID: sourceBundleID,
+                  sourceName: sourceName, isPinned: isPinned)
+    }
+
+    /// The slip's words, what search looks through: the copied text, or the files' names (one per line).
+    var text: String {
+        switch content {
+        case let .text(text): text
+        case let .files(files): files.map(\.name).joined(separator: "\n")
+        }
+    }
+
+    var files: [ClipboardFile] {
+        if case let .files(files) = content { files } else { [] }
+    }
+
+    /// The first two non-empty lines, trimmed: what a text slip shows.
     var preview: String {
         let lines = text.split(whereSeparator: \.isNewline)
             .map { $0.trimmingCharacters(in: .whitespaces) }
@@ -32,10 +145,51 @@ struct ClipboardItem: Identifiable, Codable, Hashable, Sendable {
         return lines.prefix(2).joined(separator: "\n")
     }
 
-    /// A short name for the shelf and VoiceOver: the first line, cut at 48 characters.
+    /// A short name for the shelf and VoiceOver: the first line (or the file's name), cut at 48 characters.
     var title: String {
-        let line = preview.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
-        return line.count > 48 ? String(line.prefix(47)) + "…" : line
+        switch content {
+        case .text:
+            let line = preview.split(whereSeparator: \.isNewline).first.map(String.init) ?? ""
+            return line.count > 48 ? String(line.prefix(47)) + "…" : line
+        case let .files(files):
+            let name = files.first?.name ?? ""
+            let short = name.count > 40 ? String(name.prefix(39)) + "…" : name
+            return files.count > 1 ? String(localized: "\(short) and \(files.count - 1) more") : short
+        }
+    }
+}
+
+extension ClipboardItem: Codable {
+    private enum CodingKeys: String, CodingKey {
+        case id, content, text, copiedAt, sourceBundleID, sourceName, isPinned
+    }
+
+    /// Histories saved before slips could hold files have only `text`; one saved by a newer Altillo may hold a kind
+    /// this one doesn't know, which falls back to its `text` rather than losing the whole history.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        if let content = try? container.decode(ClipboardContent.self, forKey: .content) {
+            self.content = content
+        } else {
+            content = .text(try container.decode(String.self, forKey: .text))
+        }
+        copiedAt = try container.decode(Date.self, forKey: .copiedAt)
+        sourceBundleID = try container.decodeIfPresent(String.self, forKey: .sourceBundleID)
+        sourceName = try container.decodeIfPresent(String.self, forKey: .sourceName)
+        isPinned = try container.decodeIfPresent(Bool.self, forKey: .isPinned) ?? false
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(content, forKey: .content)
+        // `text` too, so an older Altillo still reads the history (a file slip becomes its names).
+        try container.encode(text, forKey: .text)
+        try container.encode(copiedAt, forKey: .copiedAt)
+        try container.encodeIfPresent(sourceBundleID, forKey: .sourceBundleID)
+        try container.encodeIfPresent(sourceName, forKey: .sourceName)
+        try container.encode(isPinned, forKey: .isPinned)
     }
 }
 
@@ -109,21 +263,29 @@ enum ClipboardPrivacy {
     enum Decision: Equatable, Sendable {
         /// Plain text from an ordinary app: read it and keep it.
         case record
+        /// File references (a Finder copy): read the URLs, never the files.
+        case recordFiles
         /// Marked private, or copied in a password manager: never read.
         case skipPrivate
-        /// Files, images, nothing textual: not for this history.
+        /// Nothing this history keeps.
         case skipNotText
     }
 
+    static let fileURLType = "public.file-url"
+
     /// Decides from the types alone (reading them never shows the pasteboard privacy alert) whether the contents
-    /// may be read at all.
+    /// may be read at all, and as what. Files win over text: Finder puts the names on the pasteboard as text too.
     static func decide(types: [String], frontmostBundleID: String?) -> Decision {
         if isPrivate(types: types) || isPasswordManager(frontmostBundleID) { return .skipPrivate }
-        let fileURL = "public.file-url"
-        guard !types.contains(fileURL) else { return .skipNotText }
+        if types.contains(fileURLType) { return .recordFiles }
         let textTypes: Set<String> = ["public.utf8-plain-text", "NSStringPboardType", "public.url"]
         return types.contains(where: textTypes.contains) ? .record : .skipNotText
     }
+
+    /// Most files one slip keeps: a copy of a whole folder's contents isn't something to keep here.
+    static let maxFiles = 200
+    /// Files of one copy that get a bookmark (the rest are found by path only), so a big copy stays light.
+    static let maxBookmarkedFiles = 20
 
     /// Longest text kept, in UTF-16 units (≈ 100 KB): a copied log file isn't something you paste back from here,
     /// and fifty of them would weigh on memory.
@@ -158,13 +320,23 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
     var isEmpty: Bool { items.isEmpty }
     var canPinMore: Bool { pinned.count < Self.maxPinned }
 
-    /// Keeps a copy. The same text copied again moves to the top (keeping its pin) instead of appearing twice.
+    /// Keeps a copy. The same thing copied again moves to the top (keeping its pin) instead of appearing twice.
     @discardableResult
-    mutating func record(_ text: String, at date: Date = .now, sourceBundleID: String? = nil,
+    mutating func record(_ content: ClipboardContent, at date: Date = .now, sourceBundleID: String? = nil,
                          sourceName: String? = nil) -> ClipboardItem {
-        var item = ClipboardItem(text: text, copiedAt: date, sourceBundleID: sourceBundleID, sourceName: sourceName)
-        if let index = items.firstIndex(where: { $0.text == text }) {
+        var item = ClipboardItem(content: content, copiedAt: date, sourceBundleID: sourceBundleID,
+                                 sourceName: sourceName)
+        let key = content.dedupeKey
+        if let index = items.firstIndex(where: { $0.content.dedupeKey == key }) {
             let existing = items.remove(at: index)
+            // The same files again: keep the bookmarks already made when there are no new ones.
+            if case let .files(new) = content, case let .files(old) = existing.content {
+                item.content = .files(zip(new, old).map { new, old in
+                    var file = new
+                    if file.bookmark == nil { file.bookmark = old.bookmark }
+                    return file
+                })
+            }
             item.id = existing.id
             item.isPinned = existing.isPinned
             item.sourceBundleID = sourceBundleID ?? existing.sourceBundleID
@@ -173,6 +345,12 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
         items.insert(item, at: 0)
         trim()
         return item
+    }
+
+    @discardableResult
+    mutating func record(_ text: String, at date: Date = .now, sourceBundleID: String? = nil,
+                         sourceName: String? = nil) -> ClipboardItem {
+        record(.text(text), at: date, sourceBundleID: sourceBundleID, sourceName: sourceName)
     }
 
     /// Copied back from the section: it becomes the newest.
@@ -204,7 +382,7 @@ struct ClipboardHistory: Codable, Equatable, Sendable {
         items.removeAll { !$0.isPinned }
     }
 
-    /// Slips whose text contains every word of `query` (case- and accent-insensitive), in section order.
+    /// Slips whose words (`ClipboardItem.text`) contain every word of `query` (case- and accent-insensitive), in section order.
     func matching(_ query: String) -> [ClipboardItem] {
         let words = query.split(whereSeparator: \.isWhitespace).map(String.init)
         guard !words.isEmpty else { return ordered }

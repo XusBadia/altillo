@@ -7,7 +7,7 @@ import FoundationModels
 /// memory. Only while that section is on (it keeps nothing otherwise); the `clipboard` tool reads the current item.
 struct ClipboardHistoryTool: Tool {
     let name = "clipboardHistory"
-    let description = "Texts the user copied earlier, newest first. Pass words to find one."
+    let description = "Texts and files the user copied earlier, newest first. Pass words to find one."
 
     @Generable
     struct Arguments {
@@ -49,17 +49,17 @@ enum ClipboardAsk {
 
     static func answer(_ reading: Reading, search: String?, now: Date) -> String {
         guard reading.isEnabled else {
-            return "Altillo's Clipboard section is off, so it keeps no history of what the user copied. Tell the user they can turn it on in Settings › Sections (it keeps text only, never passwords)."
+            return "Altillo's Clipboard section is off, so it keeps no history of what the user copied. Tell the user they can turn it on in Settings › Sections (it keeps texts and files, never passwords)."
         }
         guard !reading.items.isEmpty else {
-            return "Nothing copied since the Clipboard section was turned on (it only keeps text, and never passwords)."
+            return "Nothing copied since the Clipboard section was turned on (it keeps texts and files, never passwords)."
         }
         var items = reading.items
         let words = (search ?? "").split(whereSeparator: \.isWhitespace).map(String.init)
         if !words.isEmpty {
             items = ClipboardHistory(items: items).matching(words.joined(separator: " "))
             guard !items.isEmpty else {
-                return "None of the \(reading.items.count) copied texts contains \"\(search ?? "")\"."
+                return "None of the \(reading.items.count) copies contains \"\(search ?? "")\"."
             }
         }
         // Newest first for the model, pins marked.
@@ -68,11 +68,18 @@ enum ClipboardAsk {
             var line = "- \(NotchFormat.ago(item.copiedAt, now: now))"
             if let app = item.sourceName { line += ", from \(app)" }
             if item.isPinned { line += " (pinned)" }
-            let flat = item.text.split(whereSeparator: \.isNewline).joined(separator: " ")
-            let excerpt = flat.count > excerptLength ? String(flat.prefix(excerptLength - 1)) + "…" : flat
-            return line + ": \"\(excerpt)\""
+            switch item.content {
+            case let .text(text):
+                let flat = text.split(whereSeparator: \.isNewline).joined(separator: " ")
+                let excerpt = flat.count > excerptLength ? String(flat.prefix(excerptLength - 1)) + "…" : flat
+                return line + ": \"\(excerpt)\""
+            case let .files(files):
+                let names = files.prefix(maxListed).map { "\"\($0.name)\"" }.joined(separator: ", ")
+                let more = files.count > maxListed ? " and \(files.count - maxListed) more" : ""
+                return line + ": " + (files.count == 1 ? "a file " : "\(files.count) files ") + names + more
+            }
         }
-        var text = "Texts the user copied, newest first:\n" + lines.joined(separator: "\n")
+        var text = "What the user copied, newest first:\n" + lines.joined(separator: "\n")
         if items.count > maxListed { text += "\n…and \(items.count - maxListed) older ones." }
         return AssistantContent.truncate(text)
     }

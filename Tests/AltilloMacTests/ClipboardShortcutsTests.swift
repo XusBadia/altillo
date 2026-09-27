@@ -56,7 +56,10 @@ struct ClipboardShortcutsTests {
         }
         #expect(ClipboardPrivacy.decide(types: ["public.utf8-plain-text"], frontmostBundleID: "com.apple.Safari") == .record)
         #expect(ClipboardPrivacy.decide(types: ["public.url"], frontmostBundleID: nil) == .record)
-        #expect(ClipboardPrivacy.decide(types: ["public.file-url", "public.utf8-plain-text"], frontmostBundleID: nil) == .skipNotText)
+        #expect(ClipboardPrivacy.decide(types: ["public.file-url", "public.utf8-plain-text"], frontmostBundleID: nil) == .recordFiles,
+                "a Finder copy is files, not their names as text")
+        #expect(ClipboardPrivacy.decide(types: ["public.file-url", ClipboardPrivacy.concealedType], frontmostBundleID: nil) == .skipPrivate)
+        #expect(ClipboardPrivacy.decide(types: ["public.file-url"], frontmostBundleID: "com.bitwarden.desktop") == .skipPrivate)
         #expect(ClipboardPrivacy.decide(types: ["public.png", "public.tiff"], frontmostBundleID: nil) == .skipNotText)
         #expect(ClipboardPrivacy.decide(types: [], frontmostBundleID: nil) == .skipNotText)
     }
@@ -124,6 +127,105 @@ struct ClipboardShortcutsTests {
         #expect(store.justCopied == first.id)
         store.check()
         #expect(store.history.items.map(\.text) == ["first", "second"], "moved to the top, not added twice")
+    }
+
+    // MARK: - Files
+
+    /// Scratch files for a test, removed by the caller.
+    private static func scratchFiles(_ names: [String]) throws -> (folder: URL, urls: [URL]) {
+        let folder = FileManager.default.temporaryDirectory
+            .appendingPathComponent("altillo-clipboard-files-\(UUID().uuidString)", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        let urls = try names.map { name in
+            let url = folder.appendingPathComponent(name)
+            try Data("contents of \(name)".utf8).write(to: url)
+            return url
+        }
+        return (folder, urls)
+    }
+
+    @Test func copiedFilesAreKeptByReferenceNeverByContents() throws {
+        let (folder, urls) = try Self.scratchFiles(["Report.pdf", "Notes.txt"])
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let (store, pasteboard) = Self.makeStore(frontmost: "com.apple.finder")
+        defer { pasteboard.releaseGlobally() }
+
+        pasteboard.clearContents()
+        pasteboard.writeObjects(urls as [NSURL])
+        store.check()
+        let item = try #require(store.history.items.first)
+        #expect(item.files.map(\.path) == urls.map(\.path))
+        #expect(item.files.allSatisfy { $0.bookmark != nil })
+        #expect(item.text == "Report.pdf\nNotes.txt", "searchable by name")
+        #expect(item.title == "Report.pdf and 1 more")
+        #expect(store.history.matching("notes").map(\.id) == [item.id])
+
+        // The same files copied again: one slip, back on top.
+        Self.put("something else", on: pasteboard); store.check()
+        pasteboard.clearContents()
+        pasteboard.writeObjects(urls as [NSURL])
+        store.check()
+        #expect(store.history.items.count == 2)
+        #expect(store.history.items.first?.id == item.id)
+    }
+
+    @Test func aFileSlipCopiesTheFilesBackWhereverTheyAreNow() throws {
+        let (folder, urls) = try Self.scratchFiles(["Plan.key"])
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let (store, pasteboard) = Self.makeStore()
+        defer { pasteboard.releaseGlobally() }
+        pasteboard.clearContents()
+        pasteboard.writeObjects(urls as [NSURL])
+        store.check()
+        let item = try #require(store.history.items.first)
+
+        // Renamed in Finder after the copy: the bookmark still finds it.
+        let renamed = folder.appendingPathComponent("Plan (final).key")
+        try FileManager.default.moveItem(at: urls[0], to: renamed)
+        #expect(item.files[0].resolvedURL()?.lastPathComponent == "Plan (final).key")
+
+        Self.put("in between", on: pasteboard); store.check()
+        #expect(store.copy(item))
+        let back = pasteboard.readObjects(forClasses: [NSURL.self], options: [.urlReadingFileURLsOnly: true]) as? [URL]
+        #expect(back?.map(\.lastPathComponent) == ["Plan (final).key"])
+        #expect(pasteboard.string(forType: .string) == "Plan (final).key", "the name pastes into a text field")
+        store.check()
+        #expect(store.history.items.count == 2, "our own copy-back isn't recorded again")
+
+        // Gone for good: nothing to copy, and the pasteboard is left alone.
+        try FileManager.default.removeItem(at: renamed)
+        Self.put("still here", on: pasteboard)
+        #expect(!store.copy(item))
+        #expect(pasteboard.string(forType: .string) == "still here")
+    }
+
+    @Test func historiesSavedBeforeFilesStillLoad() throws {
+        let legacy = """
+        {"items":[{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","text":"old note","copiedAt":800000000,\
+        "sourceName":"Notes","isPinned":true}]}
+        """
+        let history = try JSONDecoder().decode(ClipboardHistory.self, from: Data(legacy.utf8))
+        #expect(history.items.first?.content == .text("old note"))
+        #expect(history.items.first?.isPinned == true)
+
+        // Saved by a newer Altillo with a kind this one doesn't know: that slip falls back to its text, the rest
+        // of the history (and its pins) survive.
+        let newer = """
+        {"items":[{"id":"6F9619FF-8B86-D011-B42D-00C04FC964FF","text":"a hologram","copiedAt":800000000,\
+        "content":{"kind":"hologram"},"isPinned":true}]}
+        """
+        let fallback = try JSONDecoder().decode(ClipboardHistory.self, from: Data(newer.utf8))
+        #expect(fallback.items.map(\.content) == [.text("a hologram")])
+        #expect(fallback.pinned.count == 1)
+
+        var mixed = history
+        mixed.record(.files([ClipboardFile(path: "/tmp/a.txt")]), at: now)
+        let data = try JSONEncoder().encode(mixed)
+        #expect(try JSONDecoder().decode(ClipboardHistory.self, from: data) == mixed)
+        // Older versions read `text`: it's still written, for files too.
+        let raw = try #require(try JSONSerialization.jsonObject(with: data) as? [String: Any])
+        let items = try #require(raw["items"] as? [[String: Any]])
+        #expect(items.map { $0["text"] as? String } == ["a.txt", "old note"])
     }
 
     // MARK: - The history
