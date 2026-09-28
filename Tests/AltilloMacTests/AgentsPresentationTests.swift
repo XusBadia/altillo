@@ -107,7 +107,7 @@ struct AgentsPresentationTests {
         #expect(waiting.agent == .claude && waiting.project == "altillo" && waiting.pendingRequest != nil)
         let alert = try #require(demo.agentAlert)
         #expect(alert.title == "Knock, knock: Claude wants to run git push in altillo")
-        #expect(AgentsLogic.summary(AgentsLogic.counts(demo.agents)) == "1 knocking · 1 working")
+        #expect(AgentsLogic.summary(AgentsLogic.counts(demo.agents)) == "1 knocking")
         #expect(demo.agents.contains { $0.source == .sessionFile }, "the review shows the install-hooks affordance")
         #expect(DemoContent.agentsVariant(demo.agents, now: now, variant: "empty").isEmpty)
         #expect(DemoContent.agentsVariant(demo.agents, now: now, variant: "dangerous").first?.pendingRequest?.isDangerous == true)

@@ -80,16 +80,6 @@ struct DemoContent {
                 source: .hooks
             ),
             AgentSession(
-                agent: .codex,
-                sessionID: "demo-openusage",
-                cwd: "/Users/demo/Code/openusage",
-                phase: .working,
-                activity: String(localized: "Running tests · 42 of 118"),
-                startedAt: now.addingTimeInterval(-6 * 60),
-                lastActivity: now.addingTimeInterval(-3),
-                source: .hooks
-            ),
-            AgentSession(
                 agent: .claude,
                 sessionID: "demo-badia",
                 cwd: "/Users/demo/Code/badia.me",
