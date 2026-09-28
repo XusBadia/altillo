@@ -74,8 +74,16 @@ struct SettingsRootView: View {
         .background(SettingsBackdrop())
     }
 
-    @ViewBuilder
+    /// The tab bar switches inside its own animation; the old pane fades out as the new one settles the last few
+    /// points into place.
     private var pane: some View {
+        paneContent
+            .id(navigation.tab)
+            .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 6)), removal: .opacity))
+    }
+
+    @ViewBuilder
+    private var paneContent: some View {
         switch navigation.tab {
         case .modules: SettingsModulesPane(settings: settings, hasHardwareNotch: hasHardwareNotch, clipboard: model?.clipboard)
         case .drawer: SettingsDrawerPane()
@@ -208,7 +216,7 @@ struct SettingsPane<Content: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 Text(title)
                     .font(Desvan.Typeface.display(17, weight: 650))
                     .foregroundStyle(Desvan.Palette.paper)
@@ -242,15 +250,5 @@ struct SettingsCard<Content: View>: View {
                         shape.strokeBorder(Desvan.Palette.hairline, lineWidth: 0.75)
                     }
             }
-    }
-}
-
-extension Text {
-    /// Explanatory line under a control: small, paper, never shouting.
-    func settingsHint() -> some View {
-        self
-            .font(.system(size: 11))
-            .foregroundStyle(Desvan.Palette.paperSecondary)
-            .fixedSize(horizontal: false, vertical: true)
     }
 }

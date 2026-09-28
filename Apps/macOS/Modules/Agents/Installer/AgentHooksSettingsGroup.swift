@@ -201,66 +201,18 @@ final class AgentHooksModel {
 struct SettingsAgentsGroup: View {
     @Bindable var settings: AltilloSettings
     @State private var model = AgentHooksModel()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            VStack(alignment: .leading, spacing: 8) {
-                Text("Hooks")
-                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paper)
-                ForEach(model.reports, id: \.target) { report in
-                    SettingsAgentHookRow(report: report, feedback: model.feedback[report.target],
-                                         path: model.displayPath(report.configFile),
-                                         replies: Binding(
-                                            get: { model.replyTargets.contains(report.target) },
-                                            set: { model.setReply($0, for: report.target, wait: settings.agentPermissionWait) })) { action in
-                        model.prepare(action, for: report.target, wait: settings.agentPermissionWait)
-                    }
-                }
-                SettingsOpenCodeRow()
-                Text("Hooks are optional and installed separately for each CLI. They give Altillo precise live events, permission requests and replies. Without hooks, Claude Code, Codex and Gemini still appear from local session files with less detail; Copilot and Cursor need hooks. OpenCode uses its local API and needs nothing installed.")
-                    .settingsHint()
-                if showsReplySwitch {
-                    replyFootnote
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 10) {
-                    Text("Wait for my answer up to")
-                        .font(.system(size: 12.5))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    Picker(selection: $settings.agentPermissionWait) {
-                        ForEach(AgentHookCommand.waitChoices, id: \.self) { seconds in
-                            Text(Self.waitTitle(seconds)).tag(seconds)
-                        }
-                    } label: {
-                        Text("Wait for my answer up to")
-                    }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
-                    .fixedSize()
-                }
-                Text("Altillo never approves anything on its own. If Altillo is closed or you don't answer in time, the agent asks in the terminal as usual.")
-                    .settingsHint()
-            }
-
-            VStack(alignment: .leading, spacing: 5) {
-                Button("Prepare to Uninstall…") {
-                    model.prepareToUninstall(wait: settings.agentPermissionWait)
-                }
-                .controlSize(.small)
-                Text("Before deleting Altillo, remove its hooks so no CLI keeps a command pointing to a missing app. You'll review every file first; backups are made and other hooks stay untouched.")
-                    .settingsHint()
-                if let summary = model.uninstallSummary {
-                    Text(summary)
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.paperSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            hooksSection
+            SettingsCardDivider()
+            permissionsSection
+            SettingsCardDivider()
+            uninstallSection
         }
-        .padding(.vertical, 6)
+        .animation(SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion), value: showsReplySwitch)
+        .animation(SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion), value: model.uninstallSummary)
         .onAppear { model.refresh(wait: settings.agentPermissionWait) }
         .onChange(of: settings.agentPermissionWait) { _, wait in model.refresh(wait: wait) }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -280,6 +232,97 @@ struct SettingsAgentsGroup: View {
                 cancel: { model.uninstallPreparation = nil },
                 confirm: { model.confirmUninstall($0, wait: settings.agentPermissionWait) }
             )
+        }
+    }
+
+    /// Every CLI in one well, OpenCode last; what hooks are for under it.
+    private var hooksSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SettingsSubheading("Hooks")
+            SettingsWell {
+                ForEach(model.reports, id: \.target) { report in
+                    if report.target != model.reports.first?.target {
+                        SettingsRowDivider(leading: SettingsAgentHookRow.textInset)
+                    }
+                    SettingsAgentHookRow(report: report, feedback: model.feedback[report.target],
+                                         path: model.displayPath(report.configFile),
+                                         replies: Binding(
+                                            get: { model.replyTargets.contains(report.target) },
+                                            set: { model.setReply($0, for: report.target, wait: settings.agentPermissionWait) })) { action in
+                        model.prepare(action, for: report.target, wait: settings.agentPermissionWait)
+                    }
+                }
+                if !model.reports.isEmpty {
+                    SettingsRowDivider(leading: SettingsAgentHookRow.textInset)
+                }
+                SettingsOpenCodeRow()
+            }
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Hooks are optional and installed separately for each CLI. They give Altillo precise live events, permission requests and replies. Without hooks, Claude Code, Codex and Gemini still appear from local session files with less detail; Copilot and Cursor need hooks. OpenCode uses its local API and needs nothing installed.")
+                    .settingsHint()
+                if showsReplySwitch {
+                    replyFootnote
+                        .transition(.settingsReveal)
+                }
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+
+    /// How long a permission request waits in the notch before the agent asks in the terminal.
+    private var permissionsSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SettingsSubheading("Permissions")
+            VStack(alignment: .leading, spacing: 3) {
+                HStack(alignment: .center, spacing: 12) {
+                    Text("Wait for my answer up to")
+                        .settingsRowTitle()
+                        .accessibilityHidden(true)
+                    Spacer(minLength: 12)
+                    Picker(selection: $settings.agentPermissionWait) {
+                        ForEach(AgentHookCommand.waitChoices, id: \.self) { seconds in
+                            Text(Self.waitTitle(seconds)).tag(seconds)
+                        }
+                    } label: {
+                        Text("Wait for my answer up to")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .controlSize(.small)
+                    .fixedSize()
+                }
+                Text("Altillo never approves anything on its own. If Altillo is closed or you don't answer in time, the agent asks in the terminal as usual.")
+                    .settingsHint()
+            }
+            .padding(.horizontal, 2)
+        }
+    }
+
+    /// Removing every hook before Altillo is deleted, and how that went.
+    private var uninstallSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            SettingsSubheading("Uninstall")
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .center, spacing: 12) {
+                    Text("Before deleting Altillo, remove its hooks so no CLI keeps a command pointing to a missing app. You'll review every file first; backups are made and other hooks stay untouched.")
+                        .settingsHint()
+                    Spacer(minLength: 12)
+                    Button("Prepare to Uninstall…") {
+                        model.prepareToUninstall(wait: settings.agentPermissionWait)
+                    }
+                    .controlSize(.small)
+                    .fixedSize()
+                }
+                if let summary = model.uninstallSummary {
+                    Text(summary)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .id(summary)
+                        .transition(.settingsReveal)
+                }
+            }
+            .padding(.horizontal, 2)
         }
     }
 
@@ -416,19 +459,19 @@ private struct AgentHooksUninstallSheet: View {
 /// OpenCode needs nothing installed: Altillo follows `opencode serve` while it runs.
 private struct SettingsOpenCodeRow: View {
     var body: some View {
-        HStack(alignment: .top, spacing: 9) {
-            AgentGlyph(agent: .opencode, size: 20)
-            VStack(alignment: .leading, spacing: 1) {
+        HStack(alignment: .top, spacing: SettingsAgentHookRow.glyphSpacing) {
+            AgentGlyph(agent: .opencode, size: SettingsAgentHookRow.glyphSize)
+            VStack(alignment: .leading, spacing: 3) {
                 Text(verbatim: "OpenCode")
                     .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
+                    .frame(minHeight: SettingsAgentHookRow.glyphSize)
                 Text("Nothing to install. While `opencode serve` runs, Altillo follows its sessions, and you can answer its permissions and reply from the notch.")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .settingsHint()
             }
+            Spacer(minLength: 0)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
     }
 }
@@ -442,75 +485,111 @@ private struct SettingsAgentHookRow: View {
     @Binding var replies: Bool
     let perform: (AgentHookPlan.Action) -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    static let glyphSize: CGFloat = 20
+    static let glyphSpacing: CGFloat = 11
+    /// Where the text column starts: past the glyph. Row dividers and the lines under the name line up here.
+    static let textInset: CGFloat = glyphSize + glyphSpacing
+
     static func showsReplySwitch(for report: AgentHookReport) -> Bool {
         report.status != .agentNotFound && report.target.replyEvent != nil
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 9) {
-                AgentGlyph(agent: AgentKind(rawValue: report.target.rawValue), size: 20)
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: Self.glyphSpacing) {
+                AgentGlyph(agent: AgentKind(rawValue: report.target.rawValue), size: Self.glyphSize)
                     .opacity(report.status == .agentNotFound ? 0.5 : 1)
-                VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .center, spacing: 7) {
                     Text(report.target.displayName)
                         .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    HStack(spacing: 4) {
-                        if let symbol = statusSymbol {
-                            Image(systemName: symbol)
-                                .font(.system(size: 10.5, weight: .semibold))
-                                .accessibilityHidden(true)
-                        }
-                        Text(statusText)
-                            .font(.system(size: 11))
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    .foregroundStyle(statusColor)
+                        .foregroundStyle(report.status == .agentNotFound
+                                         ? Desvan.Palette.paperSecondary : Desvan.Palette.paper)
+                    SettingsBadge(text: badgeText, symbol: badgeSymbol, tone: badgeTone)
+                        .id(badgeText)
+                        .transition(.opacity)
+                        .accessibilityLabel(Text(verbatim: statusText))
                 }
                 Spacer(minLength: 8)
                 buttons
                     .controlSize(.small)
+                    .transition(.opacity)
             }
             .accessibilityElement(children: .contain)
 
-            VStack(alignment: .leading, spacing: 3) {
-                if report.status != .agentNotFound {
-                    Text(verbatim: path)
-                        .font(.system(size: 10.5, design: .monospaced))
-                        .foregroundStyle(Desvan.Palette.paperTertiary)
-                        .textSelection(.enabled)
-                }
-                ForEach(notes, id: \.self) { note in
-                    Text(note).settingsHint()
-                }
-                if Self.showsReplySwitch(for: report) {
-                    Toggle(isOn: $replies) {
-                        Text("Let me reply from the notch")
-                            .font(.system(size: 11.5, weight: .medium))
-                            .foregroundStyle(Desvan.Palette.paper)
+            if hasDetails {
+                VStack(alignment: .leading, spacing: 4) {
+                    if let statusDetail {
+                        Text(statusDetail)
+                            .settingsHint()
+                            .accessibilityHidden(true) // already the badge's label
+                            .transition(.settingsReveal)
                     }
-                    .toggleStyle(.switch)
-                    .controlSize(.mini)
-                    .padding(.top, 2)
-                }
-                if let feedback {
-                    HStack(spacing: 8) {
-                        Text(feedback.text)
-                            .font(.system(size: 11))
-                            .foregroundStyle(feedback.isError ? Desvan.Palette.warning : Desvan.Palette.paperSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let backup = feedback.backup {
-                            Button("Show Backup") { NSWorkspace.shared.activateFileViewerSelecting([backup]) }
-                                .buttonStyle(.link)
-                                .font(.system(size: 11))
-                        }
+                    if report.status != .agentNotFound {
+                        Text(verbatim: path).settingsCode()
+                    }
+                    ForEach(notes, id: \.self) { note in
+                        Text(note).settingsHint()
+                    }
+                    if Self.showsReplySwitch(for: report) {
+                        replySwitch
+                            .padding(.top, 2)
+                    }
+                    if let feedback {
+                        feedbackLine(feedback)
+                            .id(feedback.text)
+                            .transition(.settingsReveal)
                     }
                 }
+                .padding(.leading, Self.textInset)
             }
-            .padding(.leading, 29)
         }
-        .padding(.vertical, 2)
+        .padding(.vertical, 8)
+        .animation(SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion), value: report.status)
+        .animation(SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion), value: feedback)
+        .animation(SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion), value: notes)
+    }
+
+    /// "Let me reply from the notch": the label on the left, its switch on the trailing edge.
+    private var replySwitch: some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text("Let me reply from the notch")
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundStyle(Desvan.Palette.paper)
+                .accessibilityHidden(true)
+            Spacer(minLength: 12)
+            Toggle(isOn: $replies) {
+                Text("Let me reply from the notch")
+            }
+            .labelsHidden()
+            .toggleStyle(.switch)
+            .controlSize(.mini)
+        }
+        .contentShape(Rectangle())
+    }
+
+    private func feedbackLine(_ feedback: AgentHooksModel.Feedback) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: 6) {
+            Image(systemName: feedback.isError ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundStyle(feedback.isError ? Desvan.Palette.warning : Desvan.Palette.sage)
+                .accessibilityHidden(true)
+            Text(feedback.text)
+                .font(.system(size: 11))
+                .foregroundStyle(feedback.isError ? Desvan.Palette.warning : Desvan.Palette.paperSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let backup = feedback.backup {
+                Button("Show Backup") { NSWorkspace.shared.activateFileViewerSelecting([backup]) }
+                    .buttonStyle(.link)
+                    .font(.system(size: 11))
+            }
+        }
+    }
+
+    private var hasDetails: Bool {
+        statusDetail != nil || report.status != .agentNotFound || !notes.isEmpty
+            || Self.showsReplySwitch(for: report) || feedback != nil
     }
 
     @ViewBuilder
@@ -546,6 +625,8 @@ private struct SettingsAgentHookRow: View {
         return notes
     }
 
+    /// The whole state in a sentence: the badge's accessibility label, and the hint under the name when the badge
+    /// alone can't say it.
     private var statusText: String {
         switch report.status {
         case .notInstalled: String(localized: "Not installed")
@@ -558,19 +639,38 @@ private struct SettingsAgentHookRow: View {
         }
     }
 
-    private var statusSymbol: String? {
+    /// The long sentence under the name, for the states that need explaining.
+    private var statusDetail: String? {
         switch report.status {
-        case .installed: "checkmark.circle.fill"
-        case .needsRepair, .unreadable: "exclamationmark.triangle.fill"
+        case .needsRepair, .unreadable: statusText
+        case .notInstalled, .installed, .agentNotFound: nil
+        }
+    }
+
+    private var badgeText: String {
+        switch report.status {
+        case .notInstalled: String(localized: "Not installed")
+        case .installed: String(localized: "Installed")
+        case .needsRepair(.hookMissing): String(localized: "Needs repair")
+        case .needsRepair(.outdated): String(localized: "Needs update")
+        case .agentNotFound: String(localized: "Not set up on this Mac")
+        case .unreadable: String(localized: "Left alone")
+        }
+    }
+
+    private var badgeSymbol: String? {
+        switch report.status {
+        case .installed: "checkmark"
+        case .needsRepair, .unreadable: "exclamationmark"
         case .notInstalled, .agentNotFound: nil
         }
     }
 
-    private var statusColor: Color {
+    private var badgeTone: SettingsTone {
         switch report.status {
-        case .installed: Desvan.Palette.sage
-        case .needsRepair, .unreadable: Desvan.Palette.warning
-        case .notInstalled, .agentNotFound: Desvan.Palette.paperSecondary
+        case .installed: .good
+        case .needsRepair, .unreadable: .warning
+        case .notInstalled, .agentNotFound: .neutral
         }
     }
 }

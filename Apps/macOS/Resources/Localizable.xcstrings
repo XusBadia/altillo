@@ -1,6 +1,76 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Alerts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Alerts" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Avisos" } }
+      }
+    },
+    "Help" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Help" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ayuda" } }
+      }
+    },
+    "History" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "History" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Historial" } }
+      }
+    },
+    "Left alone" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Left alone" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin tocar" } }
+      }
+    },
+    "Needs repair" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Needs repair" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Por reparar" } }
+      }
+    },
+    "Needs update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Needs update" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Por actualizar" } }
+      }
+    },
+    "Opening" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opening" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apertura" } }
+      }
+    },
+    "Shortcut" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shortcut" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atajo" } }
+      }
+    },
+    "Uninstall" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Uninstall" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desinstalar" } }
+      }
+    },
+    "Updates" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Updates" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Actualizaciones" } }
+      }
+    },
     "Report a Problem" : {
       "extractionState" : "manual",
       "localizations" : {

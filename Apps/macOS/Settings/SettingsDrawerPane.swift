@@ -16,6 +16,7 @@ struct SettingsDrawerPane: View {
     @State private var cellFrames: [String: CGRect] = [:]
     @GestureState private var localDragIsActive = false
     @FocusState private var focusedEntryID: String?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     nonisolated private static let arrangementSpace = "drawer-arrangement"
 
     private var canMove: Bool {
@@ -28,6 +29,10 @@ struct SettingsDrawerPane: View {
         return findEntry(withID: id)
     }
 
+    private var revealAnimation: Animation {
+        SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion)
+    }
+
     var body: some View {
         SettingsPane(
             title: "Drawer",
@@ -36,20 +41,24 @@ struct SettingsDrawerPane: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     enableCard
-                    if store.enabled, store.isSupported { visibilityCard }
+                    if store.enabled, store.isSupported {
+                        visibilityCard
+                            .transition(.settingsReveal)
+                    }
                     if let problem = store.problem {
-                        Label(problem, systemImage: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
-                            .foregroundStyle(Desvan.Palette.warning)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.horizontal, 2)
-                            .accessibilityLabel("Drawer error: \(problem)")
+                        problemNotice(problem)
+                            .transition(.settingsReveal)
                     }
 
                     stateContent
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 18)
+                .animation(revealAnimation, value: store.enabled)
+                .animation(revealAnimation, value: store.isSupported)
+                .animation(revealAnimation, value: store.hasAccess)
+                .animation(revealAnimation, value: store.hasIconAccess)
+                .animation(revealAnimation, value: store.problem)
             }
             .scrollBounceBehavior(.basedOnSize)
         }
@@ -71,19 +80,48 @@ struct SettingsDrawerPane: View {
         }
     }
 
+    /// The last thing that went wrong, on a warning wash so it reads as a state, not as a setting.
+    private func problemNotice(_ problem: String) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 13, weight: .medium))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(SettingsTone.warning.color)
+                .accessibilityHidden(true)
+            Text(verbatim: problem)
+                .settingsHint()
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 8)
+        .background {
+            let shape = RoundedRectangle(cornerRadius: 9, style: .continuous)
+            shape.fill(SettingsTone.warning.color.opacity(0.08))
+                .overlay { shape.strokeBorder(SettingsTone.warning.color.opacity(0.22), lineWidth: 0.75) }
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("Drawer error: \(problem)")
+    }
+
     private var visibilityCard: some View {
         SettingsCard {
             HStack(alignment: .center, spacing: 12) {
                 Image(systemName: store.hidesDrawerIcons ? "eye.slash.fill" : "eye.fill")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(store.hidesDrawerIcons ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
-                    .frame(width: 24)
+                    .contentTransition(.symbolEffect(.replace))
+                    .frame(width: 30, height: 30)
+                    .background {
+                        let shape = RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        shape.fill(Desvan.Palette.plank.opacity(0.85))
+                            .overlay { shape.strokeBorder(Desvan.Palette.hairline, lineWidth: 0.75) }
+                    }
+                    .animation(revealAnimation, value: store.hidesDrawerIcons)
                     .accessibilityHidden(true)
 
-                VStack(alignment: .leading, spacing: 3) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text("Hide Drawer icons from the menu bar")
-                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
+                        .settingsRowTitle()
                     if store.support.hidingStyle == .overflow {
                         Text("On macOS 27, icons stay in the menu bar’s overflow area; they aren’t removed. Use Altillo’s arrow in the menu bar to reveal them. Icons from the same app may hide together.")
                             .settingsHint()
@@ -94,7 +132,7 @@ struct SettingsDrawerPane: View {
                 }
                 .fixedSize(horizontal: false, vertical: true)
 
-                Spacer(minLength: 8)
+                Spacer(minLength: 12)
 
                 Toggle("Hide Drawer icons from the menu bar", isOn: Binding(
                     get: { store.hidesDrawerIcons },
@@ -114,28 +152,16 @@ struct SettingsDrawerPane: View {
     private var enableCard: some View {
         SettingsCard {
             HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Use Drawer")
-                        .font(Desvan.Typeface.rounded(13, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    Text("Keep selected icons within reach in Altillo.")
-                        .settingsHint()
-                }
+                SettingsGroupHeading(title: "Use Drawer", detail: "Keep selected icons within reach in Altillo.")
 
-                Spacer(minLength: 8)
+                Spacer(minLength: 12)
 
                 if store.hasAccess, store.isSupported {
-                    Button {
+                    RefreshIconsButton(isLoading: store.isLoading) {
                         store.refresh(forceIcons: true, clearProblem: true)
-                    } label: {
-                        Image(systemName: "arrow.clockwise")
-                            .frame(width: 16, height: 16)
                     }
-                    .buttonStyle(.plain)
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
                     .disabled(store.isLoading || store.movingEntryID != nil)
-                    .help("Refresh menu bar icons")
-                    .accessibilityLabel("Refresh menu bar icons")
+                    .transition(.opacity.combined(with: .scale(scale: 0.8)))
                 }
 
                 Toggle("Use Drawer", isOn: Binding(
@@ -153,27 +179,42 @@ struct SettingsDrawerPane: View {
     @ViewBuilder
     private var stateContent: some View {
         if !store.isSupported {
-            unsupportedCard
+            unsupportedNotice
+                .transition(.settingsReveal)
         } else if !store.enabled {
-            inactiveCard
+            inactiveNotice
+                .transition(.settingsReveal)
         } else if !store.hasAccess {
             permissionCard
+                .transition(.settingsReveal)
         } else if store.requiresIconAccess && !store.hasIconAccess {
             iconPermissionCard
+                .transition(.settingsReveal)
         } else {
-            if store.support.isPartial { partialSupportCard }
+            if store.support.isPartial {
+                partialSupportCard
+                    .transition(.settingsReveal)
+            }
             arrangementContent
+                .transition(.settingsReveal)
         }
     }
 
     /// What this version of macOS doesn't allow, so the missing part isn't mistaken for a fault.
     private var partialSupportCard: some View {
         SettingsCard {
-            Label {
-                VStack(alignment: .leading, spacing: 3) {
+            HStack(alignment: .top, spacing: 10) {
+                Image(systemName: "info.circle")
+                    .font(.system(size: 14, weight: .medium))
+                    .symbolRenderingMode(.hierarchical)
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .padding(.top, 1)
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: 4) {
                     Text("Some Drawer features aren't available on this version of macOS")
-                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
+                        .settingsRowTitle()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                     if !store.support.hiding {
                         Text("Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer.")
                             .settingsHint()
@@ -183,105 +224,95 @@ struct SettingsDrawerPane: View {
                             .settingsHint()
                     }
                 }
-                .fixedSize(horizontal: false, vertical: true)
-            } icon: {
-                Image(systemName: "info.circle")
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
+                Spacer(minLength: 0)
             }
         }
     }
 
     private var iconPermissionCard: some View {
         SettingsCard {
-            HStack(alignment: .center, spacing: 12) {
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Allow Screen Recording access")
-                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    Text("Allow Screen Recording so Altillo can display each icon as it appears in your menu bar.")
-                        .settingsHint()
+            VStack(alignment: .leading, spacing: 10) {
+                SettingsGroupHeading(title: "Allow Screen Recording access")
+                SettingsNotice(
+                    symbol: "rectangle.dashed.badge.record",
+                    message: "Allow Screen Recording so Altillo can display each icon as it appears in your menu bar."
+                ) {
+                    Button("Allow access") { store.requestIconAccess() }
+                        .buttonStyle(DesvanButtonStyle(kind: .primary, height: 26))
                 }
-                Spacer(minLength: 8)
-                Button("Allow access") { store.requestIconAccess() }
-                    .buttonStyle(DesvanButtonStyle(kind: .primary, height: 26))
             }
         }
     }
 
     private var permissionCard: some View {
         SettingsCard {
-            HStack(alignment: .center, spacing: 12) {
-                Image(systemName: "accessibility")
-                    .font(.system(size: 19, weight: .medium))
-                    .foregroundStyle(Desvan.Palette.bulb)
-                    .frame(width: 28)
-                    .accessibilityHidden(true)
-
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Allow Accessibility access")
-                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    Text("Altillo uses it to find and move your menu bar icons.")
-                        .settingsHint()
+            VStack(alignment: .leading, spacing: 10) {
+                SettingsGroupHeading(title: "Allow Accessibility access")
+                SettingsNotice(
+                    symbol: "accessibility",
+                    message: "Altillo uses it to find and move your menu bar icons."
+                ) {
+                    Button("Allow access") { store.requestAccess() }
+                        .buttonStyle(DesvanButtonStyle(kind: .primary, height: 26))
                 }
-
-                Spacer(minLength: 8)
-
-                Button("Allow access") { store.requestAccess() }
-                    .buttonStyle(DesvanButtonStyle(kind: .primary, height: 26))
             }
         }
     }
 
-    private var unsupportedCard: some View {
-        SettingsCard {
-            Label {
-                Text("Drawer is not available on this version of macOS.")
-                    .settingsHint()
-            } icon: {
-                Image(systemName: "macwindow.badge.exclamationmark")
-                    .foregroundStyle(Desvan.Palette.warning)
-            }
-        }
+    private var unsupportedNotice: some View {
+        SettingsNotice(
+            symbol: "macwindow.badge.exclamationmark",
+            message: "Drawer is not available on this version of macOS.",
+            tone: .warning
+        )
     }
 
-    private var inactiveCard: some View {
-        SettingsCard {
-            Label {
-                Text("Turn on Drawer to choose which icons appear in Altillo.")
-                    .settingsHint()
-            } icon: {
-                Image(systemName: "archivebox")
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-            }
-        }
+    private var inactiveNotice: some View {
+        SettingsNotice(
+            symbol: "archivebox",
+            message: "Turn on Drawer to choose which icons appear in Altillo.",
+            tone: .neutral
+        )
     }
 
     private var arrangementContent: some View {
-        VStack(alignment: .leading, spacing: 9) {
+        VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 7) {
-                if let movingEntry {
-                    ProgressView()
-                        .controlSize(.small)
-                    Text("Moving \(displayName(for: movingEntry))…")
-                        .settingsHint()
-                } else if store.isLoading {
-                    ProgressView()
-                        .controlSize(.small)
-                    Text("Finding menu bar icons…")
-                        .settingsHint()
-                } else {
-                    Image(systemName: "hand.draw")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.paperTertiary)
-                        .accessibilityHidden(true)
-                    Text("Drag icons between areas, or open an icon's menu to move it.")
-                        .settingsHint()
+                Group {
+                    if let movingEntry {
+                        HStack(spacing: 7) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Moving \(displayName(for: movingEntry))…")
+                                .settingsHint()
+                        }
+                        .transition(.settingsReveal)
+                    } else if store.isLoading {
+                        HStack(spacing: 7) {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Finding menu bar icons…")
+                                .settingsHint()
+                        }
+                        .transition(.settingsReveal)
+                    } else {
+                        HStack(spacing: 7) {
+                            Image(systemName: "hand.draw")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundStyle(Desvan.Palette.paperTertiary)
+                                .accessibilityHidden(true)
+                            Text("Drag icons between areas, or open an icon's menu to move it.")
+                                .settingsHint()
+                        }
+                        .transition(.settingsReveal)
+                    }
                 }
                 Spacer(minLength: 0)
             }
-            .frame(minHeight: 16)
+            .frame(minHeight: 18)
             .padding(.horizontal, 2)
+            .animation(revealAnimation, value: store.movingEntryID)
+            .animation(revealAnimation, value: store.isLoading)
             .accessibilityElement(children: .combine)
 
             HStack(alignment: .top, spacing: 10) {
@@ -323,22 +354,27 @@ struct SettingsDrawerPane: View {
         isTargeted: Binding<Bool>
     ) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 6) {
+            HStack(spacing: 7) {
                 Image(systemName: symbol)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
                     .accessibilityHidden(true)
                 Text(title)
-                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(13.5, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.paper)
                 Spacer(minLength: 4)
                 if !store.isLoading || !entries.isEmpty {
-                    Text(entries.count, format: .number)
-                        .font(.system(size: 11.5, weight: .medium, design: .rounded))
-                        .foregroundStyle(Desvan.Palette.paperTertiary)
-                        .accessibilityLabel("\(entries.count) icons")
+                    SettingsBadge(
+                        text: entries.count.formatted(),
+                        tone: isTargeted.wrappedValue ? .accent : .neutral
+                    )
+                    .contentTransition(.numericText())
+                    .animation(revealAnimation, value: entries.count)
+                    .transition(.opacity)
+                    .accessibilityLabel("\(entries.count) icons")
                 }
             }
+            .animation(Desvan.Motion.hover, value: isTargeted.wrappedValue)
 
             if entries.isEmpty {
                 VStack(spacing: 7) {
@@ -353,13 +389,16 @@ struct SettingsDrawerPane: View {
                         Image(systemName: "square.dashed")
                             .font(.system(size: 20, weight: .light))
                             .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.bulb : Desvan.Palette.paperTertiary)
+                            .symbolEffect(.bounce, value: isTargeted.wrappedValue)
                             .accessibilityHidden(true)
                         Text(isTargeted.wrappedValue ? "Drop here" : "Drag icons here")
                             .font(.system(size: 11.5, weight: .medium))
                             .foregroundStyle(isTargeted.wrappedValue ? Desvan.Palette.paper : Desvan.Palette.paperTertiary)
+                            .contentTransition(.opacity)
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .animation(Desvan.Motion.hover, value: isTargeted.wrappedValue)
             } else {
                 ScrollView(.vertical) {
                     MenuBarGlyphGrid() {
@@ -389,6 +428,7 @@ struct SettingsDrawerPane: View {
                         lineWidth: isTargeted.wrappedValue ? 1.5 : 0.75
                     )
                 }
+                .animation(Desvan.Motion.hover, value: isTargeted.wrappedValue)
         }
         .contentShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(Self.arrangementSpace)) }) {
@@ -436,8 +476,10 @@ struct SettingsDrawerPane: View {
             }
             .frame(width: MenuBarGlyph.cellWidth(for: icon(for: entry).size), height: 34)
             .contentShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+            .animation(Desvan.Motion.hover, value: cellBackground(entry))
+            .animation(Desvan.Motion.hover, value: isMoving)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SettingsPressStyle(scale: 0.94))
         .disabled(store.movingEntryID != nil)
         .opacity(store.movingEntryID == nil || isMoving ? 1 : 0.55)
         .onGeometryChange(for: CGRect.self, of: { $0.frame(in: .named(Self.arrangementSpace)) }) {
@@ -617,5 +659,30 @@ struct SettingsDrawerPane: View {
             case .menuBar: "Menu Bar"
             }
         }
+    }
+}
+
+/// The enable card's refresh: it lightens under the pointer and its arrow turns while the icons are being found.
+private struct RefreshIconsButton: View {
+    let isLoading: Bool
+    let action: () -> Void
+
+    @State private var isHovering = false
+    @Environment(\.isEnabled) private var isEnabled
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: "arrow.clockwise")
+                .font(.system(size: 12, weight: .semibold))
+                .symbolEffect(.rotate, isActive: isLoading)
+                .foregroundStyle(isHovering && isEnabled ? Desvan.Palette.paper : Desvan.Palette.paperSecondary)
+                .frame(width: 24, height: 24)
+                .background(Circle().fill(Desvan.Palette.paper.opacity(isHovering && isEnabled ? 0.08 : 0)))
+                .contentShape(Circle())
+        }
+        .buttonStyle(SettingsPressStyle(scale: 0.92))
+        .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
+        .help("Refresh menu bar icons")
+        .accessibilityLabel("Refresh menu bar icons")
     }
 }

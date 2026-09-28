@@ -12,6 +12,7 @@ struct SettingsModulesPane: View {
     var clipboard: ClipboardStore?
     /// Keeps what a preset replaced, for its Undo.
     @State private var session = NotchEditSession()
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var disabled: [NotchModule] {
         NotchModule.allCases.filter { !settings.isEnabled($0) }
@@ -24,7 +25,7 @@ struct SettingsModulesPane: View {
         ) {
             ScrollViewReader { proxy in
             ScrollView {
-                LazyVStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 12) {
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 0) {
                             SettingsGroupHeading(
@@ -49,6 +50,7 @@ struct SettingsModulesPane: View {
                             VStack(spacing: 0) {
                                 ForEach(settings.modules) { module in
                                     SettingsModuleRow(module: module, settings: settings)
+                                        .settingsHoverHighlight()
                                         .draggable(module.rawValue)
                                         .dropDestination(for: String.self) { identifiers, _ in
                                             _ = reorder(identifiers.first, before: module)
@@ -69,6 +71,7 @@ struct SettingsModulesPane: View {
                             SettingsCalendarGroup(settings: settings)
                         }
                         .id(Self.calendarAnchor)
+                        .transition(.settingsReveal)
                     }
 
                     if settings.isEnabled(.usage) {
@@ -81,6 +84,7 @@ struct SettingsModulesPane: View {
                             SettingsUsageGroup(settings: settings, store: UsageStore.live)
                         }
                         .id(Self.usageAnchor)
+                        .transition(.settingsReveal)
                     }
 
                     if settings.isEnabled(.clipboard), let clipboard {
@@ -93,6 +97,7 @@ struct SettingsModulesPane: View {
                             SettingsClipboardGroup(settings: settings, store: clipboard)
                         }
                         .id(Self.clipboardAnchor)
+                        .transition(.settingsReveal)
                     }
 
                     // Always here, even with the agents section put away: hooks Altillo installed must stay one
@@ -118,11 +123,13 @@ struct SettingsModulesPane: View {
                                 VStack(spacing: 0) {
                                     ForEach(disabled) { module in
                                         SettingsModuleRow(module: module, settings: settings)
+                                            .settingsHoverHighlight()
                                         if module != disabled.last { SettingsRowDivider() }
                                     }
                                 }
                             }
                         }
+                        .transition(.settingsReveal)
                     }
 
                     SettingsCard {
@@ -138,6 +145,9 @@ struct SettingsModulesPane: View {
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 18)
+                // A section switched on or off, or moved, slides to its new place and its options card follows.
+                .animation(SettingsMotion.pick(SettingsMotion.reorder, reduceMotion: reduceMotion),
+                           value: settings.modules)
             }
             .scrollBounceBehavior(.basedOnSize)
             .task {
@@ -175,38 +185,7 @@ struct SettingsModulesPane: View {
     private static let agentsAnchor = "agents"
 }
 
-private struct SettingsGroupHeading: View {
-    let title: LocalizedStringKey
-    let detail: LocalizedStringKey
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(Desvan.Typeface.rounded(13, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paper)
-            Text(detail).settingsHint()
-        }
-    }
-}
-
-private struct SettingsCardDivider: View {
-    var body: some View {
-        Rectangle()
-            .fill(Desvan.Palette.hairline)
-            .frame(height: 0.75)
-            .padding(.vertical, 10)
-    }
-}
-
-private struct SettingsRowDivider: View {
-    var body: some View {
-        Rectangle()
-            .fill(Desvan.Palette.hairline)
-            .frame(height: 0.75)
-            .padding(.leading, 52)
-    }
-}
-
+/// One section's own options, folded until asked for.
 private struct SettingsOptionsCard<Content: View>: View {
     let title: LocalizedStringKey
     let detail: LocalizedStringKey
@@ -217,23 +196,8 @@ private struct SettingsOptionsCard<Content: View>: View {
     @State private var isExpanded = false
 
     var body: some View {
-        SettingsCard {
-            DisclosureGroup(isExpanded: $isExpanded) {
-                SettingsCardDivider()
-                content
-            } label: {
-                HStack(spacing: 10) {
-                    Image(systemName: symbol)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.bulb)
-                        .frame(width: 30, height: 30)
-                        .background(RoundedRectangle(cornerRadius: 7).fill(Desvan.Palette.plank.opacity(0.85)))
-                    SettingsGroupHeading(title: title, detail: detail)
-                }
-                .contentShape(Rectangle())
-            }
-            .tint(Desvan.Palette.paperSecondary)
-            .help(isExpanded ? "Hide these options" : "Show these options")
+        SettingsDisclosureCard(title: title, detail: detail, symbol: symbol, isExpanded: $isExpanded) {
+            content
         }
         .onAppear {
             if let anchor, UserDefaults.standard.string(forKey: "settingsSection") == anchor { isExpanded = true }
@@ -297,6 +261,7 @@ private struct SettingsStarterButton: View {
                     Spacer(minLength: 0)
                     if isSelected {
                         Image(systemName: "checkmark").font(.system(size: 11, weight: .heavy))
+                            .transition(.scale(scale: 0.5).combined(with: .opacity))
                     }
                 }
                 HStack(spacing: 3) {
@@ -317,7 +282,7 @@ private struct SettingsStarterButton: View {
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SettingsPressStyle(scale: 0.97))
         .help(preset.explanation)
         .accessibilityLabel(preset.title)
         .accessibilityHint(preset.explanation)
@@ -342,9 +307,7 @@ private struct SettingsEarsRow: View {
                 sidePicker(.right, title: "Right side", symbol: "arrow.right")
             }
             VStack(alignment: .leading, spacing: 6) {
-                Text("Visibility")
-                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                SettingsSubheading("Visibility")
                 Picker(selection: visibility) {
                     Text("When active").tag(EarsVisibility.withActivity)
                     Text("Always visible").tag(EarsVisibility.always)
@@ -355,6 +318,8 @@ private struct SettingsEarsRow: View {
                 .pickerStyle(.segmented)
                 Text(visibilityExplanation)
                     .settingsHint()
+                    .contentTransition(.opacity)
+                    .animation(SettingsMotion.reveal, value: settings.earsVisibility)
             }
             Text("Tip: What matters now can temporarily show music, an urgent event or an agent that needs you. Choosing the same item twice swaps the two sides.")
                 .settingsHint()
@@ -375,6 +340,8 @@ private struct SettingsEarsRow: View {
             Text(earExplanation(session.ear(side, in: settings)))
                 .settingsHint()
                 .frame(minHeight: 28, alignment: .topLeading)
+                .contentTransition(.opacity)
+                .animation(SettingsMotion.reveal, value: session.ear(side, in: settings))
         }
         .padding(10)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -552,36 +519,29 @@ private struct SettingsCalendarGroup: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Grid(alignment: .leading, horizontalSpacing: 10, verticalSpacing: 10) {
-                GridRow {
-                    label("Layout")
-                    Picker(selection: $settings.calendarStyle) {
-                        ForEach(CalendarStyle.allCases) { style in
-                            Text(style.title).tag(style)
-                        }
-                    } label: {
-                        Text("Layout")
+            HStack(spacing: 12) {
+                Text("Layout").settingsRowTitle()
+                Spacer(minLength: 12)
+                Picker(selection: $settings.calendarStyle) {
+                    ForEach(CalendarStyle.allCases) { style in
+                        Text(style.title).tag(style)
                     }
-                    .labelsHidden()
-                    .pickerStyle(.segmented)
-                    .fixedSize()
+                } label: {
+                    Text("Layout")
                 }
-                GridRow {
-                    Color.clear.frame(width: 1, height: 1)
-                    Toggle(isOn: $settings.calendarShowsAllDay) {
-                        Text("Show all-day events")
-                            .font(.system(size: 12.5))
-                            .foregroundStyle(Desvan.Palette.paper)
-                    }
-                    .toggleStyle(.checkbox)
-                }
+                .labelsHidden()
+                .pickerStyle(.segmented)
+                .fixedSize()
             }
+            SettingsToggleRow("Show all-day events", isOn: $settings.calendarShowsAllDay)
             Text("Right-click Altillo while Calendar is open to switch layout from there.")
                 .settingsHint()
 
             calendars
         }
         .padding(.vertical, 6)
+        .animation(SettingsMotion.reveal, value: directory.access)
+        .animation(SettingsMotion.reveal, value: directory.accounts.count)
         .onAppear { directory.start() }
         .onDisappear { directory.stop() }
     }
@@ -594,14 +554,18 @@ private struct SettingsCalendarGroup: View {
                 if directory.hasLoaded {
                     Text("There are no calendars on this Mac yet.")
                         .settingsHint()
+                        .transition(.settingsReveal)
                 }
             } else {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Calendars")
-                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
-                    ForEach(directory.accounts) { account in
-                        SettingsCalendarAccount(account: account, settings: settings)
+                VStack(alignment: .leading, spacing: 8) {
+                    SettingsCardDivider().padding(.vertical, -4)
+                    SettingsSubheading("Calendars")
+                    SettingsWell {
+                        ForEach(directory.accounts) { account in
+                            SettingsCalendarAccount(account: account, settings: settings)
+                                .padding(.vertical, 8)
+                            if account.id != directory.accounts.last?.id { SettingsRowDivider(leading: 0) }
+                        }
                     }
                     Text("Hidden calendars leave the grid and the agenda. Nothing changes in Calendar itself.")
                         .settingsHint()
@@ -626,24 +590,10 @@ private struct SettingsCalendarGroup: View {
 
     private func access(_ message: LocalizedStringKey, button: LocalizedStringKey,
                         action: @escaping () -> Void) -> some View {
-        HStack(spacing: 10) {
-            Image(systemName: "calendar.badge.exclamationmark")
-                .font(.system(size: 15, weight: .medium))
-                .symbolRenderingMode(.hierarchical)
-                .foregroundStyle(Desvan.Palette.bulb)
-            Text(message)
-                .settingsHint()
-            Spacer(minLength: 8)
+        SettingsNotice(symbol: "calendar.badge.exclamationmark", message: message) {
             Button(button, action: action)
-                .controlSize(.small)
         }
-    }
-
-    private func label(_ text: LocalizedStringKey) -> some View {
-        Text(text)
-            .font(.system(size: 12.5))
-            .foregroundStyle(Desvan.Palette.paper)
-            .gridColumnAlignment(.trailing)
+        .transition(.settingsReveal)
     }
 }
 
@@ -657,7 +607,7 @@ private struct SettingsClipboardGroup: View {
     @State private var canPaste = ClipboardPaste.canPaste
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 0) {
             shortcut
             SettingsCardDivider()
             kept
@@ -665,6 +615,9 @@ private struct SettingsClipboardGroup: View {
             excluded
         }
         .padding(.vertical, 6)
+        .animation(SettingsMotion.reveal, value: canPaste)
+        .animation(SettingsMotion.reveal, value: settings.clipboardHotKeyProblem)
+        .animation(SettingsMotion.reveal, value: store.excludedApps)
         .onAppear { canPaste = ClipboardPaste.canPaste }
         // Back from System Settings: Accessibility may have been granted.
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
@@ -674,60 +627,58 @@ private struct SettingsClipboardGroup: View {
 
     private var shortcut: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Picker(selection: $settings.clipboardHotKey) {
-                ForEach(ClipboardHotKey.allCases) { key in
-                    Text(key.title).tag(key)
+            SettingsSubheading("Shortcut")
+            HStack(spacing: 12) {
+                Text("Shortcut to open").settingsRowTitle()
+                Spacer(minLength: 12)
+                Picker(selection: $settings.clipboardHotKey) {
+                    ForEach(ClipboardHotKey.allCases) { key in
+                        Text(key.title).tag(key)
+                    }
+                } label: {
+                    Text("Shortcut to open")
                 }
-            } label: {
-                Text("Shortcut to open")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paper)
+                .labelsHidden()
+                .pickerStyle(.menu)
+                .fixedSize()
+                .help("Choose the global keyboard shortcut that opens the clipboard")
             }
-            .pickerStyle(.menu)
-            .fixedSize()
-            .help("Choose the global keyboard shortcut that opens the clipboard")
 
             if let problem = settings.clipboardHotKeyProblem {
-                Label(problem, systemImage: "exclamationmark.triangle.fill")
-                    .font(.system(size: 11))
-                    .foregroundStyle(Desvan.Palette.warning)
-                    .fixedSize(horizontal: false, vertical: true)
+                SettingsNotice(symbol: "exclamationmark.triangle.fill", message: LocalizedStringKey(problem), tone: .warning)
+                    .transition(.settingsReveal)
             }
             Text("Opens Altillo on the clipboard from any app, ready to search. Press it again to close.")
                 .settingsHint()
 
-            Toggle(isOn: $settings.clipboardPastesDirectly) {
-                Text("Paste into the app in front")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paper)
-            }
-            .toggleStyle(.checkbox)
-            .disabled(settings.clipboardHotKey == .off)
+            SettingsToggleRow("Paste into the app in front", isOn: $settings.clipboardPastesDirectly)
+                .disabled(settings.clipboardHotKey == .off)
+                .opacity(settings.clipboardHotKey == .off ? 0.5 : 1)
+                .padding(.top, 4)
 
             if settings.clipboardPastesDirectly, settings.clipboardHotKey != .off, !canPaste {
-                HStack(spacing: 10) {
-                    Image(systemName: "hand.raised")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.bulb)
-                    Text("To press ⌘V for you, Altillo needs Accessibility. Until then, picking only copies.")
-                        .settingsHint()
-                    Spacer(minLength: 8)
+                SettingsNotice(symbol: "hand.raised",
+                               message: "To press ⌘V for you, Altillo needs Accessibility. Until then, picking only copies.") {
                     Button("Give Access…") { ClipboardPaste.requestAccess() }
-                        .controlSize(.small)
                 }
+                .transition(.settingsReveal)
             } else {
                 Text("After the shortcut, the slip you pick is pasted where you were. Off, picking only copies.")
                     .settingsHint()
+                    .transition(.settingsReveal)
             }
         }
     }
 
     private var kept: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            toggle("Keep history after quitting", isOn: $store.keepsHistory)
-            toggle("Keep images", isOn: $store.keepsImages)
-            toggle("Find text in images", isOn: $store.readsTextInImages)
+        VStack(alignment: .leading, spacing: 10) {
+            SettingsSubheading("History")
+            SettingsToggleRow("Keep history after quitting", isOn: $store.keepsHistory)
+            SettingsToggleRow("Keep images", isOn: $store.keepsImages)
+            SettingsToggleRow("Find text in images", isOn: $store.readsTextInImages)
                 .disabled(!store.keepsImages)
+                .opacity(store.keepsImages ? 1 : 0.5)
+                .animation(SettingsMotion.reveal, value: store.keepsImages)
             Text("Everything stays on this Mac. A kept history is saved only for you and left out of backups.")
                 .settingsHint()
         }
@@ -735,35 +686,29 @@ private struct SettingsClipboardGroup: View {
 
     private var excluded: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Never keep copies from")
-                .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paper)
-            if store.excludedApps.isEmpty {
-                Text("No apps yet.")
-                    .settingsHint()
-            } else {
-                VStack(spacing: 0) {
+            SettingsSubheading("Never keep copies from") {
+                Button("Add App…", action: chooseApps)
+                    .controlSize(.small)
+            }
+            SettingsWell {
+                if store.excludedApps.isEmpty {
+                    Text("No apps yet.")
+                        .settingsHint()
+                        .padding(.vertical, 8)
+                        .transition(.opacity)
+                } else {
                     ForEach(store.excludedApps, id: \.self) { bundleID in
                         SettingsExcludedAppRow(bundleID: bundleID) {
                             store.include(bundleID)
                         }
+                        .transition(.settingsReveal)
+                        if bundleID != store.excludedApps.last { SettingsRowDivider(leading: 26) }
                     }
                 }
             }
-            Button("Add App…", action: chooseApps)
-                .controlSize(.small)
             Text("Copies made in these apps are never read. Password managers are always left out.")
                 .settingsHint()
         }
-    }
-
-    private func toggle(_ title: LocalizedStringKey, isOn: Binding<Bool>) -> some View {
-        Toggle(isOn: isOn) {
-            Text(title)
-                .font(.system(size: 12.5))
-                .foregroundStyle(Desvan.Palette.paper)
-        }
-        .toggleStyle(.checkbox)
     }
 
     private func chooseApps() {
@@ -812,11 +757,11 @@ private struct SettingsExcludedAppRow: View {
                 Image(systemName: "minus.circle.fill")
                     .foregroundStyle(Desvan.Palette.paperSecondary)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(SettingsPressStyle(scale: 0.85))
             .help("Keep copies from this app again")
             .accessibilityLabel(Text("Remove \(name)"))
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 6)
     }
 }
 
@@ -882,14 +827,15 @@ private struct SettingsUsageGroup: View {
     let store: UsageStore?
 
     @State private var showsNotSetUp = false
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: 0) {
             providers
+            SettingsCardDivider()
             alerts
         }
         .padding(.vertical, 6)
+        .animation(SettingsMotion.reveal, value: store?.setUpEntries.map(\.id))
         .onAppear { store?.refreshIfOlder(than: 60) }
     }
 
@@ -898,11 +844,7 @@ private struct SettingsUsageGroup: View {
     @ViewBuilder
     private var providers: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack {
-                Text("Providers")
-                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paper)
-                Spacer(minLength: 8)
+            SettingsSubheading("Providers") {
                 if let store {
                     Button(store.isRefreshing ? "Checking…" : "Check Again") { store.refreshNow() }
                         .controlSize(.small)
@@ -917,9 +859,11 @@ private struct SettingsUsageGroup: View {
                      : "Looking for your AI tools…")
                     .settingsHint()
             } else {
-                VStack(alignment: .leading, spacing: 2) {
+                SettingsWell {
                     ForEach(setUp) { entry in
                         SettingsUsageProviderRow(entry: entry, settings: settings)
+                            .padding(.vertical, 6)
+                        if entry.id != setUp.last?.id { SettingsRowDivider(leading: 29) }
                     }
                 }
             }
@@ -937,40 +881,13 @@ private struct SettingsUsageGroup: View {
 
     /// The providers Altillo can read that aren't set up here, folded away: each with how to set it up.
     private func notSetUpList(_ entries: [UsageStore.Entry]) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Button {
-                withAnimation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion)) {
-                    showsNotSetUp.toggle()
+        SettingsInlineDisclosure(title: "Not set up on this Mac", count: entries.count, isExpanded: $showsNotSetUp) {
+            VStack(alignment: .leading, spacing: 7) {
+                ForEach(entries) { entry in
+                    SettingsUsageSetupRow(entry: entry)
                 }
-            } label: {
-                HStack(spacing: 5) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 9.5, weight: .bold))
-                        .rotationEffect(.degrees(showsNotSetUp ? 90 : 0))
-                        .accessibilityHidden(true)
-                    Text("Not set up on this Mac")
-                        .font(.system(size: 12, weight: .medium))
-                    Text(verbatim: "\(entries.count)")
-                        .font(Desvan.Typeface.rounded(11, weight: .semibold))
-                        .monospacedDigit()
-                        .padding(.horizontal, 5)
-                        .frame(height: 15)
-                        .background(Capsule().fill(Desvan.Palette.woodRaised))
-                }
-                .foregroundStyle(Desvan.Palette.paperSecondary)
-                .contentShape(Rectangle())
             }
-            .buttonStyle(.plain)
-            .accessibilityValue(Text(showsNotSetUp ? "Expanded" : "Collapsed"))
-            if showsNotSetUp {
-                VStack(alignment: .leading, spacing: 5) {
-                    ForEach(entries) { entry in
-                        SettingsUsageSetupRow(entry: entry)
-                    }
-                }
-                .padding(.leading, 14)
-                .transition(.opacity)
-            }
+            .padding(.leading, 14)
         }
     }
 
@@ -978,16 +895,13 @@ private struct SettingsUsageGroup: View {
 
     private var alerts: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Toggle(isOn: $settings.alertsForUsage) {
-                Text("Peek when a limit runs high")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paper)
-            }
-            .toggleStyle(.checkbox)
+            SettingsSubheading("Alerts")
+            SettingsToggleRow("Peek when a limit runs high", isOn: $settings.alertsForUsage)
             HStack(spacing: 12) {
                 Text("At")
                     .font(.system(size: 12.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .padding(.leading, 2)
                 ForEach(AltilloSettings.usageAlertThresholdChoices, id: \.self) { level in
                     Toggle(isOn: threshold(level)) {
                         Text("\(level)%")
@@ -999,7 +913,6 @@ private struct SettingsUsageGroup: View {
                     .accessibilityLabel(String(localized: "Peek at \(level)% used"))
                 }
             }
-            .padding(.leading, 20)
             .disabled(!settings.alertsForUsage)
             Toggle(isOn: $settings.usageAlertsWhenRefilled) {
                 Text("And when it refills")
@@ -1007,7 +920,6 @@ private struct SettingsUsageGroup: View {
                     .foregroundStyle(Desvan.Palette.paper)
             }
             .toggleStyle(.checkbox)
-            .padding(.leading, 20)
             .disabled(!settings.alertsForUsage)
             Text("A limit used up, or one running out before it refills, always peeks while this is on. Each one peeks once per window.")
                 .settingsHint()
@@ -1066,7 +978,6 @@ private struct SettingsUsageProviderRow: View {
                 .toggleStyle(.switch)
                 .controlSize(.small)
         }
-        .padding(.vertical, 1)
         .accessibilityElement(children: .combine)
     }
 

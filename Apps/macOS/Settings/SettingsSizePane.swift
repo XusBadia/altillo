@@ -5,24 +5,29 @@ struct SettingsSizePane: View {
     @Bindable var settings: AltilloSettings
     let hasHardwareNotch: Bool
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Namespace private var presetSelection
+
     var body: some View {
         SettingsPane(
             title: "Size",
             subtitle: "How wide the shelf opens. The narrower it is, the less of the screen it covers."
         ) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 14) {
+                VStack(alignment: .leading, spacing: 12) {
                     SettingsCard {
-                        VStack(alignment: .leading, spacing: 10) {
+                        VStack(alignment: .leading, spacing: 0) {
                             HStack(alignment: .firstTextBaseline) {
-                                Text("Width when open")
-                                    .font(Desvan.Typeface.rounded(13, weight: .medium))
-                                    .foregroundStyle(Desvan.Palette.paper)
+                                SettingsGroupHeading(title: "Width when open")
                                 Spacer()
                                 Text("\(Int(settings.openWidth.rounded())) pt")
-                                    .font(Desvan.Typeface.figure(13))
+                                    .font(Desvan.Typeface.figure(13.5))
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText(value: settings.openWidth))
                                     .foregroundStyle(Desvan.Palette.bulb)
                             }
+
+                            SettingsCardDivider()
 
                             Slider(
                                 value: $settings.openWidth,
@@ -43,29 +48,34 @@ struct SettingsSizePane: View {
                                     SettingsPresetButton(
                                         name: preset.name,
                                         value: preset.value,
-                                        isSelected: abs(settings.openWidth - preset.value) < 0.5
+                                        isSelected: abs(settings.openWidth - preset.value) < 0.5,
+                                        selection: presetSelection
                                     ) {
-                                        settings.openWidth = preset.value
+                                        withAnimation(SettingsMotion.pick(SettingsMotion.reorder,
+                                                                          reduceMotion: reduceMotion)) {
+                                            settings.openWidth = preset.value
+                                        }
                                     }
                                 }
                             }
+                            .padding(.top, 12)
                         }
                     }
 
                     SettingsCard {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Preview")
-                                .font(Desvan.Typeface.rounded(11, weight: .semibold))
-                                .foregroundStyle(Desvan.Palette.paperTertiary)
-                                .textCase(.uppercase)
-                            SettingsNotchPreview(width: settings.openWidth, modules: settings.modules)
-                            SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
-                                                visibility: settings.earsVisibility,
-                                                hasHardwareNotch: hasHardwareNotch)
-                            Text(hasHardwareNotch
-                                 ? "Altillo open above the menu bar, and closed around the hardware notch."
-                                 : "Altillo open above the menu bar, and closed as a small island.")
-                                .settingsHint()
+                        VStack(alignment: .leading, spacing: 0) {
+                            SettingsGroupHeading(title: "Preview")
+                            SettingsCardDivider()
+                            VStack(alignment: .leading, spacing: 10) {
+                                SettingsNotchPreview(width: settings.openWidth, modules: settings.modules)
+                                SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
+                                                    visibility: settings.earsVisibility,
+                                                    hasHardwareNotch: hasHardwareNotch)
+                                Text(hasHardwareNotch
+                                     ? "Altillo open above the menu bar, and closed around the hardware notch."
+                                     : "Altillo open above the menu bar, and closed as a small island.")
+                                    .settingsHint()
+                            }
                         }
                     }
                 }
@@ -82,7 +92,10 @@ private struct SettingsPresetButton: View {
     let name: String
     let value: Double
     let isSelected: Bool
+    let selection: Namespace.ID
     let action: () -> Void
+
+    @State private var isHovering = false
 
     var body: some View {
         Button(action: action) {
@@ -98,12 +111,20 @@ private struct SettingsPresetButton: View {
             .padding(.vertical, 4)
             .background {
                 let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
-                shape.fill(isSelected ? Desvan.Palette.bulb : Desvan.Palette.plank.opacity(0.7))
-                    .overlay { shape.strokeBorder(Desvan.Palette.hairline, lineWidth: 0.75) }
+                ZStack {
+                    shape.fill(Desvan.Palette.plank.opacity(isHovering ? 0.95 : 0.7))
+                    if isSelected {
+                        // One lit plate that slides between the presets instead of blinking from one to the next.
+                        shape.fill(Desvan.Palette.bulb)
+                            .matchedGeometryEffect(id: "selectedPreset", in: selection)
+                    }
+                }
+                .overlay { shape.strokeBorder(Desvan.Palette.hairline, lineWidth: 0.75) }
             }
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(SettingsPressStyle(scale: 0.96))
+        .onHover { hovering in withAnimation(Desvan.Motion.hover) { isHovering = hovering } }
         .help("Set the open width to \(Int(value)) points")
         .accessibilityLabel("\(name), \(Int(value)) points")
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
@@ -191,7 +212,8 @@ struct SettingsNotchPreview: View {
                 .padding(.horizontal, 10)
                 .padding(.bottom, 8)
             }
-            .animation(.easeOut(duration: 0.12), value: width)
+            // Quick enough to follow the slider, soft enough to glide when a preset jumps the width.
+            .animation(.spring(duration: 0.24, bounce: 0), value: width)
     }
 }
 
