@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 import Testing
 @testable import Altillo
@@ -44,6 +45,21 @@ struct AltilloSettingsTests {
         for preset in AltilloSettings.widthPresets {
             #expect(AltilloSettings.widthRange.contains(preset.value))
         }
+    }
+
+    @Test func aDisplayKeepsItsOwnWidthAndCanReturnToTheDefault() {
+        let defaults = Self.makeDefaults()
+        let settings = AltilloSettings(defaults: defaults)
+        let display: CGDirectDisplayID = 42
+        #expect(settings.openWidth(for: display) == 560)
+        settings.setOpenWidth(680, for: display)
+        #expect(settings.openWidth(for: display) == 680)
+        #expect(settings.openWidth == 560)
+
+        let relaunched = AltilloSettings(defaults: defaults)
+        #expect(relaunched.openWidth(for: display) == 680)
+        relaunched.useDefaultWidth(for: display)
+        #expect(relaunched.openWidth(for: display) == 560)
     }
 
     @Test func modulesAreEnabledAndDisabled() {

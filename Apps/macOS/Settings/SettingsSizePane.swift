@@ -1,12 +1,21 @@
+import CoreGraphics
 import SwiftUI
 
 /// How wide the notch opens. The notch redraws while the slider moves.
 struct SettingsSizePane: View {
     @Bindable var settings: AltilloSettings
     let hasHardwareNotch: Bool
+    var displayID: CGDirectDisplayID? = nil
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var presetSelection
+
+    private var width: Binding<Double> {
+        Binding(
+            get: { settings.openWidth(for: displayID) },
+            set: { settings.setOpenWidth($0, for: displayID) }
+        )
+    }
 
     var body: some View {
         SettingsPane(
@@ -20,17 +29,17 @@ struct SettingsSizePane: View {
                             HStack(alignment: .firstTextBaseline) {
                                 SettingsGroupHeading(title: "Width when open")
                                 Spacer()
-                                Text("\(Int(settings.openWidth.rounded())) pt")
+                                Text("\(Int(width.wrappedValue.rounded())) pt")
                                     .font(Desvan.Typeface.figure(13.5))
                                     .monospacedDigit()
-                                    .contentTransition(.numericText(value: settings.openWidth))
+                                    .contentTransition(.numericText(value: width.wrappedValue))
                                     .foregroundStyle(Desvan.Palette.bulb)
                             }
 
                             SettingsCardDivider()
 
                             Slider(
-                                value: $settings.openWidth,
+                                value: width,
                                 in: AltilloSettings.widthRange,
                                 step: 5
                             ) {
@@ -48,17 +57,24 @@ struct SettingsSizePane: View {
                                     SettingsPresetButton(
                                         name: preset.name,
                                         value: preset.value,
-                                        isSelected: abs(settings.openWidth - preset.value) < 0.5,
+                                        isSelected: abs(width.wrappedValue - preset.value) < 0.5,
                                         selection: presetSelection
                                     ) {
                                         withAnimation(SettingsMotion.pick(SettingsMotion.reorder,
                                                                           reduceMotion: reduceMotion)) {
-                                            settings.openWidth = preset.value
+                                            settings.setOpenWidth(preset.value, for: displayID)
                                         }
                                     }
                                 }
                             }
                             .padding(.top, 12)
+                            if let displayID, settings.displayWidths[String(displayID)] != nil {
+                                Button("Use Default Width") { settings.useDefaultWidth(for: displayID) }
+                                    .buttonStyle(.link)
+                                    .controlSize(.small)
+                                    .padding(.top, 8)
+                                    .help("Use the default width on this display")
+                            }
                         }
                     }
 
@@ -67,7 +83,7 @@ struct SettingsSizePane: View {
                             SettingsGroupHeading(title: "Preview")
                             SettingsCardDivider()
                             VStack(alignment: .leading, spacing: 10) {
-                                SettingsNotchPreview(width: settings.openWidth, modules: settings.modules)
+                                SettingsNotchPreview(width: width.wrappedValue, modules: settings.modules)
                                 SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
                                                     visibility: settings.earsVisibility,
                                                     hasHardwareNotch: hasHardwareNotch)

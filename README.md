@@ -23,15 +23,17 @@ screen:
 - **Glances** — the notch grows for a few seconds when something matters (a
   meeting in five minutes, a new song if you want it) and goes back on its own.
 - **Now Playing** — control the active system media session, including its
-  artwork and progress; Apple's Music app and Spotify have a compatibility fallback.
+  artwork and progress; load synced lyrics on demand; Apple's Music app and Spotify have a compatibility fallback.
 - **AI usage** — how much of your Claude / Codex / … quota you have left, at a
-  glance.
+  glance, with a private 30-day trend kept on your Mac.
 - **Live agents** — see your AI coding agents (Claude Code, Codex, …) working,
   waiting for a permission, or done, and approve or deny requests right from
   the notch.
 - **Keep Awake** — explicitly keep the Mac awake for 30 minutes, one hour, two
   hours or until you stop it; the display may still turn off and nothing is
   restored after relaunch.
+- **Focus and reminders** — run a persistent Pomodoro cycle from the timer and
+  see, complete or open today's and upcoming reminders without leaving the notch.
 - **Drawer** — keep the menu bar icons you rarely need in a compact shelf above Altillo's navigation and open their menus from there. Drag apps between the Altillo and Menu Bar zones; on macOS 27 their icons leave the menu bar entirely (no divider, no gap). Needs only Accessibility access. [Setup and limitations](docs/cajon.md).
 - **iPhone/iPad groundwork** — app and widget targets compile, but the mobile
   companion and Live Activities are placeholders, not shipped features yet.
@@ -205,6 +207,8 @@ See the [safe uninstall guide](docs/desinstalacion-segura.md).
 - **Ask is on-device by default.** If you allow web search for one question or
   in Settings, Altillo sends a short search derived from that question to the
   search, weather or reference service named in the privacy policy.
+- **Lyrics are opt-in per track.** Pressing “Load Lyrics” sends that track's
+  title, artist, album and duration to LRCLIB; no audio or music library is uploaded.
 - **Altillo never auto-approves anything.** When an AI agent asks for
   permission, Altillo only ever relays your explicit choice — it never
   decides or filters on your behalf. If Altillo is closed, agents behave

@@ -117,6 +117,49 @@ struct NowPlayingModuleTests {
         #expect(DesvanTrackFormat.spokenPosition(elapsed: nil, duration: 200) == "the start")
     }
 
+    @Test func parsesSyncedLyricsWithSeveralTimestampShapes() {
+        let document = LyricsDocument.parse(
+            synced: "[00:01.50]First\n[00:12:34]Second\n[01:02][01:03.250]Again\n[ar:Artist]",
+            plain: "First\nSecond\nAgain"
+        )
+        #expect(document.synced.map(\.time) == [1.5, 12.34, 62, 63.25])
+        #expect(document.synced.map(\.text) == ["First", "Second", "Again", "Again"])
+        #expect(document.plain == ["First", "Second", "Again"])
+    }
+
+    @Test func lyricTimingSelectsTheLastLineAlreadyReached() {
+        let lines = [
+            SyncedLyricLine(id: 0, time: 2, text: "One"),
+            SyncedLyricLine(id: 1, time: 8, text: "Two"),
+        ]
+        #expect(LyricsTiming.currentLine(in: lines, at: 0) == nil)
+        #expect(LyricsTiming.currentLine(in: lines, at: 2) == 0)
+        #expect(LyricsTiming.currentLine(in: lines, at: 9) == 1)
+    }
+
+    @MainActor
+    @Test func lyricsAreOnlyLoadedAfterAnExplicitRequestAndAreCached() async {
+        let calls = LyricsCallCounter()
+        let store = LyricsStore { _ in
+            await calls.increment()
+            return LyricsDocument(synced: [SyncedLyricLine(id: 0, time: 1, text: "Line")], plain: [])
+        }
+        let track = NowPlayingStore.Track(title: "Song", artist: "Artist", isPlaying: true,
+                                          appBundleID: "test.player", appName: "Player")
+        store.reset(for: track)
+        #expect(store.phase == .idle)
+        #expect(await calls.value == 0)
+        store.load(for: track)
+        for _ in 0 ..< 20 where store.phase != .loaded(LyricsDocument(
+            synced: [SyncedLyricLine(id: 0, time: 1, text: "Line")], plain: []
+        )) {
+            await Task.yield()
+        }
+        #expect(await calls.value == 1)
+        store.load(for: track)
+        #expect(await calls.value == 1)
+    }
+
     @MainActor
     @Test func elapsedIsCarriedForwardOnlyWhilePlaying() async {
         let store = NowPlayingStore()
@@ -139,4 +182,9 @@ struct NowPlayingModuleTests {
         store.stop()
         #expect(!store.isRunning)
     }
+}
+
+private actor LyricsCallCounter {
+    private(set) var value = 0
+    func increment() { value += 1 }
 }

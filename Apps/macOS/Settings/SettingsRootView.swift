@@ -52,6 +52,17 @@ struct SettingsRootView: View {
         )?.live.hasNotch ?? false
     }
 
+    private var liveDisplayID: CGDirectDisplayID? {
+        if let id = model?.activeDisplayID { return id }
+        return ScreenService.plan(
+            for: settings.displayMode,
+            screens: ScreenService.descriptors,
+            pointer: NSEvent.mouseLocation,
+            currentLive: nil,
+            canMove: true
+        )?.live.id
+    }
+
     var body: some View {
         // The window draws its content under the title bar and the tab bar is the title bar, beside the traffic
         // lights. The pane keeps to the safe area below it, so its lists and scroll views start where they should.
@@ -89,7 +100,8 @@ struct SettingsRootView: View {
         switch navigation.tab {
         case .modules: SettingsModulesPane(settings: settings, hasHardwareNotch: hasHardwareNotch, clipboard: model?.clipboard)
         case .drawer: SettingsDrawerPane()
-        case .size: SettingsSizePane(settings: settings, hasHardwareNotch: hasHardwareNotch)
+        case .size: SettingsSizePane(settings: settings, hasHardwareNotch: hasHardwareNotch,
+                                     displayID: liveDisplayID)
         case .behaviour: SettingsBehaviourPane(settings: settings, hasHardwareNotch: hasHardwareNotch)
         case .about: SettingsAboutPane()
         }

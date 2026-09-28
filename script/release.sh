@@ -83,6 +83,12 @@ if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]]; then
   echo "Version must look like 0.2.0 or 0.2.0-beta.1, got: $VERSION" >&2
   exit 1
 fi
+SOURCE_VERSION="$(sed -n -E 's/^[[:space:]]*MARKETING_VERSION:[[:space:]]*"?([^"[:space:]]+)"?[[:space:]]*$/\1/p' project.yml | head -n1)"
+if [ "$SOURCE_VERSION" != "$VERSION" ]; then
+  echo "project.yml declares MARKETING_VERSION $SOURCE_VERSION, not release version $VERSION." >&2
+  echo "Update the source version before tagging so development and release builds agree." >&2
+  exit 1
+fi
 if [ "$DRY_RUN" = 1 ] && [ "$PUBLISH" = 1 ]; then
   echo "--dry-run and --publish are mutually exclusive." >&2
   exit 1

@@ -196,6 +196,102 @@ struct TimerNoteTests {
         #expect(store.timers.isEmpty)
     }
 
+    // MARK: - Pomodoro
+
+    @Test func pomodoroPresetsHaveThePromisedCycles() {
+        #expect(PomodoroPreset.classic.focusDuration == 25 * 60)
+        #expect(PomodoroPreset.classic.shortBreakDuration == 5 * 60)
+        #expect(PomodoroPreset.extended.focusDuration == 50 * 60)
+        #expect(PomodoroPreset.extended.shortBreakDuration == 10 * 60)
+        #expect(PomodoroPreset.deep.focusDuration == 90 * 60)
+        #expect(PomodoroPreset.deep.shortBreakDuration == 20 * 60)
+        #expect(PomodoroLogic.phase(after: .focus, sessionsInCycle: 3) == .shortBreak)
+        #expect(PomodoroLogic.phase(after: .focus, sessionsInCycle: 4) == .longBreak)
+        #expect(PomodoroLogic.phase(after: .longBreak, sessionsInCycle: 4) == .focus)
+    }
+
+    @Test func pomodoroUsesAbsoluteDatesAndPausesWithoutPolling() {
+        let clock = Clock(start)
+        let (store, box) = makeTimers(clock)
+        store.startPomodoro()
+        #expect(store.pomodoro.endsAt == start.addingTimeInterval(25 * 60))
+        #expect(store.contextualSignal?.label == "Focus")
+        #expect(store.contextualSignal?.isRinging == false)
+
+        clock.advance(10 * 60)
+        store.pausePomodoro()
+        #expect(store.pomodoro.state == .paused(remaining: 15 * 60))
+        #expect(store.focusTimeToday == 10 * 60)
+        clock.advance(60 * 60)
+        #expect(store.pomodoro.remaining(at: clock.now) == 15 * 60, "a paused focus does not count down")
+
+        store.startPomodoro()
+        clock.advance(15 * 60)
+        store.wake()
+        #expect(store.pomodoro.hasRung)
+        #expect(store.pomodoro.sessionsInCycle == 1 && store.pomodoro.totalSessions == 1)
+        #expect(store.focusTimeToday == 25 * 60)
+        #expect(box.alerts.last?.title == "Focus complete")
+        #expect(box.alerts.last?.detail == "Next: Short break")
+        #expect(store.contextualSignal?.isRinging == true)
+    }
+
+    @Test func fourthFocusIsFollowedByALongBreak() {
+        let clock = Clock(start)
+        let (store, _) = makeTimers(clock)
+        for session in 1...4 {
+            store.startPomodoro()
+            clock.advance(store.pomodoro.duration)
+            store.wake()
+            #expect(store.pomodoro.sessionsInCycle == session)
+            if session < 4 {
+                store.startPomodoro()
+                #expect(store.pomodoro.phase == .shortBreak)
+                clock.advance(store.pomodoro.duration)
+                store.wake()
+            }
+        }
+        store.startPomodoro()
+        #expect(store.pomodoro.phase == .longBreak)
+        #expect(store.pomodoro.isRunning)
+        clock.advance(store.pomodoro.duration)
+        store.wake()
+        store.startPomodoro()
+        #expect(store.pomodoro.phase == .focus)
+        #expect(store.pomodoro.sessionsInCycle == 0)
+    }
+
+    @Test func oldPomodoroCompletionIsRestoredWithoutAStaleAlert() {
+        let clock = Clock(start)
+        let (store, box) = makeTimers(clock)
+        store.startPomodoro()
+        clock.advance(store.pomodoro.duration + TimerLogic.lateRingWindow + 1)
+        store.wake()
+        #expect(store.pomodoro.hasRung)
+        #expect(store.pomodoro.totalSessions == 1)
+        #expect(box.alerts.isEmpty && box.sounds == 0 && store.ringCount == 0)
+    }
+
+    @Test func pomodoroCycleAndFocusHistorySurviveRelaunch() throws {
+        let folder = try scratch()
+        defer { try? FileManager.default.removeItem(at: folder) }
+        let url = folder.appending(path: "timers.json")
+        let clock = Clock(start)
+        let (first, _) = makeTimers(clock, url: url)
+        first.selectPomodoroPreset(.extended)
+        first.startPomodoro()
+        clock.advance(12 * 60)
+        first.pausePomodoro()
+
+        let (second, _) = makeTimers(clock, url: url)
+        second.restore()
+        #expect(second.pomodoro.preset == .extended)
+        #expect(second.pomodoro.state == .paused(remaining: 38 * 60))
+        #expect(second.focusTimeToday == 12 * 60)
+        second.startPomodoro()
+        #expect(second.pomodoro.endsAt == clock.now.addingTimeInterval(38 * 60))
+    }
+
     @Test func askCallingItsToolTwiceSetsOneTimer() {
         let clock = Clock(start)
         let (store, _) = makeTimers(clock)

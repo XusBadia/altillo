@@ -1,4 +1,5 @@
 import AltilloCore
+import CoreGraphics
 import Foundation
 import Observation
 import ServiceManagement
@@ -16,6 +17,30 @@ final class AltilloSettings {
             guard clamped == openWidth else { openWidth = clamped; return }
             defaults.set(clamped, forKey: Key.openWidth)
         }
+    }
+
+    /// Width overrides for individual displays, keyed by `CGDirectDisplayID`. A disconnected display keeps its
+    /// preference for when it comes back; unknown displays use `openWidth`.
+    private(set) var displayWidths: [String: Double] {
+        didSet { defaults.set(displayWidths, forKey: Key.displayWidths) }
+    }
+
+    func openWidth(for displayID: CGDirectDisplayID?) -> Double {
+        guard let displayID, let width = displayWidths[String(displayID)] else { return openWidth }
+        return width.clamped(to: Self.widthRange)
+    }
+
+    func setOpenWidth(_ width: Double, for displayID: CGDirectDisplayID?) {
+        let width = width.clamped(to: Self.widthRange)
+        guard let displayID else {
+            openWidth = width
+            return
+        }
+        displayWidths[String(displayID)] = width
+    }
+
+    func useDefaultWidth(for displayID: CGDirectDisplayID) {
+        displayWidths.removeValue(forKey: String(displayID))
     }
 
     /// Modules shown in the notch, in order. The shelf is always first (`NotchModule.isAlwaysOn`).
@@ -235,6 +260,7 @@ final class AltilloSettings {
 
     private enum Key {
         static let openWidth = "openWidth"
+        static let displayWidths = "displayWidths"
         static let modules = "modules"
         static let opensOnHover = "opensOnHover"
         static let launchAtLogin = "launchAtLogin"
@@ -274,6 +300,11 @@ final class AltilloSettings {
         self.loginItem = loginItem
         let width = defaults.double(forKey: Key.openWidth)
         openWidth = width > 0 ? width.clamped(to: Self.widthRange) : 560
+        let storedDisplayWidths = defaults.dictionary(forKey: Key.displayWidths) ?? [:]
+        displayWidths = storedDisplayWidths.reduce(into: [:]) { result, entry in
+            guard let width = entry.value as? NSNumber else { return }
+            result[entry.key] = width.doubleValue.clamped(to: Self.widthRange)
+        }
         let stored = (defaults.array(forKey: Key.modules) as? [String])?.compactMap(NotchModule.init)
         var modules = Self.normalise(stored ?? Self.defaultModules)
         // Sections added by an update arrive switched on (they're easier to discover in the notch than in

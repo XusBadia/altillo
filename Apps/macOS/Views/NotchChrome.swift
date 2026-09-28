@@ -184,7 +184,7 @@ struct NotchChrome: Equatable {
             let content = Self.expandedContentHeight(for: model)
             contentHeight = content
             size = CGSize(
-                width: model.settings.openWidth,
+                width: model.settings.openWidth(for: model.activeDisplayID),
                 height: band + Self.expandedContentGap + content + Self.expandedBottomInset
                     + (showsDrawer ? Self.drawerHeight + Self.drawerNavigationHeight + 2 * Self.expandedContentGap : 0)
             )
@@ -203,7 +203,7 @@ struct NotchChrome: Equatable {
         case .assistant: return ExpandedContent.assistant
         case .calendar:
             return model.settings.calendarStyle == .agenda ? ExpandedContent.module : ExpandedContent.calendarMonth
-        case .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .keepAwake:
+        case .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .reminders, .keepAwake:
             return ExpandedContent.module
         }
     }

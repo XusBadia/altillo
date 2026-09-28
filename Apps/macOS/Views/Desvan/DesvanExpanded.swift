@@ -185,6 +185,7 @@ struct DesvanExpandedFace: View {
             case .note: DesvanNoteView(model: model)
             case .clipboard: DesvanClipboardView(model: model)
             case .shortcuts: DesvanShortcutsView(model: model)
+            case .reminders: DesvanRemindersView(model: model)
             case .keepAwake: DesvanKeepAwakeView(model: model)
             }
         }
@@ -246,7 +247,7 @@ private struct DesvanEdgeLean: ViewModifier {
 
 /// Presses for the notch's small plain buttons (tabs, the gear): they give a touch (94 %) in ≈ 100 ms and come
 /// back without a wobble. Hover highlights stay with each button.
-private struct DesvanPressStyle: ButtonStyle {
+struct DesvanPressStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func makeBody(configuration: Configuration) -> some View {
@@ -574,7 +575,8 @@ private struct DesvanHeaderAccessory: View {
                 case .shelf: shelf
                 case .usage: usage
                 case .agents: agents
-                case .assistant, .calendar, .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .keepAwake:
+                case .assistant, .calendar, .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .reminders,
+                     .keepAwake:
                     EmptyView()
                 }
             }

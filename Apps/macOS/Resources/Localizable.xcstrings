@@ -20986,6 +20986,218 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip: %@" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltar: %@" } }
       }
+    },
+    "%@ complete" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ complete" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "%@ completado" } } }
+    },
+    "%@ minute focus and break cycle" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ minute focus and break cycle" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Ciclo de foco y descanso de %@ minutos" } } }
+    },
+    "%lld of 4 focus sessions before a long break" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld of 4 focus sessions before a long break" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld de 4 sesiones de foco antes de un descanso largo" } } }
+    },
+    "%lld/4" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld/4" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld/4" } } }
+    },
+    "30-day usage trend" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "30-day usage trend" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Tendencia de uso de 30 días" } } }
+    },
+    "Advances to the next phase and starts it" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Advances to the next phase and starts it" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Avanza a la siguiente fase y la inicia" } } }
+    },
+    "Allow Altillo in System Settings to see and complete your reminders." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Altillo in System Settings to see and complete your reminders." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Permite Altillo en Ajustes del Sistema para ver y completar tus recordatorios." } } }
+    },
+    "Altillo shows what's due and lets you mark it done. Your reminders never leave your Mac." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo shows what's due and lets you mark it done. Your reminders never leave your Mac." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo muestra lo pendiente y te permite marcarlo como hecho. Tus recordatorios nunca salen del Mac." } } }
+    },
+    "Back to Now Playing" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Back to Now Playing" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Volver a Sonando" } } }
+    },
+    "Check your connection and try again." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Check your connection and try again." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Comprueba la conexión e inténtalo de nuevo." } } }
+    },
+    "Checking your reminders…" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Checking your reminders…" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Consultando tus recordatorios…" } } }
+    },
+    "Complete %@" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Complete %@" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Completar %@" } } }
+    },
+    "Couldn't load lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't load lyrics" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo cargar la letra" } } }
+    },
+    "Couldn't update reminders" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Couldn't update reminders" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron actualizar los recordatorios" } } }
+    },
+    "Down %lld percentage points over the recorded period" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Down %lld percentage points over the recorded period" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Baja %lld puntos porcentuales en el periodo registrado" } } }
+    },
+    "Focused today, %@" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Focused today, %@" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Concentración de hoy: %@" } } }
+    },
+    "Jump to this line" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Jump to this line" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltar a esta línea" } } }
+    },
+    "LRCLIB doesn't have lyrics for this track yet." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "LRCLIB doesn't have lyrics for this track yet." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "LRCLIB todavía no tiene la letra de esta canción." } } }
+    },
+    "Load Lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Load Lyrics" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Cargar letra" } } }
+    },
+    "Loading sends this track's title, artist, album and duration to lrclib.net. Nothing is sent until you choose Load Lyrics." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Loading sends this track's title, artist, album and duration to lrclib.net. Nothing is sent until you choose Load Lyrics." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Al cargar se envían a lrclib.net el título, artista, álbum y duración de esta canción. No se envía nada hasta que eliges Cargar letra." } } }
+    },
+    "Long break" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Long break" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Descanso largo" } } }
+    },
+    "Looking for lyrics…" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Looking for lyrics…" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscando la letra…" } } }
+    },
+    "Lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Lyrics" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Letra" } } }
+    },
+    "Lyrics are provided by LRCLIB." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Lyrics are provided by LRCLIB." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "La letra la proporciona LRCLIB." } } }
+    },
+    "Lyrics for %@" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Lyrics for %@" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Letra de %@" } } }
+    },
+    "Mark as completed" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Mark as completed" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Marcar como completado" } } }
+    },
+    "Next: %@" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Next: %@" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Siguiente: %@" } } }
+    },
+    "No lyrics found" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No lyrics found" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se encontró la letra" } } }
+    },
+    "No trend yet" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "No trend yet" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay tendencia" } } }
+    },
+    "Nothing pending" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing pending" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Nada pendiente" } } }
+    },
+    "Open %@ in Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Open %@ in Reminders" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir %@ en Recordatorios" } } }
+    },
+    "Open Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Reminders" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir Recordatorios" } } }
+    },
+    "Open in Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Open in Reminders" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir en Recordatorios" } } }
+    },
+    "Opens the Reminders app" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens the Reminders app" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre la app Recordatorios" } } }
+    },
+    "Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Reminders" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Recordatorios" } } }
+    },
+    "Reminders are closed" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Reminders are closed" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Recordatorios está cerrado" } } }
+    },
+    "Reminders couldn't be loaded. Try again." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Reminders couldn't be loaded. Try again." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudieron cargar los recordatorios. Inténtalo de nuevo." } } }
+    },
+    "Shall we look at your reminders?" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Shall we look at your reminders?" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Miramos tus recordatorios?" } } }
+    },
+    "Short break" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Short break" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Descanso corto" } } }
+    },
+    "Show %lld more in Reminders" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Show %lld more in Reminders" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar %lld más en Recordatorios" } } }
+    },
+    "Show lyrics" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Show lyrics" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar letra" } } }
+    },
+    "Skip this phase" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip this phase" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltar esta fase" } } }
+    },
+    "Steady over the recorded period" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Steady over the recorded period" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Estable durante el periodo registrado" } } }
+    },
+    "Switch to Pomodoro focus timer" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Switch to Pomodoro focus timer" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Cambiar al temporizador Pomodoro" } } }
+    },
+    "Switch to kitchen timers" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Switch to kitchen timers" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Cambiar a los temporizadores" } } }
+    },
+    "That reminder couldn't be completed." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "That reminder couldn't be completed." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No se pudo completar ese recordatorio." } } }
+    },
+    "Today %@" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Today %@" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Hoy %@" } } }
+    },
+    "Up %lld percentage points over the recorded period" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Up %lld percentage points over the recorded period" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Sube %lld puntos porcentuales en el periodo registrado" } } }
+    },
+    "Upcoming" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Upcoming" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Próximos" } } }
+    },
+    "Use Default Width" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Use Default Width" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Usar anchura predeterminada" } } }
+    },
+    "Use the default width on this display" : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Use the default width on this display" } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Usar la anchura predeterminada en esta pantalla" } } }
+    },
+    "What's due today and next, with a quick way to mark it done." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "What's due today and next, with a quick way to mark it done." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "Lo pendiente para hoy y después, con una forma rápida de marcarlo como hecho." } } }
+    },
+    "Your reminders are clear. Ask Altillo whenever you want to add one." : {
+      "extractionState" : "manual",
+      "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your reminders are clear. Ask Altillo whenever you want to add one." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No tienes recordatorios pendientes. Pide a Altillo que añada uno cuando quieras." } } }
     }
   },
   "version" : "1.0"

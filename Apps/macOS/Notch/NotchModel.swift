@@ -18,6 +18,8 @@ final class NotchModel {
     /// Size of the hardware notch (or virtual island) on the screen being rendered, in points.
     var notchSize = CGSize(width: 185, height: 32)
     var hasNotch = true
+    /// Display currently hosting the live notch. The open width may be different on every display.
+    var activeDisplayID: CGDirectDisplayID?
     /// Active section of the open notch. Always one of `settings.modules`. Change it with `select(_:)` so the
     /// content knows which way to slide.
     var module: NotchModule = .shelf
@@ -50,6 +52,7 @@ final class NotchModel {
     let note = NoteStore()
     let clipboard = ClipboardStore()
     let shortcuts = ShortcutsStore()
+    let reminders = RemindersStore()
     let keepAwake = KeepAwakeStore()
     let drawer = MenuBarDrawerStore.shared
     /// AI usage: the numbers behind the usage section, its ear and alerts, and Ask's `usage` tool.

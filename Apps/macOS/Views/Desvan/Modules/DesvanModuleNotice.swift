@@ -47,11 +47,12 @@ struct DesvanModuleNotice: View {
 /// Deep links into System Settings › Privacy & Security. Altillo can't grant itself anything; it can only take the
 /// user to the right pane.
 enum PrivacySettings {
-    case calendars, camera, automation
+    case calendars, reminders, camera, automation
 
     var url: URL? {
         let anchor = switch self {
         case .calendars: "Privacy_Calendars"
+        case .reminders: "Privacy_Reminders"
         case .camera: "Privacy_Camera"
         case .automation: "Privacy_Automation"
         }

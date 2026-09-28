@@ -367,6 +367,65 @@ struct UsageStoreTests {
         #expect(store.snapshot == nil)
     }
 
+    @Test func historyIsHourlyPrivateAndRetainedForThirtyDays() {
+        var history = UsageHistory()
+        let old = start.addingTimeInterval(-31 * 86_400)
+        history.record([.sample(.claude, used: 0.1, at: old)], at: old)
+        history.record([.sample(.claude, used: 0.2, at: start)], at: start)
+        history.record([.sample(.claude, used: 0.35, at: start.addingTimeInterval(5 * 60))],
+                       at: start.addingTimeInterval(5 * 60))
+
+        let points = history.points(for: .claude)
+        #expect(points.count == 1, "old samples are pruned and refreshes in one hour replace the bucket")
+        #expect(points.first?.used == 0.35)
+
+        for hour in 1...30 * 24 {
+            let date = start.addingTimeInterval(Double(hour) * 60 * 60)
+            history.record([.sample(.claude, used: 0.4, at: date)], at: date)
+        }
+        #expect(history.samples.count == 30 * 24, "the on-disk series has a fixed upper bound")
+    }
+
+    @Test func existingSnapshotMigratesWithoutBeingRewrittenAndHistorySurvivesRelaunch() async throws {
+        let archive = Self.archiveURL()
+        try FileManager.default.createDirectory(at: archive.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let legacy = UsageSnapshot(deviceID: "legacy", deviceName: "Mac", updatedAt: start,
+                                   providers: [.sample(.claude, used: 0.4, at: start)])
+        try UsageArchive.encoder.encode(legacy).write(to: archive)
+        let original = try Data(contentsOf: archive)
+
+        let clock = FakeUsageClock(now: start.addingTimeInterval(60))
+        let store = makeStore([], clock: clock, archive: archive)
+        store.start()
+        defer { store.stop() }
+        #expect(store.snapshot == legacy)
+        #expect(try Data(contentsOf: archive) == original, "loading an existing usage.json is non-destructive")
+
+        let collector = ScriptedCollector(.claude, "Claude") { _, now in .sample(.claude, used: 0.7, at: now) }
+        let refreshed = makeStore([collector], clock: clock, archive: archive)
+        await refreshed.refresh()
+        let historyURL = archive.deletingLastPathComponent().appending(path: "usage-history.json")
+        let data = try Data(contentsOf: historyURL)
+        let decoded = try UsageArchive.decoder.decode(UsageHistory.self, from: data)
+        #expect(decoded.points(for: .claude).last?.used == 0.7)
+        let json = String(decoding: data, as: UTF8.self)
+        #expect(!json.contains("Max 20"))
+        #expect(!json.contains("problemDetail"))
+
+        let relaunched = makeStore([], clock: clock, archive: archive)
+        relaunched.start()
+        defer { relaunched.stop() }
+        #expect(relaunched.trend(for: .claude).last?.used == 0.7)
+    }
+
+    @Test func failedReadingsDoNotPolluteTheTrend() {
+        var history = UsageHistory()
+        var failed = ProviderUsage.sample(.claude, used: 0.9, at: start)
+        failed.problem = .unreachable("offline")
+        history.record([failed], at: start)
+        #expect(history.points(for: .claude).isEmpty)
+    }
+
     // MARK: - Alerts
 
     @Test func theFirstReadingIsABaselineAndEachLevelPeeksOncePerWindow() async throws {

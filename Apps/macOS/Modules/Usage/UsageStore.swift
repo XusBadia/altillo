@@ -53,6 +53,8 @@ final class UsageStore {
     private(set) var hasChecked = false
     /// The last snapshot built, as publishers and Ask see it.
     private(set) var snapshot: UsageSnapshot?
+    /// Hourly headline samples kept locally for 30 days. Deliberately excluded from snapshots and publishers.
+    private(set) var history = UsageHistory()
 
     /// Where each snapshot goes after a refresh (the legacy iPhone file, CloudKit later). Registered by the app, at
     /// any time: a publisher that can publish keeps the store refreshing even with the usage section off.
@@ -79,6 +81,7 @@ final class UsageStore {
     @ObservationIgnored private let collectors: () -> [any UsageCollector]
     @ObservationIgnored private let clock: any UsageClock
     @ObservationIgnored private let archiveURL: URL?
+    @ObservationIgnored private let historyURL: URL?
     @ObservationIgnored private let defaults: UserDefaults
     @ObservationIgnored private let timeout: Duration
 
@@ -103,6 +106,9 @@ final class UsageStore {
         self.collectors = collectors
         self.clock = clock
         self.archiveURL = archiveURL
+        self.historyURL = archiveURL.map {
+            $0.deletingLastPathComponent().appending(path: "usage-history.json")
+        }
         self.defaults = defaults
         self.timeout = timeout
     }
@@ -161,6 +167,7 @@ final class UsageStore {
         isStarted = true
         Self.live = self
         loadArchive()
+        loadHistory()
         observeWorkspace()
         if isActive { schedule(after: .zero) }
     }
@@ -351,6 +358,8 @@ final class UsageStore {
         let snapshot = makeSnapshot(now: now)
         self.snapshot = snapshot
         saveArchive(snapshot)
+        history.record(providers, at: now)
+        saveHistory()
         for publisher in publishers where publisher.isEnabled {
             publisher.publish(snapshot)
         }
@@ -419,6 +428,31 @@ final class UsageStore {
         }
     }
 
+    private func loadHistory() {
+        guard let historyURL, let data = try? Data(contentsOf: historyURL),
+              var restored = try? UsageArchive.decoder.decode(UsageHistory.self, from: data),
+              restored.schema == UsageHistory.schema
+        else { return }
+        restored.prune(now: clock.now)
+        history = restored
+    }
+
+    private func saveHistory() {
+        guard let historyURL, let data = try? UsageArchive.encoder.encode(history) else { return }
+        do {
+            try FileManager.default.createDirectory(at: historyURL.deletingLastPathComponent(),
+                                                    withIntermediateDirectories: true)
+            try data.write(to: historyURL, options: .atomic)
+        } catch {
+            DiagnosticLog.shared.record(Self.logCategory,
+                                        "couldn't save usage-history.json: \(error.localizedDescription)")
+        }
+    }
+
+    func trend(for provider: UsageProviderID) -> [UsageTrendPoint] {
+        history.points(for: provider)
+    }
+
     /// Fixed numbers, no collectors: tests and previews.
     func replaceReadings(with usage: [ProviderUsage], at date: Date) {
         entries = usage.map { Entry(id: $0.id, displayName: $0.displayName, isAvailable: true, usage: $0) }
@@ -426,6 +460,68 @@ final class UsageStore {
         lastAttempt = date
         hasChecked = true
     }
+}
+
+// MARK: - Local history
+
+/// A deliberately small, local-only record of headline usage. It contains no credentials, plans, balances or
+/// problem details: just enough to draw a trend. Samples share a timestamp and keep one value per provider.
+struct UsageHistory: Codable, Equatable, Sendable {
+    static let schema = "altillo.usage-history.v1"
+    static let retention: TimeInterval = 30 * 24 * 60 * 60
+    static let bucket: TimeInterval = 60 * 60
+
+    struct Sample: Codable, Equatable, Sendable {
+        struct Value: Codable, Equatable, Sendable {
+            var provider: UsageProviderID
+            var used: Double
+        }
+
+        var date: Date
+        var values: [Value]
+    }
+
+    var schema = Self.schema
+    var samples: [Sample] = []
+
+    /// Replaces the current hour rather than appending every five-minute refresh, bounding the archive to at most
+    /// 720 samples. Failed/stale readings are omitted so outages cannot draw a fictitious flat trend.
+    mutating func record(_ providers: [ProviderUsage], at date: Date) {
+        let values = providers.compactMap { usage -> Sample.Value? in
+            guard usage.problem == nil, let headline = usage.headline else { return nil }
+            return Sample.Value(provider: usage.id, used: min(max(headline.used, 0), 1))
+        }
+        prune(now: date)
+        guard !values.isEmpty else { return }
+
+        let bucketDate = Date(timeIntervalSinceReferenceDate:
+            floor(date.timeIntervalSinceReferenceDate / Self.bucket) * Self.bucket)
+        let sample = Sample(date: bucketDate, values: values.sorted { $0.provider < $1.provider })
+        if let index = samples.firstIndex(where: { $0.date == bucketDate }) {
+            samples[index] = sample
+        } else {
+            samples.append(sample)
+            samples.sort { $0.date < $1.date }
+        }
+    }
+
+    mutating func prune(now: Date) {
+        let cutoff = now.addingTimeInterval(-Self.retention)
+        samples.removeAll { $0.date <= cutoff }
+    }
+
+    func points(for provider: UsageProviderID) -> [UsageTrendPoint] {
+        samples.compactMap { sample in
+            sample.values.first { $0.provider == provider }.map {
+                UsageTrendPoint(date: sample.date, used: $0.used)
+            }
+        }
+    }
+}
+
+struct UsageTrendPoint: Equatable, Sendable {
+    var date: Date
+    var used: Double
 }
 
 // MARK: - Time

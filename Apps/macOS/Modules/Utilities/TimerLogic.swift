@@ -83,6 +83,115 @@ struct KitchenTimer: Identifiable, Codable, Equatable, Sendable {
     }
 }
 
+// MARK: - Pomodoro
+
+/// The three deliberately small presets offered by the focus timer. A long break follows every fourth focus.
+enum PomodoroPreset: String, CaseIterable, Codable, Equatable, Sendable {
+    case classic, extended, deep
+
+    var focusDuration: TimeInterval {
+        switch self { case .classic: 25 * 60; case .extended: 50 * 60; case .deep: 90 * 60 }
+    }
+
+    var shortBreakDuration: TimeInterval {
+        switch self { case .classic: 5 * 60; case .extended: 10 * 60; case .deep: 20 * 60 }
+    }
+
+    var longBreakDuration: TimeInterval {
+        switch self { case .classic: 15 * 60; case .extended: 20 * 60; case .deep: 30 * 60 }
+    }
+
+    var title: String { "\(Int(focusDuration / 60))/\(Int(shortBreakDuration / 60))" }
+}
+
+enum PomodoroPhase: String, Codable, Equatable, Sendable {
+    case focus, shortBreak, longBreak
+
+    var isFocus: Bool { self == .focus }
+    var title: String {
+        switch self {
+        case .focus: String(localized: "Focus")
+        case .shortBreak: String(localized: "Short break")
+        case .longBreak: String(localized: "Long break")
+        }
+    }
+}
+
+/// A focus interval is recorded as it happens, so today's total remains accurate across pauses and relaunches.
+struct PomodoroFocusInterval: Codable, Equatable, Sendable {
+    var start: Date
+    var end: Date
+}
+
+struct PomodoroSession: Codable, Equatable, Sendable {
+    var preset: PomodoroPreset
+    var phase: PomodoroPhase
+    var state: KitchenTimer.State
+    /// Completed focus sessions in the current four-session cycle (0...3 after advancing from the fourth).
+    var sessionsInCycle: Int
+    var totalSessions: Int
+    var focusIntervals: [PomodoroFocusInterval]
+    /// Start of the currently running focus segment; nil for breaks and while paused.
+    var activeFocusStartedAt: Date?
+
+    init(preset: PomodoroPreset = .classic) {
+        self.preset = preset
+        phase = .focus
+        state = .paused(remaining: preset.focusDuration)
+        sessionsInCycle = 0
+        totalSessions = 0
+        focusIntervals = []
+        activeFocusStartedAt = nil
+    }
+
+    var duration: TimeInterval {
+        switch phase {
+        case .focus: preset.focusDuration
+        case .shortBreak: preset.shortBreakDuration
+        case .longBreak: preset.longBreakDuration
+        }
+    }
+
+    func remaining(at now: Date) -> TimeInterval {
+        switch state {
+        case let .running(endsAt): max(0, endsAt.timeIntervalSince(now))
+        case let .paused(remaining): remaining
+        case .rang: 0
+        }
+    }
+
+    var isRunning: Bool { if case .running = state { true } else { false } }
+    var isPaused: Bool { if case .paused = state { true } else { false } }
+    var hasRung: Bool { if case .rang = state { true } else { false } }
+    var endsAt: Date? { if case let .running(endsAt) = state { endsAt } else { nil } }
+    var rangAt: Date? { if case let .rang(at) = state { at } else { nil } }
+
+    /// Focus seconds overlapping the caller's current calendar day, including the active segment.
+    func focusTimeToday(at now: Date, calendar: Calendar = .current) -> TimeInterval {
+        let day = calendar.dateInterval(of: .day, for: now) ?? DateInterval(start: now, duration: 86_400)
+        var intervals = focusIntervals
+        if let activeFocusStartedAt, phase.isFocus, isRunning {
+            intervals.append(.init(start: activeFocusStartedAt, end: min(now, endsAt ?? now)))
+        }
+        return intervals.reduce(0) { total, interval in
+            let start = max(interval.start, day.start)
+            let end = min(interval.end, day.end)
+            return total + max(0, end.timeIntervalSince(start))
+        }
+    }
+}
+
+enum PomodoroLogic {
+    static let sessionsBeforeLongBreak = 4
+
+    static func phase(after completed: PomodoroPhase, sessionsInCycle: Int) -> PomodoroPhase {
+        switch completed {
+        case .focus: sessionsInCycle >= sessionsBeforeLongBreak ? .longBreak : .shortBreak
+        case .shortBreak, .longBreak: .focus
+        }
+    }
+}
+
 // MARK: - Scheduling
 
 enum TimerLogic {

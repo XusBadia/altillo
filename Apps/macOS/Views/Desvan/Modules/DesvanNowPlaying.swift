@@ -13,6 +13,8 @@ struct DesvanNowPlayingView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Where the pointer is while scrubbing the groove (0…1), `nil` otherwise.
     @State private var scrubFraction: Double?
+    @State private var showsLyrics = false
+    @State private var lyrics = LyricsStore()
 
     private var store: NowPlayingStore { model.nowPlaying }
 
@@ -20,7 +22,17 @@ struct DesvanNowPlayingView: View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .onAppear { store.start() }
-            .onDisappear { store.stop() }
+            .onDisappear {
+                store.stop()
+                lyrics.cancel()
+            }
+            .onChange(of: track) { _, track in
+                guard let track else {
+                    showsLyrics = false
+                    return
+                }
+                lyrics.reset(for: track)
+            }
     }
 
     /// Real playback whenever there is any; the design scenario falls back to a sample so the look can be reviewed
@@ -84,6 +96,17 @@ struct DesvanNowPlayingView: View {
     /// The sleeve beside a column: what it is on top, the groove in the middle, the buttons at the bottom. The
     /// card's 24 pt inset around the 132 pt sleeve fills the module's 180 pt exactly; the column spans the sleeve.
     private func player(_ track: NowPlayingStore.Track) -> some View {
+        Group {
+            if showsLyrics {
+                lyricsPanel(track)
+            } else {
+                playerControls(track)
+            }
+        }
+        .desvanCard(radius: 16)
+    }
+
+    private func playerControls(_ track: NowPlayingStore.Track) -> some View {
         HStack(spacing: 18) {
             DesvanArtwork(image: store.artwork, appIcon: appIcon,
                           appName: track.appName, isPlaying: track.isPlaying)
@@ -117,7 +140,6 @@ struct DesvanNowPlayingView: View {
         }
         .padding(24)
         .frame(maxHeight: .infinity)
-        .desvanCard(radius: 16)
     }
 
     /// The groove: elapsed over duration, carried forward at 1 Hz between updates. Still while scrubbing.
@@ -194,10 +216,132 @@ struct DesvanNowPlayingView: View {
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 32))
             .help("Next")
             .accessibilityLabel("Next")
+
+            Button {
+                lyrics.reset(for: track)
+                showsLyrics = true
+            } label: {
+                Image(systemName: "quote.bubble")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 32))
+            .help("Lyrics")
+            .accessibilityLabel("Show lyrics")
         }
         .disabled(store.track == nil)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("\(track.appName) controls")
+    }
+
+    private func lyricsPanel(_ track: NowPlayingStore.Track) -> some View {
+        VStack(spacing: 10) {
+            HStack(spacing: 8) {
+                Button {
+                    showsLyrics = false
+                    lyrics.cancel()
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
+                .help("Back to Now Playing")
+                .accessibilityLabel("Back to Now Playing")
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(track.title).font(.system(size: 14, weight: .semibold)).lineLimit(1)
+                    Text("Lyrics").font(.system(size: 11.5)).foregroundStyle(Desvan.Palette.paperTertiary)
+                }
+                Spacer()
+            }
+            Group {
+                switch lyrics.phase {
+                case .idle:
+                    VStack(spacing: 9) {
+                        Text("Lyrics are provided by LRCLIB.")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(Desvan.Palette.paper)
+                        Text("Loading sends this track's title, artist, album and duration to lrclib.net. Nothing is sent until you choose Load Lyrics.")
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(3)
+                        Button("Load Lyrics") { lyrics.load(for: track) }
+                            .buttonStyle(DesvanButtonStyle(kind: .primary, height: 30))
+                    }
+                    .padding(.horizontal, 32)
+                case .loading:
+                    ProgressView("Looking for lyrics…")
+                        .controlSize(.small)
+                case let .loaded(document):
+                    lyrics(document, track: track)
+                case .unavailable:
+                    DesvanModuleNotice(symbol: "quote.bubble", title: "No lyrics found",
+                                       message: "LRCLIB doesn't have lyrics for this track yet.")
+                case .failed:
+                    DesvanModuleNotice(symbol: "wifi.exclamationmark", title: "Couldn't load lyrics",
+                                       message: "Check your connection and try again.", actionTitle: "Try Again") {
+                        lyrics.load(for: track)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+        .padding(14)
+    }
+
+    @ViewBuilder
+    private func lyrics(_ document: LyricsDocument, track: NowPlayingStore.Track) -> some View {
+        if document.synced.isEmpty {
+            ScrollView {
+                VStack(spacing: 5) {
+                    ForEach(Array(document.plain.enumerated()), id: \.offset) { _, line in
+                        Text(line)
+                            .font(.system(size: 13))
+                            .foregroundStyle(Desvan.Palette.paperSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                }
+            }
+            .accessibilityLabel("Lyrics for \(track.title)")
+        } else {
+            TimelineView(.periodic(from: .now, by: 0.25)) { context in
+                let elapsed = store.elapsed(at: context.date) ?? track.elapsed ?? 0
+                let current = LyricsTiming.currentLine(in: document.synced, at: elapsed)
+                ScrollViewReader { reader in
+                    ScrollView {
+                        LazyVStack(alignment: .leading, spacing: 6) {
+                            ForEach(document.synced) { line in
+                                Button {
+                                    store.seek(to: line.time)
+                                } label: {
+                                    Text(line.text)
+                                        .font(.system(size: line.id == current ? 14 : 12.5,
+                                                      weight: line.id == current ? .semibold : .regular))
+                                        .foregroundStyle(line.id == current ? Desvan.Palette.bulb
+                                                                           : Desvan.Palette.paperSecondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .id(line.id)
+                                .accessibilityLabel("\(line.text), \(DesvanTrackFormat.spoken(line.time))")
+                                .accessibilityHint("Jump to this line")
+                            }
+                        }
+                    }
+                    .onChange(of: current) { _, id in
+                        guard let id else { return }
+                        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                            reader.scrollTo(id, anchor: .center)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+enum LyricsTiming {
+    static func currentLine(in lines: [SyncedLyricLine], at elapsed: TimeInterval) -> Int? {
+        lines.last(where: { $0.time <= elapsed + 0.05 })?.id
     }
 }
 

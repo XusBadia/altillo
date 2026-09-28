@@ -337,10 +337,13 @@ final class NotchCoordinator {
     /// The chrome follows the live screen's notch (or island) at once: the move is a jump, not a morph.
     private func syncModelGeometry(with screen: ScreenDescriptor) {
         let size = screen.geometry.notchRect.size
-        guard model.notchSize != size || model.hasNotch != screen.hasNotch else { return }
+        guard model.notchSize != size || model.hasNotch != screen.hasNotch || model.activeDisplayID != screen.id else {
+            return
+        }
         var transaction = Transaction()
         transaction.disablesAnimations = true
         withTransaction(transaction) {
+            model.activeDisplayID = screen.id
             model.hasNotch = screen.hasNotch
             model.notchSize = size
         }

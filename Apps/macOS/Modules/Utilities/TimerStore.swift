@@ -16,6 +16,8 @@ import Observation
 final class TimerStore {
     /// Every timer, in the order they were set (`TimerLogic.ordered` sorts them for display).
     private(set) var timers: [KitchenTimer] = []
+    /// The single focus cycle. It is persisted beside kitchen timers and advances only at phase boundaries.
+    private(set) var pomodoro = PomodoroSession()
     /// What the dial is set to for the next timer, in whole minutes.
     var draftMinutes = 5
     /// "Now" as of the last wake: the contextual ear re-reads the timers exactly when it changes.
@@ -91,7 +93,23 @@ final class TimerStore {
     func timer(_ id: UUID) -> KitchenTimer? { timers.first { $0.id == id } }
 
     /// What the contextual ear says (`NotchActivity.timer`), as of the last wake.
-    var contextualSignal: TimerSignal? { TimerLogic.signal(timers, now: clock) }
+    var contextualSignal: TimerSignal? {
+        let kitchen = TimerLogic.signal(timers, now: clock)
+        if kitchen?.isRinging == true { return kitchen }
+        let runningCount = timers.count(where: \.isRunning) + (pomodoro.isRunning ? 1 : 0)
+        if let rangAt = pomodoro.rangAt,
+           clock.timeIntervalSince(rangAt) < TimerLogic.ringingWindow {
+            return TimerSignal(label: pomodoro.phase.title, endsAt: rangAt, isRinging: true, isImminent: true,
+                               runningCount: runningCount)
+        }
+        guard let endsAt = pomodoro.endsAt else { return kitchen }
+        if let kitchen, kitchen.endsAt <= endsAt { return kitchen }
+        return TimerSignal(label: pomodoro.phase.title, endsAt: endsAt, isRinging: false,
+                           isImminent: endsAt.timeIntervalSince(clock) <= TimerLogic.imminentWindow + 0.05,
+                           runningCount: runningCount)
+    }
+
+    var focusTimeToday: TimeInterval { pomodoro.focusTimeToday(at: clock) }
 
     // MARK: - Acting
 
@@ -181,6 +199,65 @@ final class TimerStore {
         update(id) { timer, _ in timer.origin = .user }
     }
 
+    // MARK: - Pomodoro
+
+    func selectPomodoroPreset(_ preset: PomodoroPreset) {
+        guard !pomodoro.isRunning, pomodoro.preset != preset else { return }
+        pomodoro.preset = preset
+        if pomodoro.isPaused { pomodoro.state = .paused(remaining: pomodoro.duration) }
+        changed()
+    }
+
+    /// Starts or resumes the current phase. After a completed phase, this first advances to the appropriate one.
+    func startPomodoro() {
+        let moment = now()
+        if pomodoro.hasRung { advancePomodoroPhase() }
+        guard case let .paused(remaining) = pomodoro.state else { return }
+        pomodoro.state = .running(endsAt: moment.addingTimeInterval(remaining))
+        if pomodoro.phase.isFocus { pomodoro.activeFocusStartedAt = moment }
+        changed()
+    }
+
+    func pausePomodoro() {
+        let moment = now()
+        guard let endsAt = pomodoro.endsAt else { return }
+        closeActiveFocus(at: moment)
+        pomodoro.state = .paused(remaining: max(1, endsAt.timeIntervalSince(moment)))
+        changed()
+    }
+
+    func togglePomodoro() {
+        pomodoro.isRunning ? pausePomodoro() : startPomodoro()
+    }
+
+    /// Returns the current phase to its full duration. Time already focused today remains part of today's total.
+    func resetPomodoro() {
+        closeActiveFocus(at: now())
+        pomodoro.state = .paused(remaining: pomodoro.duration)
+        changed()
+    }
+
+    /// Moves on without crediting an unfinished focus session; useful for skipping a break.
+    func skipPomodoroPhase() {
+        closeActiveFocus(at: now())
+        advancePomodoroPhase()
+        changed()
+    }
+
+    private func advancePomodoroPhase() {
+        let next = PomodoroLogic.phase(after: pomodoro.phase, sessionsInCycle: pomodoro.sessionsInCycle)
+        if pomodoro.phase == .longBreak { pomodoro.sessionsInCycle = 0 }
+        pomodoro.phase = next
+        pomodoro.state = .paused(remaining: pomodoro.duration)
+        pomodoro.activeFocusStartedAt = nil
+    }
+
+    private func closeActiveFocus(at end: Date) {
+        guard let start = pomodoro.activeFocusStartedAt else { return }
+        if end > start { pomodoro.focusIntervals.append(.init(start: start, end: end)) }
+        pomodoro.activeFocusStartedAt = nil
+    }
+
     // MARK: - Waking
 
     /// Rings whatever is due, then sleeps until the next boundary. Called at launch, after every change, from the
@@ -200,13 +277,25 @@ final class TimerStore {
             }
             persist()
         }
+        if let endsAt = pomodoro.endsAt, endsAt.timeIntervalSince(moment) <= 0.05 {
+            closeActiveFocus(at: endsAt)
+            if pomodoro.phase.isFocus {
+                pomodoro.sessionsInCycle += 1
+                pomodoro.totalSessions += 1
+            }
+            pomodoro.state = .rang(at: endsAt)
+            announcePomodoro(lateBy: moment.timeIntervalSince(endsAt))
+            persist()
+        }
         schedule(from: moment)
     }
 
     private func schedule(from moment: Date) {
         wakeTask?.cancel()
         wakeTask = nil
-        guard isStarted, let boundary = TimerLogic.nextBoundary(timers, now: moment) else { return }
+        guard isStarted else { return }
+        let boundary = [TimerLogic.nextBoundary(timers, now: moment), pomodoro.endsAt].compactMap { $0 }.min()
+        guard let boundary else { return }
         let delay = max(0.05, boundary.timeIntervalSince(moment))
         wakeTask = Task { [weak self] in
             try? await Task.sleep(for: .seconds(delay))
@@ -229,6 +318,21 @@ final class TimerStore {
             source: .timer, symbol: "timer", title: title, detail: detail,
             trailing: TimerFormat.duration(timer.duration), isUrgent: true, module: .timer,
             duration: .seconds(8)
+        ))
+    }
+
+    private func announcePomodoro(lateBy lateness: TimeInterval) {
+        guard lateness <= TimerLogic.lateRingWindow else { return }
+        ringCount += 1
+        lastRungID = nil
+        if soundEnabled() { playSound() }
+        let completed = pomodoro.phase.title
+        let next = PomodoroLogic.phase(after: pomodoro.phase, sessionsInCycle: pomodoro.sessionsInCycle).title
+        postAlert(NotchAlert(
+            source: .timer, symbol: pomodoro.phase.isFocus ? "brain.head.profile" : "cup.and.saucer.fill",
+            title: String(localized: "\(completed) complete"), detail: String(localized: "Next: \(next)"),
+            trailing: pomodoro.phase.isFocus ? "\(pomodoro.sessionsInCycle)/4" : nil,
+            isUrgent: true, module: .timer, duration: .seconds(8)
         ))
     }
 
@@ -257,15 +361,16 @@ final class TimerStore {
     }
 
     private struct Snapshot: Codable {
-        var version = 1
+        var version = 2
         var timers: [KitchenTimer]
+        var pomodoro: PomodoroSession?
     }
 
     private func persist() {
         guard let storeURL else { return }
         do {
             try FileManager.default.createDirectory(at: storeURL.deletingLastPathComponent(), withIntermediateDirectories: true)
-            let data = try JSONEncoder().encode(Snapshot(timers: timers))
+            let data = try JSONEncoder().encode(Snapshot(timers: timers, pomodoro: pomodoro))
             try data.write(to: storeURL, options: .atomic)
         } catch {
             DiagnosticLog.shared.record("utilities", "timers: couldn't save (\(error.localizedDescription))")
@@ -279,11 +384,18 @@ final class TimerStore {
         guard let storeURL, let data = try? Data(contentsOf: storeURL),
               let snapshot = try? JSONDecoder().decode(Snapshot.self, from: data) else { return }
         let moment = now()
+        clock = moment
         let kept = snapshot.timers.filter { timer in
             guard let rangAt = timer.rangAt else { return true }
             return moment.timeIntervalSince(rangAt) < TimerLogic.staleRungAge
         }
         // Timers set in this run before the restore (none, in practice) win over stored twins.
         timers = kept.filter { stored in !timers.contains { $0.id == stored.id } } + timers
+        if let restored = snapshot.pomodoro {
+            pomodoro = restored
+            // Keep the persisted file compact without losing any time that can contribute to today's total.
+            let oldest = Calendar.current.date(byAdding: .day, value: -2, to: moment) ?? .distantPast
+            pomodoro.focusIntervals.removeAll { $0.end < oldest }
+        }
     }
 }

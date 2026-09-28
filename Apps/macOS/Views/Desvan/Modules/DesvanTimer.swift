@@ -8,11 +8,14 @@ import SwiftUI
 /// while this view is on screen does anything tick (one `TimelineView`, paused when nothing runs); the timers
 /// themselves ring from `TimerStore`, with the notch closed too.
 struct DesvanTimerView: View {
+    private enum Mode { case timer, focus }
+
     let model: NotchModel
 
     /// The timer on the dial; nil while setting a new one.
     @State private var selectedID: UUID?
     @State private var name = ""
+    @State private var mode: Mode = .timer
     @FocusState private var isNameFocused: Bool
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -22,8 +25,8 @@ struct DesvanTimerView: View {
     private var selected: KitchenTimer? { selectedID.flatMap(store.timer) }
 
     var body: some View {
-        let running = store.timers.filter(\.isRunning)
-        TimelineView(DesvanTimerSecondsSchedule(anchor: running.compactMap(\.endsAt).min(), paused: running.isEmpty)) {
+        let runningEnds = store.timers.filter(\.isRunning).compactMap(\.endsAt) + [store.pomodoro.endsAt].compactMap { $0 }
+        TimelineView(DesvanTimerSecondsSchedule(anchor: runningEnds.min(), paused: runningEnds.isEmpty)) {
             context in
             content(now: context.date)
         }
@@ -54,27 +57,42 @@ struct DesvanTimerView: View {
     private func content(now: Date) -> some View {
         HStack(alignment: .center, spacing: 18) {
             DesvanTimerDial(
-                reading: reading(now: now),
+                reading: mode == .focus ? focusReading(now: now) : reading(now: now),
                 ringCount: store.ringCount,
                 setMinutes: { minutes in
+                    guard mode == .timer else { return }
                     if selectedID != nil { select(nil) }
                     store.draftMinutes = minutes
                 },
-                pressKnob: { pressKnob() },
+                pressKnob: { mode == .focus ? store.togglePomodoro() : pressKnob() },
                 haptic: { model.actions.haptic(.snap) }
             )
             VStack(alignment: .leading, spacing: 0) {
                 header
                 Spacer(minLength: 8)
-                if let selected {
+                if mode == .focus {
+                    focusControls(now: now)
+                } else if let selected {
                     DesvanTimerControls(timer: selected, now: now, store: store)
                 } else {
                     composer
                 }
                 Spacer(minLength: 10)
-                tags(now: now)
+                if mode == .focus { focusProgress(now: now) } else { tags(now: now) }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        }
+    }
+
+    private func focusReading(now: Date) -> DesvanTimerDial.Reading {
+        let session = store.pomodoro
+        switch session.state {
+        case .running:
+            return .running(remaining: session.remaining(at: now), label: session.phase.title)
+        case let .paused(remaining):
+            return .paused(remaining: remaining, label: session.phase.title)
+        case .rang:
+            return .rang(label: session.phase.title)
         }
     }
 
@@ -91,21 +109,107 @@ struct DesvanTimerView: View {
 
     private var header: some View {
         HStack(spacing: 8) {
-            Text(selected?.displayName ?? String(localized: "New timer"))
+            Text(mode == .focus ? store.pomodoro.phase.title : (selected?.displayName ?? String(localized: "New timer")))
                 .font(Desvan.Typeface.display(16, weight: 600))
                 .foregroundStyle(Desvan.Palette.paper)
                 .lineLimit(1)
-            if selected?.origin == .ask {
-                Label("Set by Ask", systemImage: "sparkle")
+                .minimumScaleFactor(0.8)
+            if mode == .timer, selected?.origin == .ask {
+                Image(systemName: "sparkle")
                     .font(Desvan.Typeface.rounded(11, weight: .semibold))
                     .foregroundStyle(Desvan.Palette.bulb)
-                    .labelStyle(.titleAndIcon)
                     .fixedSize()
+                    .help("Set by Ask")
+                    .accessibilityLabel("Set by Ask")
             }
             Spacer(minLength: 4)
+            DesvanTimerChip(title: mode == .focus ? String(localized: "Timer") : String(localized: "Focus"), isOn: false) {
+                mode = mode == .focus ? .timer : .focus
+            }
+            .accessibilityLabel(mode == .focus ? "Switch to kitchen timers" : "Switch to Pomodoro focus timer")
             soundToggle
         }
-        .frame(height: 22)
+        .frame(height: 28)
+    }
+
+    // MARK: - Pomodoro
+
+    private func focusControls(now: Date) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 5) {
+                ForEach(PomodoroPreset.allCases, id: \.self) { preset in
+                    DesvanTimerChip(title: preset.title, isOn: store.pomodoro.preset == preset) {
+                        store.selectPomodoroPreset(preset)
+                        model.actions.haptic(.snap)
+                    }
+                    .disabled(store.pomodoro.isRunning)
+                    .accessibilityLabel("\(preset.title) minute focus and break cycle")
+                }
+                Spacer(minLength: 4)
+            }
+            HStack(spacing: 6) {
+                Button {
+                    store.togglePomodoro()
+                    model.actions.haptic(.land)
+                } label: {
+                    Label(focusPrimaryTitle, systemImage: focusPrimarySymbol).labelStyle(.titleAndIcon)
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .primary, height: 32))
+                .accessibilityHint(focusPrimaryHint)
+                if !store.pomodoro.hasRung {
+                    Button { store.resetPomodoro() } label: {
+                        Label("Reset", systemImage: "arrow.counterclockwise").labelStyle(.titleAndIcon)
+                    }
+                    .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 32))
+                    .disabled(store.pomodoro.isPaused && store.pomodoro.remaining(at: now) >= store.pomodoro.duration)
+                }
+                Button { store.skipPomodoroPhase() } label: {
+                    Image(systemName: "forward.end.fill").font(.system(size: 11, weight: .semibold))
+                }
+                .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 32))
+                .help("Skip this phase")
+                .accessibilityLabel("Skip this phase")
+            }
+        }
+    }
+
+    private var focusPrimaryTitle: String {
+        if store.pomodoro.isRunning { return String(localized: "Pause") }
+        if store.pomodoro.hasRung {
+            return String(localized: "Start \(PomodoroLogic.phase(after: store.pomodoro.phase, sessionsInCycle: store.pomodoro.sessionsInCycle).title.lowercased())")
+        }
+        return String(localized: "Start")
+    }
+
+    private var focusPrimarySymbol: String { store.pomodoro.isRunning ? "pause.fill" : "play.fill" }
+    private var focusPrimaryHint: String {
+        store.pomodoro.hasRung ? String(localized: "Advances to the next phase and starts it") : ""
+    }
+
+    private func focusProgress(now: Date) -> some View {
+        let focusedToday = store.pomodoro.focusTimeToday(at: now)
+        return HStack(spacing: 7) {
+            HStack(spacing: 4) {
+                ForEach(0..<PomodoroLogic.sessionsBeforeLongBreak, id: \.self) { index in
+                    Circle()
+                        .fill(index < store.pomodoro.sessionsInCycle ? Desvan.Palette.bulb : Desvan.Palette.paper.opacity(0.16))
+                        .overlay { Circle().strokeBorder(Desvan.Palette.paper.opacity(0.25), lineWidth: 0.75) }
+                        .frame(width: 9, height: 9)
+                }
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel("\(store.pomodoro.sessionsInCycle) of 4 focus sessions before a long break")
+            Text("\(store.pomodoro.sessionsInCycle)/4")
+                .font(Desvan.Typeface.figure(12, weight: .medium))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+            Spacer()
+            Label("Today \(TimerFormat.duration(focusedToday))", systemImage: "brain.head.profile")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .lineLimit(1)
+                .accessibilityLabel("Focused today, \(TimerFormat.duration(focusedToday))")
+        }
+        .frame(height: 34)
     }
 
     private var soundToggle: some View {

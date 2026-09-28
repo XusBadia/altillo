@@ -15,7 +15,7 @@ struct DesvanUsageView: View {
 
     var body: some View {
         if model.scenario != nil {
-            DesvanUsageBoard(model: model, providers: model.demo.usage, retry: nil)
+            DesvanUsageBoard(model: model, providers: model.demo.usage, trends: [:], retry: nil)
         } else {
             live
                 .onAppear { model.usage.refreshIfOlder(than: 60) }
@@ -27,7 +27,12 @@ struct DesvanUsageView: View {
         let store = model.usage
         let providers = store.providers
         if !providers.isEmpty {
-            DesvanUsageBoard(model: model, providers: providers, retry: { store.refreshNow() })
+            DesvanUsageBoard(
+                model: model,
+                providers: providers,
+                trends: Dictionary(uniqueKeysWithValues: providers.map { ($0.id, store.trend(for: $0.id)) }),
+                retry: { store.refreshNow() }
+            )
         } else if !store.hasChecked {
             DesvanModuleNotice(symbol: "gauge.with.needle", title: "Checking your AI tools…")
         } else {
@@ -47,6 +52,7 @@ struct DesvanUsageView: View {
 private struct DesvanUsageBoard: View {
     let model: NotchModel
     let providers: [ProviderUsage]
+    let trends: [UsageProviderID: [UsageTrendPoint]]
     let retry: (() -> Void)?
 
     @State private var width: CGFloat = 0
@@ -57,14 +63,14 @@ private struct DesvanUsageBoard: View {
             if providers.count <= 2 {
                 HStack(spacing: Self.spacing) {
                     ForEach(providers) { usage in
-                        DesvanUsageCard(usage: usage, now: context.date, retry: retry)
+                        DesvanUsageCard(usage: usage, trend: trends[usage.id] ?? [], now: context.date, retry: retry)
                     }
                 }
             } else {
                 ScrollView(.horizontal) {
                     HStack(spacing: Self.spacing) {
                         ForEach(providers) { usage in
-                            DesvanUsageCard(usage: usage, now: context.date, retry: retry)
+                            DesvanUsageCard(usage: usage, trend: trends[usage.id] ?? [], now: context.date, retry: retry)
                                 .frame(width: cardWidth)
                         }
                     }
@@ -90,6 +96,7 @@ private struct DesvanUsageBoard: View {
 
 private struct DesvanUsageCard: View {
     let usage: ProviderUsage
+    let trend: [UsageTrendPoint]
     let now: Date
     let retry: (() -> Void)?
 
@@ -216,11 +223,24 @@ private struct DesvanUsageCard: View {
                     refill(compactRefill(window))
                 }
                 .help(UsageText.refillsIn(window, now: now))
-                status(pace: window)
+                HStack(spacing: 6) {
+                    status(pace: window)
+                    Spacer(minLength: 0)
+                    if trend.count > 1 {
+                        DesvanUsageTrend(points: trend)
+                            .frame(width: 42, height: 15)
+                    }
+                }
             }
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(usage.displayName), \(UsageText.name(for: window)), \(NotchFormat.percent(used)) used. \(barHelp(window))")
+        .accessibilityLabel(ringAccessibilityLabel(window))
+    }
+
+    private func ringAccessibilityLabel(_ window: UsageWindow) -> String {
+        var label = "\(usage.displayName), \(UsageText.name(for: window)), \(NotchFormat.percent(window.used)) used. \(barHelp(window))"
+        if trend.count > 1 { label += ". \(usageTrendSummary(trend))" }
+        return label
     }
 
     private func refill(_ text: String) -> some View {
@@ -443,6 +463,50 @@ private struct DesvanUsageNote: View {
         case .critical: Desvan.Palette.critical
         }
     }
+}
+
+/// A quiet 30-day sparkline. The current reading remains the card's main figure; this only answers “which way has
+/// it been moving?” and exposes the same information as a sentence to VoiceOver.
+private struct DesvanUsageTrend: View {
+    let points: [UsageTrendPoint]
+
+    var body: some View {
+        GeometryReader { proxy in
+            Path { path in
+                guard let first = points.first, let last = points.last else { return }
+                let span = max(last.date.timeIntervalSince(first.date), 1)
+                let values = points.map(\.used)
+                let low = max((values.min() ?? 0) - 0.05, 0)
+                let high = min(max((values.max() ?? 1) + 0.05, low + 0.1), 1)
+                for (index, point) in points.enumerated() {
+                    let x = point.date.timeIntervalSince(first.date) / span * proxy.size.width
+                    let normalized = (min(max(point.used, low), high) - low) / max(high - low, 0.01)
+                    let y = (1 - normalized) * proxy.size.height
+                    if index == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                    else { path.addLine(to: CGPoint(x: x, y: y)) }
+                }
+            }
+            .stroke(Desvan.Palette.paperSecondary.opacity(0.75), style: StrokeStyle(lineWidth: 1.25,
+                                                                                   lineCap: .round,
+                                                                                   lineJoin: .round))
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("30-day usage trend")
+        .accessibilityValue(accessibilityValue)
+        .help(accessibilityValue)
+    }
+
+    private var accessibilityValue: String {
+        usageTrendSummary(points)
+    }
+}
+
+private func usageTrendSummary(_ points: [UsageTrendPoint]) -> String {
+    guard let first = points.first, let last = points.last else { return String(localized: "No trend yet") }
+    let change = Int(((last.used - first.used) * 100).rounded())
+    if change == 0 { return String(localized: "Steady over the recorded period") }
+    if change > 0 { return String(localized: "Up \(change) percentage points over the recorded period") }
+    return String(localized: "Down \(-change) percentage points over the recorded period")
 }
 
 /// A limit's bar on a plank-coloured track, with a small notch above it marking an even pace.
