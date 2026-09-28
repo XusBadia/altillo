@@ -48,7 +48,7 @@ test.describe("build output", () => {
       for (const m of text.matchAll(/url\((\/[^)"']+)\)/g)) urls.add(m[1]);
     }
     // Music the demo plays and the image the Aurio egg shows.
-    for (const u of ["/media/music/azotea.mp3", "/media/music/luz-de-tarde.mp3", "/media/music/ultimo-tranvia.mp3", "/media/aurio-mascot-wink.webp", "/og.png"]) urls.add(u);
+    for (const u of ["/media/music/azotea.mp3", "/media/music/luz-de-tarde.mp3", "/media/music/ultimo-tranvia.mp3", "/media/aurio-mascot-wink.webp", "/og.png", "/og-es.png"]) urls.add(u);
     expect([...urls].some((u) => /^\/assets\/wood-[\w-]+\.webp$/.test(u))).toBe(true);
     const bad = [];
     for (const u of urls) {

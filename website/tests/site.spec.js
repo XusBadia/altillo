@@ -28,13 +28,15 @@ for (const L of LOCALES) {
       await expect(page.locator('link[hreflang="x-default"]')).toHaveAttribute("href", "https://altillo.app/");
       await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute("content", L.ogLocale);
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", L.canonical);
-      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://altillo.app/og.png");
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", `https://altillo.app${L.ogImage}`);
+      await expect(page.locator('meta[name="twitter:image"]')).toHaveAttribute("content", `https://altillo.app${L.ogImage}`);
       const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
       expect(ld["@type"]).toBe("SoftwareApplication");
+      expect(ld.image).toBe(`https://altillo.app${L.ogImage}`);
       expect(ld.url).toBe(L.canonical);
       expect(ld.downloadUrl).toBe("https://github.com/XusBadia/altillo/releases/latest");
       // The social card and icons exist at the site root.
-      for (const p of ["/og.png", "/favicon.svg", "/altillo-icon.png"]) {
+      for (const p of [L.ogImage, "/favicon.svg", "/altillo-icon.png"]) {
         expect((await page.request.get(p)).status(), p).toBe(200);
       }
     });
