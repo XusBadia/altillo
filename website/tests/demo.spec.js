@@ -87,6 +87,28 @@ for (const L of LOCALES) {
       await expect.poll(async () => (await demoState(page)).shelf).toContain("proposal");
       await expect(page.locator('#demo .an-tile[data-shelf="proposal"]')).toBeVisible();
     });
+
+    test("an emptied, open shelf still takes a file let go just below it", async ({ page }) => {
+      test.skip(page.viewportSize().width < 700, "mouse drag on desktop layouts");
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      await page.locator("#demo").scrollIntoViewIfNeeded();
+      await page.locator("#demo .dm-files").click({ position: { x: 4, y: 4 } });
+      await page.evaluate(() => window.altilloDemo.show("shelf"));
+      await page.locator('#demo [data-act="empty"]').click();
+      await expect.poll(async () => (await demoState(page)).shelf).toEqual([]);
+
+      const fb = await page.locator('#demo .dm-file[data-file="proposal"]').boundingBox();
+      await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
+      await page.mouse.down();
+      // Aim a little under the short, empty panel: it lights up as it's
+      // approached, and a lit shelf takes the file.
+      const nb = await page.locator("#demo .dm-notch").boundingBox();
+      await page.mouse.move(nb.x + nb.width / 2, nb.y + nb.height + 40, { steps: 20 });
+      await expect(page.locator("#demo .an-shelf.an-card--lit")).toHaveCount(1);
+      await page.mouse.up();
+      await expect.poll(async () => (await demoState(page)).shelf).toContain("proposal");
+    });
   });
 }
 

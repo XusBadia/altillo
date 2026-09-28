@@ -1222,8 +1222,14 @@ export function mountDemo(root, options = {}) {
       const nr = hitRect(notch, 0);
       const near = hitRect(notch, 150 * (S.compact ? 0.6 : 1));
       if (!S.open && inside(p, near)) { drag.openedByDrag = true; S.dropLit = true; open("shelf", "drag"); render(); }
-      else if (S.open && S.module !== "shelf" && inside(p, near)) { S.dropLit = true; S.module = "shelf"; switchModule(); render(); }
-      const over = S.open && inside(p, hitRect(notch, 12)) ? "shelf" : null;
+      else if (S.open && inside(p, near) && (S.module !== "shelf" || !S.dropLit)) {
+        // Already open: light up as a drop target too, so an empty (shorter)
+        // shelf grows to its full size before the file arrives.
+        S.dropLit = true;
+        if (S.module !== "shelf") { S.module = "shelf"; switchModule(); }
+        render();
+      }
+      const over = S.open && inside(p, hitRect(notch, 24)) ? "shelf" : null;
       if (!!over !== S.dropLit || over !== drag.over) {
         drag.over = over;
         if (S.dropLit !== !!over && S.open) { S.dropLit = !!over || inside(p, near); renderBody(); renderEars(); }
@@ -1265,6 +1271,9 @@ export function mountDemo(root, options = {}) {
     const del = $(".dm-deliveries");
     del.classList.remove("is-target", "is-armed");
     let ok = false;
+    // A lit shelf is a promise: if it's glowing when the file is let go, take
+    // it, even if the pointer is just outside the (still growing) panel.
+    if (!cancelled && d.from === "finder" && S.open && (S.dropLit || (e && inside({ x: e.clientX, y: e.clientY }, hitRect(notch, 24))))) d.over = "shelf";
     if (!cancelled && d.from === "finder" && d.over === "shelf") ok = shelve(d.id, "drag");
     if (!cancelled && d.from === "shelf" && d.over === "deliveries") ok = deliver(d.id);
     if (d.from === "finder") { S.dropLit = false; if (!ok && d.openedByDrag && S.open) { close("drag"); } else if (S.open) { renderBody(); renderEars(); } }
