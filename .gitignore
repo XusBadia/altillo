@@ -16,6 +16,13 @@ dist/
 .claude/worktrees/
 node_modules/
 promo/qa/
+# Promo working files: stop-motion source material, unused score takes, render logs and X cuts
+promo/public/stopmotion/
+promo/public/anuncio/audio/score-a.wav
+promo/public/anuncio/audio/score-c.wav
+promo/public/anuncio/audio/score.wav
+promo/public/anuncio/product/logs/
+promo/videos/*-x.mp4
 
 # Secrets and signing material — never commit these
 Config/Local.xcconfig
