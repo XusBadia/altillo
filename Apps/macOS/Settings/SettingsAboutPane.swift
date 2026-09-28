@@ -30,58 +30,64 @@ struct SettingsAboutPane: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// Everything fits in the window without scrolling, so Aurio is seen on arrival: a compact hero, the invitation
+    /// right under it, then the practical cards. The scroll view only matters at larger text sizes.
     var body: some View {
         ScrollView(.vertical) {
             VStack(spacing: 0) {
                 hero
 
                 VStack(alignment: .leading, spacing: 12) {
+                    SettingsSupportCard()
                     updatesCard
                     helpCard
-                    SettingsSupportCard()
                 }
-                .padding(.top, 20)
+                .padding(.top, 16)
 
-                VStack(spacing: 3) {
+                HStack(spacing: 6) {
                     Text("MIT licence. Use it, copy it and change it freely.")
+                    Text(verbatim: "·")
                     Text("© 2026 Xus Badia")
                 }
                 .font(.system(size: 11))
                 .foregroundStyle(Desvan.Palette.paperTertiary)
                 .multilineTextAlignment(.center)
-                .padding(.top, 16)
-                .padding(.bottom, 18)
+                .padding(.top, 14)
+                .padding(.bottom, 14)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .padding(.horizontal, 20)
-            .padding(.top, 16)
+            .padding(.top, 14)
         }
         .scrollBounceBehavior(.basedOnSize)
     }
 
     private var hero: some View {
-        VStack(spacing: 10) {
+        HStack(spacing: 14) {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable()
                 .interpolation(.high)
-                .frame(width: 72, height: 72)
+                .frame(width: 60, height: 60)
                 .accessibilityHidden(true)
 
-            VStack(spacing: 3) {
-                Text(verbatim: "Altillo")
-                    .font(Desvan.Typeface.display(26, weight: 700))
-                    .foregroundStyle(Desvan.Palette.paper)
-                    .accessibilityAddTraits(.isHeader)
-                Text("Version \(version) (\(build))")
-                    .font(Desvan.Typeface.figure(11.5, weight: .medium))
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(verbatim: "Altillo")
+                        .font(Desvan.Typeface.display(22, weight: 700))
+                        .foregroundStyle(Desvan.Palette.paper)
+                        .accessibilityAddTraits(.isHeader)
+                    Text("Version \(version) (\(build))")
+                        .font(Desvan.Typeface.figure(11.5, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .textSelection(.enabled)
+                }
+                Text("A place up top to leave things and see what matters.")
+                    .font(.system(size: 12.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Text("A place up top to leave things and see what matters.")
-                .font(.system(size: 12.5))
-                .foregroundStyle(Desvan.Palette.paperSecondary)
-                .multilineTextAlignment(.center)
+            Spacer(minLength: 8)
 
             Link(destination: Self.repository) {
                 Label("View the code on GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
@@ -91,13 +97,13 @@ struct SettingsAboutPane: View {
                     .padding(.vertical, 7)
                     .background(Capsule().fill(Desvan.Palette.bulb))
                     .contentShape(Capsule())
+                    .fixedSize()
             }
             .buttonStyle(SettingsPressStyle(scale: 0.96))
             .pointerStyle(.link)
-            .padding(.top, 4)
             .accessibilityLabel("View Altillo's code on GitHub")
         }
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private var updatesCard: some View {
@@ -161,12 +167,9 @@ struct SettingsAboutPane: View {
                         }
                     }
                     .controlSize(.small)
+                    .help("The diagnostic copy includes the version, macOS, architecture and hook status. It never includes paths, credentials, session content or logs.")
                 }
                 .font(.system(size: 12, weight: .medium))
-
-                Text("The diagnostic copy includes the version, macOS, architecture and hook status. It never includes paths, credentials, session content or logs.")
-                    .settingsHint()
-                    .padding(.top, 8)
             }
         }
     }
@@ -194,7 +197,7 @@ private struct SettingsSupportCard: View {
                         .scaledToFit()
                         .opacity(isHovering ? 1 : 0)
                 }
-                .frame(width: 104, height: 78)
+                .frame(width: 120, height: 90)
                 .accessibilityHidden(true)
 
                 VStack(alignment: .leading, spacing: 4) {

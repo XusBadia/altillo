@@ -55,8 +55,10 @@ struct SettingsRootView: View {
     var body: some View {
         // The window draws its content under the title bar and the tab bar is the title bar, beside the traffic
         // lights. The pane keeps to the safe area below it, so its lists and scroll views start where they should.
+        // Clipped, or a scrolled pane's content draws on through the transparent title bar, over the tabs.
         pane
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .clipped()
             .overlay(alignment: .top) {
                 Rectangle()
                     .fill(Desvan.Palette.hairlineStrong)
