@@ -5,11 +5,12 @@ Drawer guarda los iconos de la barra de menús que casi no usas y abre sus menú
 ## Uso
 
 1. Abre **Altillo → Drawer Settings…** (también en Ajustes → Drawer) y activa **Use Drawer**.
-2. Concede **Accesibilidad**, el único permiso que necesita: Altillo lee los iconos de la barra y abre sus menús. Además del botón, puedes arrastrar el icono de Altillo a la lista de Accesibilidad de Ajustes del Sistema.
+2. Concede **Accesibilidad**, el único permiso imprescindible: Altillo lee los iconos de la barra y abre sus menús. Además del botón, puedes arrastrar el icono de Altillo a la lista de Accesibilidad de Ajustes del Sistema.
 3. Arrastra iconos entre **Altillo** y **Menu Bar**, o usa su menú contextual. Se mueve la app entera: todos los iconos de una misma app van juntos. Los elementos de macOS (reloj, Wi‑Fi, Centro de Control…) llevan un candado y se quedan en la barra.
 4. En macOS 27, con **Hide Drawer icons from the menu bar** activado, los iconos del Cajón salen de la barra al momento y viven en Altillo. Pulsa un icono de la estantería para abrir su menú junto a él.
 5. **Show hidden icons** (en Ajustes o en el menú de Altillo) los devuelve a la barra hasta que pulses **Hide them again**.
 6. **New menu bar icons**: los iconos de apps que Altillo no ha visto antes se quedan en la barra (por defecto) o van directos al Cajón.
+7. Opcional: **Allow Screen Recording…** (tarjeta **Show the real menu bar icons**, con la etiqueta **Optional**; también en la bienvenida, con **Skip**) hace que el Cajón muestre cada icono tal y como se dibuja en la barra, en lugar del icono de la app. Todo lo demás funciona igual sin Grabación de pantalla. Con el permiso concedido, Ajustes solo muestra **Showing the real menu bar icons.**; la estantería del notch nunca lo pide.
 
 Salir de Altillo, desactivar el Cajón o retirar Accesibilidad devuelve todos los iconos a la barra.
 
@@ -31,7 +32,7 @@ En **macOS 26** el Cajón lista los iconos y abre sus menús, pero no los oculta
 - **`MenuBarConcealing`:** protocolo con la implementación real (`MenuBarConcealer`) y una vacía para macOS 26. Los tests usan una falsa y nunca activan la aserción real.
 - **Migración:** el Cajón anterior guardaba iconos (`drawer.chosenIDs`); sus apps pasan a ser la pertenencia nueva. Se borran las posiciones y nombres de autosave del divisor, la flecha y los espaciadores antiguos.
 - **Catálogo:** un actor recorre exclusivamente `AXExtrasMenuBar`, con timeouts. macOS sigue exponiendo los iconos ocultos con su acción `AXPress`. En reposo no hay sondeo: los eventos marcan el catálogo como obsoleto y se vuelve a leer al mostrarse la estantería o Ajustes (máximo cada 30 s, agrupando ráfagas hasta 2 s).
-- **Iconos:** símbolos SF para los elementos de macOS y el icono de la app para el resto. Los iconos ocultos no se dibujan, así que no se pueden capturar; por eso no hace falta Grabación de Pantalla.
+- **Iconos:** con Grabación de pantalla (opcional, `hasIconAccess` / `requestIconAccess()`, que abre Ajustes del Sistema › Privacidad y seguridad › Grabación de pantalla y vuelve a comprobar solo durante 2 minutos), el glifo real se captura de la ventana de la barra de MenuBarAgent mientras el icono está visible y se guarda en caché en disco; un icono oculto conserva su última captura, porque oculto no se dibuja y no se puede capturar. Sin el permiso, o sin captura todavía, símbolos SF para los elementos de macOS y el icono de la app para el resto. Altillo solo captura la barra de menús. Como en Bartender 7, el permiso es opcional y se explica así.
 - **Menús estándar:** se lee el árbol AXMenu y un NSMenu de Altillo lo presenta junto al icono; cada comando ejecuta la acción original.
 - **Paneles personalizados:** se activa el elemento por AX sin mostrarlo y se recoloca la ventana nueva del propietario junto a la estantería, verificando la posición. Si macOS no lo permite, se explica.
 - **Apps nuevas:** `drawer.knownBundleIDs` recuerda las apps que ya han tenido icono; el primer catálogo es el punto de partida, no «nuevo». Con **Go to the Drawer**, una app desconocida no entra en la lista y sus iconos aparecen en el Cajón.

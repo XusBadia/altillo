@@ -223,6 +223,22 @@ actor MenuBarAccessibility {
         observedElements.removeAll()
     }
 
+    /// The item's current frame, read now rather than from the last scan: a hidden item keeps a stale frame
+    /// until macOS draws it again.
+    func currentFrame(id: String) -> CGRect? {
+        guard let item = itemsByID[id] else { return nil }
+        return Self.frame(of: item.element)
+    }
+
+    /// Fresh frames for several items at once (missing or unreadable ones are left out).
+    func currentFrames(ids: [String]) -> [String: CGRect] {
+        var frames: [String: CGRect] = [:]
+        for id in ids {
+            if let item = itemsByID[id], let frame = Self.frame(of: item.element) { frames[id] = frame }
+        }
+        return frames
+    }
+
     /// Performs only an action advertised by the item during the latest scan.
     func perform(id: String, showMenu: Bool) -> MenuBarActionResult {
         guard let item = itemsByID[id] else { return .unavailable }

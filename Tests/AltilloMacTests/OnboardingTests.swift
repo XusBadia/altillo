@@ -72,7 +72,10 @@ struct OnboardingTests {
     @Test func accessibilityOnlyWithTheDrawerOn() {
         #expect(!OnboardingLogic.permissions(for: Self.context(.everything)).contains(.accessibility))
         let withDrawer = Self.context(.minimal, drawer: true)
-        #expect(OnboardingLogic.permissions(for: withDrawer) == [.accessibility])
+        #expect(OnboardingLogic.permissions(for: withDrawer) == [.accessibility, .screenRecording])
+        #expect(OnboardingPermission.screenRecording.isOptional)
+        #expect(!OnboardingPermission.accessibility.isOptional)
+        #expect(!OnboardingLogic.permissions(for: Self.context(.everything)).contains(.screenRecording))
         #expect(OnboardingLogic.steps(for: withDrawer) == [.hello, .preset, .permissions, .tricks, .done])
     }
 

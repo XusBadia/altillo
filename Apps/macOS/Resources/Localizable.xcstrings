@@ -20909,6 +20909,83 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "macOS didn't let Altillo hide menu bar icons. They stay visible." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "macOS no ha dejado que Altillo oculte los iconos de la barra de menús. Siguen a la vista." } }
       }
+    },
+    "Show the real menu bar icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show the real menu bar icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar los iconos reales de la barra de menús" } }
+      }
+    },
+    "Showing the real menu bar icons." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Showing the real menu bar icons." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se muestran los iconos reales de la barra de menús." } }
+      }
+    },
+    "Optional" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optional" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Opcional" } }
+      }
+    },
+    "Allow Screen Recording and Altillo shows each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Screen Recording and Altillo shows each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Permite la grabación de pantalla y Altillo mostrará cada icono tal y como se ve en tu barra de menús. Altillo solo captura la barra de menús. Sin este permiso, el Cajón muestra el icono de cada app." } }
+      }
+    },
+    "Allow Screen Recording…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Screen Recording…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Permitir la grabación de pantalla…" } }
+      }
+    },
+    "Opens Privacy & Security › Screen Recording in System Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens Privacy & Security › Screen Recording in System Settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre Privacidad y seguridad › Grabación de pantalla en Ajustes del Sistema" } }
+      }
+    },
+    "Screen Recording" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Screen Recording" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Grabación de pantalla" } }
+      }
+    },
+    "For the Drawer to show each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "For the Drawer to show each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Para que el Cajón muestre cada icono tal y como se ve en tu barra de menús. Altillo solo captura la barra de menús. Sin este permiso, el Cajón muestra el icono de cada app." } }
+      }
+    },
+    "Turn on Altillo in Privacy & Security › Screen Recording. This page notices when you do." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Turn on Altillo in Privacy & Security › Screen Recording. This page notices when you do." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activa Altillo en Privacidad y seguridad › Grabación de pantalla. Esta página se entera cuando lo hagas." } }
+      }
+    },
+    "Skipped. The Drawer shows app icons. You can allow it any time in Settings › Drawer." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skipped. The Drawer shows app icons. You can allow it any time in Settings › Drawer." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltado. El Cajón muestra los iconos de las apps. Puedes permitirlo cuando quieras en Ajustes › Cajón." } }
+      }
+    },
+    "Skip: %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip: %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Saltar: %@" } }
+      }
     }
   },
   "version" : "1.0"

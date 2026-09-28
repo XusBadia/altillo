@@ -50,6 +50,8 @@ struct SettingsDrawerPane: View {
                     if store.enabled, store.isSupported, store.hasAccess {
                         optionsCard
                             .transition(.settingsReveal)
+                        iconAccessCard
+                            .transition(.settingsReveal)
                     }
                     if let problem = store.problem {
                         problemNotice(problem)
@@ -65,6 +67,7 @@ struct SettingsDrawerPane: View {
                 .animation(revealAnimation, value: store.hasAccess)
                 .animation(revealAnimation, value: store.problem)
                 .animation(revealAnimation, value: store.hidesDrawerIcons)
+                .animation(revealAnimation, value: store.hasIconAccess)
             }
             .scrollBounceBehavior(.basedOnSize)
         }
@@ -256,6 +259,52 @@ struct SettingsDrawerPane: View {
         }
     }
 
+    // MARK: - Real icons
+
+    /// Screen Recording is optional: it only lets the Drawer show each icon exactly as the app draws it in the menu
+    /// bar. Without it the Drawer shows the app's icon, and everything else works the same. Once allowed, a quiet line.
+    private var iconAccessCard: some View {
+        SettingsCard {
+            if store.hasIconAccess {
+                HStack(alignment: .center, spacing: 8) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(SettingsTone.good.color)
+                        .accessibilityHidden(true)
+                    Text("Showing the real menu bar icons.")
+                        .settingsHint()
+                    Spacer(minLength: 0)
+                }
+                .accessibilityElement(children: .combine)
+                .transition(.opacity)
+            } else {
+                HStack(alignment: .center, spacing: 12) {
+                    optionTile(symbol: "menubar.rectangle", isLit: false)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Text("Show the real menu bar icons")
+                                .settingsRowTitle()
+                            SettingsBadge(text: String(localized: "Optional"))
+                        }
+                        Text("Allow Screen Recording and Altillo shows each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon.")
+                            .settingsHint()
+                    }
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
+
+                    Spacer(minLength: 12)
+
+                    Button("Allow Screen Recording…") { store.requestIconAccess() }
+                        .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 26))
+                        .fixedSize()
+                        .help("Opens Privacy & Security › Screen Recording in System Settings")
+                }
+                .transition(.opacity)
+            }
+        }
+    }
+
     private func optionTile(symbol: String, isLit: Bool) -> some View {
         Image(systemName: symbol)
             .font(.system(size: 14, weight: .medium))
@@ -290,7 +339,7 @@ struct SettingsDrawerPane: View {
         }
     }
 
-    /// Accessibility is the Drawer's only permission. Two ways to give it: the system prompt, or dragging Altillo's
+    /// Accessibility is the Drawer's only required permission (Screen Recording is optional). Two ways to give it: the system prompt, or dragging Altillo's
     /// icon straight into the list in System Settings.
     private var permissionCard: some View {
         SettingsCard {

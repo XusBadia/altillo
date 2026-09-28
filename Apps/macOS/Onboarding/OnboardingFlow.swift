@@ -69,7 +69,8 @@ final class OnboardingFlow {
     }
 
     var context: OnboardingContext {
-        OnboardingContext(settings: settings, drawerEnabled: drawerEnabled(), detection: detection)
+        OnboardingContext(settings: settings, drawerEnabled: drawerEnabled(),
+                          drawerShowsGlyphs: model.drawer.support.hiding, detection: detection)
     }
 
     var steps: [OnboardingStep] { OnboardingLogic.steps(for: context, keeping: step) }
@@ -187,6 +188,9 @@ final class OnboardingFlow {
         case .accessibility:
             // Shows the system prompt, opens System Settings if needed and keeps checking for two minutes.
             model.drawer.requestAccess()
+        case .screenRecording:
+            // Same as Settings › Drawer: the prompt or System Settings, then it keeps checking on its own.
+            model.drawer.requestIconAccess()
         }
         permissionStatus[permission] = await Self.currentStatus(of: permission)
     }
@@ -197,6 +201,7 @@ final class OnboardingFlow {
         case .automation: "Privacy_Automation"
         case .camera: "Privacy_Camera"
         case .accessibility: "Privacy_Accessibility"
+        case .screenRecording: "Privacy_ScreenCapture"
         }
         guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?\(anchor)") else { return }
         NSWorkspace.shared.open(url)
@@ -216,6 +221,8 @@ final class OnboardingFlow {
             return automationStatus(statuses)
         case .accessibility:
             return AXIsProcessTrusted() ? .granted : .notAsked
+        case .screenRecording:
+            return CGPreflightScreenCaptureAccess() ? .granted : .notAsked
         }
     }
 

@@ -53,6 +53,9 @@ struct OnboardingPermissionsPage: View {
         .onChange(of: flow.model.drawer.hasAccess) { _, _ in
             Task { await flow.refreshPermissions() }
         }
+        .onChange(of: flow.model.drawer.hasIconAccess) { _, _ in
+            Task { await flow.refreshPermissions() }
+        }
     }
 }
 
@@ -63,6 +66,10 @@ private struct OnboardingPermissionRow: View {
     private var status: OnboardingPermissionStatus { flow.status(of: permission) }
     private var isDeferred: Bool { flow.deferred.contains(permission) }
     private var wasAsked: Bool { flow.requested.contains(permission) }
+    /// Accessibility and Screen Recording have no "denied": once asked, they wait in System Settings.
+    private var waitsInSystemSettings: Bool {
+        (permission == .accessibility || permission == .screenRecording) && wasAsked
+    }
     /// Once Accessibility was asked for (or turned off), Altillo's icon is offered to drop into the list directly.
     private var showsDragIcon: Bool {
         permission == .accessibility && status != .granted && (wasAsked || status == .denied)
@@ -72,9 +79,14 @@ private struct OnboardingPermissionRow: View {
         HStack(alignment: .top, spacing: 14) {
             OnboardingSymbolTile(symbol: symbol, tint: status == .granted ? Desvan.Palette.done : Desvan.Palette.kraft)
             VStack(alignment: .leading, spacing: 3) {
-                Text(title)
-                    .font(Desvan.Typeface.rounded(13.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paper)
+                HStack(spacing: 6) {
+                    Text(title)
+                        .font(Desvan.Typeface.rounded(13.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paper)
+                    if permission.isOptional {
+                        SettingsBadge(text: String(localized: "Optional"))
+                    }
+                }
                 Text(why)
                     .font(.system(size: 12))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
@@ -122,15 +134,21 @@ private struct OnboardingPermissionRow: View {
         case .notNow:
             EmptyView()
         case .notAsked:
-            if permission == .accessibility, wasAsked {
+            if waitsInSystemSettings {
                 Button("System Settings") { flow.openSystemSettings(for: permission) }
                     .buttonStyle(DesvanButtonStyle(kind: .ghost))
             } else {
                 HStack(spacing: 4) {
                     if !isDeferred {
-                        Button("Later") { flow.putOff(permission) }
-                            .buttonStyle(DesvanButtonStyle(kind: .quiet))
-                            .accessibilityLabel("Later: \(title)")
+                        if permission.isOptional {
+                            Button("Skip") { flow.putOff(permission) }
+                                .buttonStyle(DesvanButtonStyle(kind: .quiet))
+                                .accessibilityLabel("Skip: \(title)")
+                        } else {
+                            Button("Later") { flow.putOff(permission) }
+                                .buttonStyle(DesvanButtonStyle(kind: .quiet))
+                                .accessibilityLabel("Later: \(title)")
+                        }
                     }
                     Button("Allow") { Task { await flow.request(permission) } }
                         .buttonStyle(DesvanButtonStyle(kind: isDeferred ? .ghost : .primary))
@@ -147,6 +165,7 @@ private struct OnboardingPermissionRow: View {
         case .automation: "music.note"
         case .camera: "camera"
         case .accessibility: "accessibility"
+        case .screenRecording: "menubar.rectangle"
         }
     }
 
@@ -156,6 +175,7 @@ private struct OnboardingPermissionRow: View {
         case .automation: String(localized: "Music and Spotify")
         case .camera: String(localized: "Camera")
         case .accessibility: String(localized: "Accessibility")
+        case .screenRecording: String(localized: "Screen Recording")
         }
     }
 
@@ -169,6 +189,8 @@ private struct OnboardingPermissionRow: View {
             String(localized: "For the mirror, to check yourself before a call. The image never leaves your Mac.")
         case .accessibility:
             String(localized: "For the Drawer: to reach the menu bar icons the notch hides, and open their menus.")
+        case .screenRecording:
+            String(localized: "For the Drawer to show each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon.")
         }
     }
 
@@ -184,12 +206,15 @@ private struct OnboardingPermissionRow: View {
                 return String(localized: "Neither Music nor Spotify is open. Altillo asks the first time you play something with Now playing open.")
             case .camera:
                 return String(localized: "No camera connected. The mirror asks when you use one.")
-            case .calendar, .accessibility:
+            case .calendar, .accessibility, .screenRecording:
                 return nil
             }
         case .notAsked:
             if permission == .accessibility, wasAsked {
                 return String(localized: "Turn on Altillo in Privacy & Security › Accessibility. This page notices when you do.")
+            }
+            if permission == .screenRecording, wasAsked {
+                return String(localized: "Turn on Altillo in Privacy & Security › Screen Recording. This page notices when you do.")
             }
             if isDeferred { return laterNote }
             return nil
@@ -202,6 +227,7 @@ private struct OnboardingPermissionRow: View {
         case .automation: String(localized: "Later, then. Now playing asks the first time you open it.")
         case .camera: String(localized: "Later, then. The mirror asks the first time you open it.")
         case .accessibility: String(localized: "Later, then. The Drawer asks when you open it.")
+        case .screenRecording: String(localized: "Skipped. The Drawer shows app icons. You can allow it any time in Settings › Drawer.")
         }
     }
 

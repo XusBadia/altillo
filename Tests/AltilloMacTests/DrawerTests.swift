@@ -79,9 +79,13 @@ struct DrawerTests {
         )
     }
 
+    /// Tests never read or write the real glyph cache, nor ask for Screen Recording.
+    private static func noGlyphs() -> MenuBarGlyphCapture { MenuBarGlyphCapture(directory: nil, preflight: { false }) }
+
     private static func makeStore(_ defaults: UserDefaults, concealer: FakeConcealer,
                                   running: Set<String> = ["com.a", "com.b", "com.c"]) -> MenuBarDrawerStore {
-        MenuBarDrawerStore(defaults: defaults, majorVersion: 27, concealer: concealer, runningBundleIDs: { running })
+        MenuBarDrawerStore(defaults: defaults, majorVersion: 27, concealer: concealer, glyphs: Self.noGlyphs(),
+                           runningBundleIDs: { running })
     }
 
     @Test func appKitFrameConvertsToAccessibilityCoordinates() {
@@ -118,9 +122,9 @@ struct DrawerTests {
 
         #expect(!Self.makeStore(storage.defaults, concealer: FakeConcealer()).showsStrip)
         storage.defaults.set(true, forKey: "drawer.enabled")
-        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26, concealer: FakeConcealer()).showsStrip)
+        #expect(MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 26, concealer: FakeConcealer(), glyphs: Self.noGlyphs()).showsStrip)
         #expect(Self.makeStore(storage.defaults, concealer: FakeConcealer()).showsStrip)
-        let unsupported = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25, concealer: FakeConcealer())
+        let unsupported = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25, concealer: FakeConcealer(), glyphs: Self.noGlyphs())
         #expect(unsupported.enabled)
         #expect(!unsupported.showsStrip)
         #expect(unsupported.drawerEntries.isEmpty)
@@ -130,7 +134,7 @@ struct DrawerTests {
         let storage = Self.makeDefaults()
         defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
 
-        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25, concealer: FakeConcealer())
+        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 25, concealer: FakeConcealer(), glyphs: Self.noGlyphs())
         store.setEnabled(true)
         #expect(!store.enabled)
         #expect(!storage.defaults.bool(forKey: "drawer.enabled"))
@@ -384,7 +388,7 @@ struct DrawerTests {
         storage.defaults.set(true, forKey: "drawer.enabled")
         let concealer = ParkedConcealer()
         let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27, concealer: concealer,
-                                       runningBundleIDs: { ["com.a", "com.b"] })
+                                       glyphs: Self.noGlyphs(), runningBundleIDs: { ["com.a", "com.b"] })
         let app = Self.item("com.b")
         store.setCatalogForTesting([app], hasAccess: true)
         store.move(app, toDrawer: true)
@@ -396,6 +400,52 @@ struct DrawerTests {
         for _ in 0..<10 { await Task.yield() }
 
         #expect(!store.isConcealing)
+    }
+
+
+    // MARK: - Real glyphs
+
+    /// A 40×30 transparent bar at 2x with a white 6×8 pt glyph at (10, 5) pt and a red 4×4 pt icon at (30, 10) pt.
+    private static func bar() -> CGImage {
+        let context = CGContext(data: nil, width: 80, height: 60, bitsPerComponent: 8, bytesPerRow: 0,
+                                space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        // CGContext has a bottom-left origin; the glyph rectangles below are in top-left pixels.
+        context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
+        context.fill(CGRect(x: 20, y: 60 - 10 - 16, width: 12, height: 16))
+        context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
+        context.fill(CGRect(x: 60, y: 60 - 20 - 8, width: 8, height: 8))
+        return context.makeImage()!
+    }
+
+    @Test func aGlyphIsCroppedTrimmedAndKeptAtItsPixelSize() throws {
+        let glyph = try #require(MenuBarGlyphCapture.glyph(from: Self.bar(), crop: CGRect(x: 6, y: 2, width: 14, height: 14), scale: 2))
+        #expect(glyph.size == CGSize(width: 6, height: 8))
+        #expect(glyph.isTemplate)
+    }
+
+    @Test func colourIconsStayInColour() throws {
+        let glyph = try #require(MenuBarGlyphCapture.glyph(from: Self.bar(), crop: CGRect(x: 27, y: 7, width: 10, height: 10), scale: 2))
+        #expect(glyph.size == CGSize(width: 4, height: 4))
+        #expect(!glyph.isTemplate)
+    }
+
+    @Test func anEmptySpotHasNoGlyph() {
+        #expect(MenuBarGlyphCapture.glyph(from: Self.bar(), crop: CGRect(x: 0, y: 20, width: 5, height: 5), scale: 2) == nil)
+    }
+
+    @Test func foldedIconsAreNeverCaptured() {
+        let icon = CGRect(x: 100, y: 3, width: 24, height: 24)
+        #expect(MenuBarGlyphCapture.overlapsAnother(icon, among: [CGRect(x: 104, y: 3, width: 24, height: 24)]))
+        #expect(!MenuBarGlyphCapture.overlapsAnother(icon, among: [CGRect(x: 123, y: 3, width: 24, height: 24)]))
+    }
+
+    @Test func withoutScreenRecordingTheDrawerUsesAppIcons() {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+        let store = Self.makeStore(storage.defaults, concealer: FakeConcealer())
+        #expect(!store.hasIconAccess)
+        #expect(store.glyphs.image(for: Self.item("com.a")) == nil)
     }
 
     // MARK: - Order and refresh

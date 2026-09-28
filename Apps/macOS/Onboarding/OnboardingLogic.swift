@@ -43,8 +43,13 @@ enum OnboardingPermission: String, CaseIterable, Identifiable, Sendable {
     case camera
     /// Accessibility, for the Drawer (menu bar icons).
     case accessibility
+    /// Screen Recording, optional: the Drawer shows the icons as they look in the menu bar instead of app icons.
+    case screenRecording
 
     var id: Self { self }
+
+    /// Nothing stops working without it: the row says so and offers "Skip" rather than "Later".
+    var isOptional: Bool { self == .screenRecording }
 }
 
 /// Where a permission stands, as the welcome shows it.
@@ -65,15 +70,19 @@ struct OnboardingContext: Equatable, Sendable {
     var rightEar: EarContent
     /// The Drawer (menu bar icons) is switched on: it needs Accessibility.
     var drawerEnabled: Bool
+    /// The Drawer can show real menu-bar glyphs here (macOS 27), which is what Screen Recording is for.
+    var drawerShowsGlyphs: Bool = true
     /// What was found on this Mac, if the search is over.
     var detection: OnboardingDetection
 
     @MainActor
-    init(settings: AltilloSettings, drawerEnabled: Bool, detection: OnboardingDetection) {
+    init(settings: AltilloSettings, drawerEnabled: Bool, drawerShowsGlyphs: Bool = true,
+         detection: OnboardingDetection) {
         modules = Set(settings.modules)
         leftEar = settings.leftEar
         rightEar = settings.rightEar
         self.drawerEnabled = drawerEnabled
+        self.drawerShowsGlyphs = drawerShowsGlyphs
         self.detection = detection
     }
 
@@ -143,6 +152,7 @@ enum OnboardingLogic {
         if context.modules.contains(.nowPlaying) { needed.append(.automation) }
         if context.modules.contains(.mirror) { needed.append(.camera) }
         if context.drawerEnabled { needed.append(.accessibility) }
+        if context.drawerEnabled, context.drawerShowsGlyphs { needed.append(.screenRecording) }
         return needed
     }
 
