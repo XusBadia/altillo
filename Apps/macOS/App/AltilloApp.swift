@@ -48,10 +48,10 @@ struct AppMenu: View {
                     ? "Check for a newer version of Altillo."
                     : "This build has no update feed configured."
             )
-        if coordinator.model.drawer.enabled, coordinator.model.drawer.support.hiding {
-            Button(coordinator.model.drawer.isHidden ? "Show menu bar icons" : "Hide menu bar icons") {
-                if coordinator.model.drawer.isHidden { coordinator.model.drawer.reveal() }
-                else { coordinator.model.drawer.hide() }
+        let drawer = coordinator.model.drawer
+        if drawer.enabled, drawer.support.hiding, drawer.hidesDrawerIcons {
+            Button(drawer.isPeeking ? "Hide Drawer icons again" : "Show hidden menu bar icons") {
+                drawer.setPeeking(!drawer.isPeeking)
             }
         }
         Divider()

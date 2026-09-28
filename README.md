@@ -32,7 +32,7 @@ screen:
 - **Keep Awake** — explicitly keep the Mac awake for 30 minutes, one hour, two
   hours or until you stop it; the display may still turn off and nothing is
   restored after relaunch.
-- **Drawer** — keep the menu bar icons you choose in a compact shelf above Altillo's navigation and open their menus from there. Configure it by dragging icons between the Altillo and Menu Bar zones; hiding is available on macOS 26 and requires Accessibility access. [Setup and limitations](docs/cajon.md).
+- **Drawer** — keep the menu bar icons you rarely need in a compact shelf above Altillo's navigation and open their menus from there. Drag apps between the Altillo and Menu Bar zones; on macOS 27 their icons leave the menu bar entirely (no divider, no gap). Needs only Accessibility access. [Setup and limitations](docs/cajon.md).
 - **iPhone/iPad groundwork** — app and widget targets compile, but the mobile
   companion and Live Activities are placeholders, not shipped features yet.
 

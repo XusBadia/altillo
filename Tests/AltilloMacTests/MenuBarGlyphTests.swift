@@ -56,44 +56,22 @@ struct MenuBarGlyphSharpnessTests {
         #expect(max(MenuBarGlyph.size(of: symbol).width, MenuBarGlyph.size(of: symbol).height) == 18)
     }
 
-    // MARK: - Fallbacks instead of placeholders
+    // MARK: - Icons without menu-bar pixels
 
     private static func entry(owner: String, title: String = "Item") -> MenuBarEntry {
         MenuBarEntry(id: "\(owner)|\(title)", application: MenuBarApplication(pid: 42, bundleID: owner, name: owner),
                      title: title, frame: CGRect(x: 0, y: 3, width: 24, height: 24))
     }
 
-    @Test func aCapturedGlyphAlwaysWins() {
-        let entry = Self.entry(owner: "com.apple.MenuBarAgent", title: "Wi-Fi")
-        #expect(MenuBarGlyphFallback.source(for: entry, hasCapture: true, captureFailed: true,
-                                            hasApplicationIcon: true) == .captured)
-    }
-
-    @Test func aPendingCaptureIsSkippedRatherThanShownAsAPlaceholder() {
-        let entry = Self.entry(owner: "test.app")
-        #expect(MenuBarGlyphFallback.source(for: entry, hasCapture: false, captureFailed: false,
-                                            hasApplicationIcon: true) == .none)
-    }
-
-    @Test func aFailedCaptureFallsBackToTheOwnersIcon() {
-        let entry = Self.entry(owner: "test.app")
-        #expect(MenuBarGlyphFallback.source(for: entry, hasCapture: false, captureFailed: true,
-                                            hasApplicationIcon: true) == .applicationIcon)
-    }
-
-    @Test func systemItemsFallBackToTheirSymbolNotAGenericAgentIcon() {
+    @Test func systemItemsAreDrawnWithTheirSymbolNotAGenericAgentIcon() {
         let wifi = Self.entry(owner: "com.apple.MenuBarAgent", title: "Wi‑Fi, connected, 3 bars")
-        #expect(MenuBarGlyphFallback.source(for: wifi, hasCapture: false, captureFailed: true,
-                                            hasApplicationIcon: true) == .systemSymbol("wifi"))
+        #expect(MenuBarAccessibility.systemSymbol(for: wifi) == "wifi")
         let clock = Self.entry(owner: "com.apple.MenuBarAgent", title: "Clock")
-        #expect(MenuBarGlyphFallback.source(for: clock, hasCapture: false, captureFailed: true,
-                                            hasApplicationIcon: false) == .systemSymbol("clock"))
+        #expect(MenuBarAccessibility.systemSymbol(for: clock) == "clock")
     }
 
-    @Test func anItemWithNothingToDrawIsSkipped() {
-        let entry = Self.entry(owner: "test.app")
-        #expect(MenuBarGlyphFallback.source(for: entry, hasCapture: false, captureFailed: true,
-                                            hasApplicationIcon: false) == .none)
+    @Test func appItemsUseTheirOwnersIcon() {
+        #expect(MenuBarAccessibility.systemSymbol(for: Self.entry(owner: "test.app")) == nil)
     }
 
     @Test func applicationIconFallbackIsDrawnAtTheStripsGlyphSize() throws {

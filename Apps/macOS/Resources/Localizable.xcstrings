@@ -236,13 +236,6 @@
         "es" : { "stringUnit" : { "state" : "translated", "value" : "La barra de menús aún está cambiando. Espera un momento y vuelve a intentarlo." } }
       }
     },
-    "On macOS 27, icons stay in the menu bar’s overflow area; they aren’t removed. Use Altillo’s arrow in the menu bar to reveal them. Icons from the same app may hide together." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "On macOS 27, icons stay in the menu bar’s overflow area; they aren’t removed. Use Altillo’s arrow in the menu bar to reveal them. Icons from the same app may hide together." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "En macOS 27, los iconos permanecen en la zona de desbordamiento de la barra de menús; no se eliminan. Usa la flecha de Altillo en la barra de menús para mostrarlos. Los iconos de una misma app pueden ocultarse juntos." } }
-      }
-    },
     "%@, %@ used. %@" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -325,20 +318,6 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag a row or open its menu to move it. Shelf always stays first." } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra una fila o abre su menú para moverla. El altillo siempre va primero." } }
-      }
-    },
-    "Drag icons between areas, or open an icon's menu to move it." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag icons between areas, or open an icon's menu to move it." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra los iconos entre las zonas o abre el menú de uno para moverlo." } }
-      }
-    },
-    "Drag menu bar icons between areas, or use each icon's menu." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag menu bar icons between areas, or use each icon's menu." } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra los iconos de la barra de menús entre las zonas o usa el menú de cada icono." } }
       }
     },
     "Export note…" : {
@@ -3409,74 +3388,6 @@
         }
       }
     },
-    "Allow Screen Recording access" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow Screen Recording access"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permitir la grabación de pantalla"
-          }
-        }
-      }
-    },
-    "Allow Screen Recording so Altillo can display each icon as it appears in your menu bar." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow Screen Recording so Altillo can display each icon as it appears in your menu bar."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permite la grabación de pantalla para que Altillo muestre cada icono tal como aparece en tu barra de menús."
-          }
-        }
-      }
-    },
-    "Allow Screen Recording to show your icons" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow Screen Recording to show your icons"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Permite la grabación de pantalla para mostrar tus iconos"
-          }
-        }
-      }
-    },
-    "Allow access" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Allow access"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dar acceso"
-          }
-        }
-      }
-    },
     "Allow access to your menu bar icons" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3697,23 +3608,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo se comporta igual sobre vídeos, juegos y presentaciones."
-          }
-        }
-      }
-    },
-    "Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Altillo can't hide menu bar icons here, so icons you keep in Altillo also stay in the menu bar. You can still open their menus from the Drawer."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "En esta versión de macOS, Altillo no puede ocultar iconos de la barra de menús, así que los que guardes en Altillo también seguirán en la barra. Aun así, puedes abrir sus menús desde el Cajón."
           }
         }
       }
@@ -4179,23 +4073,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Altillo convierte el notch en un sitio arriba: deja cosas ahí un momento y ve lo importante sin dejar lo que estás haciendo."
-          }
-        }
-      }
-    },
-    "Altillo uses it to find and move your menu bar icons." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Altillo uses it to find and move your menu bar icons."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Altillo lo usa para encontrar y mover los iconos de tu barra de menús."
           }
         }
       }
@@ -6846,40 +6723,6 @@
         }
       }
     },
-    "Drawer icons also remain visible in the menu bar" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drawer icons also remain visible in the menu bar"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los iconos del Cajón también permanecen visibles en la barra de menús"
-          }
-        }
-      }
-    },
-    "Drawer icons are hidden from the visible menu bar" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Drawer icons are hidden from the visible menu bar"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los iconos del Cajón están ocultos en la barra de menús visible"
-          }
-        }
-      }
-    },
     "Drawer Settings…" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7487,7 +7330,7 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para el cajón: para llegar a los iconos de la barra de menús que esconde el notch, y abrir sus menús."
+            "value" : "Para el Cajón: para llegar a los iconos de la barra de menús que esconde el notch, y abrir sus menús."
           }
         }
       }
@@ -7974,23 +7817,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Esconder los iconos"
-          }
-        }
-      }
-    },
-    "Hide menu bar icons" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hide menu bar icons"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Esconder los iconos de la barra de menús"
           }
         }
       }
@@ -8559,23 +8385,6 @@
         }
       }
     },
-    "Icons can't be moved from here. Hold Command and drag them in the menu bar instead." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Icons can't be moved from here. Hold Command and drag them in the menu bar instead."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Desde aquí no se pueden mover los iconos. Mantén pulsada la tecla Comando y arrástralos en la barra de menús."
-          }
-        }
-      }
-    },
     "Idle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9099,23 +8908,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Los mantiene en Altillo y los mueve al área oculta de macOS. macOS 27 puede ocultar juntos todos los iconos de una misma app."
-          }
-        }
-      }
-    },
-    "Keeps them in Altillo without leaving a second copy visible in the menu bar." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Keeps them in Altillo without leaving a second copy visible in the menu bar."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Los mantiene en Altillo sin dejar una segunda copia visible en la barra de menús."
           }
         }
       }
@@ -10254,23 +10046,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mover a la barra de menús"
-          }
-        }
-      }
-    },
-    "Moving %@…" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moving %@…"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Moviendo %@…"
           }
         }
       }
@@ -15035,23 +14810,6 @@
         }
       }
     },
-    "Show menu bar icons" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show menu bar icons"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mostrar los iconos de la barra de menús"
-          }
-        }
-      }
-    },
     "Show more" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15065,23 +14823,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Mostrar más"
-          }
-        }
-      }
-    },
-    "Show or hide the icons to the left of the Drawer divider" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Show or hide the icons to the left of the Drawer divider"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Muestra o esconde los iconos a la izquierda del separador del cajón"
           }
         }
       }
@@ -15536,23 +15277,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Saltar"
-          }
-        }
-      }
-    },
-    "Some Drawer features aren't available on this version of macOS" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Some Drawer features aren't available on this version of macOS"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Algunas funciones del Cajón no están disponibles en esta versión de macOS"
           }
         }
       }
@@ -20605,40 +20329,6 @@
         }
       }
     },
-    "⌘-drag icons left of the divider, then hide them here." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⌘-drag icons left of the divider, then hide them here."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrastra con ⌘ los iconos a la izquierda del separador y escóndelos aquí."
-          }
-        }
-      }
-    },
-    "⌘-drag icons to the left of the divider | to put them in Drawer. Icons on the right stay visible." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "⌘-drag icons to the left of the divider | to put them in Drawer. Icons on the right stay visible."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrastra con ⌘ los iconos a la izquierda del separador | para meterlos en el cajón. Los de la derecha siguen visibles."
-          }
-        }
-      }
-    },
     "%lld files" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20952,6 +20642,272 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Color %@" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Color %@" } }
+      }
+    },
+    "Keep the menu bar icons you rarely need in Altillo, one click away in the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Keep the menu bar icons you rarely need in Altillo, one click away in the notch." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guarda en Altillo los iconos de la barra de menús que casi no usas, a un clic en el notch." } }
+      }
+    },
+    "They leave the menu bar and live in Altillo. Icons from the same app hide together, and macOS also hides Live Activity pills meanwhile. Quitting Altillo brings them all back." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "They leave the menu bar and live in Altillo. Icons from the same app hide together, and macOS also hides Live Activity pills meanwhile. Quitting Altillo brings them all back." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Salen de la barra de menús y viven en Altillo. Los iconos de una misma app se ocultan juntos, y mientras tanto macOS también oculta las píldoras de Live Activities. Al salir de Altillo vuelven todos." } }
+      }
+    },
+    "Drawer icons are hidden from the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drawer icons are hidden from the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los iconos del Cajón están ocultos en la barra de menús" } }
+      }
+    },
+    "Drawer icons also stay in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drawer icons also stay in the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los iconos del Cajón también siguen en la barra de menús" } }
+      }
+    },
+    "Your Drawer icons are back in the menu bar for now." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Drawer icons are back in the menu bar for now." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Los iconos del Cajón vuelven a estar en la barra de menús, de momento." } }
+      }
+    },
+    "Need one in the menu bar for a moment? Show them there until you hide them again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Need one in the menu bar for a moment? Show them there until you hide them again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Necesitas alguno en la barra de menús un momento? Muéstralos ahí hasta que vuelvas a ocultarlos." } }
+      }
+    },
+    "Hide them again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide them again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Volver a ocultarlos" } }
+      }
+    },
+    "Show hidden icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show hidden icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar iconos ocultos" } }
+      }
+    },
+    "Hide the Drawer icons from the menu bar again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide the Drawer icons from the menu bar again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Volver a ocultar los iconos del Cajón de la barra de menús" } }
+      }
+    },
+    "Show the hidden Drawer icons in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show the hidden Drawer icons in the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar en la barra de menús los iconos ocultos del Cajón" } }
+      }
+    },
+    "Hiding icons needs macOS 27" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hiding icons needs macOS 27" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ocultar iconos requiere macOS 27" } }
+      }
+    },
+    "On this version of macOS, icons you keep in Altillo also stay in the menu bar. The Drawer still opens their menus from the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On this version of macOS, icons you keep in Altillo also stay in the menu bar. The Drawer still opens their menus from the notch." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En esta versión de macOS, los iconos que guardas en Altillo también siguen en la barra de menús. El Cajón sigue abriendo sus menús desde el notch." } }
+      }
+    },
+    "New menu bar icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New menu bar icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iconos nuevos de la barra de menús" } }
+      }
+    },
+    "From apps Altillo hasn't seen before." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "From apps Altillo hasn't seen before." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "De apps que Altillo aún no ha visto." } }
+      }
+    },
+    "Stay in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Stay in the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se quedan en la barra de menús" } }
+      }
+    },
+    "Go to the Drawer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go to the Drawer" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Van al Cajón" } }
+      }
+    },
+    "Altillo reads your menu bar icons and opens their menus. It's the only permission the Drawer needs." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo reads your menu bar icons and opens their menus. It's the only permission the Drawer needs." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo lee los iconos de tu barra de menús y abre sus menús. Es el único permiso que necesita el Cajón." } }
+      }
+    },
+    "Grant Access" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Grant Access" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dar acceso" } }
+      }
+    },
+    "Or drag the icon into the Accessibility list in System Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Or drag the icon into the Accessibility list in System Settings." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "O arrastra el icono a la lista de Accesibilidad de Ajustes del Sistema." } }
+      }
+    },
+    "Drag icons between areas. Icons from the same app move together." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag icons between areas. Icons from the same app move together." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrastra los iconos entre las zonas. Los iconos de una misma app se mueven juntos." } }
+      }
+    },
+    "macOS keeps this in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "macOS keeps this in the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "macOS lo mantiene en la barra de menús" } }
+      }
+    },
+    "Move the %lld icons from %@ to Altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Move the %lld icons from %@ to Altillo" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mover los %lld iconos de %@ a Altillo" } }
+      }
+    },
+    "Move the %lld icons from %@ to Menu Bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Move the %lld icons from %@ to Menu Bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mover los %lld iconos de %@ a la barra de menús" } }
+      }
+    },
+    "%@. Open its menu from the shortcut menu." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@. Open its menu from the shortcut menu." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@. Abre su menú desde el menú contextual." } }
+      }
+    },
+    "Altillo's own icon stays in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo's own icon stays in the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El icono de Altillo se queda en la barra de menús" } }
+      }
+    },
+    "Drag into the Accessibility list in System Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag into the Accessibility list in System Settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrástralo a la lista de Accesibilidad de Ajustes del Sistema" } }
+      }
+    },
+    "Altillo app icon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo app icon" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Icono de la app Altillo" } }
+      }
+    },
+    "Drag it into the Accessibility list in System Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drag it into the Accessibility list in System Settings." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Arrástralo a la lista de Accesibilidad de Ajustes del Sistema." } }
+      }
+    },
+    "Or drag this icon into the Accessibility list in System Settings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Or drag this icon into the Accessibility list in System Settings." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "O arrastra este icono a la lista de Accesibilidad de Ajustes del Sistema." } }
+      }
+    },
+    "Show hidden menu bar icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show hidden menu bar icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar los iconos ocultos de la barra de menús" } }
+      }
+    },
+    "Hide Drawer icons again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hide Drawer icons again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Volver a ocultar los iconos del Cajón" } }
+      }
+    },
+    "Accessibility access was turned off. Your menu bar icons are visible again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Accessibility access was turned off. Your menu bar icons are visible again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Se ha desactivado el acceso de Accesibilidad. Los iconos de tu barra de menús vuelven a verse." } }
+      }
+    },
+    "Close the open menu, then try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Close the open menu, then try again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cierra el menú abierto y vuelve a intentarlo." } }
+      }
+    },
+    "This app doesn't expose a menu that Altillo can open." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This app doesn't expose a menu that Altillo can open." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta app no ofrece un menú que Altillo pueda abrir." } }
+      }
+    },
+    "This command is no longer available. Open the menu and try again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This command is no longer available. Open the menu and try again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esta opción ya no está disponible. Abre el menú y vuelve a intentarlo." } }
+      }
+    },
+    "This menu couldn't be displayed. Try opening it again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This menu couldn't be displayed. Try opening it again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No se ha podido mostrar este menú. Prueba a abrirlo otra vez." } }
+      }
+    },
+    "macOS didn't allow this app's panel to open beside its icon." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "macOS didn't allow this app's panel to open beside its icon." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "macOS no ha dejado que el panel de esta app se abra junto a su icono." } }
+      }
+    },
+    "macOS didn't let Altillo hide menu bar icons. They stay visible." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "macOS didn't let Altillo hide menu bar icons. They stay visible." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "macOS no ha dejado que Altillo oculte los iconos de la barra de menús. Siguen a la vista." } }
       }
     }
   },

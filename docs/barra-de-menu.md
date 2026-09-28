@@ -1,6 +1,6 @@
 # Iconos de la barra de menú: investigación (septiembre 2026)
 
-> **Implementación actual:** [Cajón / Drawer](cajon.md). La estantería compacta se muestra encima de la navegación de Altillo cuando está activa. La ocultación mediante separador solo está implementada y verificada en macOS 26; el catálogo AX en otras versiones no constituye una garantía de compatibilidad completa.
+> **Implementación actual:** [Cajón / Drawer](cajon.md). La estantería compacta se muestra encima de la navegación de Altillo cuando está activa. En macOS 27 oculta con la lista de permitidos del sistema (sin separador); en macOS 26 lista y abre los iconos sin ocultarlos. El separador descrito abajo es investigación histórica.
 
 **Contexto:** macOS 27 "Golden Gate" salió el 14-09-2026. En 27 toda la barra de menú es **una sola ventana**, y Apple ha añadido un **chevrón de desbordamiento nativo** para los iconos que tapa el notch.
 

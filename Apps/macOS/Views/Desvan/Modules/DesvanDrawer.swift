@@ -9,7 +9,7 @@ struct DesvanDrawerView: View {
     private var isDemo: Bool { model.scenario == .openDrawer }
     private var entries: [MenuBarEntry] { isDemo ? Self.demoEntries : store.drawerEntries }
 
-    /// Only items with something real to draw: a captured glyph, a system symbol or the owner's icon.
+    /// Only items with something real to draw: a system symbol or the owner's icon.
     private var items: [StripItem] {
         entries.compactMap { entry in icon(for: entry).map { StripItem(entry: entry, icon: $0) } }
     }
@@ -32,12 +32,7 @@ struct DesvanDrawerView: View {
                     .font(.system(size: 12))
                     .buttonStyle(.plain)
                     .desvanHitTarget()
-            } else if !isDemo && !store.hasIconAccess {
-                Button("Allow Screen Recording to show your icons") { store.requestIconAccess() }
-                    .font(.system(size: 12))
-                    .buttonStyle(.plain)
-                    .desvanHitTarget()
-            } else if !isDemo && items.isEmpty && (store.isLoading || (!entries.isEmpty && store.iconCapture.isCapturing)) {
+            } else if !isDemo && items.isEmpty && store.isLoading {
                 ProgressView("Finding menu bar icons…")
                     .controlSize(.small)
                     .font(.system(size: 12))
@@ -59,7 +54,7 @@ struct DesvanDrawerView: View {
                                     guard !isDemo else { return }
                                     store.activate(entry, anchor: anchor)
                                 } label: {
-                                    // Template (single-colour) captures take the paper tone; colour icons stay as captured.
+                                    // Template (single-colour) symbols take the paper tone; app icons keep their colours.
                                     MenuBarGlyph(image: item.icon)
                                         .foregroundStyle(Desvan.Palette.paper)
                                         .padding(.horizontal, 6)
@@ -74,14 +69,13 @@ struct DesvanDrawerView: View {
                                         }
                                         Divider()
                                         Button("Move to Menu Bar") { store.move(entry, toDrawer: false) }
-                                            .disabled(store.movingEntryID != nil)
                                     }
                                 }
                                 .help(entry.hoverName)
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityLabel("Open \(entry.title) from \(entry.application.name)")
                                 .accessibilityAction {
-                                    guard !isDemo, store.movingEntryID == nil else { return }
+                                    guard !isDemo else { return }
                                     store.activate(entry, anchor: anchor)
                                 }
                             }

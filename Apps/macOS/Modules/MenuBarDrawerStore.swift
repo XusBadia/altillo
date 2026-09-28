@@ -1,10 +1,14 @@
 import AppKit
-import UniformTypeIdentifiers
 import ApplicationServices
 import Observation
 import os
 
-/// Owns the optional menu-bar section. AX work stays on a separate actor; hiding uses AppKit only.
+/// Owns the Drawer: which apps keep their menu-bar icons in Altillo, the Accessibility catalog the strip and
+/// Settings draw, and opening an icon's menu from the notch.
+///
+/// Hiding is logical. On macOS 27 a system allow-list (`MenuBarConcealing`) shows every app except the
+/// Drawer's; nothing is dragged, no divider sits in the menu bar and nothing needs Screen Recording. On
+/// macOS 26 the Drawer lists and opens icons without hiding them.
 @MainActor
 @Observable
 final class MenuBarDrawerStore: NSObject {
@@ -12,164 +16,181 @@ final class MenuBarDrawerStore: NSObject {
 
     private(set) var enabled: Bool
     private(set) var hidesDrawerIcons: Bool
+    /// Icons of apps Altillo has never seen go straight to the Drawer instead of the menu bar.
+    private(set) var newIconsGoToDrawer: Bool
     private(set) var hasAccess = false
-    private(set) var isHidden = false
     private(set) var isLoading = false
-    private(set) var movingEntryID: String?
+    /// The Drawer's apps are hidden from the menu bar right now.
+    private(set) var isConcealing = false
+    /// The user asked to see the hidden icons in the menu bar for a while.
+    private(set) var isPeeking = false
     private(set) var entries: [MenuBarEntry] = []
     private(set) var problem: String?
-    let iconCapture = MenuBarIconCapture()
-    @ObservationIgnored private let menuPresenter = MenuBarMenuPresenter()
-    var hasIconAccess: Bool { iconCapture.hasAccess }
-    /// macOS 26 captures actual status-item windows. macOS 27's shared host cannot expose those
-    /// pixels reliably, so it uses stable application/system icons and needs no Screen Recording.
-    var requiresIconAccess: Bool { support.hidingStyle == .legacy }
-    private var hasRequiredIconAccess: Bool { !requiresIconAccess || hasIconAccess }
-    var isPerformingMenuBarInteraction: Bool {
-        activationTask != nil || movementTask != nil || menuSessionTask != nil || restoreTask != nil
-    }
-    /// What this macOS can do, feature by feature (see `DrawerSupport.decide`).
+    private(set) var membership: DrawerMembership
+    private var drawerOrder: [String]
+
+    /// What this macOS can do (see `DrawerSupport.decide`).
     let support: DrawerSupport
-    /// The Drawer can be used at all: its catalog and strip work on this macOS.
     var isSupported: Bool { support.catalog }
-    /// The strip above the tabs shows only for an enabled Drawer that works on this macOS. Without it the
-    /// catalog is empty and every icon would be a placeholder.
+    /// The strip above the tabs shows only for an enabled Drawer that works on this macOS.
     var showsStrip: Bool { enabled && support.catalog }
     var drawerEntries: [MenuBarEntry] {
         guard enabled && support.catalog else { return [] }
-        return DrawerOrder.sort(entries.filter { selectedIDs.contains($0.id) }, preferredIDs: drawerOrder)
+        return DrawerOrder.sort(entries.filter(isInDrawer), preferredIDs: drawerOrder)
     }
-    var menuBarEntries: [MenuBarEntry] {
-        entries.filter { !selectedIDs.contains($0.id) }
+    var menuBarEntries: [MenuBarEntry] { entries.filter { !isInDrawer($0) } }
+    var isPerformingMenuBarInteraction: Bool { activationTask != nil || menuSessionTask != nil }
+
+    func isInDrawer(_ entry: MenuBarEntry) -> Bool { membership.contains(entry.application.bundleID) }
+
+    /// macOS keeps its own items (clock, Wi‑Fi, Control Center…) in the menu bar.
+    func canMove(_ entry: MenuBarEntry) -> Bool {
+        !DrawerMembership.isSystemHosted(entry.application.bundleID) && entry.application.bundleID != ownBundleID
     }
 
-    func isInDrawer(_ entry: MenuBarEntry) -> Bool { selectedIDs.contains(entry.id) }
+    /// The other icons of the same app. They join and leave the Drawer together.
+    func companions(of entry: MenuBarEntry) -> [MenuBarEntry] {
+        entries.filter { $0.application.bundleID == entry.application.bundleID && $0.id != entry.id }
+    }
 
     @ObservationIgnored private let defaults: UserDefaults
+    @ObservationIgnored private let concealer: MenuBarConcealing
     @ObservationIgnored private let accessibility = MenuBarAccessibility()
-    @ObservationIgnored private var separator: NSStatusItem?
-    @ObservationIgnored private var control: NSStatusItem?
-    @ObservationIgnored private var overflowSpacers: [NSStatusItem] = []
-    @ObservationIgnored private var movementControlPosition: Int?
-    private var selectedIDs: Set<String> = []
-    @ObservationIgnored private var chosenIDs: Set<String>
-    private var drawerOrder: [String]
+    @ObservationIgnored private let menuPresenter = MenuBarMenuPresenter()
+    @ObservationIgnored private let ownBundleID = Bundle.main.bundleIdentifier ?? "me.badia.altillo"
+    /// Bundles that have had an icon; anything else is new to the `newIconsGoToDrawer` policy.
+    @ObservationIgnored private var knownBundleIDs: Set<String>
+    /// Apps shown in the menu bar during this assertion. The list only grows while it lives: macOS ignores a
+    /// shorter list, and replacing the assertion flashes every icon, so a quitting app simply stays listed.
+    @ObservationIgnored private var shownThisSession: Set<String> = []
+    @ObservationIgnored private var concealTask: Task<Void, Never>?
     @ObservationIgnored private var scanTask: Task<Void, Never>?
     @ObservationIgnored private var permissionTask: Task<Void, Never>?
     @ObservationIgnored private var activationTask: Task<Void, Never>?
     @ObservationIgnored private var menuSessionTask: Task<Void, Never>?
     @ObservationIgnored private var currentMenuSession: MenuBarMenuSession?
     @ObservationIgnored private var currentMenuEntryID: String?
-    @ObservationIgnored private var iconTask: Task<Void, Never>?
-    @ObservationIgnored private var movementTask: Task<Void, Never>?
-    @ObservationIgnored private var restoreTask: Task<Void, Never>?
+    @ObservationIgnored private var accessRecheckTask: Task<Void, Never>?
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var distributedObservers: [NSObjectProtocol] = []
     @ObservationIgnored private var started = false
-    @ObservationIgnored private var hideAfterScan = false
-    @ObservationIgnored private var lastKnownIconAccess = false
-    /// Nothing polls at rest. Events mark the catalog stale; a scan runs when something that shows
-    /// the Drawer is on screen (or when the event itself can affect the hidden group).
+    /// Nothing polls at rest. Events mark the catalog stale; a scan runs when something that shows the Drawer
+    /// is on screen.
     @ObservationIgnored private var visibleConsumers: Set<DrawerConsumer> = []
     @ObservationIgnored private var catalogIsStale = true
     @ObservationIgnored private var lastScan: ContinuousClock.Instant?
-    @ObservationIgnored private var forceIconsOnNextScan = false
     @ObservationIgnored private let scheduledRefresh = MenuBarRefreshDebouncer()
-    @ObservationIgnored private var accessRecheckTask: Task<Void, Never>?
     @ObservationIgnored private var applicationCache = MenuBarApplicationCache()
     @ObservationIgnored private var applicationIcons: [Int32: NSImage] = [:]
     @ObservationIgnored private lazy var genericApplicationIcon = NSWorkspace.shared.icon(for: .applicationBundle)
-    /// A visible catalog older than this is rescanned when the Drawer appears. Scans are cheap AX reads;
-    /// pixels are only recaptured when an item's glyph key changes or it is older than `glyphMaxAge`.
+    /// Reads the bundle ids of every running app. Injected by tests.
+    @ObservationIgnored private let runningBundleIDs: @MainActor () -> Set<String>
+
     static let catalogMaxAge: Duration = .seconds(30)
-    static let glyphMaxAge: Duration = .seconds(60)
     /// Bounded permission reconciliation after the user asks for access (2 s × 60 = 2 min).
     static let permissionCheckInterval: Duration = .seconds(2)
     static let permissionCheckCount = 60
     /// `.debug` only: free unless someone streams it (`log stream --level debug --predicate 'category == "drawer"'`).
     static let log = Logger(subsystem: "me.badia.altillo", category: "drawer")
-    /// The expanded notch sits above the native menu bar. Fold it before posting
-    /// a Command-drag, otherwise the overlay receives the mouse-down instead of the item.
+    /// The expanded notch sits above the menu bar. Fold it before opening an item's panel.
     @ObservationIgnored var prepareForMenuBarInteraction: (() -> Void)?
 
-    init(defaults: UserDefaults = .standard,
-         majorVersion: Int = ProcessInfo.processInfo.operatingSystemVersion.majorVersion) {
-        self.defaults = defaults
-        self.support = DrawerSupport.decide(majorVersion: majorVersion)
-        self.enabled = defaults.bool(forKey: "drawer.enabled")
-        self.hidesDrawerIcons = (defaults.object(forKey: "drawer.hidesIcons") as? Bool) ?? true
-        self.chosenIDs = Set(defaults.stringArray(forKey: "drawer.chosenIDs") ?? [])
-        self.drawerOrder = defaults.stringArray(forKey: "drawer.order") ?? []
-        super.init()
+    private enum Key {
+        static let enabled = "drawer.enabled"
+        static let hidesIcons = "drawer.hidesIcons"
+        static let newIconsGoToDrawer = "drawer.newIconsGoToDrawer"
+        static let bundleIDs = "drawer.bundleIDs"
+        static let knownBundleIDs = "drawer.knownBundleIDs"
+        static let order = "drawer.order"
+        static let legacyChosenIDs = "drawer.chosenIDs"
     }
+
+    init(defaults: UserDefaults = .standard,
+         majorVersion: Int = ProcessInfo.processInfo.operatingSystemVersion.majorVersion,
+         concealer: MenuBarConcealing? = nil,
+         runningBundleIDs: (@MainActor () -> Set<String>)? = nil) {
+        self.defaults = defaults
+        let concealer = concealer ?? (majorVersion >= 27 ? MenuBarConcealer() : UnavailableMenuBarConcealer())
+        self.concealer = concealer
+        self.support = DrawerSupport.decide(majorVersion: majorVersion, canHide: concealer.isAvailable)
+        self.runningBundleIDs = runningBundleIDs ?? {
+            Set(NSWorkspace.shared.runningApplications.compactMap(\.bundleIdentifier))
+        }
+        self.enabled = defaults.bool(forKey: Key.enabled)
+        self.hidesDrawerIcons = (defaults.object(forKey: Key.hidesIcons) as? Bool) ?? true
+        self.newIconsGoToDrawer = defaults.bool(forKey: Key.newIconsGoToDrawer)
+        self.knownBundleIDs = Set(defaults.stringArray(forKey: Key.knownBundleIDs) ?? [])
+        self.drawerOrder = defaults.stringArray(forKey: Key.order) ?? []
+        if let saved = defaults.stringArray(forKey: Key.bundleIDs) {
+            self.membership = DrawerMembership(bundleIDs: saved)
+        } else {
+            self.membership = .migrating(chosenIDs: defaults.stringArray(forKey: Key.legacyChosenIDs) ?? [])
+        }
+        super.init()
+        Self.forgetLegacyChrome(in: defaults)
+        defaults.set(membership.bundleIDs, forKey: Key.bundleIDs)
+    }
+
+    /// The divider, arrow and spacers of the previous Drawer are gone; so are their saved positions.
+    private static func forgetLegacyChrome(in defaults: UserDefaults) {
+        for key in defaults.dictionaryRepresentation().keys where
+            key.contains("Altillo.Drawer.") || key.hasPrefix("drawer.v27.") {
+            defaults.removeObject(forKey: key)
+        }
+        for key in [Key.legacyChosenIDs, "drawer.restoreHidden"] { defaults.removeObject(forKey: key) }
+    }
+
+    // MARK: - Lifecycle
 
     func start() {
         guard !started else { return }
         started = true
         hasAccess = AXIsProcessTrusted()
-        Self.log.debug("start enabled=\(self.enabled) ax=\(self.hasAccess) capture=\(self.hasIconAccess)")
+        Self.log.debug("start enabled=\(self.enabled) ax=\(self.hasAccess) hiding=\(self.support.hiding)")
         if enabled, support.catalog, hasAccess {
-            installSection()
-            // Launch must never synthesize Command-drags: posting those events moves the real
-            // pointer into the menu bar. Native status-item positions persist, so discover the
-            // existing section and collapse it without rearranging anything behind the user's back.
-            restoreChosenSelection(after: .seconds(2), allowMenuBarMovement: false)
+            refresh()
+            applyConcealment()
         }
         let workspace = NSWorkspace.shared.notificationCenter
-        for (name, delay) in [(NSWorkspace.didLaunchApplicationNotification, Duration.milliseconds(1_200)),
-                              (NSWorkspace.didTerminateApplicationNotification, .milliseconds(300)),
-                              (NSWorkspace.didWakeNotification, .seconds(1))] {
-            observers.append(workspace.addObserver(forName: name, object: nil, queue: .main) { [weak self] note in
-                let pid = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.processIdentifier
-                MainActor.assumeIsolated {
-                    guard let self else { return }
-                    if let pid {
-                        self.applicationCache.forget(pid: pid)
-                        self.applicationIcons[pid] = nil
-                    }
-                    self.catalogIsStale = true
-                    guard self.enabled else { return }
-                    // Opening a command can launch another app. Refresh the catalog without
-                    // revealing the user's hidden icons in response. A new app's status item
-                    // usually appears shortly after launch, so wait for it to settle.
-                    self.scheduleRefresh(after: delay)
-                }
-            })
-        }
-        // Status items don't change with Spaces, but full-screen Spaces can hide the bar; re-verify lazily.
         observers.append(workspace.addObserver(
-            forName: NSWorkspace.activeSpaceDidChangeNotification, object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.catalogDidChange() }
-        })
-        observers.append(NotificationCenter.default.addObserver(
-            forName: .menuBarItemsDidChange, object: nil, queue: .main
-        ) { [weak self] _ in
-            MainActor.assumeIsolated { self?.catalogDidChange() }
-        })
-        observers.append(NotificationCenter.default.addObserver(
-            forName: NSApplication.didChangeScreenParametersNotification, object: nil, queue: .main
-        ) { [weak self] _ in
+            forName: NSWorkspace.didLaunchApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            let pid = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.processIdentifier
             MainActor.assumeIsolated {
                 guard let self else { return }
-                // macOS 27 uses geometry derived from every display and can resize in place. The
-                // legacy model reopens first because its physical boundary may have moved.
-                if self.isHidden, self.support.hidingStyle == .overflow {
-                    self.applyCollapsedGeometry(collapsed: true)
-                } else {
-                    self.reveal()
-                }
+                if let pid { self.forget(pid: pid) }
+                // With the assertion held, a new app stays hidden until it's listed: add it right away.
+                self.applyConcealment()
                 self.catalogIsStale = true
-                self.scheduleRefresh(after: .milliseconds(500))
+                guard self.enabled else { return }
+                // A new app's status item usually appears shortly after launch.
+                self.scheduleRefresh(after: .milliseconds(1_200))
             }
         })
+        observers.append(workspace.addObserver(
+            forName: NSWorkspace.didTerminateApplicationNotification, object: nil, queue: .main
+        ) { [weak self] note in
+            let pid = (note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)?.processIdentifier
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                if let pid { self.forget(pid: pid) }
+                self.catalogDidChange()
+            }
+        })
+        for name in [NSWorkspace.didWakeNotification, NSWorkspace.activeSpaceDidChangeNotification] {
+            observers.append(workspace.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.catalogDidChange() }
+            })
+        }
+        for name in [Notification.Name.menuBarItemsDidChange, NSApplication.didChangeScreenParametersNotification] {
+            observers.append(NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                MainActor.assumeIsolated { self?.catalogDidChange() }
+            })
+        }
         observers.append(NotificationCenter.default.addObserver(
             forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
         ) { [weak self] _ in
-            MainActor.assumeIsolated {
-                self?.checkAccess()
-                self?.reconcileIconAccess()
-            }
+            MainActor.assumeIsolated { self?.checkAccess() }
         })
         // Posted system-wide whenever the Accessibility trust list changes; TCC settles shortly after.
         distributedObservers.append(DistributedNotificationCenter.default().addObserver(
@@ -181,92 +202,22 @@ final class MenuBarDrawerStore: NSObject {
 
     private static let accessibilityTrustChanged = Notification.Name("com.apple.accessibility.api")
 
-    /// Something that renders the Drawer (the open notch, the Settings pane) appeared or disappeared.
-    /// Appearing is the lazy refresh point: the catalog is rescanned only if stale, and pixels are
-    /// recaptured only for glyphs whose key changed or that are older than `glyphMaxAge`.
-    func setVisible(_ visible: Bool, for consumer: DrawerConsumer) {
-        if visible {
-            visibleConsumers.insert(consumer)
-        } else {
-            visibleConsumers.remove(consumer)
-            return
-        }
-        checkAccess()
-        reconcileIconAccess()
-        if DrawerRefreshPolicy.needsScan(isStale: catalogIsStale, hasEntries: !entries.isEmpty,
-                                         lastScan: lastScan, now: .now, maxAge: Self.catalogMaxAge) {
-            scheduleRefresh(after: .milliseconds(120))
-        } else {
-            refreshIcons()
-        }
-    }
-
-    var isVisible: Bool { !visibleConsumers.isEmpty }
-
-    private func catalogDidChange() {
-        catalogIsStale = true
-        Self.log.debug("catalog stale visible=\(self.isVisible)")
-        // At rest this is the whole cost of an event: a flag. Scan only while someone is looking.
-        guard isVisible else { return }
-        scheduleRefresh(after: .milliseconds(400))
-    }
-
-    private func scheduleRefresh(after delay: Duration) {
-        scheduledRefresh.schedule(after: delay) { [weak self] in self?.performScheduledRefresh(delay: delay) }
-    }
-
-    private func performScheduledRefresh(delay: Duration) {
-        // Never rescan underneath a move, an activation or an open panel; the next appearance catches up.
-        guard !isPerformingMenuBarInteraction, movingEntryID == nil else {
-            catalogIsStale = true
-            return
-        }
-        guard scanTask == nil else {
-            scheduleRefresh(after: delay)
-            return
-        }
-        refresh()
-    }
-
-    private func recheckAccessSoon() {
-        accessRecheckTask?.cancel()
-        accessRecheckTask = Task { [weak self] in
-            for delay in [Duration.milliseconds(500), .seconds(2)] {
-                try? await Task.sleep(for: delay)
-                guard !Task.isCancelled, let self else { return }
-                self.checkAccess()
-            }
-            self?.accessRecheckTask = nil
-        }
-    }
-
     func stop() {
         menuPresenter.cancel()
         started = false
-        scanTask?.cancel()
+        for task in [scanTask, permissionTask, activationTask, menuSessionTask, accessRecheckTask, concealTask] {
+            task?.cancel()
+        }
         scanTask = nil
-        permissionTask?.cancel()
         permissionTask = nil
-        activationTask?.cancel()
         activationTask = nil
-        menuSessionTask?.cancel()
         menuSessionTask = nil
-        iconTask?.cancel()
-        iconTask = nil
-        movementTask?.cancel()
-        restoreTask?.cancel()
-        restoreTask = nil
-        scheduledRefresh.cancel()
-        accessRecheckTask?.cancel()
         accessRecheckTask = nil
+        concealTask = nil
+        scheduledRefresh.cancel()
         Task { [accessibility] in await accessibility.stopObserving() }
-        hideAfterScan = false
         isLoading = false
-        // Leave the items alive through the final run loop: destroying the expanded separator in the
-        // same tick can preserve offscreen positions. Process teardown removes the items afterwards.
-        applyCollapsedGeometry(collapsed: false)
-        isHidden = false
-        updateControl()
+        releaseConcealment()
         for observer in observers {
             NotificationCenter.default.removeObserver(observer)
             NSWorkspace.shared.notificationCenter.removeObserver(observer)
@@ -278,224 +229,262 @@ final class MenuBarDrawerStore: NSObject {
         distributedObservers.removeAll()
     }
 
+    // MARK: - Settings
+
     func setEnabled(_ value: Bool) {
         guard !value || support.catalog else { return }
-        hideAfterScan = false
         enabled = value
-        defaults.set(value, forKey: "drawer.enabled")
+        defaults.set(value, forKey: Key.enabled)
+        problem = nil
         if value {
-            if !hasAccess || (requiresIconAccess && !hasIconAccess) { monitorAccess() }
-            // Enabling Drawer is the explicit user gesture that authorizes requesting
-            // the permissions required on this OS; don't defer them until a tile click.
-            if requiresIconAccess, !hasIconAccess { requestIconAccess() }
+            // Enabling the Drawer is the explicit gesture that authorizes asking for Accessibility.
             if !hasAccess { requestAccess() }
-            if hasAccess {
-                installSection()
-                restoreChosenSelection(after: .milliseconds(180), allowMenuBarMovement: true)
-            }
+            refresh()
+            applyConcealment()
         } else {
             menuPresenter.cancel()
             menuSessionTask?.cancel()
             menuSessionTask = nil
             activationTask?.cancel()
-            movementTask?.cancel()
-            restoreTask?.cancel()
-            restoreTask = nil
             permissionTask?.cancel()
             permissionTask = nil
             scheduledRefresh.cancel()
             Task { [accessibility] in await accessibility.stopObserving() }
-            removeSection()
-            selectedIDs.removeAll()
+            isPeeking = false
+            releaseConcealment()
         }
     }
 
     func setHidesDrawerIcons(_ value: Bool) {
         guard !value || support.hiding else { return }
         hidesDrawerIcons = value
-        defaults.set(value, forKey: "drawer.hidesIcons")
+        defaults.set(value, forKey: Key.hidesIcons)
         problem = nil
-        guard enabled, hasAccess else { return }
-        if value, !chosenIDs.isEmpty {
-            if support.hidingStyle == .overflow {
-                restoreChosenSelection(after: .zero, allowMenuBarMovement: true)
-            } else {
-                hide()
-            }
+        if !value { isPeeking = false }
+        applyConcealment()
+    }
+
+    func setNewIconsGoToDrawer(_ value: Bool) {
+        // Whatever already has an icon isn't new: only apps that appear from now on follow the policy.
+        rememberBundles(of: entries)
+        newIconsGoToDrawer = value
+        defaults.set(value, forKey: Key.newIconsGoToDrawer)
+        applyConcealment()
+    }
+
+    /// Shows the hidden icons in the menu bar until the user hides them again.
+    func setPeeking(_ value: Bool) {
+        guard value != isPeeking else { return }
+        isPeeking = value
+        applyConcealment()
+    }
+
+    // MARK: - Membership
+
+    /// Moves every icon of `entry`'s app. The native menu bar follows immediately where hiding works.
+    @discardableResult
+    func move(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry? = nil) -> Bool {
+        guard enabled, canMove(entry) else { return false }
+        let bundleID = entry.application.bundleID
+        let group = [entry] + companions(of: entry)
+        let groupIDs = Set(group.map(\.id))
+        problem = nil
+        if toDrawer {
+            membership.insert(bundleID)
+            var order = drawerEntries.map(\.id).filter { !groupIDs.contains($0) }
+            let index = target.flatMap { target in order.firstIndex(of: target.id) } ?? order.endIndex
+            order.insert(contentsOf: group.map(\.id), at: index)
+            drawerOrder = order
         } else {
-            restoreTask?.cancel()
-            restoreTask = nil
-            reveal()
+            membership.remove(bundleID)
+            drawerOrder.removeAll { groupIDs.contains($0) }
+        }
+        rememberBundles(of: group)
+        defaults.set(membership.bundleIDs, forKey: Key.bundleIDs)
+        defaults.set(drawerOrder, forKey: Key.order)
+        applyConcealment()
+        return true
+    }
+
+    /// Reorders the compact Drawer. Dropping on an icon places the dragged one before it; dropping on the
+    /// background sends it to the end.
+    func reorderDrawerEntry(_ entry: MenuBarEntry, before target: MenuBarEntry?) {
+        guard isInDrawer(entry), target?.id != entry.id else { return }
+        drawerOrder = DrawerOrder.moving(entry.id, before: target?.id, in: drawerEntries.map(\.id))
+        defaults.set(drawerOrder, forKey: Key.order)
+    }
+
+    @discardableResult
+    private func rememberBundles(of entries: [MenuBarEntry]) -> Bool {
+        let bundles = Set(entries.map(\.application.bundleID))
+        guard !bundles.isSubset(of: knownBundleIDs) else { return false }
+        knownBundleIDs.formUnion(bundles)
+        defaults.set(knownBundleIDs.sorted(), forKey: Key.knownBundleIDs)
+        return true
+    }
+
+    /// New apps with icons join the Drawer under the `newIconsGoToDrawer` policy; either way they become known.
+    /// Returns whether the allow-list inputs changed.
+    private func adoptNewApps(in scanned: [MenuBarEntry]) -> Bool {
+        if knownBundleIDs.isEmpty {
+            // First catalog ever: everything already in the menu bar is the user's starting point, not "new".
+            return rememberBundles(of: scanned)
+        }
+        let fresh = scanned.filter { !knownBundleIDs.contains($0.application.bundleID) && canMove($0) }
+        if newIconsGoToDrawer, !fresh.isEmpty {
+            for entry in fresh { membership.insert(entry.application.bundleID) }
+            drawerOrder += fresh.map(\.id).filter { !drawerOrder.contains($0) }
+            defaults.set(membership.bundleIDs, forKey: Key.bundleIDs)
+            defaults.set(drawerOrder, forKey: Key.order)
+        }
+        return rememberBundles(of: scanned) || (newIconsGoToDrawer && !fresh.isEmpty)
+    }
+
+    // MARK: - Hiding
+
+    /// Hiding needs the Drawer on, Accessibility (without it hidden icons couldn't be opened from Altillo) and
+    /// something to hide. Anything else shows every icon.
+    private var wantsConcealment: Bool {
+        enabled && support.hiding && hidesDrawerIcons && hasAccess && !isPeeking && !membership.isEmpty
+    }
+
+    /// One funnel for every change that affects the menu bar. Calls are serialized; each computes the list
+    /// when it runs, so a burst of launches settles on the latest state.
+    private func applyConcealment() {
+        guard wantsConcealment else {
+            releaseConcealment()
+            return
+        }
+        let previous = concealTask
+        concealTask = Task { [weak self] in
+            await previous?.value
+            guard let self, !Task.isCancelled, self.wantsConcealment else { return }
+            let list = self.membership.allowList(
+                running: self.runningBundleIDs(), shownThisSession: self.shownThisSession,
+                alwaysAllowed: [self.ownBundleID], known: self.knownBundleIDs,
+                newAppsJoinDrawer: self.newIconsGoToDrawer
+            )
+            let concealed = await self.concealer.conceal(allowing: list)
+            guard !Task.isCancelled else { return }
+            if concealed {
+                self.shownThisSession = list.bundleIDs
+                self.isConcealing = true
+            } else {
+                self.concealer.release()
+                self.shownThisSession = []
+                self.isConcealing = false
+                self.problem = String(localized: "macOS didn't let Altillo hide menu bar icons. They stay visible.")
+            }
         }
     }
 
-    func requestAccess() {
-        // Called only by an explicit button, never on launch or on opening the module.
-        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
-        _ = AXIsProcessTrustedWithOptions(options)
+    private func releaseConcealment() {
+        concealTask?.cancel()
+        concealTask = nil
+        concealer.release()
+        shownThisSession = []
+        isConcealing = false
+    }
+
+    // MARK: - Catalog
+
+    /// Something that renders the Drawer (the open notch, the Settings pane) appeared or disappeared.
+    /// Appearing is the lazy refresh point: the catalog is rescanned only if stale or old.
+    func setVisible(_ visible: Bool, for consumer: DrawerConsumer) {
+        if visible {
+            visibleConsumers.insert(consumer)
+        } else {
+            visibleConsumers.remove(consumer)
+            return
+        }
         checkAccess()
-        monitorAccess(restart: true)
-        if !hasAccess,
-           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
-            NSWorkspace.shared.open(url)
+        if DrawerRefreshPolicy.needsScan(isStale: catalogIsStale, hasEntries: !entries.isEmpty,
+                                         lastScan: lastScan, now: .now, maxAge: Self.catalogMaxAge) {
+            scheduleRefresh(after: .milliseconds(120))
         }
     }
 
-    /// Rescans the AX catalog and captures glyphs that are missing or changed.
-    /// `forceIcons` recaptures every glyph (the explicit Refresh button).
-    /// Passive catalog updates preserve operation errors until the user retries or refreshes.
-    func refresh(forceIcons: Bool = false, clearProblem: Bool = false) {
+    var isVisible: Bool { !visibleConsumers.isEmpty }
+
+    private func catalogDidChange() {
+        catalogIsStale = true
+        // At rest this is the whole cost of an event: a flag. Scan only while someone is looking, or when an
+        // icon may have just appeared hidden: under "Go to the Drawer" it must reach the Drawer to be reachable.
+        guard isVisible || (newIconsGoToDrawer && isConcealing) else { return }
+        scheduleRefresh(after: .milliseconds(400))
+    }
+
+    private func scheduleRefresh(after delay: Duration) {
+        scheduledRefresh.schedule(after: delay) { [weak self] in self?.performScheduledRefresh(delay: delay) }
+    }
+
+    private func performScheduledRefresh(delay: Duration) {
+        // Never rescan underneath an activation or an open panel; the next appearance catches up.
+        guard !isPerformingMenuBarInteraction else {
+            catalogIsStale = true
+            return
+        }
+        guard scanTask == nil else {
+            scheduleRefresh(after: delay)
+            return
+        }
+        refresh()
+    }
+
+    /// Rescans the Accessibility catalog. Concealed icons stay in it: macOS keeps exposing them.
+    func refresh(clearProblem: Bool = false) {
         checkAccess()
-        if forceIcons { forceIconsOnNextScan = true }
-        guard hasAccess, scanTask == nil, movingEntryID == nil else { return }
+        guard hasAccess, scanTask == nil else { return }
         scheduledRefresh.cancel()
         if clearProblem { problem = nil }
         isLoading = true
         catalogIsStale = false
-        let force = forceIconsOnNextScan
-        forceIconsOnNextScan = false
         let applications = runningApplications()
-        Self.log.debug("scan apps=\(applications.count) forceIcons=\(force) visible=\(self.isVisible)")
         scanTask = Task { [weak self, accessibility] in
-            var result = await accessibility.scan(applications: applications)
-            var failedPIDs = await accessibility.failedApplicationPIDs
+            let result = await accessibility.scan(applications: applications)
             guard !Task.isCancelled, let self else { return }
-            Self.log.debug("scan found=\(result.count) failures=\(failedPIDs.count)")
-            self.setEntries(result)
-            await self.captureIcons(for: result, force: force)
-            guard !Task.isCancelled else { return }
-            if self.hideAfterScan {
-                // Capturing can add a system privacy indicator. Verify the current
-                // native group after capture, before deciding which items to hide.
-                result = await accessibility.scan(applications: self.runningApplications())
-                failedPIDs.formUnion(await accessibility.failedApplicationPIDs)
-                guard !Task.isCancelled else { return }
-                self.setEntries(result)
-            }
+            Self.log.debug("scan found=\(result.count)")
             self.isLoading = false
             self.scanTask = nil
             self.lastScan = .now
-            if self.enabled, let selection = self.selectionAfterScanning(result) {
-                self.selectedIDs = selection
-            }
-            if self.hideAfterScan {
-                self.hideAfterScan = false
-                if failedPIDs.isEmpty, self.separatorFrame != nil {
-                    self.collapseSection()
-                } else {
-                    self.reveal()
-                    self.problem = "Some menu bar icons couldn't be read. They stay visible; try Refresh."
-                }
-            } else if self.isHidden, !failedPIDs.isEmpty {
-                self.reveal()
-                self.problem = "Some menu bar icons couldn't be read. They are visible again."
-            }
+            self.didScan(result)
         }
     }
 
-    func beginArranging() {
-        restoreTask?.cancel()
-        restoreTask = nil
-        reveal()
-        problem = nil
-        refresh()
+    private func didScan(_ result: [MenuBarEntry]) {
+        if entries != result { entries = result }
+        guard enabled else { return }
+        if adoptNewApps(in: result) { applyConcealment() }
     }
 
-    /// Restores persisted Drawer membership after launch or re-enabling the feature. macOS 27 no
-    /// longer exposes per-app position keys, so an explicit settings or permission action may need
-    /// to Command-drag older saved items beside the overflow divider. Passive launch only scans.
-    private func restoreChosenSelection(after delay: Duration, allowMenuBarMovement: Bool) {
-        restoreTask?.cancel()
-        restoreTask = Task { [weak self] in
-            // A cancelled restore may already have been replaced by a newer one. Only the current,
-            // non-cancelled task clears the busy state when it exits through one of the guards below.
-            defer {
-                if !Task.isCancelled { self?.restoreTask = nil }
-            }
-            if delay != .zero { try? await Task.sleep(for: delay) }
-            guard !Task.isCancelled, let self, self.enabled, self.hasAccess else { return }
-            self.reveal()
-            self.refresh()
-            let pendingScan = self.scanTask
-            await pendingScan?.value
-            guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
-            guard await self.unfoldChromeIfNeeded() else {
-                if !Task.isCancelled { self.problem = Self.foldedChromeProblem }
-                return
-            }
+    /// Tests feed a catalog and Accessibility state directly; they never scan or touch the real menu bar.
+    func setCatalogForTesting(_ entries: [MenuBarEntry], hasAccess: Bool) {
+        self.hasAccess = hasAccess
+        didScan(entries)
+    }
 
-            if allowMenuBarMovement, self.support.hidingStyle == .overflow {
-                let ordered = DrawerOrder.sort(
-                    self.entries.filter { self.chosenIDs.contains($0.id) },
-                    preferredIDs: self.drawerOrder
-                )
-                for savedEntry in ordered {
-                    guard !Task.isCancelled, self.enabled, self.hasAccess,
-                          let current = self.entries.first(where: { $0.id == savedEntry.id }) else { continue }
-                    guard self.move(current, toDrawer: true) else { continue }
-                    let pendingMove = self.movementTask
-                    await pendingMove?.value
-                }
-            }
-
-            guard !Task.isCancelled else { return }
-            if self.hidesDrawerIcons, !self.chosenIDs.isEmpty { self.hide() }
+    /// Waits until the menu bar reflects the latest change (tests).
+    func settleForTesting() async {
+        while let task = concealTask {
+            await task.value
+            if concealTask == task { return }
         }
     }
 
-    func hide() {
-        guard enabled, hidesDrawerIcons, support.hiding, hasAccess, hasRequiredIconAccess, separator != nil,
-              movementTask == nil, activationTask == nil else { return }
-        guard !isHidden else { return }
-        // A scan begun before the user finished dragging may contain the old layout.
-        scanTask?.cancel()
-        scanTask = nil
-        hideAfterScan = true
-        refresh()
+    private func forget(pid: Int32) {
+        applicationCache.forget(pid: pid)
+        applicationIcons[pid] = nil
     }
 
-    func reveal() {
-        menuSessionTask?.cancel()
-        menuSessionTask = nil
-        hideAfterScan = false
-        applyCollapsedGeometry(collapsed: false)
-        isHidden = false
-        defaults.set(false, forKey: "drawer.restoreHidden")
-        updateControl()
-    }
+    // MARK: - Icons
 
-    func statusIcon(for entry: MenuBarEntry) -> NSImage? {
-        iconCapture.images[entry.id]
-    }
+    /// A stable, recognisable image per icon: SF Symbols for macOS's own items, the owner's icon otherwise.
+    /// Concealed icons aren't drawn at all, so their pixels can't be captured.
+    func stripIcon(for entry: MenuBarEntry) -> NSImage? { catalogIcon(for: entry) }
 
-    /// macOS 26 shows the captured status glyph and waits while it is pending. Newer systems use a stable
-    /// system/app identity because their shared menu-bar host cannot reliably expose per-item pixels.
-    func stripIcon(for entry: MenuBarEntry) -> NSImage? {
-        if !requiresIconAccess { return stableCatalogIcon(for: entry) }
-        let source = MenuBarGlyphFallback.source(
-            for: entry, hasCapture: iconCapture.images[entry.id] != nil,
-            captureFailed: iconCapture.failedIDs.contains(entry.id),
-            hasApplicationIcon: applicationIcon(for: entry) != nil
-        )
-        return image(for: entry, source: source)
-    }
+    func settingsIcon(for entry: MenuBarEntry) -> NSImage { catalogIcon(for: entry) }
 
-    /// Settings must list every item so it can be arranged. macOS 26 uses actual status pixels; newer
-    /// systems consistently use system symbols and application icons, without changing after overflow opens.
-    func settingsIcon(for entry: MenuBarEntry) -> NSImage {
-        if !requiresIconAccess { return stableCatalogIcon(for: entry) }
-        if let captured = iconCapture.images[entry.id] { return captured }
-        if let symbol = MenuBarAccessibility.systemSymbol(for: entry),
-           let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) {
-            return image
-        }
-        return NSImage(systemSymbolName: "questionmark", accessibilityDescription: "Icon unavailable")
-            ?? NSImage(size: CGSize(width: MenuBarGlyph.box, height: MenuBarGlyph.box))
-    }
-
-    /// Shared menu-bar hosts can return another item's pixels or no pixels at all. Use one stable,
-    /// recognisable representation for the lifetime of the catalog instead of changing after overflow opens.
-    private func stableCatalogIcon(for entry: MenuBarEntry) -> NSImage {
+    private func catalogIcon(for entry: MenuBarEntry) -> NSImage {
         if let symbol = MenuBarAccessibility.systemSymbol(for: entry),
            let image = NSImage(systemSymbolName: symbol, accessibilityDescription: nil) {
             return image
@@ -503,16 +492,6 @@ final class MenuBarDrawerStore: NSObject {
         return applicationIcon(for: entry)
             ?? NSImage(systemSymbolName: "questionmark", accessibilityDescription: "Icon unavailable")
             ?? NSImage(size: CGSize(width: MenuBarGlyph.box, height: MenuBarGlyph.box))
-    }
-
-    private func image(for entry: MenuBarEntry, source: MenuBarGlyphFallback.Source) -> NSImage? {
-        switch source {
-        case .captured: iconCapture.images[entry.id]
-        case .systemSymbol(let name):
-            NSImage(systemSymbolName: name, accessibilityDescription: nil)
-        case .applicationIcon: applicationIcon(for: entry)
-        case .none: nil
-        }
     }
 
     /// The owner's icon, drawn once per process at the strip's glyph size.
@@ -531,343 +510,24 @@ final class MenuBarDrawerStore: NSObject {
         return glyph
     }
 
-    func requestIconAccess() {
-        iconCapture.requestAccess()
-        monitorAccess(restart: true)
-        reconcileIconAccess()
-        refreshIcons()
-    }
+    // MARK: - Opening an icon
 
-    private func reconcileIconAccess() {
-        iconCapture.checkAccess()
-        let granted = hasIconAccess
-        guard granted != lastKnownIconAccess else { return }
-        lastKnownIconAccess = granted
-        if granted {
-            // Capture permission may finish asynchronously after returning from Settings.
-            // Refresh the AX catalog as well as its pixels, including an already-enabled Drawer.
-            refresh()
-            refreshIcons()
-        } else {
-            reveal()
-        }
-    }
-
-    /// Captures glyphs for the current catalog without rescanning it. Cached, unchanged glyphs are
-    /// kept; while the Drawer is visible, glyphs older than `glyphMaxAge` are renewed.
-    func refreshIcons(force: Bool = false) {
-        guard requiresIconAccess, iconTask == nil, !entries.isEmpty else { return }
-        iconTask = Task { [weak self] in
-            guard let self else { return }
-            await self.captureIcons(for: self.entries, force: force)
-            self.iconTask = nil
-        }
-    }
-
-    private func captureIcons(for entries: [MenuBarEntry], force: Bool = false) async {
-        guard requiresIconAccess else { return }
-        await iconCapture.refresh(entries: entries, appearance: glyphAppearance,
-                                  maxAge: isVisible ? Self.glyphMaxAge : nil, force: force)
-    }
-
-    /// Menu-bar glyphs render differently in light/dark bars and at other backing scales.
-    private var glyphAppearance: String {
-        let button = separator?.button ?? control?.button
-        let appearance = button?.effectiveAppearance ?? NSApp.effectiveAppearance
-        // The status items' own display decides the pixels ScreenCaptureKit can return.
-        let scale = button?.window?.screen?.backingScaleFactor ?? NSScreen.screens.first?.backingScaleFactor ?? 2
-        return Self.glyphAppearanceKey(appearance: appearance.name.rawValue, scale: scale)
-    }
-
-    nonisolated static func glyphAppearanceKey(appearance: String, scale: CGFloat) -> String {
-        "\(appearance)@\(scale)"
-    }
-
-    /// Avoids invalidating every observing view when a rescan found the same catalog.
-    private func setEntries(_ newEntries: [MenuBarEntry]) {
-        if entries != newEntries { entries = newEntries }
-    }
-
-    /// On systems where the divider can hide a native group, the two settings zones mirror that
-    /// native order. Unsupported future systems keep a logical fallback instead of risking an
-    /// unverified menu-bar mutation.
-    @discardableResult
-    func move(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry? = nil) -> Bool {
-        checkAccess()
-        guard enabled, support.arranging, hasAccess,
-              movementTask == nil, activationTask == nil, menuSessionTask == nil else { return false }
-        if !support.hiding {
-            return moveLogically(entry, toDrawer: toDrawer, before: target)
-        }
-        scanTask?.cancel()
-        scanTask = nil
-        movingEntryID = entry.id
-        isLoading = true
-        problem = nil
-        menuSessionTask?.cancel()
-        menuSessionTask = nil
-        reveal()
-        prepareForMenuBarInteraction?()
-        let targetOrderID = target?.id
-        movementTask = Task { [weak self, accessibility] in
-            guard let self else { return }
-            var compactedChrome = false
-            defer {
-                if compactedChrome { self.restoreChromeAfterMovement() }
-                self.movementTask = nil
-                self.movingEntryID = nil
-                self.isLoading = false
-            }
-            let openMenu = self.currentMenuSession ?? MenuBarMenuSession(pid: Self.panelOwnerPID(for: entry))
-            guard await self.dismissMenu(openMenu, entryID: self.currentMenuEntryID ?? entry.id) else {
-                self.problem = "Close the open menu, then try moving this icon again."
-                return
-            }
-            self.currentMenuSession = nil
-            self.currentMenuEntryID = nil
-            try? await Task.sleep(for: .milliseconds(180))
-            guard !Task.isCancelled else { return }
-            // A folded divider shares the overflow control's frame: there is nowhere to drop beside it.
-            guard await self.unfoldChromeIfNeeded() else {
-                if !Task.isCancelled { self.problem = Self.foldedChromeProblem }
-                return
-            }
-            guard let layout = await self.settledLayout(for: entry.id) else {
-                self.problem = String(localized: "The menu bar is still changing. Wait a moment and try again.")
-                return
-            }
-            let target = layout.entry
-            let boundary = layout.divider
-            Self.log.debug("move begin id=\(entry.id) item=\(String(describing: target.frame), privacy: .public) divider=\(String(describing: boundary), privacy: .public) toDrawer=\(toDrawer)")
-            if DrawerGeometry.isBeforeSeparator(target.frame, separator: boundary) != toDrawer {
-                var result = await MenuBarItemMover.move(
-                    frame: target.frame, beside: boundary, toLeft: toDrawer
-                )
-                if case .unavailable = result {
-                    // On a crowded bar our left-hand divider can be just beyond the screen edge.
-                    // Temporarily remove Altillo's recovery button and narrow the divider; this
-                    // creates a real, visible native insertion point without touching other apps.
-                    compactedChrome = self.compactChromeForMovement()
-                    if compactedChrome {
-                        try? await Task.sleep(for: .milliseconds(180))
-                        // Removing a status item changes other items' coordinates too.
-                        // Reusing the pre-compaction source can drag a neighbouring app.
-                        if let compact = await self.settledLayout(for: entry.id) {
-                            result = await MenuBarItemMover.move(
-                                frame: compact.entry.frame, beside: compact.divider, toLeft: toDrawer
-                            )
-                        }
-                    }
-                }
-                guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
-                switch result {
-                case .busy:
-                    self.problem = "Finish the current drag, then try again."
-                    return
-                case .unavailable:
-                    self.problem = "This icon needs room in the menu bar before it can move. Close an unused menu bar app and try again."
-                    return
-                case .posted: break
-                }
-                // MenuBarAgent applies the layout asynchronously, particularly when revealing
-                // overflow. Posting mouse-up is not an acknowledgement of the move.
-                if !(await self.waitForPlacement(entry.id, toDrawer: toDrawer)) {
-                    // A MacBook's right-hand menu-bar area can be full even though both drag
-                    // coordinates are visible. MenuBarAgent then previews the move and snaps the
-                    // item back. Temporarily remove our recovery control before the retry to make
-                    // one icon's worth of real room, then resolve every coordinate again.
-                    if !compactedChrome {
-                        compactedChrome = self.compactChromeForMovement()
-                        if compactedChrome {
-                            try? await Task.sleep(for: .milliseconds(180))
-                        }
-                    }
-                    if let retry = await self.settledLayout(for: entry.id),
-                       !Task.isCancelled,
-                       DrawerGeometry.isBeforeSeparator(retry.entry.frame, separator: retry.divider) != toDrawer {
-                        Self.log.debug("move retry id=\(entry.id) compacted=\(compactedChrome)")
-                        _ = await MenuBarItemMover.move(
-                            frame: retry.entry.frame, beside: retry.divider, toLeft: toDrawer
-                        )
-                        _ = await self.waitForPlacement(entry.id, toDrawer: toDrawer)
-                    }
-                }
-                if compactedChrome {
-                    self.restoreChromeAfterMovement()
-                    compactedChrome = false
-                    try? await Task.sleep(for: .milliseconds(180))
-                }
-            }
-            var refreshed = await accessibility.scan(applications: self.runningApplications())
-            var failures = await accessibility.failedApplicationPIDs
-            guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
-            self.setEntries(refreshed)
-            await self.captureIcons(for: refreshed)
-            guard !Task.isCancelled else { return }
-            refreshed = await accessibility.scan(applications: self.runningApplications())
-            failures.formUnion(await accessibility.failedApplicationPIDs)
-            guard !Task.isCancelled else { return }
-            self.setEntries(refreshed)
-            self.lastScan = .now
-            guard let boundary = self.separatorFrame else { return }
-            self.selectedIDs = Set(refreshed.filter {
-                DrawerGeometry.isBeforeSeparator($0.frame, separator: boundary)
-            }.map(\.id))
-            guard let moved = refreshed.first(where: { $0.id == entry.id }),
-                  DrawerGeometry.isBeforeSeparator(moved.frame, separator: boundary) == toDrawer else {
-                Self.log.error("move unconfirmed id=\(entry.id)")
-                self.problem = "macOS couldn't move this icon. It stays in its current section."
-                return
-            }
-            if self.support.hidingStyle == .overflow {
-                // macOS 27 can move every status item owned by one app as a native group. Mirror
-                // the layout macOS actually produced so the Drawer never promises a split that the
-                // system cannot keep, and so grouped icons survive the next launch consistently.
-                let applicationIDs = refreshed
-                    .filter { $0.application.bundleID == entry.application.bundleID }
-                    .map(\.id)
-                for applicationID in applicationIDs {
-                    if self.selectedIDs.contains(applicationID) {
-                        self.chosenIDs.insert(applicationID)
-                        if !self.drawerOrder.contains(applicationID) {
-                            self.drawerOrder.append(applicationID)
-                        }
-                    } else {
-                        self.chosenIDs.remove(applicationID)
-                        self.drawerOrder.removeAll { $0 == applicationID }
-                    }
-                }
-            }
-            if toDrawer {
-                self.chosenIDs.insert(entry.id)
-                let currentOrder = self.drawerEntries.map(\.id)
-                self.drawerOrder = DrawerOrder.moving(entry.id, before: targetOrderID, in: currentOrder)
-            } else {
-                self.chosenIDs.remove(entry.id)
-                self.drawerOrder.removeAll { $0 == entry.id }
-            }
-            self.defaults.set(self.chosenIDs.sorted(), forKey: "drawer.chosenIDs")
-            self.defaults.set(self.drawerOrder, forKey: "drawer.order")
-            guard failures.isEmpty else {
-                self.problem = "Some menu bar icons couldn't be read. They stay visible; try Refresh."
-                return
-            }
-            if self.hidesDrawerIcons, self.restoreTask == nil, !self.selectedIDs.isEmpty {
-                self.collapseSection()
-            }
-        }
-        return true
-    }
-
-    /// Resolve the item again after overflow/layout animation. Never retry with a coordinate
-    /// captured before the preceding gesture: that coordinate may now belong to another app.
-    private func settledLayout(for id: String) async -> (entry: MenuBarEntry, divider: CGRect)? {
-        var previous: (entry: MenuBarEntry, divider: CGRect)?
-        for _ in 0..<10 {
-            guard !Task.isCancelled, enabled, hasAccess else { return nil }
-            let snapshot = await accessibility.scan(applications: runningApplications())
-            guard !Task.isCancelled else { return nil }
-            setEntries(snapshot)
-            if let entry = snapshot.first(where: { $0.id == id }), let divider = separatorFrame {
-                if previous?.entry.frame == entry.frame, previous?.divider == divider {
-                    return (entry, divider)
-                }
-                previous = (entry, divider)
-            } else {
-                previous = nil
-            }
-            try? await Task.sleep(for: .milliseconds(100))
-        }
-        return nil
-    }
-
-    private func waitForPlacement(_ id: String, toDrawer: Bool) async -> Bool {
-        var confirmations = 0
-        for _ in 0..<8 {
-            try? await Task.sleep(for: .milliseconds(100))
-            guard !Task.isCancelled, enabled, hasAccess else { return false }
-            let snapshot = await accessibility.scan(applications: runningApplications())
-            guard !Task.isCancelled else { return false }
-            setEntries(snapshot)
-            if let entry = snapshot.first(where: { $0.id == id }), let divider = separatorFrame,
-               DrawerGeometry.isBeforeSeparator(entry.frame, separator: divider) == toDrawer {
-                confirmations += 1
-                if confirmations == 2 { return true }
-            } else {
-                confirmations = 0
-            }
-        }
-        return false
-    }
-
-    /// Conservative fallback for an unverified future menu-bar model.
-    private func moveLogically(_ entry: MenuBarEntry, toDrawer: Bool, before target: MenuBarEntry?) -> Bool {
-        guard entries.contains(where: { $0.id == entry.id }) else { return false }
-        problem = nil
-        let currentOrder = drawerEntries.map(\.id)
-        if toDrawer {
-            chosenIDs.insert(entry.id)
-            selectedIDs.insert(entry.id)
-            drawerOrder = DrawerOrder.moving(entry.id, before: target?.id, in: currentOrder)
-        } else {
-            chosenIDs.remove(entry.id)
-            selectedIDs.remove(entry.id)
-            drawerOrder.removeAll { $0 == entry.id }
-        }
-        defaults.set(chosenIDs.sorted(), forKey: "drawer.chosenIDs")
-        defaults.set(drawerOrder, forKey: "drawer.order")
-        return true
-    }
-
-    /// A physical divider is authoritative only while it is expanded. In macOS 27's native overflow,
-    /// collapsed items can receive off-strip frames, so preserve the verified persisted selection.
-    private func selectionAfterScanning(_ scanned: [MenuBarEntry]) -> Set<String>? {
-        if !support.hiding {
-            return chosenIDs.intersection(scanned.map(\.id))
-        }
-        if support.hidingStyle == .overflow, isHidden {
-            return chosenIDs.intersection(scanned.map(\.id))
-        }
-        guard let boundary = separatorFrame else { return nil }
-        return Set(scanned.filter {
-            DrawerGeometry.isBeforeSeparator($0.frame, separator: boundary)
-        }.map(\.id))
-    }
-
-    /// Reorders the compact Drawer independently from the native menu-bar order.
-    /// Dropping on an icon places the dragged item immediately before it; dropping
-    /// on the Drawer background sends it to the end.
-    func reorderDrawerEntry(_ entry: MenuBarEntry, before target: MenuBarEntry?) {
-        guard selectedIDs.contains(entry.id), target?.id != entry.id else { return }
-        drawerOrder = DrawerOrder.moving(entry.id, before: target?.id, in: drawerEntries.map(\.id))
-        defaults.set(drawerOrder, forKey: "drawer.order")
-    }
-
+    /// Opens an icon's menu beside `anchor`, whether or not the icon is hidden: macOS keeps concealed items
+    /// in the Accessibility tree with their actions.
     func activate(_ entry: MenuBarEntry, anchor: MenuBarPopupAnchor) {
         checkAccess()
-        guard hasAccess, let anchorRect = anchor.screenRect(),
-              activationTask == nil, movementTask == nil else { return }
+        guard hasAccess, let anchorRect = anchor.screenRect(), activationTask == nil else { return }
         menuSessionTask?.cancel()
         menuSessionTask = nil
-        scanTask?.cancel()
-        scanTask = nil
-        isLoading = false
         problem = nil
-        // When visible copies are intentionally kept, activation does not need to collapse the bar first.
-        let needsHiddenIcon = support.hiding && hidesDrawerIcons && selectedIDs.contains(entry.id)
-        if needsHiddenIcon, !isHidden { hide() }
-        let pendingHide = scanTask
         activationTask = Task { [weak self, accessibility] in
             guard let self else { return }
             defer { self.activationTask = nil }
-            await pendingHide?.value
-            guard !Task.isCancelled, self.enabled, self.hasAccess else { return }
-            guard !needsHiddenIcon || self.isHidden else { return }
             if let previous = self.currentMenuSession {
                 let wasPresented = await previous.isPresented() == true
                 let closesSamePanel = self.currentMenuEntryID == entry.id && wasPresented
                 guard await self.dismissMenu(previous, entryID: self.currentMenuEntryID) else {
-                    self.problem = "Close the open menu, then try again."
+                    self.problem = String(localized: "Close the open menu, then try again.")
                     return
                 }
                 self.currentMenuSession = nil
@@ -880,23 +540,23 @@ final class MenuBarDrawerStore: NSObject {
                 case .selected(let actionID):
                     let outcome = await accessibility.performMenuAction(id: actionID)
                     if case .unavailable = outcome {
-                        self.problem = "This command is no longer available. Open the menu and try again."
+                        self.problem = String(localized: "This command is no longer available. Open the menu and try again.")
                     }
                 case .unavailable:
-                    self.problem = "This menu couldn't be displayed. Try opening it again."
+                    self.problem = String(localized: "This menu couldn't be displayed. Try opening it again.")
                 case .cancelled: break
                 }
                 return
             }
-            // Custom popovers have no NSMenu tree. Open the owner's panel with AX
-            // while its status item remains hidden, then move the actual window.
+            // Custom popovers have no NSMenu tree. Open the owner's panel with AX, then move its window.
+            self.prepareForMenuBarInteraction?()
             let panelOwner = Self.panelOwnerPID(for: entry)
             let placement = MenuBarPopoverPlacement(pid: panelOwner)
             let session = MenuBarMenuSession(pid: panelOwner)
             let outcome = await accessibility.perform(id: entry.id, showMenu: false)
             guard !Task.isCancelled else { return }
             if case .unavailable = outcome {
-                self.problem = "This app doesn't expose a menu that Altillo can open."
+                self.problem = String(localized: "This app doesn't expose a menu that Altillo can open.")
                 return
             }
             let top = NSScreen.screens.first?.frame.maxY ?? 0
@@ -906,16 +566,15 @@ final class MenuBarDrawerStore: NSObject {
             }
             guard await placement.place(at: point, screens: screens) else {
                 if !(await session.dismiss()), await session.isPresented() == true {
-                    // Control Center's popovers ignore Escape; their status action
-                    // toggles them closed without revealing or moving the icon.
+                    // Control Center's popovers ignore Escape; their status action toggles them closed.
                     _ = await accessibility.perform(id: entry.id, showMenu: false)
                 }
-                self.problem = "macOS didn't allow this app's panel to open beside its icon."
+                self.problem = String(localized: "macOS didn't allow this app's panel to open beside its icon.")
                 return
             }
             guard !Task.isCancelled else { _ = await session.dismiss(); return }
             self.currentMenuEntryID = entry.id
-            self.watchMenu(session, restoreHidden: false)
+            self.watchMenu(session)
         }
     }
 
@@ -931,13 +590,13 @@ final class MenuBarDrawerStore: NSObject {
         return false
     }
 
-    private func watchMenu(_ session: MenuBarMenuSession, restoreHidden: Bool) {
+    /// Follows an open panel until it closes, so the notch's hover doesn't interfere meanwhile.
+    private func watchMenu(_ session: MenuBarMenuSession) {
         currentMenuSession = session
         menuSessionTask = Task { [weak self] in
             var observedMenu = false
             var closedSamples = 0
-            // A missing AX answer is never grounds to hide a menu that may be open.
-            // Only rehide after observing presentation and two subsequent closed samples.
+            // A missing AX answer is never grounds to consider a menu closed.
             for sample in 0..<1_200 {
                 try? await Task.sleep(for: .milliseconds(250))
                 guard !Task.isCancelled, let self, self.enabled else { return }
@@ -946,17 +605,11 @@ final class MenuBarDrawerStore: NSObject {
                 if presented == true { observedMenu = true; closedSamples = 0 }
                 else if presented == false, observedMenu { closedSamples += 1 }
                 else { closedSamples = 0 }
-                if closedSamples >= 2 {
+                if closedSamples >= 2 || (sample >= 11 && !observedMenu) {
+                    // Closed, or an immediate action without any panel.
                     self.currentMenuSession = nil
                     self.currentMenuEntryID = nil
                     self.menuSessionTask = nil
-                    if restoreHidden { self.hide() }
-                    return
-                }
-                if sample >= 11 && !observedMenu {
-                    self.menuSessionTask = nil
-                    // A status item may perform an immediate action without any menu.
-                    // Leave its native icon visible instead of claiming a menu opened.
                     return
                 }
             }
@@ -992,461 +645,83 @@ final class MenuBarDrawerStore: NSObject {
         }
     }
 
+    // MARK: - Accessibility
+
+    func requestAccess() {
+        // Called only by an explicit button, never on launch or on opening the module.
+        let options = ["AXTrustedCheckOptionPrompt": true] as CFDictionary
+        _ = AXIsProcessTrustedWithOptions(options)
+        checkAccess()
+        monitorAccess()
+        if !hasAccess,
+           let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     private func checkAccess() {
         let trusted = AXIsProcessTrusted()
         guard trusted != hasAccess else { return }
         hasAccess = trusted
         if !trusted {
-            reveal()
+            // Hidden icons could no longer be opened from Altillo: give them back to the menu bar.
+            releaseConcealment()
             activationTask?.cancel()
-            movementTask?.cancel()
             scanTask?.cancel()
             scanTask = nil
             isLoading = false
             entries = []
             catalogIsStale = true
-            problem = "Accessibility access was turned off. Your menu bar icons are visible again."
+            if enabled {
+                problem = String(localized: "Accessibility access was turned off. Your menu bar icons are visible again.")
+            }
         } else {
             problem = nil
-            if enabled, support.catalog { installSection() }
-            // Accessibility can be granted while Settings owns focus. Rebuild the catalog
-            // and restore the physical hidden section on the permission transition instead of
-            // waiting for another user action.
-            if enabled {
-                restoreChosenSelection(after: .milliseconds(180), allowMenuBarMovement: true)
-            }
+            guard enabled else { return }
+            refresh()
+            applyConcealment()
         }
     }
 
-    /// A short, bounded reconciliation window after the user asks for a permission. Screen Recording
-    /// has no change notification, and a grant can land while System Settings owns focus. It ends as
-    /// soon as both permissions are present, or after `permissionCheckCount` checks. Never runs at rest.
-    private func monitorAccess(restart: Bool = false) {
-        if restart { permissionTask?.cancel(); permissionTask = nil }
-        guard permissionTask == nil else { return }
+    private func recheckAccessSoon() {
+        accessRecheckTask?.cancel()
+        accessRecheckTask = Task { [weak self] in
+            for delay in [Duration.milliseconds(500), .seconds(2)] {
+                try? await Task.sleep(for: delay)
+                guard !Task.isCancelled, let self else { return }
+                self.checkAccess()
+            }
+            self?.accessRecheckTask = nil
+        }
+    }
+
+    /// A short, bounded check after the user asks for access: a grant can land while System Settings owns focus.
+    private func monitorAccess() {
+        permissionTask?.cancel()
         permissionTask = Task { [weak self] in
             for _ in 0..<Self.permissionCheckCount {
                 try? await Task.sleep(for: Self.permissionCheckInterval)
                 guard !Task.isCancelled, let self else { return }
                 self.checkAccess()
-                self.reconcileIconAccess()
-                if self.hasAccess && (!self.requiresIconAccess || self.hasIconAccess) { break }
+                if self.hasAccess { break }
             }
             guard !Task.isCancelled else { return }
             self?.permissionTask = nil
         }
     }
-
-    private var separatorFrame: CGRect? {
-        statusItemFrame(separator)
-    }
-
-    private func statusItemFrame(_ item: NSStatusItem?) -> CGRect? {
-        guard let button = item?.button, let window = button.window,
-              let primary = NSScreen.screens.first else { return nil }
-        let frame = window.convertToScreen(button.convert(button.bounds, to: nil))
-        return DrawerGeometry.accessibilityFrame(frame, primaryScreenHeight: primary.frame.maxY)
-    }
-
-    private func installSection() {
-        guard separator == nil else { return }
-        if support.hidingStyle == .legacy,
-           defaults.object(forKey: Self.controlPositionKey) == nil,
-           let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
-            defaults.set(max(0, separatorPosition.intValue - 1), forKey: Self.controlPositionKey)
-        }
-        // Creation order matters on macOS 27: every fresh autosave name lands to the left of the
-        // previous one. Control first, then spacers, then divider keeps the expandable block between
-        // the divider and the always-visible recovery control.
-        installControl()
-        if support.hidingStyle == .overflow {
-            overflowSpacers = (0..<DrawerCollapseGeometry.spacerCount).map { index in
-                let spacer = NSStatusBar.system.statusItem(withLength: 0)
-                spacer.autosaveName = overflowSpacerName(index)
-                spacer.button?.setAccessibilityElement(false)
-                spacer.isVisible = false
-                return spacer
-            }
-        }
-        let separator = NSStatusBar.system.statusItem(withLength: dividerLength)
-        separator.autosaveName = support.hidingStyle == .overflow
-            ? overflowSeparatorName : "Altillo.Drawer.Separator"
-        if !support.hiding { separator.button?.title = "│" }
-        separator.button?.setAccessibilityLabel("Drawer divider")
-        separator.button?.toolTip = "Manage these icons in Altillo Settings → Drawer."
-        self.separator = separator
-        updateControl()
-    }
-
-    /// The show/hide button only exists where hiding works.
-    private func installControl() {
-        guard control == nil, support.hiding else { return }
-        let control = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        control.autosaveName = support.hidingStyle == .overflow
-            ? overflowControlName : "Altillo.Drawer.Control"
-        control.button?.target = self
-        control.button?.action = #selector(toggleSection)
-        self.control = control
-        updateControl()
-    }
-
-    private func compactChromeForMovement() -> Bool {
-        guard DrawerMovementRecovery.canCompact(support.hidingStyle), let separator else { return false }
-        if let control {
-            movementControlPosition = (defaults.object(forKey: Self.controlPositionKey) as? NSNumber)?.intValue
-            NSStatusBar.system.removeStatusItem(control)
-            self.control = nil
-        }
-        separator.length = 6
-        return true
-    }
-
-    private func restoreChromeAfterMovement() {
-        guard enabled, separator != nil else { return }
-        separator?.length = dividerLength
-        if support.hidingStyle == .overflow {
-            // A recreated item lands leftmost on macOS 27, i.e. left of the divider or folded. Put it back
-            // just right of the divider's last verified position.
-            if let dividerPosition = defaults.object(forKey: Self.unfoldedPositionDefault) as? NSNumber {
-                defaults.set(dividerPosition.doubleValue - 2, forKey: Self.preferredPositionKey(overflowControlName))
-            }
-        } else if let separatorPosition = defaults.object(forKey: Self.separatorPositionKey) as? NSNumber {
-            let immediatelyRight = max(0, separatorPosition.intValue - 1)
-            defaults.set(min(movementControlPosition ?? immediatelyRight, immediatelyRight),
-                         forKey: Self.controlPositionKey)
-        } else if let movementControlPosition {
-            defaults.set(movementControlPosition, forKey: Self.controlPositionKey)
-        }
-        movementControlPosition = nil
-        installControl()
-    }
-
-    /// macOS 27 names carry a generation: MenuBarAgent can keep a stored slot for a name that overrides any
-    /// preferred position (seen for the installed app, not for a copy elsewhere), and only a new name escapes it.
-    private var chromeGeneration: Int { defaults.integer(forKey: Self.chromeGenerationDefault) }
-    private var overflowControlName: String {
-        DrawerChromePlacement.name("Altillo.Drawer.Control.v27", generation: chromeGeneration)
-    }
-    private var overflowSeparatorName: String {
-        DrawerChromePlacement.name("Altillo.Drawer.Separator.v27", generation: chromeGeneration)
-    }
-    private func overflowSpacerName(_ index: Int) -> String {
-        DrawerChromePlacement.name("Altillo.Drawer.Spacer.\(index).v27", generation: chromeGeneration)
-    }
-    /// Where the arrow exists it already marks the Drawer's edge, so the divider has no glyph. It stays a few
-    /// points wide so a Command-drag still has an insertion point on each side (compaction narrows it to 6 pt).
-    private var dividerLength: CGFloat { support.hiding ? 8 : 20 }
-    private static let chromeGenerationDefault = "drawer.v27.chromeGeneration"
-    private static let controlPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Control"
-    private static let separatorPositionKey = "NSStatusItem Preferred Position Altillo.Drawer.Separator"
-    /// The last divider position that macOS 27 verifiably kept visible (points from the right screen edge).
-    private static let unfoldedPositionDefault = "drawer.v27.dividerPosition"
-    private static let foldedChromeProblem =
-        "Altillo's Drawer arrow is folded into the menu bar's overflow («). Close an unused menu bar app and try again."
-
-    private static func preferredPositionKey(_ autosaveName: String) -> String {
-        "NSStatusItem Preferred Position \(autosaveName)"
-    }
-
-    /// macOS 27 folds whatever doesn't fit into its overflow control («), starting from the left, and every
-    /// fresh autosave name lands leftmost. On a MacBook the area beside the notch is often already full, so
-    /// the divider and the arrow start folded: their frames stack on « and no Command-drag can reach them.
-    /// MenuBarAgent still honours a preferred position written before an item is created, though only
-    /// approximately, so recreate the chrome beside the leftmost visible icon, stepping right until the
-    /// divider is verifiably visible. Items macOS had already folded stay left of it, in the Drawer.
-    private func unfoldChromeIfNeeded() async -> Bool {
-        guard support.hidingStyle == .overflow, enabled, hasAccess, !isHidden,
-              let divider = separatorFrame else { return true }
-        let chrome = [statusItemFrame(control)].compactMap { $0 }
-        guard DrawerChromePlacement.isFolded(divider, among: entries.map(\.frame) + chrome) else { return true }
-        guard let screenMaxX = separator?.button?.window?.screen?.frame.maxX else { return false }
-        let visible = DrawerChromePlacement.visibleItems(entries.map(\.frame), chrome: [divider] + chrome, row: divider)
-        let remembered = (defaults.object(forKey: Self.unfoldedPositionDefault) as? NSNumber).map { CGFloat($0.doubleValue) }
-        let positions = DrawerChromePlacement.candidatePositions(screenMaxX: screenMaxX, visibleItems: visible,
-                                                                 remembered: remembered)
-        Self.log.debug("unfold divider=\(String(describing: divider), privacy: .public) candidates=\(String(describing: positions), privacy: .public)")
-        guard !positions.isEmpty else {
-            Self.log.error("unfold failed: no visible icon to place beside")
-            return false
-        }
-        for pass in 0..<2 {
-            if pass == 1 {
-                // Every position was ignored: MenuBarAgent pinned these names. Retry once under fresh ones.
-                forgetChromeNames()
-                defaults.set(chromeGeneration + 1, forKey: Self.chromeGenerationDefault)
-                Self.log.debug("unfold retry generation=\(self.chromeGeneration)")
-            }
-            if await placeChrome(at: positions) { return true }
-            guard !Task.isCancelled, enabled, hasAccess else { return false }
-        }
-        Self.log.error("unfold failed")
-        return false
-    }
-
-    /// Recreates the chrome at each position in turn until the divider is visible with the arrow on its right.
-    private func placeChrome(at positions: [CGFloat]) async -> Bool {
-        for position in positions {
-            guard !Task.isCancelled, enabled, hasAccess else { return false }
-            removeSection()
-            defaults.set(Double(position - 2), forKey: Self.preferredPositionKey(overflowControlName))
-            for index in 0..<DrawerCollapseGeometry.spacerCount {
-                defaults.set(Double(position - 1), forKey: Self.preferredPositionKey(overflowSpacerName(index)))
-            }
-            defaults.set(Double(position), forKey: Self.preferredPositionKey(overflowSeparatorName))
-            installSection()
-            try? await Task.sleep(for: .milliseconds(400))
-            guard !Task.isCancelled, enabled, hasAccess else { return false }
-            let snapshot = await accessibility.scan(applications: runningApplications())
-            guard !Task.isCancelled else { return false }
-            setEntries(snapshot)
-            guard let frame = separatorFrame, let toggle = statusItemFrame(control),
-                  !DrawerChromePlacement.isFolded(frame, among: snapshot.map(\.frame) + [toggle]),
-                  toggle.minX >= frame.maxX - 1 else { continue }
-            Self.log.debug("unfold placed position=\(Double(position)) divider=\(String(describing: frame), privacy: .public)")
-            defaults.set(Double(position), forKey: Self.unfoldedPositionDefault)
-            // Whatever macOS keeps folded is left of the divider now. Adopt the layout it produced, as a
-            // verified move does, so the Drawer lists every icon the notch hides and can collapse.
-            let beforeDivider = snapshot.filter {
-                DrawerGeometry.isBeforeSeparator($0.frame, separator: frame)
-            }.map(\.id)
-            selectedIDs = Set(beforeDivider)
-            chosenIDs.formUnion(beforeDivider)
-            drawerOrder += beforeDivider.filter { !drawerOrder.contains($0) }
-            defaults.set(chosenIDs.sorted(), forKey: "drawer.chosenIDs")
-            defaults.set(drawerOrder, forKey: "drawer.order")
-            return true
-        }
-        return false
-    }
-
-    /// Drops AppKit's leftovers for the current generation's names before they are abandoned.
-    private func forgetChromeNames() {
-        let names = [overflowControlName, overflowSeparatorName]
-            + (0..<DrawerCollapseGeometry.spacerCount).map { overflowSpacerName($0) }
-        for name in names {
-            defaults.removeObject(forKey: Self.preferredPositionKey(name))
-            defaults.removeObject(forKey: "NSStatusItem VisibleCC \(name)")
-        }
-    }
-
-    private func collapseSection() {
-        guard enabled, hidesDrawerIcons, support.hiding, hasAccess, hasRequiredIconAccess,
-              separator != nil else { return }
-        guard !selectedIDs.isEmpty else {
-            reveal()
-            problem = "Drag an icon into Altillo in Drawer settings."
-            return
-        }
-        guard selectedIDs.isSubset(of: chosenIDs) else {
-            reveal()
-            problem = "Other icons are left of the Drawer arrow. Move them to Menu bar in Drawer settings before hiding."
-            return
-        }
-        // Keep a recovery control on the right. If the user moved it to the hidden side, fail open.
-        guard let divider = separatorFrame,
-              let toggle = statusItemFrame(control), toggle.minX >= divider.maxX - 1 else {
-            problem = "Move the Drawer button to the right of the divider, then try again."
-            reveal()
-            return
-        }
-        applyCollapsedGeometry(collapsed: true)
-        isHidden = true
-        defaults.set(true, forKey: "drawer.restoreHidden")
-        problem = nil
-        updateControl()
-    }
-
-    private func removeSection() {
-        reveal()
-        if let separator { NSStatusBar.system.removeStatusItem(separator) }
-        if let control { NSStatusBar.system.removeStatusItem(control) }
-        for spacer in overflowSpacers { NSStatusBar.system.removeStatusItem(spacer) }
-        separator = nil
-        control = nil
-        overflowSpacers.removeAll()
-    }
-
-    /// One geometry funnel for launch, toggles, display changes and teardown. macOS 26 keeps the
-    /// classic oversized-divider behaviour. macOS 27 must keep every individual status item below
-    /// MenuBarAgent's discard cliff, so several bounded items share the required width instead.
-    private func applyCollapsedGeometry(collapsed: Bool) {
-        guard let separator else { return }
-        guard collapsed else {
-            for spacer in overflowSpacers {
-                spacer.isVisible = false
-                spacer.length = 0
-            }
-            separator.length = dividerLength
-            return
-        }
-
-        switch support.hidingStyle {
-        case .legacy:
-            let widest = NSScreen.screens.map { $0.frame.width }.max() ?? 1_440
-            separator.length = min(DrawerCollapseGeometry.legacyLength, max(500, widest * 2))
-        case .overflow:
-            let displays = Self.drawerDisplays()
-            let unit = DrawerCollapseGeometry.unitLength(displays: displays)
-            let active = DrawerCollapseGeometry.activeSpacers(unit: unit, displays: displays)
-            separator.length = unit
-            for (index, spacer) in overflowSpacers.enumerated() {
-                let participates = index < active
-                spacer.isVisible = participates
-                spacer.length = participates ? unit : 0
-            }
-        case .unavailable:
-            break
-        }
-    }
-
-    private static func drawerDisplays() -> [DrawerCollapseGeometry.Display] {
-        NSScreen.screens.map { screen in
-            DrawerCollapseGeometry.Display(
-                width: screen.frame.width,
-                statusWidth: screen.auxiliaryTopRightArea?.width
-            )
-        }
-    }
-
-    private func updateControl() {
-        control?.button?.image = NSImage(systemSymbolName: isHidden ? "chevron.left" : "chevron.right",
-                                        accessibilityDescription: isHidden ? "Show Drawer icons" : "Hide Drawer icons")
-        control?.button?.toolTip = isHidden ? "Show Drawer icons" : "Hide Drawer icons"
-    }
-
-    @objc private func toggleSection() {
-        if isHidden { beginArranging() } else { hide() }
-    }
 }
 
-enum DrawerHidingStyle: Equatable, Sendable {
-    case unavailable
-    case legacy
-    case overflow
-}
-
-enum DrawerMovementRecovery {
-    /// Both native implementations can briefly shed Altillo's own status-bar chrome to
-    /// make room for a rejected move. Future, unverified layouts must remain untouched.
-    static func canCompact(_ style: DrawerHidingStyle) -> Bool {
-        style != .unavailable
-    }
-}
-
-/// What the Drawer can do on this macOS, per feature, so a partial platform degrades one feature instead of
-/// disabling everything. Everything else is decided at run time: the catalog reads whatever Accessibility
-/// exposes, icon capture picks the path the system offers, and every move is verified by re-reading positions.
+/// What the Drawer can do on this macOS. The catalog (strip, Settings, opening menus) needs macOS 26; hiding
+/// needs the system allow-list that arrived with macOS 27, checked at run time.
 struct DrawerSupport: Equatable, Sendable {
-    /// Read menu-bar items through Accessibility, show the strip and open items' menus from it.
     var catalog: Bool
-    /// Arrange items. Where hiding works this uses a native Command-drag and verifies the resulting order;
-    /// where it does not, Altillo stores logical membership while leaving the native icon in place.
-    var arranging: Bool
-    /// How this menu-bar generation hides the chosen group.
-    var hidingStyle: DrawerHidingStyle
-    var hiding: Bool { hidingStyle != .unavailable }
+    var hiding: Bool
 
-    static let unavailable = DrawerSupport(catalog: false, arranging: false, hidingStyle: .unavailable)
-    static let full = DrawerSupport(catalog: true, arranging: true, hidingStyle: .legacy)
+    static let unavailable = DrawerSupport(catalog: false, hiding: false)
 
-    /// macOS 26 uses the classic oversized divider. macOS 27 moves the chosen group into MenuBarAgent's
-    /// native overflow using bounded divider units. Later versions remain conservative until verified.
-    static func decide(majorVersion: Int) -> DrawerSupport {
-        switch majorVersion {
-        case ..<26: .unavailable
-        case 26: .full
-        case 27: DrawerSupport(catalog: true, arranging: true, hidingStyle: .overflow)
-        default: DrawerSupport(catalog: true, arranging: true, hidingStyle: .unavailable)
-        }
-    }
-
-    /// Some of the Drawer works, but not all of it; Settings explains what's missing.
-    var isPartial: Bool { catalog && !(arranging && hiding) }
-}
-
-/// Collapse widths for both menu-bar generations. On macOS 27 a status item is discarded when its
-/// length reaches a display-dependent cliff. Several smaller items can still displace the selected
-/// icons into the native overflow without any one item crossing that limit.
-enum DrawerCollapseGeometry {
-    struct Display: Equatable, Sendable {
-        let width: CGFloat
-        let statusWidth: CGFloat
-
-        init(width: CGFloat, statusWidth: CGFloat? = nil) {
-            self.width = width
-            self.statusWidth = statusWidth ?? width
-        }
-    }
-
-    static let legacyLength: CGFloat = 10_000
-    static let minimumUnit: CGFloat = 200
-    static let cliffMargin: CGFloat = 64
-    static let notchedCliffFactor: CGFloat = 0.75
-    static let spacerCount = 6
-
-    static func cliff(of display: Display) -> CGFloat {
-        display.statusWidth < display.width
-            ? display.statusWidth * notchedCliffFactor
-            : display.width / 2
-    }
-
-    static func unitLength(displays: [Display]) -> CGFloat {
-        guard let lowest = displays.map(cliff(of:)).min() else { return minimumUnit }
-        return max(minimumUnit, (lowest - cliffMargin).rounded(.down))
-    }
-
-    static func activeSpacers(unit: CGFloat, displays: [Display]) -> Int {
-        guard unit > 0, let widest = displays.map(\.statusWidth).max() else { return 0 }
-        let needed = Int((widest / unit).rounded(.up)) - 1
-        return min(max(needed, 0), spacerCount)
-    }
-}
-
-/// Where to recreate Altillo's macOS 27 chrome when MenuBarAgent has folded it into the overflow control.
-/// Positions are `NSStatusItem Preferred Position` values: points from the right edge of the screen.
-enum DrawerChromePlacement {
-    /// MenuBarAgent maps a preferred position to a slot only approximately (measured on a 1710 pt
-    /// MacBook: the leftmost icon's own edge distance folded the item, ~100 pt less kept it visible).
-    static let step: CGFloat = 60
-    static let attempts = 6
-    static let minimumPosition: CGFloat = 40
-
-    /// Generation 0 keeps the original names, so existing installations don't move until a retry is needed.
-    static func name(_ base: String, generation: Int) -> String {
-        generation > 0 ? "\(base).g\(generation)" : base
-    }
-
-    /// Folded items share the overflow control's frame. Neighbours touch by a point or two at most.
-    static func isFolded(_ item: CGRect, among others: [CGRect]) -> Bool {
-        others.contains { other in
-            let overlap = other.intersection(item)
-            return !overlap.isNull && overlap.height > 2 && overlap.width >= min(item.width, other.width) / 2
-        }
-    }
-
-    /// Items drawn in their own slot on the divider's menu bar, excluding the folded stack.
-    static func visibleItems(_ frames: [CGRect], chrome: [CGRect], row: CGRect) -> [CGRect] {
-        frames.enumerated().filter { index, frame in
-            guard frame.width > 0, frame.height > 0,
-                  frame.midY >= row.minY, frame.midY <= row.maxY else { return false }
-            let others = frames.enumerated().filter { $0.offset != index }.map(\.element) + chrome
-            return !isFolded(frame, among: others)
-        }.map(\.element)
-    }
-
-    /// The last verified position first, then from the leftmost visible icon towards the right.
-    static func candidatePositions(screenMaxX: CGFloat, visibleItems: [CGRect], remembered: CGFloat?) -> [CGFloat] {
-        var positions: [CGFloat] = []
-        if let remembered, remembered >= minimumPosition { positions.append(remembered.rounded(.down)) }
-        if let leftmost = visibleItems.min(by: { $0.minX < $1.minX }) {
-            let base = (screenMaxX - leftmost.maxX).rounded(.down)
-            for attempt in 0..<attempts {
-                let position = base - CGFloat(attempt) * step
-                guard position >= minimumPosition else { break }
-                if !positions.contains(position) { positions.append(position) }
-            }
-        }
-        return positions
+    static func decide(majorVersion: Int, canHide: Bool) -> DrawerSupport {
+        guard majorVersion >= 26 else { return .unavailable }
+        return DrawerSupport(catalog: true, hiding: majorVersion >= 27 && canHide)
     }
 }
 
@@ -1476,16 +751,6 @@ enum DrawerOrder {
 enum DrawerGeometry {
     static func accessibilityFrame(_ frame: CGRect, primaryScreenHeight: CGFloat) -> CGRect {
         CGRect(x: frame.minX, y: primaryScreenHeight - frame.maxY, width: frame.width, height: frame.height)
-    }
-
-    static func isBeforeSeparator(_ item: CGRect, separator: CGRect) -> Bool {
-        item.width > 0 && item.height > 0 && item.maxX <= separator.minX + 1
-            && item.midY >= separator.minY && item.midY <= separator.maxY
-    }
-
-    /// An offscreen native anchor can produce a mostly invisible menu even after revealing the section.
-    static func hasVisibleAnchor(_ item: CGRect, screens: [CGRect]) -> Bool {
-        item.width > 0 && item.height > 0 && screens.contains { $0.contains(item) }
     }
 }
 

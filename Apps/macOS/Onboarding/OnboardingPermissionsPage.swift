@@ -63,6 +63,10 @@ private struct OnboardingPermissionRow: View {
     private var status: OnboardingPermissionStatus { flow.status(of: permission) }
     private var isDeferred: Bool { flow.deferred.contains(permission) }
     private var wasAsked: Bool { flow.requested.contains(permission) }
+    /// Once Accessibility was asked for (or turned off), Altillo's icon is offered to drop into the list directly.
+    private var showsDragIcon: Bool {
+        permission == .accessibility && status != .granted && (wasAsked || status == .denied)
+    }
 
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
@@ -81,6 +85,18 @@ private struct OnboardingPermissionRow: View {
                         .foregroundStyle(noteColor)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.top, 2)
+                }
+                if showsDragIcon {
+                    // Bartender's trick: System Settings takes the app dropped straight on its Accessibility list.
+                    HStack(spacing: 10) {
+                        AppIconDragSource(size: 34)
+                        Text("Or drag this icon into the Accessibility list in System Settings.")
+                            .font(.system(size: 11.5))
+                            .foregroundStyle(Desvan.Palette.paperTertiary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(.top, 6)
+                    .transition(.opacity)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

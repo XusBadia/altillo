@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // The pieces every Settings pane is built from, so the window reads with one hierarchy:
@@ -422,5 +423,35 @@ struct SettingsHoverHighlight: ViewModifier {
 extension View {
     func settingsHoverHighlight(cornerRadius: CGFloat = 8, inset: CGFloat = 6) -> some View {
         modifier(SettingsHoverHighlight(cornerRadius: cornerRadius, inset: inset))
+    }
+}
+
+// MARK: - Permissions
+
+/// Altillo's own icon, ready to be dragged into a privacy list in System Settings (Accessibility), which takes apps
+/// dropped on it. It lifts a little under the pointer so it reads as something to pick up.
+@MainActor
+struct AppIconDragSource: View {
+    var size: CGFloat = 56
+
+    @State private var isHovering = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private static let icon = NSWorkspace.shared.icon(forFile: Bundle.main.bundlePath)
+
+    var body: some View {
+        Image(nsImage: Self.icon)
+            .resizable()
+            .interpolation(.high)
+            .frame(width: size, height: size)
+            .shadow(color: .black.opacity(isHovering ? 0.35 : 0.22), radius: isHovering ? 7 : 4, y: isHovering ? 4 : 2)
+            .scaleEffect(isHovering && !reduceMotion ? 1.06 : 1)
+            .animation(Desvan.Motion.hover, value: isHovering)
+            .onHover { isHovering = $0 }
+            .pointerStyle(.grabIdle)
+            .onDrag { NSItemProvider(object: Bundle.main.bundleURL as NSURL) }
+            .help("Drag into the Accessibility list in System Settings")
+            .accessibilityLabel("Altillo app icon")
+            .accessibilityHint("Drag it into the Accessibility list in System Settings.")
     }
 }
