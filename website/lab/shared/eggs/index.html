@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altillo — easter eggs test bench</title>
+<link rel="icon" href="/altillo-icon.png">
+<link rel="stylesheet" href="../notch.css">
+<link rel="stylesheet" href="eggs.css">
+<style>
+  /* Test-bench chrome only — not part of the engine. */
+  :root { color-scheme: dark; --bg: #15110d; --ink: #e9e1d4; --ink-2: #a39888; --line: #2e271f; --card: #1d1813; }
+  :root[data-theme="black"] {
+    --bg: #000; --ink: #f5f5f7; --ink-2: #86868b; --line: #1d1d1f; --card: #0d0d0f;
+    /* The same engine, dressed Apple-like: flat drawer, system blue-ish accent kept amber. */
+    --egg-drawer: #161617; --egg-drawer-raised: #1d1d1f; --egg-drawer-grain: 0;
+    --egg-brass: #6e6e73; --egg-hairline: rgb(255 255 255 / 0.08);
+    --egg-drawer-ink: #f5f5f7; --egg-drawer-ink-2: #98989d;
+    --egg-kraft: #f5f5f7; --egg-ink: #1d1d1f; --egg-tape: rgb(255 255 255 / 0.7);
+    --egg-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; -webkit-font-smoothing: antialiased; }
+  html.is-night body { background: #0b0907; }
+  a { color: inherit; }
+  .bar { display: flex; align-items: center; justify-content: space-between; padding: 18px 28px; border-bottom: 1px solid var(--line); }
+  .logo { display: inline-flex; align-items: center; gap: 9px; font-weight: 700; font-size: 17px; text-decoration: none; color: var(--ink); cursor: pointer; }
+  .logo .an-house { font-size: 22px; color: var(--ink); }
+  .bar nav { display: flex; gap: 8px; }
+  .bar button, .panel button { font: 600 13px/1 -apple-system, sans-serif; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 8px 12px; cursor: pointer; }
+  .bar button[aria-pressed="true"] { background: #ffb547; color: #2b1a05; border-color: #ffb547; }
+  .hero { display: grid; place-items: center; gap: 22px; padding: 70px 24px 56px; text-align: center; }
+  .hero h1 { margin: 0; font: 700 44px/1.05 ui-rounded, "SF Pro Rounded", sans-serif; letter-spacing: -0.02em; }
+  .hero p { margin: 0; color: var(--ink-2); max-width: 52ch; }
+  .hero .cta { display: inline-block; padding: 12px 20px; border-radius: 999px; background: #ffb547; color: #2b1a05; font-weight: 700; text-decoration: none; }
+  .notch-wrap { --an-scale: 1.4; cursor: pointer; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+  .panel { padding: 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--card); }
+  .panel h2 { margin: 0 0 4px; font-size: 15px; }
+  .panel p { margin: 0 0 12px; font-size: 13px; color: var(--ink-2); }
+  .panel .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .panel code { font: 12px ui-monospace, Menlo, monospace; }
+  #track { margin-top: 12px; font: 600 13px ui-rounded, sans-serif; color: #ffb547; min-height: 1.4em; }
+  footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 28px; border-top: 1px solid var(--line); color: var(--ink-2); font-size: 13px; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="logo an" href="#" id="logo" aria-label="Altillo, home"><i class="an-house"></i><span>altillo</span></a>
+  <nav aria-label="Theme">
+    <button type="button" data-theme-set="warm" aria-pressed="true">Warm</button>
+    <button type="button" data-theme-set="black" aria-pressed="false">Black</button>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="an notch-wrap" id="hero-notch" title="Knock knock">
+      <div class="an-notch an-notch--ears">
+        <span class="an-ear"><i class="an-house"></i></span>
+        <span class="an-ear">3</span>
+      </div>
+    </div>
+    <h1>Your notch, put to work.</h1>
+    <p>Test bench for the shared easter-eggs engine. Try it for real (knock on the notch, type <b>altillo</b>, <b>aurio</b>, the Konami code, press <b>?</b>) or use the buttons below.</p>
+    <a class="cta" href="#">Download for Mac</a>
+  </section>
+
+  <div class="grid">
+    <section class="panel" id="demo" aria-label="Fake demo">
+      <h2>Fake demo (<code>altillo-demo</code> events)</h2>
+      <p>Dispatches the same CustomEvents the real interactive demo emits.</p>
+      <div class="row">
+        <button type="button" data-demo='{"type":"notch-knocked"}'>notch-knocked</button>
+        <button type="button" data-demo='{"type":"shelf-full"}'>shelf-full</button>
+        <button type="button" data-demo='{"type":"agent-denied","command":"rm -rf ~/Projects"}'>deny rm -rf</button>
+        <button type="button" data-demo='{"type":"agent-denied","command":"ls -la"}'>deny ls (no egg)</button>
+        <button type="button" data-demo='{"type":"all-tracks-played"}'>all-tracks-played</button>
+        <button type="button" data-demo='{"type":"mirror-flipped"}'>mirror-flipped ×1</button>
+      </div>
+      <div id="track" aria-live="polite"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Trigger directly</h2>
+      <p><code>eggs.trigger(id)</code> — the same path a real discovery takes.</p>
+      <div class="row" id="triggers"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Engine</h2>
+      <p>Drawer, note, night, reset. Hidden-tab title swap: switch tabs and come back.</p>
+      <div class="row">
+        <button type="button" data-act="drawer">Open drawer</button>
+        <button type="button" data-act="note">Kraft note</button>
+        <button type="button" data-act="night">Toggle night</button>
+        <button type="button" data-act="lamp">Lamp 7 s</button>
+        <button type="button" data-act="peek">Custom peek</button>
+        <button type="button" data-act="reset">Reset</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer id="footer">
+  <span>Altillo · free and open source</span>
+</footer>
+
+<script type="module">
+  import { mountEggs } from "./eggs.js";
+
+  const params = new URLSearchParams(location.search);
+  const setTheme = (name) => {
+    document.documentElement.dataset.theme = name;
+    document.querySelectorAll("[data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.themeSet === name)));
+  };
+  setTheme(params.get("theme") || "warm");
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.themeSet)));
+
+  const demoRoot = document.querySelector("#demo");
+  const eggs = mountEggs({
+    locale: params.get("lang") || "en",
+    demoRoot,
+    selectors: { logo: "#logo", heroNotch: "#hero-notch", footer: "#footer" },
+    idleMs: Number(params.get("idle")) || 60_000,
+  });
+
+  // A page-specific egg: double-click the CTA's neighbour headline.
+  eggs.register({
+    id: "headline",
+    icon: "door",
+    title: "Put to work",
+    hint: "Headlines can take a double-click.",
+    message: "It was always a door. Now it opens.",
+    trigger: ({ found, listen }) => listen(document.querySelector(".hero h1"), "dblclick", () => found()),
+  });
+
+  demoRoot.addEventListener("click", (event) => {
+    const raw = event.target.closest("[data-demo]")?.dataset.demo;
+    if (raw) demoRoot.dispatchEvent(new CustomEvent("altillo-demo", { detail: JSON.parse(raw), bubbles: true }));
+  });
+  // How a demo would show the hidden fourth track.
+  demoRoot.addEventListener("altillo-eggs", (event) => {
+    if (event.detail.type === "hidden-track") document.querySelector("#track").textContent = `♪ 4. ${event.detail.title} — ${event.detail.artist}`;
+  });
+
+  const triggers = document.querySelector("#triggers");
+  for (const { id } of eggs.list()) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = id;
+    b.addEventListener("click", () => eggs.trigger(id));
+    triggers.append(b);
+  }
+
+  document.addEventListener("click", (event) => {
+    const act = event.target.closest("[data-act]")?.dataset.act;
+    if (act === "drawer") eggs.openDrawer();
+    if (act === "note") eggs.note({ title: "Not yet", body: "Some things are better left upstairs a little longer." });
+    if (act === "night") eggs.setNight(!document.documentElement.classList.contains("is-night"));
+    if (act === "lamp") { eggs.setNight(true); eggs.lamp(7000); }
+    if (act === "peek") eggs.peek("A custom peek, no counter.", { icon: "door", counter: false });
+    if (act === "reset") eggs.reset();
+  });
+
+  window.__eggs = eggs;
+</script>
+</body>
+</html>

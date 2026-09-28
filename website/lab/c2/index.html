@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altillo — Your notch, put to work.</title>
+<meta name="description" content="A shelf for files, your next meeting, what's playing and your AI limits — one hover away, in the space your Mac already had.">
+<link rel="icon" href="/altillo-icon.png">
+<link rel="stylesheet" href="../shared/notch.css">
+<link rel="stylesheet" href="../shared/demo/demo.css">
+<link rel="stylesheet" href="../shared/eggs/eggs.css">
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+<a class="skip" href="#try">Skip to the demo</a>
+<div class="grain" aria-hidden="true"></div>
+<div class="lamp" aria-hidden="true"><i class="lamp__warm"></i><i class="lamp__edge"></i><i class="lamp__dusk"></i></div>
+
+<!-- ================================================================ NAV -->
+<header class="nav">
+  <div class="wrap nav__in">
+    <a class="brand" href="#top" aria-label="Altillo, home">
+      <img src="/altillo-icon.png" alt="" width="30" height="30">
+      <span>altillo</span>
+    </a>
+    <nav class="nav__links" aria-label="Main">
+      <a href="#try">Features</a>
+      <a href="#open-source">Open source</a>
+      <a href="https://github.com/XusBadia/altillo" class="ext">GitHub<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3.5 8.5l5-5M4.5 3.5h4v4"/></svg></a>
+    </nav>
+    <a class="btn btn--small" href="https://github.com/XusBadia/altillo/releases/latest">Download</a>
+  </div>
+</header>
+
+<main id="top">
+<!-- =============================================================== HERO -->
+<section class="hero">
+  <div class="wrap hero__copy">
+    <div class="hero__title">
+      <p class="eyebrow"><i class="bulb" aria-hidden="true"></i>For the notch on your Mac</p>
+      <h1>Your notch,<br>put to <em>work.</em></h1>
+    </div>
+    <div class="hero__side">
+      <p class="lede">A shelf for files, your next meeting, what’s playing and your AI limits — one hover away, in the space your Mac already had.</p>
+      <div class="ctas" id="download">
+        <a class="btn" href="https://github.com/XusBadia/altillo/releases/latest"><svg class="apple" viewBox="0 0 14 17" aria-hidden="true"><path d="M11.6 9c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8-.7 0-1.7-.8-2.8-.7C3 4.3 1.7 5.1 1 6.4c-1.5 2.6-.4 6.4 1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.8-1 2.5-2.1.8-1.2 1.1-2.3 1.1-2.4 0 0-2-.8-2-3.5ZM9.5 2.9C10.1 2.2 10.5 1.2 10.4.2c-.8 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6.9.1 1.9-.5 2.5-1.2Z"/></svg>Download for Mac</a>
+        <a class="btn btn--ghost" href="https://github.com/XusBadia/altillo">View on GitHub</a>
+      </div>
+      <p class="fine">Free forever <b>·</b> Open source <b>·</b> macOS 26+ <b>·</b> Signed &amp; notarized</p>
+    </div>
+  </div>
+
+  <div class="hero__stage" role="img" aria-label="Altillo on a MacBook: a PDF is dragged from the desktop up onto the shelf in the notch">
+    <div class="an an-bezel hero__bezel" aria-hidden="true">
+      <div class="an-bezel__screen hero__screen">
+        <div class="an-menubar">
+          <div><b>Finder</b><span>File</span><span>Edit</span></div>
+          <div><span class="mb-x">Sat 27 Sep</span><span>10:24</span></div>
+        </div>
+
+        <!-- The file on the desktop that scroll drags up to the notch -->
+        <div class="hero__file">
+          <div class="hero__file-thing"><div class="an-thumb an-thumb--pdf"></div></div>
+          <span class="hero__file-name">Proposal · Altillo v2.pdf</span>
+          <svg class="hero__cursor" viewBox="0 0 16 22"><path d="M1 1v16.5l4-3.8 2.7 6.3 2.6-1.1-2.6-6.2H13Z"/></svg>
+        </div>
+
+        <div class="hero__hang">
+          <div class="an-notch an-notch--open hero__notch">
+            <header class="an-band">
+              <nav class="an-tabs">
+                <span class="an-tab is-active"><i class="an-house"></i>Shelf</span>
+                <span class="an-tab hx"><i class="an-i an-i--gauge"></i></span>
+                <span class="an-tab hx"><i class="an-knock"></i></span>
+                <span class="an-tab hx"><i class="an-i an-i--calendar"></i></span>
+                <span class="an-tab hx"><i class="an-i an-i--music"></i></span>
+              </nav>
+              <div class="an-accessory">
+                <span><b class="an-figure hero__count">5</b><span class="hx"> things up there</span></span>
+                <span class="an-btn an-btn--quiet hx">Empty</span>
+                <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
+              </div>
+            </header>
+            <div class="an-body an-body--shelf">
+              <div class="an-card an-shelf hero__shelf">
+                <div class="an-plank"></div>
+                <div class="an-shelf__row">
+                  <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div></div><div class="an-tile__name">Screen…10.24.12</div></div>
+                  <div class="an-tile hx"><div class="an-tile__thing"><div class="an-thumb an-thumb--text" style="--an-tilt:1.2deg"></div></div><div class="an-tile__name">meeting-notes</div></div>
+                  <div class="an-tile hx"><div class="an-tile__thing"><div class="an-thumb an-thumb--zip"></div></div><div class="an-tile__name">altillo-assets</div></div>
+                  <div class="an-tile hx"><div class="an-tile__thing"><div class="an-thumb an-thumb--postcard" style="--an-tilt:-1.3deg"><span>getseam.app</span></div></div><div class="an-tile__name">getseam.app</div></div>
+                  <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--note" style="--an-tilt:1deg"><span>Check the drag matrix before Friday</span></div></div><div class="an-tile__name">Check the drag matrix before Friday</div></div>
+                  <div class="an-tile hero__slot"><div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div><span class="an-tile__pool"></span></div><div class="an-tile__name">Propo…Altillo v2</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="an-notch an-notch--ears hero__ears">
+            <span class="an-ear">
+              <span class="an-ring an-ear-ring is-warning"><svg viewBox="0 0 100 100"><circle class="an-ring__track" cx="50" cy="50" r="41.4" stroke-width="17.1"/><circle class="an-ring__arc" cx="50" cy="50" r="41.4" stroke-width="17.1" pathLength="100" stroke-dasharray="85 100" transform="rotate(-90 50 50)"/></svg></span>
+              <span style="color: var(--an-mustard)">85</span>
+            </span>
+            <span class="an-ear"><i class="an-house"></i><span class="hero__count">5</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ TRY IT -->
+<section class="try" id="try" aria-labelledby="try-title">
+  <div class="wrap try__head">
+    <div class="try__intro">
+      <p class="eyebrow">Features <b>— try them</b></p>
+      <h2 id="try-title">Everything,<br><em>one hover away.</em></h2>
+      <p class="lede">A Mac you can play with. Hover the notch, drag a file up, answer Claude. Nothing here is real except the music.</p>
+    </div>
+    <figure class="plate" data-parallax="-0.08">
+      <div class="plate__img"><img src="/media/attic.webp" alt="An attic under a hanging bulb, papers drifting between the shelves" loading="lazy" width="1672" height="941"></div>
+      <figcaption>the attic, after hours</figcaption>
+    </figure>
+  </div>
+
+  <div class="wrap try__grid">
+    <div class="chips" role="toolbar" aria-label="Jump to a feature"></div>
+
+    <ol class="chapters">
+      <li class="follow" hidden><span>Following along paused</span> · <button type="button">Resume</button></li>
+      <li class="chap" data-module="shelf">
+        <button class="tag" type="button" data-show="shelf" style="--rest:-2.2deg">No. 01</button>
+        <p class="eyebrow">Shelf</p>
+        <h3>Drop a file on the notch. Pick it up in another window.</h3>
+        <p class="quote">A temporary place for the file you’ll need in a moment.</p>
+        <p class="try-line">Drag a file from Finder up to the notch.</p>
+      </li>
+      <li class="chap" data-module="usage">
+        <button class="tag" type="button" data-show="usage" style="--rest:1.8deg">No. 02</button>
+        <p class="eyebrow">AI usage</p>
+        <h3>Claude, Codex, Cursor, Gemini, Copilot and five more.</h3>
+        <p class="quote">Your quota, your pace, and when it refills — at a glance.</p>
+      </li>
+      <li class="chap" data-module="agents">
+        <button class="tag" type="button" data-show="agents" style="--rest:-1.4deg">No. 03</button>
+        <p class="eyebrow">Live agents</p>
+        <h3>“Claude Code wants to run <code>git push</code>.”</h3>
+        <p class="quote">Approve or deny from the notch without leaving what you’re doing.</p>
+        <p class="try-line">Allow it, deny it, or hold for the risky ones.</p>
+      </li>
+      <li class="chap" data-module="calendar">
+        <button class="tag" type="button" data-show="calendar" style="--rest:2.4deg">No. 04</button>
+        <p class="eyebrow">Calendar</p>
+        <h3>Your next meeting and a Join button, right up top.</h3>
+      </li>
+      <li class="chap" data-module="music">
+        <button class="tag" type="button" data-show="music" style="--rest:-2.6deg">No. 05</button>
+        <p class="eyebrow">Now playing</p>
+        <h3>Pause, skip, see what’s on.</h3>
+        <p class="quote">No app switching.</p>
+        <p class="try-line">Press play. The music is real.</p>
+      </li>
+      <li class="chap" data-module="mirror">
+        <button class="tag" type="button" data-show="mirror" style="--rest:1.2deg">No. 06</button>
+        <p class="eyebrow">Mirror</p>
+        <h3>A quick look at yourself before the call.</h3>
+        <p class="try-line">No camera here: the glass shows a drawing.</p>
+      </li>
+      <li class="chap" data-module="ask">
+        <button class="tag" type="button" data-show="ask" style="--rest:-1.8deg">No. 07</button>
+        <p class="eyebrow">Ask</p>
+        <h3>An assistant that runs on your Mac.</h3>
+        <p class="quote">Answering from your calendar and clipboard. On-device by default; web search only when you allow it.</p>
+      </li>
+      <li class="chap" data-module="drawer">
+        <button class="tag" type="button" data-show="drawer" style="--rest:2deg">No. 08</button>
+        <p class="eyebrow">Drawer</p>
+        <h3>Tuck away the menu bar icons you don’t need to see.</h3>
+        <p class="fine chap__fine">Hides icons on macOS 26 and needs Accessibility access. On macOS 27 they stay in the menu bar.</p>
+      </li>
+    </ol>
+
+    <div class="stagebox">
+      <div class="stagebox__head" aria-hidden="true">
+        <span class="odo"><span class="odo__no">No.</span><span class="odo__d"><span class="odo__col" data-odo="0">0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</span></span><span class="odo__d"><span class="odo__col" data-odo="1">0<br>1<br>2<br>3<br>4<br>5<br>6<br>7<br>8<br>9</span></span></span>
+        <span class="stagebox__name"><span data-name>Shelf</span></span>
+      </div>
+      <div id="demo" class="demo"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================================================= PRINCIPLES -->
+<section class="principles wrap" aria-labelledby="principles-title">
+  <div class="principles__head" data-reveal>
+    <p class="eyebrow">How it’s made</p>
+    <h2 id="principles-title">Quiet, private, <em>yours.</em></h2>
+  </div>
+  <div class="principles__grid">
+    <article data-reveal>
+      <span class="numeral">i.</span>
+      <h3>Private by design</h3>
+      <p>Usage checks go straight to each provider with the credential its own tool already stores. No Altillo servers.</p>
+    </article>
+    <article data-reveal>
+      <span class="numeral">ii.</span>
+      <h3>Native</h3>
+      <p>Built in Swift for macOS 26. Light on battery, quiet when idle.</p>
+    </article>
+    <article data-reveal>
+      <span class="numeral">iii.</span>
+      <h3>Yours to shape</h3>
+      <p>Choose which modules appear and in what order.</p>
+    </article>
+  </div>
+</section>
+
+<!-- ============================================================ CLOSING -->
+<section class="closing wrap" id="open-source" aria-labelledby="closing-title">
+  <figure class="polaroid" data-parallax="0.06">
+    <div class="polaroid__card">
+      <div class="polaroid__face polaroid__front">
+        <img src="/media/mac-door.webp" alt="A small wooden door set into a MacBook’s notch, lit from behind" loading="lazy" width="1672" height="941">
+        <figcaption>the door, lit</figcaption>
+      </div>
+      <div class="polaroid__face polaroid__back" aria-hidden="true">
+        <p>Oh — you turned it over.<br>That’s exactly the kind of curiosity this was built for.</p>
+        <span>— from the attic</span>
+      </div>
+    </div>
+    <button class="polaroid__tape" type="button" aria-label="Peel the tape"></button>
+  </figure>
+  <div class="closing__copy" data-reveal>
+    <p class="eyebrow">Open source</p>
+    <h2 id="closing-title">Free forever.<br><em>Open source.</em></h2>
+    <p class="lede">Read the code, build it yourself or just download the signed release.</p>
+    <div class="ctas">
+      <a class="btn" href="https://github.com/XusBadia/altillo/releases/latest"><svg class="apple" viewBox="0 0 14 17" aria-hidden="true"><path d="M11.6 9c0-2 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.2.8-.7 0-1.7-.8-2.8-.7C3 4.3 1.7 5.1 1 6.4c-1.5 2.6-.4 6.4 1 8.5.7 1 1.5 2.1 2.6 2.1 1 0 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.7 1.1 0 1.8-1 2.5-2.1.8-1.2 1.1-2.3 1.1-2.4 0 0-2-.8-2-3.5ZM9.5 2.9C10.1 2.2 10.5 1.2 10.4.2c-.8 0-1.9.6-2.5 1.3-.6.6-1 1.6-.9 2.6.9.1 1.9-.5 2.5-1.2Z"/></svg>Download for Mac</a>
+      <a class="btn btn--ghost" href="https://github.com/XusBadia/altillo"><svg class="star" viewBox="0 0 16 16" aria-hidden="true"><path d="m8 1.5 2 4.1 4.5.6-3.3 3.1.8 4.5L8 11.6l-4 2.2.8-4.5L1.5 6.2 6 5.6Z"/></svg>Star on GitHub</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ============================================================= FOOTER -->
+<footer class="foot">
+  <div class="foot__lamp" aria-hidden="true">
+    <span class="foot__flex"></span>
+    <span class="foot__bulb"></span>
+    <span class="foot__glow"></span>
+  </div>
+  <button class="cord" type="button" aria-label="Pull the lamp cord"><span class="cord__string"></span><span class="cord__bead"></span></button>
+  <div class="wrap foot__night">
+    <p class="foot__bye"><span class="bye-off">Lights out.<br><em>See you upstairs.</em></span><span class="bye-on">Still up?<br><em>So is the lamp.</em></span></p>
+  </div>
+  <div class="wrap foot__in">
+    <a class="brand brand--small" href="#top"><img src="/altillo-icon.png" alt="" width="22" height="22"><span>altillo</span></a>
+    <span>© 2026 Altillo</span>
+    <nav aria-label="Footer"><a href="https://altillo.app/privacy/">Privacy</a><a href="https://altillo.app/es/" lang="es" hreflang="es">Español</a></nav>
+  </div>
+</footer>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>

@@ -1,157 +1,164 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
+import { LOCALES, watch, gotoPage, waitForDemo, waitForEggs, scrollThrough } from "./helpers.js";
 
-async function chapter(page, name) {
-  const step = page.locator(`.story-step[data-chapter="${name}"]`);
-  await step.evaluate((el) => {
-    const r = el.getBoundingClientRect();
-    window.scrollTo({ top: scrollY + r.top + r.height / 2 - innerHeight * (innerWidth < 1000 ? 0.72 : 0.5), behavior: 'instant' });
+for (const L of LOCALES) {
+  test.describe(`${L.code} page`, () => {
+    test("loads with no console errors and no failed requests", async ({ page }) => {
+      const problems = watch(page);
+      await gotoPage(page, L.path);
+      await page.waitForLoadState("load");
+      await waitForDemo(page);
+      await waitForEggs(page);
+      await scrollThrough(page);
+      // The lazy Aurio images have arrived and decoded.
+      for (const img of await page.locator(".aurio__img").all()) {
+        await expect.poll(() => img.evaluate((i) => i.complete && i.naturalWidth > 0)).toBe(true);
+      }
+      await page.waitForLoadState("networkidle");
+      expect(problems).toEqual([]);
+    });
+
+    test("has its language, meta and structured data", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await expect(page).toHaveTitle(L.title);
+      await expect(page.locator("html")).toHaveAttribute("lang", L.code);
+      await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", L.canonical);
+      await expect(page.locator('link[hreflang="en"]')).toHaveAttribute("href", "https://altillo.app/");
+      await expect(page.locator('link[hreflang="es"]')).toHaveAttribute("href", "https://altillo.app/es/");
+      await expect(page.locator('link[hreflang="x-default"]')).toHaveAttribute("href", "https://altillo.app/");
+      await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute("content", L.ogLocale);
+      await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", L.canonical);
+      await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://altillo.app/og.png");
+      const ld = JSON.parse(await page.locator('script[type="application/ld+json"]').textContent());
+      expect(ld["@type"]).toBe("SoftwareApplication");
+      expect(ld.url).toBe(L.canonical);
+      expect(ld.downloadUrl).toBe("https://github.com/XusBadia/altillo/releases/latest");
+      // The social card and icons exist at the site root.
+      for (const p of ["/og.png", "/favicon.svg", "/altillo-icon.png"]) {
+        expect((await page.request.get(p)).status(), p).toBe(200);
+      }
+    });
+
+    test("the hero notch opens into the Shelf", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await expect(page.locator("h1")).toHaveText(L.h1);
+      // Fully open: the slab is at its natural size and the ears are gone.
+      await expect(page.locator(".hero__slab")).toHaveAttribute("style", /transform: none/);
+      await expect.poll(() => page.locator(".hero__ears").evaluate((e) => +getComputedStyle(e).opacity)).toBe(0);
+      await expect(page.locator(".hero__open .an-tab.is-active")).toHaveText(L.tab.shelf);
+      await expect(page.locator(".hero__open .an-tile")).toHaveCount(6);
+      await expect(page.locator(".hero__open .an-tile").first()).toBeVisible();
+    });
+
+    test("navigation links go where they say", async ({ page }) => {
+      await gotoPage(page, L.path);
+      const links = page.locator(".nav__links a");
+      await expect(links.nth(0)).toHaveAttribute("href", "#features");
+      await expect(links.nth(0)).toHaveText(L.features);
+      await expect(links.nth(1)).toHaveAttribute("href", "https://github.com/XusBadia/altillo");
+      await expect(links.nth(2)).toHaveAttribute("href", "#aurio");
+      await expect(links.nth(3)).toHaveAttribute("href", "https://github.com/XusBadia/altillo/releases/latest");
+      await expect(links.nth(3)).toHaveText(L.download);
+      await expect(page.locator(".hero__copy .btn--amber")).toHaveAttribute("href", "https://github.com/XusBadia/altillo/releases/latest");
+      await expect(page.locator('#aurio a[href="https://www.aurioapp.com"]')).toHaveCount(2);
+
+      // Footer: privacy in the same language, and the switch to the other one.
+      await expect(page.locator(`.footer a[href="${L.privacy}"]`)).toHaveCount(1);
+      await expect(page.locator(`.footer a[href="${L.other}"]`)).toHaveCount(1);
+
+      // In-page anchors land on their sections.
+      const inView = (sel) => page.locator(sel).evaluate((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top < innerHeight * 0.5 && r.bottom > 0;
+      });
+      // Phones keep only Download in the bar.
+      if (page.viewportSize().width <= 760) {
+        await expect(links.nth(3)).toBeVisible();
+        await expect(links.nth(0)).toBeHidden();
+        return;
+      }
+      // Past the hero the sticky nav slides in (it's always on below 940 px).
+      await page.evaluate(() => window.scrollTo({ top: 400, behavior: "instant" }));
+      await expect(page.locator("#nav")).toHaveClass(/is-visible|is-scrolled/);
+      await expect(links.nth(0)).toBeVisible();
+      await links.nth(0).click();
+      await expect(page).toHaveURL(/#features$/);
+      await expect.poll(() => inView("#features")).toBe(true);
+      await links.nth(2).click();
+      await expect(page).toHaveURL(/#aurio$/);
+      await expect.poll(() => inView("#aurio")).toBe(true);
+    });
+
+    test("the language switch leads to the other page", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await page.locator(`.footer a[href="${L.other}"]`).click();
+      await expect(page).toHaveURL(new RegExp(`${L.other.replace(/\//g, "\\/")}$`));
+      await expect(page.locator("html")).toHaveAttribute("lang", L.code === "en" ? "es" : "en");
+    });
+
+    test("reduced motion shows a still page", async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await gotoPage(page, L.path);
+      // Open from the first frame, with no opening animation to wait for.
+      await expect(page.locator(".hero__slab")).toHaveAttribute("style", /transform: none/);
+      await expect(page.locator(".hero__ears")).toHaveCSS("opacity", "0");
+      // Every arrival is already in place.
+      const pending = await page.locator(".lines, .reveal").evaluateAll((els) => els.filter((e) => !e.classList.contains("is-in")).length);
+      expect(pending).toBe(0);
+      // Rings and counts sit at their final values without waiting.
+      await expect(page.locator(".bento [data-count]").first()).toHaveText("85");
+      await waitForDemo(page);
+      await expect(page.locator("#demo")).toHaveClass(/dm--reduce/);
+    });
+
+    test("prints every figure at its final value", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await page.emulateMedia({ media: "print" });
+      await page.evaluate(() => window.dispatchEvent(new Event("beforeprint")));
+      await expect(page.locator(".bento [data-count]").first()).toHaveText("85");
+      await expect(page.locator(".try")).toBeHidden();
+      await expect(page.locator(".nav")).toBeHidden();
+    });
   });
-  await expect(step).toHaveClass(/is-active/);
 }
 
-test('explains the product, offers a download and links to Aurio without overflow', async ({ page }) => {
-  const errors = [];
-  page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto('/es/');
-  await expect(page.getByRole('heading', { level: 1 })).toContainText(/Tu Mac ya tenía\s*un altillo/);
-  await expect(page.locator('.hero-copy .eyebrow')).toContainText('UNA APP PARA EL NOTCH DE TU MAC');
-  await expect(page.locator('.hero-function')).toContainText('Deja archivos en el notch');
-  await expect(page.locator('.hero-proof')).toHaveText('Gratis para siempre. Código abierto.');
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /gratis para siempre.*código abierto.*notch/i);
-  await expect(page.locator('#proyecto')).toContainText('firmada y notarizada');
-  await expect(page.locator('[data-module="music"] small')).toHaveText('Controles multimedia del Mac');
-  const staleSpanishClaims = /función en desarro[l]lo|Apple Music y Spotif[y]/;
-  await expect(page.locator('main')).not.toContainText(staleSpanishClaims);
-  await expect(page.getByRole('link', { name: 'Descargar para Mac', exact: true })).toHaveAttribute('href', 'https://github.com/XusBadia/altillo/releases/latest');
-  await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toHaveAttribute('href', 'https://www.aurioapp.com');
-  await expect(page.getByRole('tab')).toHaveCount(0);
-  await expect(page.locator('.story-step')).toHaveCount(3);
-  for (const [name, view] of [['shelf', 'idle'], ['day', 'calendar'], ['ai', 'usage']]) {
-    await chapter(page, name);
-    await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', view);
-    await expect(page.locator(`.story-step[data-chapter="${name}"]`)).not.toContainText('EN DESARROLLO');
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+test.describe("fallbacks", () => {
+  test("without its script the page is still readable", async ({ browser }) => {
+    const ctx = await browser.newContext({ javaScriptEnabled: false });
+    const page = await ctx.newPage();
+    await page.goto("/");
+    await expect(page.locator("h1")).toBeVisible();
+    await expect(page.locator(".bento .cell").first()).toBeVisible();
+    await expect(page.locator("#aurio h3")).toBeVisible();
+    await ctx.close();
+  });
+
+  test("if the demo can't load, Features lands on the bento", async ({ page }) => {
+    await page.route(/\/assets\/demo-[^/]+\.js$/, (r) => r.abort());
+    await page.goto("/?eggs-hour=12");
+    await expect(page.locator(".try")).toBeHidden();
+    await expect(page.locator(".bento-wrap")).toHaveAttribute("id", "features");
+    await expect(page.locator(".hero__slab")).toHaveAttribute("style", /transform: none/);
+  });
+});
+
+test.describe("phone layout", () => {
+  test.beforeEach(({ page }, info) => test.skip(page.viewportSize().width > 500, "phones only"));
+
+  for (const L of LOCALES) {
+    test(`${L.code}: fits 390 px, with chips instead of steps`, async ({ page }) => {
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      await scrollThrough(page);
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+      await expect(page.locator(".try__chips")).toBeVisible();
+      await expect(page.locator(".try__steps")).toBeHidden();
+      // Phones are greeted with the Shelf open, and its chip marked.
+      await expect(page.locator('.try__chips [data-show="shelf"]')).toHaveAttribute("aria-pressed", "true");
+      await expect.poll(() => page.evaluate(() => window.altilloDemo.state.open)).toBe(true);
+      // The nav is always there on phones.
+      await expect(page.locator(".nav")).toBeVisible();
+    });
   }
-  expect(errors).toEqual([]);
-});
-
-test('English product claims match the shipped macOS app', async ({ page }) => {
-  await page.goto('/');
-  await expect(page.locator('.hero-copy .eyebrow')).toContainText('AN APP FOR YOUR MAC’S NOTCH');
-  await expect(page.locator('.hero-proof')).toHaveText('Free forever. Open source.');
-  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', /free forever.*open-source.*notch/i);
-  await expect(page.locator('[data-module="music"] small')).toHaveText('Mac media controls');
-  const staleEnglishClaims = /feature in developmen[t]|Apple Music and Spotif[y]/;
-  await expect(page.locator('main')).not.toContainText(staleEnglishClaims);
-  await page.locator('[data-module="agents"]').click();
-  await expect(page.locator('#interactive-demo')).toContainText('Sample request · you decide; Altillo never auto-approves');
-});
-
-for (const [route, canonical] of [['/', 'https://altillo.app/'], ['/es/', 'https://altillo.app/es/']]) {
-  test(`publishes canonical domain metadata for ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
-    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', canonical);
-    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
-      'content',
-      'https://altillo.app/media/mac-door.webp',
-    );
-    await expect(page.locator('link[rel="alternate"][hreflang="es"]')).toHaveAttribute('href', 'https://altillo.app/es/');
-    await expect(page.locator('link[rel="alternate"][hreflang="en"]')).toHaveAttribute('href', 'https://altillo.app/');
-    await expect(page.locator('link[rel="alternate"][hreflang="x-default"]')).toHaveAttribute('href', 'https://altillo.app/');
-  });
-}
-
-for (const [route, canonical, heading] of [
-  ['/privacy/', 'https://altillo.app/privacy/', 'Your things stay on your Mac.'],
-  ['/es/privacidad/', 'https://altillo.app/es/privacidad/', 'Tus cosas se quedan en tu Mac.'],
-]) {
-  test(`publishes the privacy policy at ${route}`, async ({ page }) => {
-    await page.goto(route);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(heading);
-    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', canonical);
-    await expect(page.locator('main')).toContainText(/no analytics|no tiene analítica/);
-  });
-}
-
-test('double-clicking the Aurio mascot follows its external link', async ({ page }) => {
-  await page.route('https://www.aurioapp.com/**', (route) => route.abort());
-  await page.goto('/es/');
-  const aurioRequest = page.waitForRequest((request) => request.url().startsWith('https://www.aurioapp.com'));
-  await page.locator('.aurio-sign').dblclick();
-  expect((await aurioRequest).url()).toBe('https://www.aurioapp.com/');
-});
-
-test('three taps on the support label make Aurio wink without following the link', async ({ page }) => {
-  await page.goto('/es/');
-  const trigger = page.locator('.support-top .eyebrow');
-  const aurio = page.locator('.aurio-sign');
-  const urlBefore = page.url();
-  await trigger.click();
-  await trigger.click();
-  await trigger.click();
-  await expect(page.locator('body')).toHaveClass(/egg-aurio/);
-  await expect(aurio).toHaveClass(/is-winking/);
-  await expect(aurio.locator('.aurio-mascot-wink')).toHaveAttribute('src', '/media/aurio-mascot-wink.webp');
-  await expect(aurio.locator('.aurio-mascot-wink')).toHaveCSS('animation-name', 'aurio-wink-frame');
-  await expect(page).toHaveURL(urlBefore);
-});
-
-test('the door hotspot receives three real pointer clicks above the hero copy', async ({ page }) => {
-  await page.goto('/es/');
-  const door = page.getByRole('button', { name: 'Llamar a la puerta' });
-  await door.click();
-  await door.click();
-  await door.click();
-  await expect(page.locator('body')).toHaveClass(/egg-door/);
-  await expect.poll(() => door.evaluate((node) => getComputedStyle(node, '::before').opacity)).not.toBe('0');
-});
-
-test('the hidden night shortcut really toggles the scene on and off', async ({ page }) => {
-  await page.goto('/es/');
-  await page.keyboard.press('d');
-  await expect(page.locator('body')).toHaveClass(/egg-night/);
-  await page.keyboard.press('d');
-  await expect(page.locator('body')).not.toHaveClass(/egg-night/);
-});
-
-test('scroll chapters preserve manual choice until the next chapter', async ({ page }) => {
-  await page.goto('/es/');
-  await chapter(page, 'shelf');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'idle');
-  await page.locator('.story-step [data-module="drawer"]').click();
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'drawer');
-  await page.evaluate(() => window.scrollBy({ top: 12, behavior: 'instant' }));
-  await expect(page.locator('.story-step[data-chapter="shelf"]')).toHaveClass(/is-active/);
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'drawer');
-  await chapter(page, 'ai');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'usage');
-  await expect(page.locator('.chapter-current')).toHaveText('03');
-  await chapter(page, 'day');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'calendar');
-  await expect(page.locator('.chapter-current')).toHaveText('02');
-});
-
-test('reduced motion disables parallax while chapters remain usable', async ({ page }) => {
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.goto('/es/');
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await chapter(page, 'day');
-  await expect(page.locator('.ad-notch')).toHaveAttribute('data-view', 'calendar');
-  await expect(page.locator('.hero-media')).toHaveCSS('transform', 'none');
-  await expect(page.locator('.hero-copy')).toHaveCSS('transform', 'none');
-  await expect(page.locator('html')).toHaveCSS('scroll-behavior', 'auto');
-  await expect(page.locator('.intro h2')).toHaveCSS('opacity', '1');
-});
-
-test('page remains readable without JavaScript', async ({ browser, baseURL }) => {
-  const context = await browser.newContext({ javaScriptEnabled: false });
-  const page = await context.newPage();
-  await page.goto(`${baseURL}/es/`);
-  await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
-  await expect(page.locator('.intro h2')).toBeVisible();
-  await expect(page.locator('noscript p')).toBeVisible();
-  await expect(page.locator('noscript p')).toContainText('Activa JavaScript');
-  await expect(page.getByRole('link', { name: 'Conocer Aurio', exact: true })).toBeVisible();
-  await context.close();
 });

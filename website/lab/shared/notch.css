@@ -1,0 +1,1500 @@
+/* ==========================================================================
+   Altillo notch — a resolution-independent HTML/CSS recreation of the open
+   notch («Desván» design), for the website prototypes.
+
+   Namespace: .an-*  (altillo notch). No dependencies besides wood.webp, which
+   lives next to this file (url() below resolves relative to this stylesheet).
+
+   Scale: everything is authored in the app's own points and scaled with CSS
+   `zoom`, so text and hairlines are re-rasterised (crisp) at any size.
+     --an-scale: 1    → open panel ≈ 720 px wide (the app's widest setting,
+                        760 pt, where six things fit on the shelf)
+     --an-scale: 1.6  → ≈ 1150 px wide
+   Put `.an` on the outermost element you drop in (the notch or .an-bezel).
+   Set --an-scale on it or on any ancestor.
+
+   Sources (SwiftUI): Apps/macOS/Views/Desvan/*, Views/NotchChrome.swift,
+   Packages/AltilloKit/Sources/AltilloDesign/NotchShape.swift.
+   Icons: Phosphor (MIT, © Phosphor Icons) as masks, plus hand-drawn marks.
+   ========================================================================== */
+
+/* Marker: lets demo.js know this stylesheet is already on the page. */
+:root { --an-kit: 1; }
+
+.an {
+  /* 760 pt of app → 720 px at scale 1. Set --an-scale here or on any ancestor. */
+  zoom: calc(var(--an-scale, 1) * 0.947368);
+
+  /* Palette (Desvan.Palette) */
+  --an-notch: #000;
+  --an-wood: #1e1914;
+  --an-wood-raised: #2a231c;
+  --an-plank: #3a3027;
+  --an-paper: #f6efe3;
+  --an-paper-2: rgb(246 239 227 / 0.62);
+  --an-paper-3: rgb(246 239 227 / 0.52);
+  --an-ink: #2b241d;
+  --an-bulb: #ffb547;
+  --an-bulb-ink: #2b1a05;
+  --an-kraft: #c9a77c;
+  --an-tape: #e9dcbc;
+  --an-hairline: rgb(246 239 227 / 0.08);
+  --an-hairline-strong: rgb(246 239 227 / 0.14);
+  --an-tomato: #f2674a;
+  --an-mustard: #e8b33a;
+  --an-sage: #9db88a;
+  --an-sky: #86b6d9;
+  --an-lavender: #b7a3e0;
+  --an-rose: #ee9fb5;
+
+  /* Geometry (NotchChrome) */
+  --an-camera: 185px;      /* hardware notch width (MacBook Pro 14") */
+  --an-band: 32px;         /* notch height = the band beside the camera */
+
+  /* Type */
+  --an-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", "Helvetica Neue", Arial, sans-serif;
+  --an-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --an-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, monospace;
+
+  font-family: var(--an-font);
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--an-paper);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-synthesis: style; /* SF Pro Rounded has no italic: slant it like SwiftUI does */
+}
+.an .an { zoom: 1; }
+.an *, .an *::before, .an *::after { box-sizing: border-box; }
+.an :where(p, h1, h2, h3, h4, ul, ol, figure) { margin: 0; padding: 0; }
+.an :where(button) {
+  appearance: none; margin: 0; border: 0; padding: 0; background: none;
+  color: inherit; font: inherit; line-height: inherit; cursor: default;
+}
+
+/* ---------- Text helpers -------------------------------------------------- */
+.an-rounded { font-family: var(--an-rounded); }
+.an-figure { font-family: var(--an-rounded); font-variant-numeric: tabular-nums; font-weight: 700; }
+.an-mono { font-family: var(--an-mono); }
+.an-2 { color: var(--an-paper-2); }
+.an-3 { color: var(--an-paper-3); }
+.an-amber { color: var(--an-bulb); }
+.an-ellipsis { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+/* ==========================================================================
+   Icons: <i class="an-i an-i--gear"></i>   (size = font-size, colour = color)
+   ========================================================================== */
+.an-i {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  background-color: currentColor;
+  -webkit-mask: var(--an-icon) center / contain no-repeat;
+  mask: var(--an-icon) center / contain no-repeat;
+}
+/* gauge.with.needle (hand-drawn: the dial the app uses for Usage) */
+.an-i--gauge {
+  --an-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cpath d='M12 12.6 7.9 8.4'/%3E%3Cpath d='M12 5.2v1.4M18.8 12h-1.4M5.2 12h1.4' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12.6' r='1.5' fill='%23000' stroke='none'/%3E%3C/svg%3E");
+}
+/* Knocking hand: filled amber, lit. */
+.an-knock {
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  color: var(--an-bulb);
+  background-color: currentColor;
+  -webkit-mask: var(--an-icon-hand-fill) center / contain no-repeat;
+  mask: var(--an-icon-hand-fill) center / contain no-repeat;
+  filter: drop-shadow(0 0 3px rgb(255 181 71 / 0.6));
+}
+
+/* House mark (DesvanHouseMark): pentagon outline + a lit window.
+   <i class="an-house"></i>  ·  .an-house--off: light off (empty shelf). */
+.an-house {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  --an-lit: 1;
+}
+.an-house::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23000' stroke-width='11' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M50 9.5 90.5 43.5V90.5H9.5V43.5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23000' stroke-width='11' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M50 9.5 90.5 43.5V90.5H9.5V43.5Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+.an-house::after {
+  content: "";
+  position: absolute;
+  left: 37%;
+  top: 47%;
+  width: 26%;
+  height: 26%;
+  border-radius: 5%;
+  background: rgb(255 181 71 / calc(0.25 + 0.75 * var(--an-lit)));
+  box-shadow: 0 0 0.3em rgb(255 181 71 / calc(0.9 * var(--an-lit)));
+}
+.an-house--off { --an-lit: 0; color: var(--an-paper-3); }
+.an-house--dim { --an-lit: 0.25; }
+
+/* Agent / provider marks (AgentGlyph): <i class="an-glyph an-glyph--claude" style="--s:22px"></i> */
+.an-glyph {
+  --s: 18px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 26%;
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.12);
+  vertical-align: middle;
+}
+.an-glyph--claude {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='-50 -50 100 100' fill='%23FFFFFB'%3E%3Cg id='a'%3E%3Crect x='-5' y='-50' width='10' height='50' rx='5'/%3E%3Crect x='-5' y='-39' width='10' height='39' rx='5' transform='rotate(30)'/%3E%3C/g%3E%3Cuse href='%23a' transform='rotate(60)'/%3E%3Cuse href='%23a' transform='rotate(120)'/%3E%3Cuse href='%23a' transform='rotate(180)'/%3E%3Cuse href='%23a' transform='rotate(240)'/%3E%3Cuse href='%23a' transform='rotate(300)'/%3E%3C/svg%3E") center / 60% no-repeat,
+    #d97757;
+}
+.an-glyph--codex { background: #f4f1ec; color: #1c1917; }
+.an-glyph--codex::after {
+  content: ">_";
+  font: 700 calc(var(--s) * 0.46) / 1 var(--an-mono);
+  letter-spacing: -0.04em;
+  transform: translateY(-2%);
+}
+
+/* ==========================================================================
+   Wood: card, plaque, plank
+   ========================================================================== */
+
+/* DesvanCard: dark wood, grain at 17 %, a shallow-tray inner shadow and a
+   bevel (lit top lip → dark bottom edge). */
+.an-card {
+  position: relative;
+  isolation: isolate;
+  border-radius: var(--an-r, 14px);
+  background:
+    linear-gradient(to bottom, transparent 50%, rgb(0 0 0 / 0.26)),
+    var(--an-card-fill, var(--an-wood));
+}
+.an-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: url("wood.webp") 0 0 / 720px 220px repeat;
+  opacity: 0.17;
+  pointer-events: none;
+}
+.an-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 0.75px;
+  background: linear-gradient(
+    to bottom,
+    rgb(246 239 227 / 0.16) 0%,
+    rgb(246 239 227 / 0.08) 12%,
+    rgb(246 239 227 / 0.024) 80%,
+    rgb(0 0 0 / 0.5) 100%
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+.an-card--raised { --an-card-fill: var(--an-wood-raised); }
+/* "I need you": the bulb's rim and its light on the card. */
+.an-card--lit {
+  box-shadow: 0 0 0 1px rgb(255 181 71 / 0.64), 0 0 16px rgb(255 181 71 / 0.4);
+  background:
+    radial-gradient(circle at 100% 0, rgb(255 181 71 / 0.1), transparent 320px),
+    linear-gradient(to bottom, transparent 50%, rgb(0 0 0 / 0.26)),
+    var(--an-card-fill, var(--an-wood));
+}
+
+/* DesvanTabPlaque: lighter wood in a thin brass frame. */
+.an-plaque {
+  position: relative;
+  isolation: isolate;
+  border-radius: 7px;
+  background: linear-gradient(#3b3026, #2b231b);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.7), inset 0 0 0 1.5px rgb(0 0 0 / 0.45);
+}
+.an-plaque::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: url("wood.webp") 0 0 / 720px 220px repeat;
+  opacity: 0.7;
+}
+.an-plaque::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(#e8c987, #a9824a, #5e4522);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* DesvanPlank: 4 pt top surface, a lit arris, 7 pt front edge and the shadow
+   it casts on the wall. */
+.an-plank {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: var(--an-plank-y, 99px);
+  height: 11px;
+  isolation: isolate;
+  background:
+    linear-gradient(#3e3329, #54463a) 0 0 / 100% 4px no-repeat,
+    linear-gradient(#3f3329, var(--an-plank) 50%, #261e17) 0 4px / 100% 7px no-repeat;
+}
+.an-plank::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("wood.webp") 0 -40px / 720px 220px repeat;
+  opacity: 0.75;
+  mix-blend-mode: normal;
+}
+.an-plank::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 4px;
+  height: 23px;
+  background:
+    linear-gradient(rgb(232 207 166 / 0.3), rgb(232 207 166 / 0.3)) 0 0 / 100% 0.5px no-repeat,
+    linear-gradient(rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.18) 35%, transparent) 0 7px / 100% 16px no-repeat;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   Buttons (DesvanButtonStyle): capsules, SF Pro Rounded 12 semibold.
+   ========================================================================== */
+.an-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  flex: none;
+  height: var(--an-h, 26px);
+  padding: 0 13px;
+  border-radius: 999px;
+  font: 600 12px / 1 var(--an-rounded);
+  white-space: nowrap;
+  color: var(--an-paper-2);
+}
+.an-btn--28 { --an-h: 28px; font-size: 13px; }
+.an-btn--32 { --an-h: 32px; }
+.an-btn--36 { --an-h: 36px; }
+.an-btn--primary {
+  color: var(--an-bulb-ink);
+  background:
+    linear-gradient(to bottom, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0) 50%),
+    rgb(255 181 71 / 0.94);
+  box-shadow:
+    inset 0 0 0 0.5px rgb(255 226 168 / 0.6),
+    0 1px 18px rgb(255 181 71 / 0.35);
+}
+.an-btn--ghost {
+  color: rgb(246 239 227 / 0.85);
+  background: rgb(246 239 227 / 0.02);
+  box-shadow: inset 0 0 0 1px rgb(246 239 227 / 0.24);
+}
+.an-btn--quiet { color: var(--an-paper-2); }
+.an-btn--quiet.is-hover, .an-btn--quiet:hover { background: rgb(246 239 227 / 0.08); color: var(--an-paper); }
+.an-btn--icon { padding: 0; width: var(--an-h, 26px); }
+
+/* ==========================================================================
+   The silhouette (NotchShape): a black slab hanging from the top edge, with
+   concave top fillets and rounded bottom corners. The element is the body;
+   the fillets are drawn outside it.
+   ========================================================================== */
+.an-notch {
+  --an-fillet: 6px;
+  --an-bottom: 10px;
+  position: relative;
+  width: var(--an-w, calc(var(--an-camera) + 0px));
+  height: var(--an-h-notch, var(--an-band));
+  margin-inline: auto;
+  background: var(--an-notch);
+  border-radius: 0 0 var(--an-bottom) var(--an-bottom);
+  color: var(--an-paper);
+}
+.an-notch::before,
+.an-notch::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: var(--an-fillet);
+  height: var(--an-fillet);
+  pointer-events: none;
+}
+.an-notch::before {
+  right: 100%;
+  background: radial-gradient(circle at 0 100%, transparent calc(var(--an-fillet) - 0.5px), var(--an-notch) var(--an-fillet));
+}
+.an-notch::after {
+  left: 100%;
+  background: radial-gradient(circle at 100% 100%, transparent calc(var(--an-fillet) - 0.5px), var(--an-notch) var(--an-fillet));
+}
+
+/* Closed: exactly the hardware notch. */
+.an-notch--closed { --an-w: var(--an-camera); }
+
+/* Closed with ears: 68 pt each side of the camera. */
+.an-notch--ears {
+  --an-w: calc(var(--an-camera) + 136px);
+  display: grid;
+  grid-template-columns: 68px 1fr 68px;
+  align-items: center;
+}
+.an-ear {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 100%;
+  font: 700 13px / 1 var(--an-rounded);
+  font-variant-numeric: tabular-nums;
+}
+.an-ear:last-child { grid-column: 3; }
+.an-ear .an-house { font-size: 13px; }
+.an-ear .an-knock { font-size: 12.5px; }
+.an-ring.an-ear-ring { --an-ring: 14px; }
+
+/* Open: 760 pt wide including the 14 pt fillets, bottom radius 24. */
+.an-notch--open {
+  --an-fillet: 14px;
+  --an-bottom: 24px;
+  --an-w: 732px;
+  --an-h-notch: auto;
+  padding-bottom: 16px;
+  box-shadow: 0 10px 36px rgb(0 0 0 / 0.55), 0 1px 6px rgb(0 0 0 / 0.25);
+  isolation: isolate;
+}
+/* The bulb hanging just under the notch: 6 % of warm light over the body. */
+.an-body { position: relative; margin: 8px 12px 0; height: var(--an-body-h, 150px); }
+.an-body::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -8px;
+  width: 760px;
+  height: 200px;
+  transform: translateX(-50%);
+  background: radial-gradient(
+    ellipse 340px 200px at 50% 0,
+    rgb(255 181 71 / 0.06),
+    rgb(255 181 71 / 0.027) 45%,
+    rgb(255 181 71 / 0) 100%
+  );
+  mix-blend-mode: plus-lighter;
+  pointer-events: none;
+  z-index: 2;
+}
+.an-body--shelf { --an-body-h: 150px; }
+.an-body--usage { --an-body-h: 160px; }
+.an-body--agents { --an-body-h: 220px; }
+.an-body--module { --an-body-h: 180px; }
+
+/* The band beside the camera: tabs on the left, context on the right. */
+.an-band {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--an-camera) minmax(0, 1fr);
+  align-items: center;
+  height: var(--an-band);
+  padding: 0 6px;
+}
+.an-band > :last-child { grid-column: 3; justify-self: end; }
+
+/* ---------- Tabs (DesvanTabs, snug density) ----------------------------- */
+.an-tabs { display: flex; align-items: center; gap: 1px; }
+.an-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--an-paper-2);
+  font-size: 13px;
+}
+.an-tab > .an-i, .an-tab > .an-house, .an-tab > .an-knock {
+  font-size: 14px;
+}
+.an-tab > .an-house { --an-lit: 0.25; }
+.an-tab.is-active {
+  width: auto;
+  padding: 0 8px;
+  color: var(--an-paper);
+  font: 600 12.5px / 1 var(--an-rounded);
+  text-shadow: 0 -0.5px 0 rgb(0 0 0 / 0.7);
+}
+.an-tab.is-active > .an-house { --an-lit: 1; }
+.an-tab.is-active {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(#3b3026, #2b231b);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.7), inset 0 0 0 1.5px rgb(0 0 0 / 0.45);
+}
+.an-tab.is-active::before {
+  /* the plaque's grain */
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: url("wood.webp") 0 -60px / 720px 220px repeat;
+  opacity: 0.7;
+}
+.an-tab.is-active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 7px;
+  padding: 1px;
+  background: linear-gradient(#e8c987, #a9824a, #5e4522);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+/* ---------- Header accessory (right of the camera) ---------------------- */
+.an-accessory {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  white-space: nowrap;
+  font: 500 11.5px / 1 var(--an-rounded);
+  color: var(--an-paper-3);
+}
+.an-accessory .an-figure { font-size: 12.5px; font-weight: 700; color: var(--an-paper); }
+.an-accessory__gear, .an-accessory__refresh {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--an-paper-2);
+  font-size: 13px;
+}
+.an-accessory__refresh { font-size: 12px; margin-left: -2px; }
+.an-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--an-sage); flex: none; }
+.an-accessory__agents { display: flex; gap: 10px; padding-right: 4px; font-variant-numeric: tabular-nums; }
+
+/* ==========================================================================
+   SHELF (DesvanShelfView)
+   ========================================================================== */
+.an-shelf {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.an-shelf__row {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  justify-content: center;
+  padding: 0 10px;
+}
+/* More on the shelf than fits: the row starts at the left and fades out at the edge. */
+.an-shelf--more .an-shelf__row {
+  justify-content: flex-start;
+  -webkit-mask: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+  mask: linear-gradient(to right, #000 calc(100% - 28px), transparent);
+}
+.an-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: none;
+  width: 110px;
+  padding-top: 18px; /* plankY 99 + sink 3 − thing 84 */
+}
+.an-tile__thing {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 110px;
+  height: 84px;
+}
+/* Contact shadow on the plank's top surface. */
+.an-tile__thing::before,
+.an-tile__thing::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.an-tile__thing::before { bottom: -6.5px; width: 72px; height: 8px; background: rgb(0 0 0 / 0.4); filter: blur(2.5px); }
+.an-tile__thing::after { bottom: -4px; width: 56px; height: 3px; background: rgb(0 0 0 / 0.8); filter: blur(1px); }
+.an-tile__name {
+  width: 110px;
+  margin-top: 13px; /* the plank and a little wall */
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 15px;
+  text-align: center;
+  color: var(--an-paper-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.an-tile.is-selected .an-tile__name {
+  color: var(--an-bulb);
+  font-weight: 600;
+  text-shadow: 0 0 5px rgb(255 181 71 / 0.45);
+}
+.an-tile.is-selected .an-thumb { transform: translateY(-2px) rotate(var(--an-tilt, 0deg)); filter: drop-shadow(0 -1px 8px rgb(255 181 71 / 0.4)); }
+.an-tile.is-selected .an-tile__thing::after { opacity: 0.6; }
+.an-tile.is-selected .an-tile__pool {
+  position: absolute;
+  left: 50%;
+  bottom: -16px;
+  width: 96px;
+  height: 20px;
+  transform: translateX(-50%);
+  background: radial-gradient(closest-side, rgb(255 181 71 / 0.32), transparent);
+  mix-blend-mode: plus-lighter;
+  pointer-events: none;
+}
+
+/* ---------- Thumbnails (76 pt side) ------------------------------------- */
+.an-thumb {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--an-tilt, 0deg));
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.5);
+}
+
+/* A photo / screenshot (Quick Look thumbnail). */
+.an-thumb--image {
+  width: 84px;
+  height: 54px;
+  overflow: hidden;
+  border-radius: 1.5px;
+  background:
+    radial-gradient(ellipse 30% 22% at 58% 70%, rgb(255 236 200 / 0.95), rgb(255 190 120 / 0.55) 45%, transparent 100%),
+    linear-gradient(to bottom, #3b3f8f 0%, #7b5bb4 38%, #d68aa9 62%, #f3b27d 72%, #5a3e8a 73%);
+}
+.an-thumb--image::before,
+.an-thumb--image::after {
+  content: "";
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: 0;
+}
+.an-thumb--image::before {
+  height: 36%;
+  background: #4a3a86;
+  clip-path: polygon(0 45%, 18% 20%, 34% 42%, 52% 12%, 70% 38%, 86% 22%, 100% 40%, 100% 100%, 0 100%);
+  opacity: 0.95;
+}
+.an-thumb--image::after {
+  height: 22%;
+  background: #2b2560;
+  clip-path: polygon(0 40%, 24% 10%, 46% 45%, 66% 18%, 100% 50%, 100% 100%, 0 100%);
+}
+
+/* A document page (PDF): letterhead band and text lines. */
+.an-thumb--pdf {
+  width: 58px;
+  height: 76px;
+  border-radius: 1px;
+  background:
+    linear-gradient(#fff, #fff) 7px 29px / 30px 2px no-repeat,
+    repeating-linear-gradient(to bottom, #d6d2cb 0 1.5px, transparent 1.5px 5px) 7px 36px / 44px 34px no-repeat,
+    linear-gradient(#26221e 0 24px, #fbfaf7 24px);
+}
+.an-thumb--pdf::before {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 16px;
+  height: 3px;
+  border-radius: 1px;
+  background: #f6efe3;
+  box-shadow: 0 5px 0 -0.5px rgb(255 181 71 / 0.85);
+}
+.an-thumb--pdf::after {
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 29px;
+  width: 36px;
+  height: 2.5px;
+  background: #3a342d;
+  border-radius: 1px;
+}
+
+/* A plain text file (.txt) as Quick Look draws it: a white page with small type. */
+.an-thumb--text {
+  width: 66px;
+  height: 70px;
+  border-radius: 1px;
+  background:
+    repeating-linear-gradient(to bottom, #8f8a83 0 1px, transparent 1px 4.5px) 6px 7px / 40px 10px no-repeat,
+    repeating-linear-gradient(to bottom, #b3aea7 0 1px, transparent 1px 4.5px) 6px 19px / 50px 14px no-repeat,
+    linear-gradient(#fdfcfa, #f4f1ec);
+}
+
+/* A zip archive: the generic file icon (sits a touch low, like the app does). */
+.an-thumb--zip {
+  width: 56px;
+  height: 70px;
+  margin-bottom: -5px;
+  box-shadow: none;
+  filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.5));
+  background: linear-gradient(135deg, #fdfdfd, #e7e7ea);
+  clip-path: polygon(0 0, 72% 0, 100% 22%, 100% 100%, 0 100%);
+  border-radius: 3px;
+}
+.an-thumb--zip::before {
+  /* the dog-ear */
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  width: 28%;
+  height: 22%;
+  background: linear-gradient(225deg, transparent 50%, #cfcfd4 50%, #f2f2f4);
+  border-bottom-left-radius: 2px;
+}
+.an-thumb--zip::after {
+  /* zipper teeth and the ZIP label */
+  content: "ZIP";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 8px;
+  bottom: 6px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font: 600 8px / 1 var(--an-font);
+  letter-spacing: 0.02em;
+  color: #b4b4ba;
+  background:
+    repeating-linear-gradient(to bottom, #a9a9b0 0 2px, transparent 2px 4px) calc(50% - 2px) 0 / 4px 22px no-repeat,
+    repeating-linear-gradient(to bottom, transparent 0 2px, #a9a9b0 2px 4px) calc(50% + 2px) 0 / 4px 22px no-repeat,
+    radial-gradient(circle, #9d9da4 0 2.4px, transparent 2.6px) 50% 23px / 8px 8px no-repeat,
+    linear-gradient(#9d9da4, #9d9da4) 50% 22px / 5px 10px no-repeat;
+}
+
+/* A link: a postcard with the host on it and a lavender stamp (70×48 × 1.19). */
+.an-thumb--postcard {
+  width: 83px;
+  height: 57px;
+  padding: 7px;
+  border-radius: 2px;
+  background: #efe5d2;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.an-thumb--postcard::before {
+  /* two pencilled lines */
+  content: "";
+  position: absolute;
+  left: 7px;
+  top: 10px;
+  width: 26px;
+  height: 5.5px;
+  background:
+    linear-gradient(rgb(43 36 29 / 0.25), rgb(43 36 29 / 0.25)) 0 0 / 26px 1.5px no-repeat,
+    linear-gradient(rgb(43 36 29 / 0.25), rgb(43 36 29 / 0.25)) 0 4px / 19px 1.5px no-repeat;
+}
+.an-thumb--postcard::after {
+  /* the stamp */
+  content: "";
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 18px;
+  height: 20px;
+  border-radius: 1.5px;
+  outline: 1px dashed rgb(255 255 255 / 0.6);
+  outline-offset: -1px;
+  background:
+    var(--an-icon-link) center / 10px 10px no-repeat,
+    var(--an-lavender);
+}
+.an-thumb--postcard > span {
+  font: 600 9.5px / 1.1 var(--an-font);
+  color: var(--an-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* A text snippet: a paper note held with masking tape (54×60 × 1.19). */
+.an-thumb--note {
+  width: 64px;
+  height: 71px;
+  padding: 11px 7px 0;
+  background:
+    repeating-linear-gradient(to bottom, transparent 0 10.8px, rgb(134 182 217 / 0.25) 10.8px 11.3px) 0 19px / 100% 100% no-repeat,
+    var(--an-paper);
+  font: 500 8.9px / 11.3px var(--an-font);
+  color: var(--an-ink);
+  overflow: visible;
+}
+.an-thumb--note > span {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-height: 56px;
+}
+.an-thumb--note::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -4.75px;
+  width: 31px;
+  height: 9.5px;
+  transform: translateX(-50%) rotate(-4deg);
+  background: rgb(233 220 188 / 0.85);
+  box-shadow: 0 0.5px 0 rgb(0 0 0 / 0.08);
+}
+/* A kraft variant for the same note (luggage-tag paper). */
+.an-thumb--kraft { background: var(--an-kraft); }
+
+/* Empty shelf */
+.an-shelf-empty {
+  position: absolute;
+  inset: 0 20px auto;
+  height: 99px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.an-shelf-empty .an-house { font-size: 38px; }
+.an-shelf-empty h3 { font: 600 19px / 1.2 var(--an-rounded); color: var(--an-paper); }
+.an-shelf-empty p { margin-top: 4px; font-size: 13px; color: var(--an-paper-2); }
+
+/* ==========================================================================
+   USAGE (DesvanUsageView)
+   ========================================================================== */
+.an-usage { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.an-usage-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 14px;
+}
+.an-usage-card__top { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.an-usage-card__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
+.an-usage-card__title { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.an-usage-card__name { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.an-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--an-wood-raised);
+  box-shadow: inset 0 0 0 0.5px var(--an-hairline-strong);
+  font: 600 11.5px / 1 var(--an-rounded);
+  color: var(--an-paper-2);
+  white-space: nowrap;
+  flex: none;
+}
+.an-usage-card__length { margin-left: 4px; font: 600 12px / 1 var(--an-rounded); color: var(--an-paper-3); flex: none; }
+.an-usage-card__refill { font: 500 13.5px / 1.2 var(--an-rounded); color: rgb(246 239 227 / 0.85); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.an-pace { font: italic 500 12.5px / 1.2 var(--an-rounded); color: var(--an-paper-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.an-pace--warning { color: var(--an-mustard); }
+.an-pace--good { color: var(--an-sage); }
+.an-pace--critical { color: var(--an-tomato); }
+
+/* Ring (DesvanRing): SVG, pathLength 100, value in stroke-dasharray. */
+.an-ring {
+  position: relative;
+  flex: none;
+  width: var(--an-ring, 100px);
+  height: var(--an-ring, 100px);
+  color: var(--an-paper);
+}
+.an-ring svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.an-ring__track { fill: none; stroke: rgb(246 239 227 / 0.12); }
+.an-ring__arc { fill: none; stroke: currentColor; stroke-linecap: round; }
+.an-ring__pace { stroke: var(--an-paper); stroke-linecap: round; filter: drop-shadow(0 0 0.6px rgb(0 0 0 / 0.9)); }
+.an-ring.is-warning { color: var(--an-mustard); }
+.an-ring.is-critical { color: var(--an-tomato); }
+.an-ring.is-warning .an-ring__arc, .an-ring.is-critical .an-ring__arc { filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 35%, transparent)); }
+.an-ring__figure {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 1px;
+  padding-top: 34%;
+  padding-left: 2px;
+  font: 700 28px / 1 var(--an-rounded);
+  font-variant-numeric: tabular-nums;
+  color: var(--an-paper);
+}
+.an-ring__figure small { font: 500 14px / 1 var(--an-rounded); color: var(--an-paper-2); }
+
+/* Week bar (DesvanBar) with its even-pace notch. */
+.an-bar-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.an-bar-row__label { font: 600 12.5px / 1 var(--an-rounded); color: var(--an-paper-3); }
+.an-bar-row__value { font: 500 14px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; color: var(--an-paper); }
+.an-bar-row__value.is-warning { color: var(--an-mustard); }
+.an-bar-row__value.is-critical { color: var(--an-tomato); }
+.an-bar-row__left { font: 500 12.5px / 1 var(--an-rounded); color: var(--an-paper-3); font-variant-numeric: tabular-nums; }
+.an-bar {
+  position: relative;
+  flex: 1;
+  min-width: 96px;
+  height: 8px;
+  border-radius: 999px;
+  background:
+    linear-gradient(rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.35)) 2px 0 / calc(100% - 4px) 2.5px no-repeat,
+    var(--an-plank);
+}
+.an-bar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: max(8px, calc(var(--v) * 1%));
+  border-radius: inherit;
+  background: linear-gradient(var(--an-bar-tint, var(--an-paper)), color-mix(in srgb, var(--an-bar-tint, var(--an-paper)) 80%, transparent));
+}
+.an-bar.is-warning { --an-bar-tint: var(--an-mustard); }
+.an-bar.is-critical { --an-bar-tint: var(--an-tomato); }
+.an-bar::after {
+  /* the pace notch: a 7×4 triangle over a 1.5×9 stem */
+  content: "";
+  position: absolute;
+  left: calc(var(--pace) * 100% - 3.5px);
+  top: -2.5px;
+  width: 7px;
+  height: 13px;
+  background:
+    linear-gradient(var(--an-paper), var(--an-paper)) 50% 4px / 1.5px 9px no-repeat,
+    conic-gradient(from 150deg at 50% 100%, var(--an-paper) 0 60deg, transparent 60deg) 0 0 / 7px 4px no-repeat;
+  filter: drop-shadow(0 0 0.75px rgb(0 0 0 / 0.7));
+}
+
+/* ==========================================================================
+   AGENTS (DesvanAgentsView)
+   ========================================================================== */
+.an-agents { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 8px; }
+.an-agent-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.an-agent-card > .an-glyph { margin-top: 1px; }
+.an-agent-card__main { display: flex; flex-direction: column; gap: 8px; flex: 1; min-width: 0; }
+.an-agent-card__head { display: flex; align-items: center; gap: 8px; }
+.an-agent-card__ask { flex: 1; min-width: 0; font-size: 13.5px; color: var(--an-paper-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-agent-card__ask em { font: italic 500 13.5px / 1 var(--an-rounded); color: var(--an-paper); }
+.an-agent-card__meta { display: flex; align-items: center; gap: 8px; flex: none; }
+.an-agent-card__meta .an-knock { font-size: 12px; }
+.an-ago { font: 500 11.5px / 1 var(--an-rounded); color: var(--an-paper-3); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.an-slip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 26px;
+  padding: 2px 8px;
+  border-radius: 7px;
+  background: var(--an-wood-raised);
+  box-shadow: inset 0 0 0 0.5px var(--an-hairline-strong);
+}
+.an-slip__tool { font: 600 11.5px / 1 var(--an-rounded); color: var(--an-paper-2); flex: none; }
+.an-slip__cmd { font: 400 12.5px / 1.2 var(--an-mono); color: var(--an-paper); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-agent-card__actions { display: flex; align-items: center; gap: 6px; }
+.an-agent-card__actions .an-spacer { flex: 1; }
+
+.an-agent-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 6px 0 14px;
+  --an-r: 12px;
+}
+.an-agent-row__project { font-size: 13px; font-weight: 600; max-width: 150px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: none; }
+.an-agent-row__activity { flex: 1; min-width: 0; font-size: 12.5px; color: var(--an-paper-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.an-agent-row__status { display: flex; align-items: center; justify-content: flex-end; gap: 6px; min-width: 60px; font: 600 12px / 1 var(--an-rounded); color: var(--an-paper-2); }
+.an-agent-row__end { width: 28px; flex: none; }
+.an-dots { display: inline-flex; gap: 2.4px; }
+.an-dots i { width: 4px; height: 4px; border-radius: 50%; background: rgb(255 181 71 / 0.35); }
+.an-dots i:nth-child(3) { background: var(--an-bulb); }
+.an-dots--sm i { width: 3.5px; height: 3.5px; }
+
+/* The "Done" rubber stamp (DesvanRubberStamp), fresh: 13.5 pt, −8°. */
+.an-stamp {
+  display: inline-block;
+  padding: 1px 7px;
+  border: 1.6px solid var(--an-sage);
+  border-radius: 4px;
+  outline: 0.6px solid rgb(157 184 138 / 0.5);
+  outline-offset: -4px;
+  font: italic 700 13.5px / 1.15 var(--an-rounded);
+  color: var(--an-sage);
+  opacity: 0.94;
+  transform: rotate(-8deg);
+  white-space: nowrap;
+}
+.an-stamp--settled { padding: 0.5px 5px; border-width: 1px; outline: 0; font-size: 11.5px; transform: rotate(-3deg); }
+
+/* ==========================================================================
+   CALENDAR (DesvanCalendarAgenda)
+   ========================================================================== */
+.an-agenda { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 7px; }
+.an-event-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 60px;
+  padding: 0 8px 0 10px;
+  --an-r: 12px;
+}
+.an-event-card.an-card--lit {
+  background:
+    radial-gradient(circle at 100% 50%, rgb(255 181 71 / 0.1), transparent 240px),
+    linear-gradient(to bottom, transparent 50%, rgb(0 0 0 / 0.26)),
+    var(--an-wood);
+}
+.an-spine {
+  flex: none;
+  width: 3.5px;
+  height: 42px;
+  border-radius: 999px;
+  background: linear-gradient(var(--an-cal, var(--an-sky)), color-mix(in srgb, var(--an-cal, var(--an-sky)) 65%, transparent));
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.3), 0 0 6px color-mix(in srgb, var(--an-cal, var(--an-sky)) 40%, transparent);
+}
+.an-event-card__text { display: flex; flex-direction: column; gap: 3.5px; flex: 1; min-width: 0; }
+.an-event-card__title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-event-card__when { display: flex; align-items: baseline; gap: 6px; font-size: 13px; color: var(--an-paper-3); white-space: nowrap; }
+.an-event-card__when b { font: 500 13px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; color: var(--an-paper-2); }
+.an-countdown {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: 600 12px / 1 var(--an-rounded);
+  color: var(--an-paper-2);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.an-countdown .an-i { font-size: 12px; }
+.an-countdown.is-soon { color: var(--an-bulb); text-shadow: 0 0 5px rgb(255 181 71 / 0.45); }
+.an-event-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 9px;
+  --an-r: 8px;
+}
+.an-event-row__dot { width: 6px; height: 6px; border-radius: 50%; background: var(--an-cal, var(--an-sage)); box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.35); flex: none; }
+.an-event-row__time { font: 500 12.5px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; color: var(--an-paper-2); flex: none; }
+.an-event-row__title { font-size: 13.5px; flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-event-row__place { font-size: 12px; color: var(--an-paper-3); white-space: nowrap; }
+
+/* ==========================================================================
+   NOW PLAYING (DesvanNowPlayingView)
+   ========================================================================== */
+.an-player {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 18px;
+  padding: 24px;
+  --an-r: 16px;
+  align-items: center;
+}
+.an-sleeve {
+  position: relative;
+  flex: none;
+  width: 132px;
+  height: 132px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgb(0 0 0 / 0.55), 0 0 32px rgb(255 181 71 / 0.16);
+}
+.an-sleeve::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 0.75px;
+  background: linear-gradient(rgb(246 239 227 / 0.22), rgb(0 0 0 / 0.45));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+/* Sample artwork, drawn in CSS: a sun over two green peaks, «ARRIBA». */
+.an-art {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 64% 33%, #e9a24f 0 20%, transparent 20.5%),
+    #e3d3b0;
+}
+.an-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(#6f8a69, #6f8a69);
+  clip-path: polygon(0 100%, 0 78%, 30% 30%, 48% 62%, 70% 42%, 100% 88%, 100% 100%);
+}
+.an-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: #3f5347;
+  clip-path: polygon(0 100%, 0 70%, 30% 30%, 44% 64%, 38% 100%);
+}
+.an-art > span {
+  position: absolute;
+  left: 9%;
+  bottom: 8%;
+  z-index: 1;
+  font: 700 10px / 1 var(--an-font);
+  letter-spacing: 0.3em;
+  color: #f1e6cf;
+}
+.an-player__col { display: flex; flex-direction: column; justify-content: space-between; align-self: stretch; flex: 1; min-width: 0; }
+.an-player__title { font-size: 16px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.an-player__by { display: flex; gap: 5px; margin-top: 3px; font-size: 13px; color: var(--an-paper-2); white-space: nowrap; }
+.an-player__by span:not(:first-child) { color: var(--an-paper-3); font-size: 12.5px; }
+.an-groove-row { display: flex; align-items: center; gap: 8px; }
+.an-groove {
+  position: relative;
+  flex: 1;
+  height: 7px;
+  border-radius: 999px;
+  background:
+    linear-gradient(rgb(0 0 0 / 0.35), rgb(0 0 0 / 0.35)) 2px 0 / calc(100% - 4px) 2.5px no-repeat,
+    var(--an-plank);
+}
+.an-groove::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: max(7px, calc(var(--v) * 1%));
+  border-radius: inherit;
+  background: linear-gradient(var(--an-bulb), rgb(255 181 71 / 0.75));
+  box-shadow: 0 0 6px rgb(255 181 71 / 0.35);
+}
+.an-groove__time { font: 500 12.5px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; color: var(--an-paper-3); white-space: nowrap; }
+.an-controls { display: flex; align-items: center; gap: 6px; }
+.an-controls .an-btn--quiet { font-size: 16px; color: var(--an-paper-2); }
+.an-controls .an-btn--primary { font-size: 18px; padding: 0 16px; }
+
+/* ==========================================================================
+   Optional context: .an-bezel draws the top slice of a MacBook display so the
+   notch hangs from a real edge. Put the notch (and optionally .an-menubar)
+   inside .an-bezel__screen. Set --an-screen for the wallpaper.
+   ========================================================================== */
+.an-bezel {
+  position: relative;
+  padding: 11px 11px 0;
+  border-radius: 26px 26px 0 0;
+  background: linear-gradient(#1a1a1c, #0a0a0b 45%, #030303);
+  box-shadow:
+    0 0 0 1px #4a4a4e,              /* the aluminium lid's edge */
+    0 0 0 2px #1c1c1e,
+    inset 0 1px 0 rgb(255 255 255 / 0.08);
+}
+.an-bezel__screen {
+  position: relative;
+  min-height: var(--an-screen-h, 300px);
+  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  background: var(--an-screen,
+    radial-gradient(ellipse 70% 90% at 12% 110%, #ff5a5f 0%, transparent 60%),
+    radial-gradient(ellipse 80% 80% at 95% 10%, #6a78f0 0%, transparent 70%),
+    linear-gradient(160deg, #3e4cc0 0%, #9a6ad6 42%, #f08aa0 70%, #ff6b5e 100%));
+}
+.an-bezel__screen > .an-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  margin: 0;
+  transform: translateX(-50%);
+  z-index: 3;
+}
+/* Optional menu bar behind the notch (the notch is exactly its height). */
+.an-menubar {
+  position: absolute;
+  inset: 0 0 auto;
+  height: var(--an-band);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+  gap: 14px;
+  background: rgb(10 10 20 / 0.18);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  backdrop-filter: blur(20px) saturate(1.4);
+  font-size: 13px;
+  color: #fff;
+  text-shadow: 0 0 1px rgb(0 0 0 / 0.2);
+}
+.an-menubar > div { display: flex; align-items: center; gap: 16px; }
+.an-menubar b { font-weight: 700; }
+
+/* ==========================================================================
+   Icon masks (Phosphor bold / fill, MIT). Generated from
+   website/node_modules/@phosphor-icons/core/assets.
+   ========================================================================== */
+.an-i--hand { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M188%2C44a32%2C32%2C0%2C0%2C0-8%2C1V44a32%2C32%2C0%2C0%2C0-60.79-14A32%2C32%2C0%2C0%2C0%2C76%2C60v50.83a32%2C32%2C0%2C0%2C0-52%2C36.7C55.82%2C214.6%2C75.35%2C244%2C128%2C244a92.1%2C92.1%2C0%2C0%2C0%2C92-92V76A32%2C32%2C0%2C0%2C0%2C188%2C44Zm8%2C108a68.08%2C68.08%2C0%2C0%2C1-68%2C68c-35.83%2C0-49.71-14-82.48-83.14-.14-.29-.29-.58-.45-.86a8%2C8%2C0%2C0%2C1%2C13.85-8l.21.35%2C18.68%2C30A12%2C12%2C0%2C0%2C0%2C100%2C152V60a8%2C8%2C0%2C0%2C1%2C16%2C0v60a12%2C12%2C0%2C0%2C0%2C24%2C0V44a8%2C8%2C0%2C0%2C1%2C16%2C0v76a12%2C12%2C0%2C0%2C0%2C24%2C0V76a8%2C8%2C0%2C0%2C1%2C16%2C0Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--hand-fill { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216%2C64v90.93c0%2C46.2-36.85%2C84.55-83%2C85.06A83.71%2C83.71%2C0%2C0%2C1%2C72.6%2C215.4C50.79%2C192.33%2C26.15%2C136%2C26.15%2C136a16%2C16%2C0%2C0%2C1%2C6.53-22.23c7.66-4%2C17.1-.84%2C21.4%2C6.62l21%2C36.44a6.09%2C6.09%2C0%2C0%2C0%2C6%2C3.09l.12%2C0A8.19%2C8.19%2C0%2C0%2C0%2C88%2C151.74V48a16%2C16%2C0%2C0%2C1%2C16.77-16c8.61.4%2C15.23%2C7.82%2C15.23%2C16.43V112a8%2C8%2C0%2C0%2C0%2C8.53%2C8%2C8.17%2C8.17%2C0%2C0%2C0%2C7.47-8.25V32a16%2C16%2C0%2C0%2C1%2C16.77-16c8.61.4%2C15.23%2C7.82%2C15.23%2C16.43V120a8%2C8%2C0%2C0%2C0%2C8.53%2C8%2C8.17%2C8.17%2C0%2C0%2C0%2C7.47-8.25V64.45c0-8.61%2C6.62-16%2C15.23-16.43A16%2C16%2C0%2C0%2C1%2C216%2C64Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--calendar { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C28H188V24a12%2C12%2C0%2C0%2C0-24%2C0v4H92V24a12%2C12%2C0%2C0%2C0-24%2C0v4H48A20%2C20%2C0%2C0%2C0%2C28%2C48V208a20%2C20%2C0%2C0%2C0%2C20%2C20H208a20%2C20%2C0%2C0%2C0%2C20-20V48A20%2C20%2C0%2C0%2C0%2C208%2C28ZM68%2C52a12%2C12%2C0%2C0%2C0%2C24%2C0h72a12%2C12%2C0%2C0%2C0%2C24%2C0h16V76H52V52ZM52%2C204V100H204V204Zm92-76a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C144%2C128Zm48%2C0a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C192%2C128ZM96%2C176a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C96%2C176Zm48%2C0a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C144%2C176Zm48%2C0a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C192%2C176Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--music { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M211.45%2C52.51l-80-24A12%2C12%2C0%2C0%2C0%2C116%2C40V140.22A52%2C52%2C0%2C1%2C0%2C140%2C184V104.13l64.55%2C19.36A12%2C12%2C0%2C0%2C0%2C220%2C112V64A12%2C12%2C0%2C0%2C0%2C211.45%2C52.51ZM88%2C212a28%2C28%2C0%2C1%2C1%2C28-28A28%2C28%2C0%2C0%2C1%2C88%2C212ZM196%2C95.87l-56-16.8V56.13l56%2C16.8Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--gear { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M128%2C76a52%2C52%2C0%2C1%2C0%2C52%2C52A52.06%2C52.06%2C0%2C0%2C0%2C128%2C76Zm0%2C80a28%2C28%2C0%2C1%2C1%2C28-28A28%2C28%2C0%2C0%2C1%2C128%2C156Zm113.86-49.57A12%2C12%2C0%2C0%2C0%2C236%2C98.34L208.21%2C82.49l-.11-31.31a12%2C12%2C0%2C0%2C0-4.25-9.12%2C116%2C116%2C0%2C0%2C0-38-21.41%2C12%2C12%2C0%2C0%2C0-9.68.89L128%2C37.27%2C99.83%2C21.53a12%2C12%2C0%2C0%2C0-9.7-.9%2C116.06%2C116.06%2C0%2C0%2C0-38%2C21.47%2C12%2C12%2C0%2C0%2C0-4.24%2C9.1l-.14%2C31.34L20%2C98.35a12%2C12%2C0%2C0%2C0-5.85%2C8.11%2C110.7%2C110.7%2C0%2C0%2C0%2C0%2C43.11A12%2C12%2C0%2C0%2C0%2C20%2C157.66l27.82%2C15.85.11%2C31.31a12%2C12%2C0%2C0%2C0%2C4.25%2C9.12%2C116%2C116%2C0%2C0%2C0%2C38%2C21.41%2C12%2C12%2C0%2C0%2C0%2C9.68-.89L128%2C218.73l28.14%2C15.74a12%2C12%2C0%2C0%2C0%2C9.7.9%2C116.06%2C116.06%2C0%2C0%2C0%2C38-21.47%2C12%2C12%2C0%2C0%2C0%2C4.24-9.1l.14-31.34%2C27.81-15.81a12%2C12%2C0%2C0%2C0%2C5.85-8.11A110.7%2C110.7%2C0%2C0%2C0%2C241.86%2C106.43Zm-22.63%2C33.18-26.88%2C15.28a11.94%2C11.94%2C0%2C0%2C0-4.55%2C4.59c-.54%2C1-1.11%2C1.93-1.7%2C2.88a12%2C12%2C0%2C0%2C0-1.83%2C6.31L184.13%2C199a91.83%2C91.83%2C0%2C0%2C1-21.07%2C11.87l-27.15-15.19a12%2C12%2C0%2C0%2C0-5.86-1.53h-.29c-1.14%2C0-2.3%2C0-3.44%2C0a12.08%2C12.08%2C0%2C0%2C0-6.14%2C1.51L93%2C210.82A92.27%2C92.27%2C0%2C0%2C1%2C71.88%2C199l-.11-30.24a12%2C12%2C0%2C0%2C0-1.83-6.32c-.58-.94-1.16-1.91-1.7-2.88A11.92%2C11.92%2C0%2C0%2C0%2C63.7%2C155L36.8%2C139.63a86.53%2C86.53%2C0%2C0%2C1%2C0-23.24l26.88-15.28a12%2C12%2C0%2C0%2C0%2C4.55-4.58c.54-1%2C1.11-1.94%2C1.7-2.89a12%2C12%2C0%2C0%2C0%2C1.83-6.31L71.87%2C57A91.83%2C91.83%2C0%2C0%2C1%2C92.94%2C45.17l27.15%2C15.19a11.92%2C11.92%2C0%2C0%2C0%2C6.15%2C1.52c1.14%2C0%2C2.3%2C0%2C3.44%2C0a12.08%2C12.08%2C0%2C0%2C0%2C6.14-1.51L163%2C45.18A92.27%2C92.27%2C0%2C0%2C1%2C184.12%2C57l.11%2C30.24a12%2C12%2C0%2C0%2C0%2C1.83%2C6.32c.58.94%2C1.16%2C1.91%2C1.7%2C2.88A11.92%2C11.92%2C0%2C0%2C0%2C192.3%2C101l26.9%2C15.33A86.53%2C86.53%2C0%2C0%2C1%2C219.23%2C139.61Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--refresh { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M244%2C56v48a12%2C12%2C0%2C0%2C1-12%2C12H184a12%2C12%2C0%2C1%2C1%2C0-24H201.1l-19-17.38c-.13-.12-.26-.24-.38-.37A76%2C76%2C0%2C1%2C0%2C127%2C204h1a75.53%2C75.53%2C0%2C0%2C0%2C52.15-20.72%2C12%2C12%2C0%2C0%2C1%2C16.49%2C17.45A99.45%2C99.45%2C0%2C0%2C1%2C128%2C228h-1.37A100%2C100%2C0%2C1%2C1%2C198.51%2C57.06L220%2C76.72V56a12%2C12%2C0%2C0%2C1%2C24%2C0Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--open-app { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M228%2C104a12%2C12%2C0%2C0%2C1-24%2C0V69l-59.51%2C59.51a12%2C12%2C0%2C0%2C1-17-17L187%2C52H152a12%2C12%2C0%2C0%2C1%2C0-24h64a12%2C12%2C0%2C0%2C1%2C12%2C12Zm-44%2C24a12%2C12%2C0%2C0%2C0-12%2C12v64H52V84h64a12%2C12%2C0%2C0%2C0%2C0-24H48A20%2C20%2C0%2C0%2C0%2C28%2C80V208a20%2C20%2C0%2C0%2C0%2C20%2C20H176a20%2C20%2C0%2C0%2C0%2C20-20V140A12%2C12%2C0%2C0%2C0%2C184%2C128Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--clock { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M128%2C20A108%2C108%2C0%2C1%2C0%2C236%2C128%2C108.12%2C108.12%2C0%2C0%2C0%2C128%2C20Zm0%2C192a84%2C84%2C0%2C1%2C1%2C84-84A84.09%2C84.09%2C0%2C0%2C1%2C128%2C212Zm68-84a12%2C12%2C0%2C0%2C1-12%2C12H128a12%2C12%2C0%2C0%2C1-12-12V72a12%2C12%2C0%2C0%2C1%2C24%2C0v44h44A12%2C12%2C0%2C0%2C1%2C196%2C128Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--video { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M249.45%2C69.31a12%2C12%2C0%2C0%2C0-12.51%2C1L212%2C88.43V72a20%2C20%2C0%2C0%2C0-20-20H32A20%2C20%2C0%2C0%2C0%2C12%2C72V184a20%2C20%2C0%2C0%2C0%2C20%2C20H192a20%2C20%2C0%2C0%2C0%2C20-20V167.57l24.94%2C18.14A12%2C12%2C0%2C0%2C0%2C256%2C176V80A12%2C12%2C0%2C0%2C0%2C249.45%2C69.31ZM188%2C180H36V76H188Zm44-27.57-20-14.54V118.11l20-14.54Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--prev { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C47.88V208.12a16%2C16%2C0%2C0%2C1-24.43%2C13.43L64%2C146.77V216a8%2C8%2C0%2C0%2C1-16%2C0V40a8%2C8%2C0%2C0%2C1%2C16%2C0v69.23L183.57%2C34.45A15.95%2C15.95%2C0%2C0%2C1%2C208%2C47.88Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--next { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C40V216a8%2C8%2C0%2C0%2C1-16%2C0V146.77L72.43%2C221.55A15.95%2C15.95%2C0%2C0%2C1%2C48%2C208.12V47.88A15.95%2C15.95%2C0%2C0%2C1%2C72.43%2C34.45L192%2C109.23V40a8%2C8%2C0%2C0%2C1%2C16%2C0Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--pause { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216%2C48V208a16%2C16%2C0%2C0%2C1-16%2C16H160a16%2C16%2C0%2C0%2C1-16-16V48a16%2C16%2C0%2C0%2C1%2C16-16h40A16%2C16%2C0%2C0%2C1%2C216%2C48ZM96%2C32H56A16%2C16%2C0%2C0%2C0%2C40%2C48V208a16%2C16%2C0%2C0%2C0%2C16%2C16H96a16%2C16%2C0%2C0%2C0%2C16-16V48A16%2C16%2C0%2C0%2C0%2C96%2C32Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--play { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M240%2C128a15.74%2C15.74%2C0%2C0%2C1-7.6%2C13.51L88.32%2C229.65a16%2C16%2C0%2C0%2C1-16.2.3A15.86%2C15.86%2C0%2C0%2C1%2C64%2C216.13V39.87a15.86%2C15.86%2C0%2C0%2C1%2C8.12-13.82%2C16%2C16%2C0%2C0%2C1%2C16.2.3L232.4%2C114.49A15.74%2C15.74%2C0%2C0%2C1%2C240%2C128Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--link { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M117.18%2C188.74a12%2C12%2C0%2C0%2C1%2C0%2C17l-5.12%2C5.12A58.26%2C58.26%2C0%2C0%2C1%2C70.6%2C228h0A58.62%2C58.62%2C0%2C0%2C1%2C29.14%2C127.92L63.89%2C93.17a58.64%2C58.64%2C0%2C0%2C1%2C98.56%2C28.11%2C12%2C12%2C0%2C1%2C1-23.37%2C5.44%2C34.65%2C34.65%2C0%2C0%2C0-58.22-16.58L46.11%2C144.89A34.62%2C34.62%2C0%2C0%2C0%2C70.57%2C204h0a34.41%2C34.41%2C0%2C0%2C0%2C24.49-10.14l5.11-5.12A12%2C12%2C0%2C0%2C1%2C117.18%2C188.74ZM226.83%2C45.17a58.65%2C58.65%2C0%2C0%2C0-82.93%2C0l-5.11%2C5.11a12%2C12%2C0%2C0%2C0%2C17%2C17l5.12-5.12a34.63%2C34.63%2C0%2C1%2C1%2C49%2C49L175.1%2C145.86A34.39%2C34.39%2C0%2C0%2C1%2C150.61%2C156h0a34.63%2C34.63%2C0%2C0%2C1-33.69-26.72%2C12%2C12%2C0%2C0%2C0-23.38%2C5.44A58.64%2C58.64%2C0%2C0%2C0%2C150.56%2C180h.05a58.28%2C58.28%2C0%2C0%2C0%2C41.47-17.17l34.75-34.75a58.62%2C58.62%2C0%2C0%2C0%2C0-82.91Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--plane { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M231.4%2C44.34s0%2C.1%2C0%2C.15l-58.2%2C191.94a15.88%2C15.88%2C0%2C0%2C1-14%2C11.51q-.69.06-1.38.06a15.86%2C15.86%2C0%2C0%2C1-14.42-9.15L107%2C164.15a4%2C4%2C0%2C0%2C1%2C.77-4.58l57.92-57.92a8%2C8%2C0%2C0%2C0-11.31-11.31L96.43%2C148.26a4%2C4%2C0%2C0%2C1-4.58.77L17.08%2C112.64a16%2C16%2C0%2C0%2C1%2C2.49-29.8l191.94-58.2.15%2C0A16%2C16%2C0%2C0%2C1%2C231.4%2C44.34Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--sparkle { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M199%2C125.31l-49.88-18.39L130.69%2C57a19.92%2C19.92%2C0%2C0%2C0-37.38%2C0L74.92%2C106.92%2C25%2C125.31a19.92%2C19.92%2C0%2C0%2C0%2C0%2C37.38l49.88%2C18.39L93.31%2C231a19.92%2C19.92%2C0%2C0%2C0%2C37.38%2C0l18.39-49.88L199%2C162.69a19.92%2C19.92%2C0%2C0%2C0%2C0-37.38Zm-63.38%2C35.16a12%2C12%2C0%2C0%2C0-7.11%2C7.11L112%2C212.28l-16.47-44.7a12%2C12%2C0%2C0%2C0-7.11-7.11L43.72%2C144l44.7-16.47a12%2C12%2C0%2C0%2C0%2C7.11-7.11L112%2C75.72l16.47%2C44.7a12%2C12%2C0%2C0%2C0%2C7.11%2C7.11L180.28%2C144ZM140%2C40a12%2C12%2C0%2C0%2C1%2C12-12h12V16a12%2C12%2C0%2C0%2C1%2C24%2C0V28h12a12%2C12%2C0%2C0%2C1%2C0%2C24H188V64a12%2C12%2C0%2C0%2C1-24%2C0V52H152A12%2C12%2C0%2C0%2C1%2C140%2C40ZM252%2C88a12%2C12%2C0%2C0%2C1-12%2C12h-4v4a12%2C12%2C0%2C0%2C1-24%2C0v-4h-4a12%2C12%2C0%2C0%2C1%2C0-24h4V72a12%2C12%2C0%2C0%2C1%2C24%2C0v4h4A12%2C12%2C0%2C0%2C1%2C252%2C88Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--x { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208.49%2C191.51a12%2C12%2C0%2C0%2C1-17%2C17L128%2C145%2C64.49%2C208.49a12%2C12%2C0%2C0%2C1-17-17L111%2C128%2C47.51%2C64.49a12%2C12%2C0%2C0%2C1%2C17-17L128%2C111l63.51-63.52a12%2C12%2C0%2C0%2C1%2C17%2C17L145%2C128Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--timer { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M128%2C44a96%2C96%2C0%2C1%2C0%2C96%2C96A96.11%2C96.11%2C0%2C0%2C0%2C128%2C44Zm0%2C168a72%2C72%2C0%2C1%2C1%2C72-72A72.08%2C72.08%2C0%2C0%2C1%2C128%2C212ZM164.49%2C99.51a12%2C12%2C0%2C0%2C1%2C0%2C17l-28%2C28a12%2C12%2C0%2C0%2C1-17-17l28-28A12%2C12%2C0%2C0%2C1%2C164.49%2C99.51ZM92%2C16A12%2C12%2C0%2C0%2C1%2C104%2C4h48a12%2C12%2C0%2C0%2C1%2C0%2C24H104A12%2C12%2C0%2C0%2C1%2C92%2C16Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--zipper { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M188%2C140H172a12%2C12%2C0%2C0%2C0-12%2C12v56a12%2C12%2C0%2C0%2C0%2C24%2C0v-4h4a32%2C32%2C0%2C0%2C0%2C0-64Zm0%2C40h-4V164h4a8%2C8%2C0%2C0%2C1%2C0%2C16Zm-48-28v56a12%2C12%2C0%2C0%2C1-24%2C0V152a12%2C12%2C0%2C0%2C1%2C24%2C0ZM96%2C208a12%2C12%2C0%2C0%2C1-12%2C12H52a12%2C12%2C0%2C0%2C1-10.42-17.95L63.32%2C164H52a12%2C12%2C0%2C0%2C1%2C0-24H84A12%2C12%2C0%2C0%2C1%2C94.42%2C158L72.68%2C196H84A12%2C12%2C0%2C0%2C1%2C96%2C208ZM216.49%2C79.52l-56-56A12%2C12%2C0%2C0%2C0%2C152%2C20H56A20%2C20%2C0%2C0%2C0%2C36%2C40v68a12%2C12%2C0%2C0%2C0%2C24%2C0V44h76V92a12%2C12%2C0%2C0%2C0%2C12%2C12h48v4a12%2C12%2C0%2C0%2C0%2C24%2C0V88A12%2C12%2C0%2C0%2C0%2C216.49%2C79.52ZM160%2C80V57l23%2C23Z%22%2F%3E%3C%2Fsvg%3E"); }
+
+/* Shared by .an-knock (mask) and the postcard stamp (image, ink colour). */
+.an {
+  --an-icon-hand-fill: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216%2C64v90.93c0%2C46.2-36.85%2C84.55-83%2C85.06A83.71%2C83.71%2C0%2C0%2C1%2C72.6%2C215.4C50.79%2C192.33%2C26.15%2C136%2C26.15%2C136a16%2C16%2C0%2C0%2C1%2C6.53-22.23c7.66-4%2C17.1-.84%2C21.4%2C6.62l21%2C36.44a6.09%2C6.09%2C0%2C0%2C0%2C6%2C3.09l.12%2C0A8.19%2C8.19%2C0%2C0%2C0%2C88%2C151.74V48a16%2C16%2C0%2C0%2C1%2C16.77-16c8.61.4%2C15.23%2C7.82%2C15.23%2C16.43V112a8%2C8%2C0%2C0%2C0%2C8.53%2C8%2C8.17%2C8.17%2C0%2C0%2C0%2C7.47-8.25V32a16%2C16%2C0%2C0%2C1%2C16.77-16c8.61.4%2C15.23%2C7.82%2C15.23%2C16.43V120a8%2C8%2C0%2C0%2C0%2C8.53%2C8%2C8.17%2C8.17%2C0%2C0%2C0%2C7.47-8.25V64.45c0-8.61%2C6.62-16%2C15.23-16.43A16%2C16%2C0%2C0%2C1%2C216%2C64Z%22%2F%3E%3C%2Fsvg%3E");
+  --an-icon-link: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%232B241D%22%3E%3Cpath%20d%3D%22M117.18%2C188.74a12%2C12%2C0%2C0%2C1%2C0%2C17l-5.12%2C5.12A58.26%2C58.26%2C0%2C0%2C1%2C70.6%2C228h0A58.62%2C58.62%2C0%2C0%2C1%2C29.14%2C127.92L63.89%2C93.17a58.64%2C58.64%2C0%2C0%2C1%2C98.56%2C28.11%2C12%2C12%2C0%2C1%2C1-23.37%2C5.44%2C34.65%2C34.65%2C0%2C0%2C0-58.22-16.58L46.11%2C144.89A34.62%2C34.62%2C0%2C0%2C0%2C70.57%2C204h0a34.41%2C34.41%2C0%2C0%2C0%2C24.49-10.14l5.11-5.12A12%2C12%2C0%2C0%2C1%2C117.18%2C188.74ZM226.83%2C45.17a58.65%2C58.65%2C0%2C0%2C0-82.93%2C0l-5.11%2C5.11a12%2C12%2C0%2C0%2C0%2C17%2C17l5.12-5.12a34.63%2C34.63%2C0%2C1%2C1%2C49%2C49L175.1%2C145.86A34.39%2C34.39%2C0%2C0%2C1%2C150.61%2C156h0a34.63%2C34.63%2C0%2C0%2C1-33.69-26.72%2C12%2C12%2C0%2C0%2C0-23.38%2C5.44A58.64%2C58.64%2C0%2C0%2C0%2C150.56%2C180h.05a58.28%2C58.28%2C0%2C0%2C0%2C41.47-17.17l34.75-34.75a58.62%2C58.62%2C0%2C0%2C0%2C0-82.91Z%22%2F%3E%3C%2Fsvg%3E");
+}
+
+/* ==========================================================================
+   KIT EXTENSIONS (demo): Drawer strip, Ask, Mirror, knocking, hold-to-allow,
+   joining spinner, shelf landing. Sources: Views/Desvan/Modules/DesvanDrawer,
+   DesvanAssistant, DesvanMirror, DesvanAgents, DesvanRootView (knock).
+   ========================================================================== */
+
+/* ---------- Knocking hand (DesvanKnockingHand): −12° → 4° → −12° → 0 around
+   its wrist, with a tiny sideways jolt. 0.09 + 0.10 + 0.09 + 0.42 s. -------- */
+@keyframes an-knock {
+  0% { transform: rotate(0) translateX(0); }
+  12.9% { transform: rotate(-12deg) translateX(-1px); }
+  27.1% { transform: rotate(4deg) translateX(0.3px); }
+  40% { transform: rotate(-12deg) translateX(-1px); }
+  100% { transform: rotate(0) translateX(0); }
+}
+.an-knock, .an-i--hand { transform-origin: 50% 100%; }
+.an-knock.is-knocking, .an-i--hand.is-knocking { animation: an-knock 0.7s cubic-bezier(0.4, 0, 0.2, 1); }
+/* Working dots (DesvanAgentsEar): the lit dot walks every 0.35 s. */
+@keyframes an-dot-walk { 0%, 33.2% { background: var(--an-bulb); } 33.3%, 100% { background: rgb(255 181 71 / 0.35); } }
+.an-dots--live i { background: rgb(255 181 71 / 0.35); animation: an-dot-walk 1.05s steps(1) infinite; }
+.an-dots--live i:nth-child(2) { animation-delay: 0.35s; }
+.an-dots--live i:nth-child(3) { animation-delay: 0.7s; }
+@keyframes an-spin { to { transform: rotate(360deg); } }
+.an-spin { animation: an-spin 0.9s linear infinite; }
+
+/* ---------- Drawer (Cajón): the strip above the tab row, and the tab row
+   that moves under it. <div class="an-drawer"> … </div> ------------------- */
+.an-drawer {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 46px;
+  margin: 8px 12px 0;
+  padding: 0 12px;
+  border-radius: 11px;
+  background: rgb(42 35 28 / 0.7);
+  box-shadow: inset 0 0 0 0.75px var(--an-hairline-strong);
+  color: var(--an-paper-2);
+}
+.an-drawer__mark { font-size: 13px; color: var(--an-paper-3); }
+.an-drawer__icons { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.an-drawer__icons::-webkit-scrollbar { display: none; }
+.an-drawer__icon {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  color: var(--an-paper);
+  font-size: 16px;
+}
+.an-drawer__icon:hover, .an-drawer__icon.is-open { background: rgb(246 239 227 / 0.08); }
+.an-drawer__gear { display: inline-grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 7px; font-size: 13.5px; color: var(--an-paper-2); }
+.an-drawer__note { font: 500 12px / 1 var(--an-rounded); color: var(--an-paper-3); white-space: nowrap; }
+/* A standard menu read from the icon's app, shown under it (an NSMenu). */
+.an-menu {
+  position: absolute;
+  z-index: 5;
+  top: 40px;
+  min-width: 210px;
+  padding: 5px;
+  border-radius: 10px;
+  background: rgb(40 36 33 / 0.97);
+  box-shadow: inset 0 0 0 0.5px rgb(255 255 255 / 0.16), 0 10px 30px rgb(0 0 0 / 0.55);
+  font-size: 13px;
+  color: var(--an-paper);
+}
+.an-menu__head { display: flex; align-items: center; gap: 8px; padding: 6px 9px 7px; }
+.an-menu__head small { display: block; margin-top: 2px; font-size: 11.5px; color: var(--an-paper-3); }
+.an-menu__sep { height: 1px; margin: 4px 6px; background: var(--an-hairline-strong); }
+.an-menu__item { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; height: 24px; padding: 0 9px; border-radius: 5px; text-align: left; }
+.an-menu__item:hover, .an-menu__item:focus-visible { background: #2d63d8; }
+.an-menu__item kbd { font: inherit; color: var(--an-paper-3); }
+/* Tabs on their own row (under the Drawer, or on narrow panels). */
+.an-tabrow { display: flex; align-items: center; height: 32px; margin: 8px 12px 0; }
+/* Tabs are real buttons in the demo: hover fill like the app. */
+.an-tab:not(.is-active):hover { background: rgb(246 239 227 / 0.08); color: var(--an-paper); }
+.an-tabs--dense .an-tab:not(.is-active) { width: 26px; }
+.an-tabs--dense { gap: 0; }
+
+/* ---------- Ask (DesvanAssistant): welcome, chips, conversation, prompt --- */
+.an-body--ask { --an-body-h: 200px; }
+.an-ask { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 10px; }
+.an-ask__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 12px 4px 2px;
+  -webkit-mask: linear-gradient(transparent, #000 18px);
+  mask: linear-gradient(transparent, #000 18px);
+}
+.an-ask__scroll::-webkit-scrollbar { display: none; }
+.an-ask-welcome { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 6px; }
+.an-ask-welcome__title { display: flex; align-items: center; gap: 8px; font: 600 15px / 1.2 var(--an-rounded); color: var(--an-paper); }
+.an-ask-welcome__title .an-i { font-size: 19px; color: var(--an-bulb); filter: drop-shadow(0 0 4px rgb(255 181 71 / 0.5)); }
+.an-ask-welcome p { margin-top: 5px; max-width: 520px; font-size: 12px; line-height: 1.35; color: var(--an-paper-2); }
+.an-chips { display: flex; gap: 6px; margin-top: 12px; overflow: hidden; }
+.an-chip-btn {
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+  height: 28px;
+  padding: 0 11px;
+  border-radius: 14px;
+  background: linear-gradient(to bottom, transparent 50%, rgb(0 0 0 / 0.26)), var(--an-wood);
+  box-shadow: inset 0 0 0 0.75px var(--an-hairline-strong);
+  font: 500 12px / 1 var(--an-font);
+  color: rgb(246 239 227 / 0.85);
+  white-space: nowrap;
+  transition: transform 0.15s, background-color 0.15s;
+}
+.an-chip-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: url("wood.webp") 0 -30px / 720px 220px repeat;
+  opacity: 0.6;
+}
+.an-chip-btn .an-i { font-size: 11.5px; color: rgb(255 181 71 / 0.8); }
+.an-chip-btn:hover { transform: translateY(-1px); background: linear-gradient(to bottom, transparent 50%, rgb(0 0 0 / 0.26)), var(--an-wood-raised); color: var(--an-paper); }
+.an-chip-btn:hover .an-i { color: var(--an-bulb); }
+.an-prompt { display: flex; align-items: center; gap: 6px; height: 32px; flex: none; }
+.an-field {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 1;
+  min-width: 0;
+  height: 32px;
+  padding: 0 3px 0 12px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.4);
+  box-shadow: inset 0 0 0 0.75px rgb(0 0 0 / 0.6), inset 0 -0.75px 0 rgb(246 239 227 / 0.12);
+}
+.an-field:focus-within { box-shadow: inset 0 0 0 1px rgb(255 181 71 / 0.55), 0 0 6px rgb(255 181 71 / 0.35); }
+.an-field > .an-i { font-size: 11px; color: var(--an-paper-3); }
+.an-field:focus-within > .an-i { color: var(--an-bulb); }
+.an-field input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  outline: 0;
+  background: none;
+  font: 13px / 1 var(--an-font);
+  color: var(--an-paper);
+}
+.an-field input::placeholder { color: var(--an-paper-3); }
+.an .an-field input:focus-visible { outline: 0; }
+.an-field__mic { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; font-size: 13px; color: var(--an-paper-2); }
+.an-send {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(255 181 71 / 0.95);
+  color: var(--an-ink);
+  font-size: 12px;
+  box-shadow: 0 0 7px rgb(255 181 71 / 0.4);
+}
+.an-send.is-empty { background: rgb(255 181 71 / 0.35); color: rgb(246 239 227 / 0.45); box-shadow: none; }
+.an-send .an-i--stop { font-size: 10px; }
+.an-qslip {
+  align-self: flex-end;
+  max-width: 400px;
+  padding: 5px 10px;
+  border-radius: 5px;
+  background: rgb(246 239 227 / 0.93);
+  color: var(--an-ink);
+  font: 500 12.5px / 1.3 var(--an-font);
+  box-shadow: 0 1px 1.5px rgb(0 0 0 / 0.35);
+  transform: rotate(var(--an-tilt, 0.5deg));
+}
+.an-answer { font-size: 13px; line-height: 19px; color: var(--an-paper); padding-right: 6px; }
+.an-answer b { font-weight: 600; }
+.an-answer code { font: 12px var(--an-mono); color: var(--an-bulb); }
+@keyframes an-breathe { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+.an-thinking { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--an-paper-2); }
+.an-thinking .an-i { font-size: 12px; color: var(--an-bulb); animation: an-breathe 1.8s ease-in-out infinite; }
+.an-answer-actions { display: flex; gap: 2px; margin: -8px 0 0 -8px; }
+.an-answer-actions .an-btn { --an-h: 24px; font-size: 11.5px; padding: 0 8px; }
+
+/* ---------- Mirror (DesvanMirror): 16:9 glass in a wood frame + controls -- */
+.an-mirror { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 14px; }
+.an-mirror__frame { --an-r: 16px; padding: 6px; flex: none; box-shadow: 0 4px 10px rgb(0 0 0 / 0.5); }
+.an-glass {
+  position: relative;
+  width: var(--an-glass-w, 256px);
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 10px;
+  background: #000;
+}
+.an-glass > * { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1); }
+.an-glass.is-mirrored > * { transform: scaleX(-1); }
+.an-mirror__controls { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 180px; }
+.an-mirror__camera { display: flex; align-items: center; gap: 5px; font: 500 12px / 1.2 var(--an-rounded); color: var(--an-paper-3); }
+.an-mirror__camera .an-i { font-size: 12px; flex: none; }
+
+/* ---------- Agents: dangerous request (hold to allow) -------------------- */
+.an-slip.is-danger { box-shadow: inset 0 0 0 1px rgb(242 103 74 / 0.55); }
+.an-danger-note { font-size: 12.5px; color: var(--an-tomato); }
+.an-btn--hold {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  color: var(--an-tomato);
+  background: rgb(242 103 74 / 0.14);
+  box-shadow: inset 0 0 0 1px rgb(242 103 74 / 0.75);
+  touch-action: none;
+}
+.an-btn--hold::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: var(--an-tomato);
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+}
+.an-btn--hold.is-holding { color: #2b0e07; }
+.an-btn--hold.is-holding::before { transform: scaleX(1); transition: transform 1s linear; }
+
+/* ---------- Shelf: a thing landing on the plank, and the lit drop target -- */
+@keyframes an-land {
+  0% { transform: translateY(-46px) rotate(calc(var(--an-tilt, 0deg) - 7deg)); opacity: 0; }
+  55% { transform: translateY(2px) rotate(calc(var(--an-tilt, 0deg) + 1.5deg)); opacity: 1; }
+  78% { transform: translateY(-1.5px) rotate(var(--an-tilt, 0deg)); }
+  100% { transform: translateY(0) rotate(var(--an-tilt, 0deg)); }
+}
+.an-tile--landing .an-thumb { animation: an-land 0.55s cubic-bezier(0.3, 0.7, 0.3, 1) both; }
+.an-tile--landing .an-tile__name { animation: an-fade-in 0.4s 0.25s both; }
+@keyframes an-fade-in { from { opacity: 0; } }
+.an-shelf.an-card--lit .an-shelf-empty .an-house { --an-lit: 1; }
+.an-tile { cursor: grab; touch-action: pan-x; border-radius: 10px; }
+.an-shelf--more .an-shelf__row { overflow-x: auto; scrollbar-width: none; }
+.an-shelf--more .an-shelf__row::-webkit-scrollbar { display: none; }
+.an-shelf--more .an-plank { right: auto; width: var(--an-plank-w, 100%); }
+.an-i--person-square { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C28H48A20%2C20%2C0%2C0%2C0%2C28%2C48V208a20%2C20%2C0%2C0%2C0%2C20%2C20H208a20%2C20%2C0%2C0%2C0%2C20-20V48A20%2C20%2C0%2C0%2C0%2C208%2C28Zm-4%2C24V196.24a83.63%2C83.63%2C0%2C0%2C0-39.08-39.67%2C52%2C52%2C0%2C1%2C0-73.84%2C0A83.63%2C83.63%2C0%2C0%2C0%2C52%2C196.24V52ZM100%2C120a28%2C28%2C0%2C1%2C1%2C28%2C28A28%2C28%2C0%2C0%2C1%2C100%2C120Zm28%2C52a59.34%2C59.34%2C0%2C0%2C1%2C37.69%2C13.31A60.45%2C60.45%2C0%2C0%2C1%2C181.06%2C204H74.94a60.45%2C60.45%2C0%2C0%2C1%2C15.37-18.69A59.34%2C59.34%2C0%2C0%2C1%2C128%2C172Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--flip { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216.49%2C184.49l-32%2C32a12%2C12%2C0%2C0%2C1-17-17L179%2C188H48a12%2C12%2C0%2C0%2C1%2C0-24H179l-11.52-11.51a12%2C12%2C0%2C0%2C1%2C17-17l32%2C32A12%2C12%2C0%2C0%2C1%2C216.49%2C184.49Zm-145-64a12%2C12%2C0%2C0%2C0%2C17-17L77%2C92H208a12%2C12%2C0%2C0%2C0%2C0-24H77L88.49%2C56.49a12%2C12%2C0%2C0%2C0-17-17l-32%2C32a12%2C12%2C0%2C0%2C0%2C0%2C17Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--camera { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C52H182.42L170%2C33.34A12%2C12%2C0%2C0%2C0%2C160%2C28H96a12%2C12%2C0%2C0%2C0-10%2C5.34L73.57%2C52H48A28%2C28%2C0%2C0%2C0%2C20%2C80V192a28%2C28%2C0%2C0%2C0%2C28%2C28H208a28%2C28%2C0%2C0%2C0%2C28-28V80A28%2C28%2C0%2C0%2C0%2C208%2C52Zm4%2C140a4%2C4%2C0%2C0%2C1-4%2C4H48a4%2C4%2C0%2C0%2C1-4-4V80a4%2C4%2C0%2C0%2C1%2C4-4H80a12%2C12%2C0%2C0%2C0%2C10-5.34L102.42%2C52h51.15L166%2C70.66A12%2C12%2C0%2C0%2C0%2C176%2C76h32a4%2C4%2C0%2C0%2C1%2C4%2C4ZM128%2C84a48%2C48%2C0%2C1%2C0%2C48%2C48A48.05%2C48.05%2C0%2C0%2C0%2C128%2C84Zm0%2C72a24%2C24%2C0%2C1%2C1%2C24-24A24%2C24%2C0%2C0%2C1%2C128%2C156Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--archive { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M224%2C44H32A20%2C20%2C0%2C0%2C0%2C12%2C64V88a20%2C20%2C0%2C0%2C0%2C16%2C19.6V192a20%2C20%2C0%2C0%2C0%2C20%2C20H208a20%2C20%2C0%2C0%2C0%2C20-20V107.6A20%2C20%2C0%2C0%2C0%2C244%2C88V64A20%2C20%2C0%2C0%2C0%2C224%2C44ZM36%2C68H220V84H36ZM52%2C188V108H204v80Zm112-52a12%2C12%2C0%2C0%2C1-12%2C12H104a12%2C12%2C0%2C0%2C1%2C0-24h48A12%2C12%2C0%2C0%2C1%2C164%2C136Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--sliders { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M40%2C92H70.06a36%2C36%2C0%2C0%2C0%2C67.88%2C0H216a12%2C12%2C0%2C0%2C0%2C0-24H137.94a36%2C36%2C0%2C0%2C0-67.88%2C0H40a12%2C12%2C0%2C0%2C0%2C0%2C24Zm64-24A12%2C12%2C0%2C1%2C1%2C92%2C80%2C12%2C12%2C0%2C0%2C1%2C104%2C68Zm112%2C96H201.94a36%2C36%2C0%2C0%2C0-67.88%2C0H40a12%2C12%2C0%2C0%2C0%2C0%2C24h94.06a36%2C36%2C0%2C0%2C0%2C67.88%2C0H216a12%2C12%2C0%2C0%2C0%2C0-24Zm-48%2C24a12%2C12%2C0%2C1%2C1%2C12-12A12%2C12%2C0%2C0%2C1%2C168%2C188Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--cloud { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M160%2C36A92.09%2C92.09%2C0%2C0%2C0%2C79%2C84.36%2C68%2C68%2C0%2C1%2C0%2C72%2C220h88a92%2C92%2C0%2C0%2C0%2C0-184Zm0%2C160H72a44%2C44%2C0%2C0%2C1-1.82-88A91.86%2C91.86%2C0%2C0%2C0%2C68%2C128a12%2C12%2C0%2C0%2C0%2C24%2C0%2C68%2C68%2C0%2C1%2C1%2C68%2C68Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--shield { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C36H48A20%2C20%2C0%2C0%2C0%2C28%2C56v56c0%2C54.29%2C26.32%2C87.22%2C48.4%2C105.29%2C23.71%2C19.39%2C47.44%2C26%2C48.44%2C26.29a12.1%2C12.1%2C0%2C0%2C0%2C6.32%2C0c1-.28%2C24.73-6.9%2C48.44-26.29%2C22.08-18.07%2C48.4-51%2C48.4-105.29V56A20%2C20%2C0%2C0%2C0%2C208%2C36Zm-4%2C76c0%2C35.71-13.09%2C64.69-38.91%2C86.15A126.28%2C126.28%2C0%2C0%2C1%2C128%2C219.38a126.14%2C126.14%2C0%2C0%2C1-37.09-21.23C65.09%2C176.69%2C52%2C147.71%2C52%2C112V60H204ZM79.51%2C144.49a12%2C12%2C0%2C1%2C1%2C17-17L112%2C143l47.51-47.52a12%2C12%2C0%2C0%2C1%2C17%2C17l-56%2C56a12%2C12%2C0%2C0%2C1-17%2C0Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--moon { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M236.37%2C139.4a12%2C12%2C0%2C0%2C0-12-3A84.07%2C84.07%2C0%2C0%2C1%2C119.6%2C31.59a12%2C12%2C0%2C0%2C0-15-15A108.86%2C108.86%2C0%2C0%2C0%2C49.69%2C55.07%2C108%2C108%2C0%2C0%2C0%2C136%2C228a107.09%2C107.09%2C0%2C0%2C0%2C64.93-21.69%2C108.86%2C108.86%2C0%2C0%2C0%2C38.44-54.94A12%2C12%2C0%2C0%2C0%2C236.37%2C139.4Zm-49.88%2C47.74A84%2C84%2C0%2C0%2C1%2C68.86%2C69.51%2C84.93%2C84.93%2C0%2C0%2C1%2C92.27%2C48.29Q92%2C52.13%2C92%2C56A108.12%2C108.12%2C0%2C0%2C0%2C200%2C164q3.87%2C0%2C7.71-.27A84.79%2C84.79%2C0%2C0%2C1%2C186.49%2C187.14Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--arrow-up { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208.49%2C120.49a12%2C12%2C0%2C0%2C1-17%2C0L140%2C69V216a12%2C12%2C0%2C0%2C1-24%2C0V69L64.49%2C120.49a12%2C12%2C0%2C0%2C1-17-17l72-72a12%2C12%2C0%2C0%2C1%2C17%2C0l72%2C72A12%2C12%2C0%2C0%2C1%2C208.49%2C120.49Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--arrow-down { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208.49%2C152.49l-72%2C72a12%2C12%2C0%2C0%2C1-17%2C0l-72-72a12%2C12%2C0%2C0%2C1%2C17-17L116%2C187V40a12%2C12%2C0%2C0%2C1%2C24%2C0V187l51.51-51.52a12%2C12%2C0%2C0%2C1%2C17%2C17Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--mic { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M128%2C180a52.06%2C52.06%2C0%2C0%2C0%2C52-52V64A52%2C52%2C0%2C0%2C0%2C76%2C64v64A52.06%2C52.06%2C0%2C0%2C0%2C128%2C180ZM100%2C64a28%2C28%2C0%2C0%2C1%2C56%2C0v64a28%2C28%2C0%2C0%2C1-56%2C0Zm40%2C155.22V240a12%2C12%2C0%2C0%2C1-24%2C0V219.22A92.14%2C92.14%2C0%2C0%2C1%2C36%2C128a12%2C12%2C0%2C0%2C1%2C24%2C0%2C68%2C68%2C0%2C0%2C0%2C136%2C0%2C12%2C12%2C0%2C0%2C1%2C24%2C0A92.14%2C92.14%2C0%2C0%2C1%2C140%2C219.22Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--bookmark { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M184%2C28H72A20%2C20%2C0%2C0%2C0%2C52%2C48V224a12%2C12%2C0%2C0%2C0%2C18.36%2C10.18l57.63-36%2C57.65%2C36A12%2C12%2C0%2C0%2C0%2C204%2C224V48A20%2C20%2C0%2C0%2C0%2C184%2C28Zm-4%2C174.35-45.65-28.53a12%2C12%2C0%2C0%2C0-12.72%2C0L76%2C202.35V52H180Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--align-left { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M28%2C64A12%2C12%2C0%2C0%2C1%2C40%2C52H216a12%2C12%2C0%2C0%2C1%2C0%2C24H40A12%2C12%2C0%2C0%2C1%2C28%2C64Zm12%2C52H168a12%2C12%2C0%2C0%2C0%2C0-24H40a12%2C12%2C0%2C0%2C0%2C0%2C24Zm176%2C16H40a12%2C12%2C0%2C0%2C0%2C0%2C24H216a12%2C12%2C0%2C0%2C0%2C0-24Zm-48%2C40H40a12%2C12%2C0%2C0%2C0%2C0%2C24H168a12%2C12%2C0%2C0%2C0%2C0-24Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--clipboard { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M172%2C164a12%2C12%2C0%2C0%2C1-12%2C12H96a12%2C12%2C0%2C0%2C1%2C0-24h64A12%2C12%2C0%2C0%2C1%2C172%2C164Zm-12-52H96a12%2C12%2C0%2C0%2C0%2C0%2C24h64a12%2C12%2C0%2C0%2C0%2C0-24Zm60-64V216a20%2C20%2C0%2C0%2C1-20%2C20H56a20%2C20%2C0%2C0%2C1-20-20V48A20%2C20%2C0%2C0%2C1%2C56%2C28H90.53a51.88%2C51.88%2C0%2C0%2C1%2C74.94%2C0H200A20%2C20%2C0%2C0%2C1%2C220%2C48ZM100.29%2C60h55.42a28%2C28%2C0%2C0%2C0-55.42%2C0ZM196%2C52H178.59A52.13%2C52.13%2C0%2C0%2C1%2C180%2C64v8a12%2C12%2C0%2C0%2C1-12%2C12H88A12%2C12%2C0%2C0%2C1%2C76%2C72V64a52.13%2C52.13%2C0%2C0%2C1%2C1.41-12H60V212H196Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--envelope { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M224%2C44H32A12%2C12%2C0%2C0%2C0%2C20%2C56V192a20%2C20%2C0%2C0%2C0%2C20%2C20H216a20%2C20%2C0%2C0%2C0%2C20-20V56A12%2C12%2C0%2C0%2C0%2C224%2C44ZM193.15%2C68%2C128%2C127.72%2C62.85%2C68ZM44%2C188V83.28l75.89%2C69.57a12%2C12%2C0%2C0%2C0%2C16.22%2C0L212%2C83.28V188Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--video-fill { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M192%2C72V184a16%2C16%2C0%2C0%2C1-16%2C16H32a16%2C16%2C0%2C0%2C1-16-16V72A16%2C16%2C0%2C0%2C1%2C32%2C56H176A16%2C16%2C0%2C0%2C1%2C192%2C72Zm58%2C.25a8.23%2C8.23%2C0%2C0%2C0-6.63%2C1.22L209.78%2C95.86A4%2C4%2C0%2C0%2C0%2C208%2C99.19v57.62a4%2C4%2C0%2C0%2C0%2C1.78%2C3.33l33.78%2C22.52a8%2C8%2C0%2C0%2C0%2C8.58.19%2C8.33%2C8.33%2C0%2C0%2C0%2C3.86-7.17V80A8%2C8%2C0%2C0%2C0%2C250%2C72.25Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--hand-tap { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M64%2C64a48%2C48%2C0%2C0%2C1%2C96%2C0%2C8%2C8%2C0%2C0%2C1-16%2C0%2C32%2C32%2C0%2C0%2C0-64%2C0%2C8%2C8%2C0%2C0%2C1-16%2C0Zm143.23%2C56c-8.61.4-15.23%2C7.82-15.23%2C16.43v7.28a8.17%2C8.17%2C0%2C0%2C1-7.47%2C8.25%2C8%2C8%2C0%2C0%2C1-8.53-8V120.45c0-8.61-6.62-16-15.23-16.43A16%2C16%2C0%2C0%2C0%2C144%2C120v15.73a8.17%2C8.17%2C0%2C0%2C1-7.47%2C8.25%2C8%2C8%2C0%2C0%2C1-8.53-8V64.45c0-8.61-6.62-16-15.23-16.43A16%2C16%2C0%2C0%2C0%2C96%2C64V183.74a8.19%2C8.19%2C0%2C0%2C1-6.72%2C8.16l-.12%2C0a6.09%2C6.09%2C0%2C0%2C1-6-3.09l-21-36.44c-4.3-7.46-13.74-10.57-21.4-6.62A16%2C16%2C0%2C0%2C0%2C34.15%2C168L65.1%2C228.05A8%2C8%2C0%2C0%2C0%2C72%2C232H208a8%2C8%2C0%2C0%2C0%2C7.16-4.42c.36-.72%2C8.84-15.06%2C8.84-40.65V136A16%2C16%2C0%2C0%2C0%2C207.23%2C120Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--warning { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M240.26%2C186.1%2C152.81%2C34.23h0a28.74%2C28.74%2C0%2C0%2C0-49.62%2C0L15.74%2C186.1a27.45%2C27.45%2C0%2C0%2C0%2C0%2C27.71A28.31%2C28.31%2C0%2C0%2C0%2C40.55%2C228h174.9a28.31%2C28.31%2C0%2C0%2C0%2C24.79-14.19A27.45%2C27.45%2C0%2C0%2C0%2C240.26%2C186.1Zm-20.8%2C15.7a4.46%2C4.46%2C0%2C0%2C1-4%2C2.2H40.55a4.46%2C4.46%2C0%2C0%2C1-4-2.2%2C3.56%2C3.56%2C0%2C0%2C1%2C0-3.73L124%2C46.2a4.77%2C4.77%2C0%2C0%2C1%2C8%2C0l87.44%2C151.87A3.56%2C3.56%2C0%2C0%2C1%2C219.46%2C201.8ZM116%2C136V104a12%2C12%2C0%2C0%2C1%2C24%2C0v32a12%2C12%2C0%2C0%2C1-24%2C0Zm28%2C40a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C144%2C176Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--check { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M232.49%2C80.49l-128%2C128a12%2C12%2C0%2C0%2C1-17%2C0l-56-56a12%2C12%2C0%2C1%2C1%2C17-17L96%2C183%2C215.51%2C63.51a12%2C12%2C0%2C0%2C1%2C17%2C17Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--caret-left { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M168.49%2C199.51a12%2C12%2C0%2C0%2C1-17%2C17l-80-80a12%2C12%2C0%2C0%2C1%2C0-17l80-80a12%2C12%2C0%2C0%2C1%2C17%2C17L97%2C128Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--caret-right { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M184.49%2C136.49l-80%2C80a12%2C12%2C0%2C0%2C1-17-17L159%2C128%2C87.51%2C56.49a12%2C12%2C0%2C1%2C1%2C17-17l80%2C80A12%2C12%2C0%2C0%2C1%2C184.49%2C136.49Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--caret-down { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216.49%2C104.49l-80%2C80a12%2C12%2C0%2C0%2C1-17%2C0l-80-80a12%2C12%2C0%2C0%2C1%2C17-17L128%2C159l71.51-71.52a12%2C12%2C0%2C0%2C1%2C17%2C17Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--stop { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216%2C56V200a16%2C16%2C0%2C0%2C1-16%2C16H56a16%2C16%2C0%2C0%2C1-16-16V56A16%2C16%2C0%2C0%2C1%2C56%2C40H200A16%2C16%2C0%2C0%2C1%2C216%2C56Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--spinner { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M236%2C128a108%2C108%2C0%2C0%2C1-216%2C0c0-42.52%2C24.73-81.34%2C63-98.9A12%2C12%2C0%2C1%2C1%2C93%2C50.91C63.24%2C64.57%2C44%2C94.83%2C44%2C128a84%2C84%2C0%2C0%2C0%2C168%2C0c0-33.17-19.24-63.43-49-77.09A12%2C12%2C0%2C1%2C1%2C173%2C29.1C211.27%2C46.66%2C236%2C85.48%2C236%2C128Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--copy { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216%2C28H88A12%2C12%2C0%2C0%2C0%2C76%2C40V76H40A12%2C12%2C0%2C0%2C0%2C28%2C88V216a12%2C12%2C0%2C0%2C0%2C12%2C12H168a12%2C12%2C0%2C0%2C0%2C12-12V180h36a12%2C12%2C0%2C0%2C0%2C12-12V40A12%2C12%2C0%2C0%2C0%2C216%2C28ZM156%2C204H52V100H156Zm48-48H180V88a12%2C12%2C0%2C0%2C0-12-12H100V52H204Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--put-up { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208.49%2C143.51a12%2C12%2C0%2C0%2C1-17%2C17L140%2C109V224a12%2C12%2C0%2C0%2C1-24%2C0V109L64.49%2C160.49a12%2C12%2C0%2C0%2C1-17-17l72-72a12%2C12%2C0%2C0%2C1%2C17%2C0ZM216%2C28H40a12%2C12%2C0%2C0%2C0%2C0%2C24H216a12%2C12%2C0%2C0%2C0%2C0-24Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--folder { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M216%2C68H132L105.33%2C48a20.12%2C20.12%2C0%2C0%2C0-12-4H40A20%2C20%2C0%2C0%2C0%2C20%2C64V200a20%2C20%2C0%2C0%2C0%2C20%2C20H216.89A19.13%2C19.13%2C0%2C0%2C0%2C236%2C200.89V88A20%2C20%2C0%2C0%2C0%2C216%2C68Zm-4%2C128H44V68H92l28.8%2C21.6A12%2C12%2C0%2C0%2C0%2C128%2C92h84Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--desktop { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M208%2C36H48A28%2C28%2C0%2C0%2C0%2C20%2C64V172a28%2C28%2C0%2C0%2C0%2C28%2C28h68v12H96a12%2C12%2C0%2C0%2C0%2C0%2C24h64a12%2C12%2C0%2C0%2C0%2C0-24H140V200h68a28%2C28%2C0%2C0%2C0%2C28-28V64A28%2C28%2C0%2C0%2C0%2C208%2C36ZM48%2C60H208a4%2C4%2C0%2C0%2C1%2C4%2C4v72H44V64A4%2C4%2C0%2C0%2C1%2C48%2C60ZM208%2C176H48a4%2C4%2C0%2C0%2C1-4-4V160H212v12A4%2C4%2C0%2C0%2C1%2C208%2C176Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--download { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M228%2C144v64a12%2C12%2C0%2C0%2C1-12%2C12H40a12%2C12%2C0%2C0%2C1-12-12V144a12%2C12%2C0%2C0%2C1%2C24%2C0v52H204V144a12%2C12%2C0%2C0%2C1%2C24%2C0Zm-108.49%2C8.49a12%2C12%2C0%2C0%2C0%2C17%2C0l40-40a12%2C12%2C0%2C0%2C0-17-17L140%2C115V32a12%2C12%2C0%2C0%2C0-24%2C0v83L96.49%2C95.51a12%2C12%2C0%2C0%2C0-17%2C17Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--recent { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M140%2C80v41.21l34.17%2C20.5a12%2C12%2C0%2C1%2C1-12.34%2C20.58l-40-24A12%2C12%2C0%2C0%2C1%2C116%2C128V80a12%2C12%2C0%2C0%2C1%2C24%2C0ZM128%2C28A99.38%2C99.38%2C0%2C0%2C0%2C57.24%2C57.34c-4.69%2C4.74-9%2C9.37-13.24%2C14V64a12%2C12%2C0%2C0%2C0-24%2C0v40a12%2C12%2C0%2C0%2C0%2C12%2C12H72a12%2C12%2C0%2C0%2C0%2C0-24H57.77C63%2C86%2C68.37%2C80.22%2C74.26%2C74.26a76%2C76%2C0%2C1%2C1%2C1.58%2C109%2C12%2C12%2C0%2C0%2C0-16.48%2C17.46A100%2C100%2C0%2C1%2C0%2C128%2C28Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--wifi { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M144%2C204a16%2C16%2C0%2C1%2C1-16-16A16%2C16%2C0%2C0%2C1%2C144%2C204ZM239.61%2C83.91a176%2C176%2C0%2C0%2C0-223.22%2C0%2C12%2C12%2C0%2C1%2C0%2C15.23%2C18.55%2C152%2C152%2C0%2C0%2C1%2C192.76%2C0%2C12%2C12%2C0%2C1%2C0%2C15.23-18.55Zm-32.16%2C35.73a128%2C128%2C0%2C0%2C0-158.9%2C0%2C12%2C12%2C0%2C0%2C0%2C14.9%2C18.81%2C104%2C104%2C0%2C0%2C1%2C129.1%2C0%2C12%2C12%2C0%2C0%2C0%2C14.9-18.81ZM175.07%2C155.3a80.05%2C80.05%2C0%2C0%2C0-94.14%2C0%2C12%2C12%2C0%2C0%2C0%2C14.14%2C19.4%2C56%2C56%2C0%2C0%2C1%2C65.86%2C0%2C12%2C12%2C0%2C1%2C0%2C14.14-19.4Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--battery { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M196%2C52H28A28%2C28%2C0%2C0%2C0%2C0%2C80v96a28%2C28%2C0%2C0%2C0%2C28%2C28H196a28%2C28%2C0%2C0%2C0%2C28-28V80A28%2C28%2C0%2C0%2C0%2C196%2C52Zm4%2C124a4%2C4%2C0%2C0%2C1-4%2C4H28a4%2C4%2C0%2C0%2C1-4-4V80a4%2C4%2C0%2C0%2C1%2C4-4H196a4%2C4%2C0%2C0%2C1%2C4%2C4Zm-56-72v48a12%2C12%2C0%2C0%2C1-24%2C0V104a12%2C12%2C0%2C0%2C1%2C24%2C0Zm-40%2C0v48a12%2C12%2C0%2C0%2C1-24%2C0V104a12%2C12%2C0%2C0%2C1%2C24%2C0Zm-40%2C0v48a12%2C12%2C0%2C0%2C1-24%2C0V104a12%2C12%2C0%2C0%2C1%2C24%2C0Zm192%2C0v48a12%2C12%2C0%2C0%2C1-24%2C0V104a12%2C12%2C0%2C0%2C1%2C24%2C0Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--search { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M232.49%2C215.51%2C185%2C168a92.12%2C92.12%2C0%2C1%2C0-17%2C17l47.53%2C47.54a12%2C12%2C0%2C0%2C0%2C17-17ZM44%2C112a68%2C68%2C0%2C1%2C1%2C68%2C68A68.07%2C68.07%2C0%2C0%2C1%2C44%2C112Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--bulb { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M176%2C232a8%2C8%2C0%2C0%2C1-8%2C8H88a8%2C8%2C0%2C0%2C1%2C0-16h80A8%2C8%2C0%2C0%2C1%2C176%2C232Zm40-128a87.55%2C87.55%2C0%2C0%2C1-33.64%2C69.21A16.24%2C16.24%2C0%2C0%2C0%2C176%2C186v6a16%2C16%2C0%2C0%2C1-16%2C16H96a16%2C16%2C0%2C0%2C1-16-16v-6a16%2C16%2C0%2C0%2C0-6.23-12.66A87.59%2C87.59%2C0%2C0%2C1%2C40%2C104.49C39.74%2C56.83%2C78.26%2C17.14%2C125.88%2C16A88%2C88%2C0%2C0%2C1%2C216%2C104Zm-32.11-9.34a57.6%2C57.6%2C0%2C0%2C0-46.56-46.55%2C8%2C8%2C0%2C0%2C0-2.66%2C15.78c16.57%2C2.79%2C30.63%2C16.85%2C33.44%2C33.45A8%2C8%2C0%2C0%2C0%2C176%2C104a9%2C9%2C0%2C0%2C0%2C1.35-.11A8%2C8%2C0%2C0%2C0%2C183.89%2C94.66Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-i--apple { --an-icon: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%20256%20256%22%20fill%3D%22%23000%22%3E%3Cpath%20d%3D%22M128.23%2C30A40%2C40%2C0%2C0%2C1%2C167%2C0h1a8%2C8%2C0%2C0%2C1%2C0%2C16h-1a24%2C24%2C0%2C0%2C0-23.24%2C18%2C8%2C8%2C0%2C1%2C1-15.5-4ZM223.3%2C169.59a8.07%2C8.07%2C0%2C0%2C0-2.8-3.4C203.53%2C154.53%2C200%2C134.64%2C200%2C120c0-17.67%2C13.47-33.06%2C21.5-40.67a8%2C8%2C0%2C0%2C0%2C0-11.62C208.82%2C55.74%2C187.82%2C48%2C168%2C48a72.23%2C72.23%2C0%2C0%2C0-40%2C12.13%2C71.56%2C71.56%2C0%2C0%2C0-90.71%2C9.09A74.63%2C74.63%2C0%2C0%2C0%2C16%2C123.4a127%2C127%2C0%2C0%2C0%2C40.14%2C89.73A39.8%2C39.8%2C0%2C0%2C0%2C83.59%2C224h87.68a39.84%2C39.84%2C0%2C0%2C0%2C29.12-12.57%2C125%2C125%2C0%2C0%2C0%2C17.82-24.6C225.23%2C174%2C224.33%2C172%2C223.3%2C169.59Z%22%2F%3E%3C%2Fsvg%3E"); }
+.an-ask__scroll > * { flex: none; }

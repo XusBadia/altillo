@@ -4,3 +4,7 @@ test-results/
 playwright-report/
 qa/
 .vercel/
+
+# Prototype QA captures (large, regenerable)
+lab/**/shots/
+lab/**/verify/

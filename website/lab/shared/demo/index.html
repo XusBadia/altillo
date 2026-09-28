@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altillo — interactive demo (test page)</title>
+<link rel="stylesheet" href="../notch.css">
+<link rel="stylesheet" href="./demo.css">
+<style>
+  /* Test page chrome only. */
+  :root { color-scheme: dark; }
+  body { margin: 0; padding: 32px clamp(10px, 4vw, 56px) 80px; background: #121110; color: #d9d3c8; font: 14px/1.5 -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; transition: background 0.3s; }
+  header { display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: end; justify-content: space-between; margin: 0 auto 24px; max-width: 1240px; }
+  h1 { margin: 0; font-size: 20px; color: #f6efe3; }
+  header p { margin: 4px 0 0; color: #8f877b; max-width: 64ch; }
+  .controls { display: flex; flex-wrap: wrap; gap: 6px; }
+  .controls button { font: inherit; font-size: 12.5px; color: inherit; background: #1f1c19; border: 1px solid #36302a; border-radius: 999px; padding: 4px 11px; cursor: pointer; }
+  .controls button[aria-pressed="true"] { background: #ffb547; color: #2b1a05; border-color: #ffb547; }
+  main { max-width: 1240px; margin: 0 auto; }
+  #demo { margin: 0 auto; }
+  #log { margin: 28px auto 0; max-width: 1240px; height: 150px; overflow: auto; padding: 10px 14px; background: #0b0a09; border: 1px solid #2a2622; border-radius: 10px; font: 11.5px/1.6 ui-monospace, "SF Mono", Menlo, monospace; color: #cfc6b8; }
+
+  /* Theme 1 — pure black, Apple-like */
+  body.t-apple { background: #000; color: #f5f5f7; }
+  body.t-apple #demo {
+    --demo-bg: #000;
+    --demo-frame: #0a0a0a;
+    --demo-frame-edge: #2c2c2e;
+    --demo-radius: 28px;
+    --demo-shadow: 0 40px 120px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(255 255 255 / 0.04);
+    --demo-accent: #2997ff;
+    --demo-text: #f5f5f7;
+    --demo-muted: #86868b;
+    --demo-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+    --demo-wallpaper:
+      radial-gradient(ellipse 60% 70% at 20% 100%, #1d4ed8 0%, transparent 65%),
+      radial-gradient(ellipse 60% 60% at 90% 10%, #7c3aed 0%, transparent 65%),
+      linear-gradient(180deg, #05060f, #0c1233);
+  }
+  /* Theme 2 — warm editorial, #10100f */
+  body.t-warm { background: #10100f; color: #e9e2d4; }
+  body.t-warm #demo {
+    --demo-bg: #10100f;
+    --demo-frame: #1a1917;
+    --demo-frame-edge: #3a352d;
+    --demo-radius: 6px;
+    --demo-bezel: 10px;
+    --demo-shadow: 0 1px 0 rgb(255 255 255 / 0.04), 0 30px 60px -20px rgb(0 0 0 / 0.8);
+    --demo-accent: #e8b33a;
+    --demo-text: #e9e2d4;
+    --demo-muted: #9b927f;
+    --demo-font: "Iowan Old Style", "Palatino", Georgia, serif;
+    --demo-window: rgb(28 26 23 / 0.94);
+    --demo-wallpaper:
+      radial-gradient(ellipse 80% 60% at 70% 110%, #b4643c 0%, transparent 60%),
+      linear-gradient(170deg, #2a2520 0%, #4a3a2c 55%, #7a5337 100%);
+  }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Altillo — interactive demo</h1>
+    <p>Standalone test page for <code>lab/shared/demo</code>. Hover or tap the notch, drag a file onto it, then to Deliveries. Nothing real happens.</p>
+  </div>
+  <div class="controls" role="group" aria-label="Theme">
+    <button type="button" data-theme="">Default</button>
+    <button type="button" data-theme="t-apple">Apple black</button>
+    <button type="button" data-theme="t-warm">Warm editorial</button>
+  </div>
+  <div class="controls" role="group" aria-label="Show a module">
+    <button type="button" data-show="shelf">Shelf</button>
+    <button type="button" data-show="ask">Ask</button>
+    <button type="button" data-show="usage">Usage</button>
+    <button type="button" data-show="agents">Agents</button>
+    <button type="button" data-show="calendar">Calendar</button>
+    <button type="button" data-show="mirror">Mirror</button>
+    <button type="button" data-show="music">Now playing</button>
+    <button type="button" data-show="drawer">Drawer</button>
+    <button type="button" data-close>Close</button>
+  </div>
+</header>
+<main><div id="demo"></div></main>
+<div id="log" aria-label="Event log"></div>
+
+<script type="module">
+  import { mountDemo } from "./demo.js";
+  const params = new URLSearchParams(location.search);
+  const el = document.getElementById("demo");
+  const demo = mountDemo(el, { locale: params.get("lang") || "en", autoAgent: params.get("auto") !== "0" });
+  window.demo = demo;
+  window.demoEvents = [];
+  const log = document.getElementById("log");
+  demo.on("*", (d) => {
+    window.demoEvents.push(d);
+    const line = document.createElement("div");
+    line.textContent = `${new Date().toLocaleTimeString()}  ${JSON.stringify(d)}`;
+    log.prepend(line);
+  });
+  const setTheme = (cls) => {
+    document.body.className = cls;
+    document.querySelectorAll("[data-theme]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.theme === cls)));
+  };
+  setTheme(params.get("theme") || "");
+  document.querySelectorAll("[data-theme]").forEach((b) => b.addEventListener("click", () => setTheme(b.dataset.theme)));
+  document.querySelectorAll("[data-show]").forEach((b) => b.addEventListener("click", () => demo.show(b.dataset.show)));
+  document.querySelector("[data-close]").addEventListener("click", () => demo.close());
+</script>
+</body>
+</html>

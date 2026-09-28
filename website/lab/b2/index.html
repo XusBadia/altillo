@@ -1,34 +1,35 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Altillo — Tu notch, a trabajar.</title>
-<meta name="description" content="Un estante para tus archivos, tu próxima reunión, lo que está sonando y tus límites de IA — con solo acercar el cursor, en el espacio que tu Mac ya tenía. Gratis y de código abierto.">
+<title>Altillo — Your notch, put to work.</title>
+<meta name="description" content="A shelf for files, your next meeting, what's playing and your AI limits — one hover away, in the space your Mac already had. Free and open source.">
 <meta name="theme-color" content="#000">
 <meta name="color-scheme" content="dark">
-<link rel="canonical" href="https://altillo.app/es/">
+<link rel="canonical" href="https://altillo.app/">
 <link rel="alternate" hreflang="en" href="https://altillo.app/">
 <link rel="alternate" hreflang="es" href="https://altillo.app/es/">
 <link rel="alternate" hreflang="x-default" href="https://altillo.app/">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/altillo-icon.png" type="image/png">
 <link rel="apple-touch-icon" href="/altillo-icon.png" sizes="180x180">
-<!-- Social cards: og.png (1200×630) ships at the site root from public/og.png. -->
+<!-- Social cards. IMPORTANT: og.png (1200×630, next to this page) must ship
+     at the site root, https://altillo.app/og.png, or the previews break. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Altillo">
-<meta property="og:locale" content="es_ES">
-<meta property="og:locale:alternate" content="en_GB">
-<meta property="og:url" content="https://altillo.app/es/">
-<meta property="og:title" content="Altillo — Tu notch, a trabajar.">
-<meta property="og:description" content="Un estante para tus archivos, tu próxima reunión, lo que está sonando y tus límites de IA — con solo acercar el cursor, en el espacio que tu Mac ya tenía.">
+<meta property="og:locale" content="en_GB">
+<meta property="og:locale:alternate" content="es_ES">
+<meta property="og:url" content="https://altillo.app/">
+<meta property="og:title" content="Altillo — Your notch, put to work.">
+<meta property="og:description" content="A shelf for files, your next meeting, what's playing and your AI limits — one hover away, in the space your Mac already had.">
 <meta property="og:image" content="https://altillo.app/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="El notch de Altillo abierto, sobre el titular de la página">
+<meta property="og:image:alt" content="Altillo's notch open into the Shelf, above the words “Your notch, put to work.”">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Altillo — Tu notch, a trabajar.">
-<meta name="twitter:description" content="Un estante para tus archivos, tu próxima reunión, lo que está sonando y tus límites de IA — con solo acercar el cursor.">
+<meta name="twitter:title" content="Altillo — Your notch, put to work.">
+<meta name="twitter:description" content="A shelf for files, your next meeting, what's playing and your AI limits — one hover away.">
 <meta name="twitter:image" content="https://altillo.app/og.png">
 <script>
   document.documentElement.classList.add("js");
@@ -41,9 +42,8 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "Altillo",
-  "description": "Un estante para tus archivos, tu próxima reunión, lo que está sonando y tus límites de IA — con solo acercar el cursor, en el notch de tu Mac.",
-  "url": "https://altillo.app/es/",
-  "inLanguage": "es",
+  "description": "A shelf for files, your next meeting, what's playing and your AI limits — one hover away, in your Mac's notch.",
+  "url": "https://altillo.app/",
   "image": "https://altillo.app/og.png",
   "operatingSystem": "macOS 26+",
   "applicationCategory": "UtilitiesApplication",
@@ -52,26 +52,26 @@
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
 }
 </script>
-<link rel="preload" href="/src/kit/wood.webp" as="image" type="image/webp">
-<link rel="stylesheet" href="/src/kit/notch.css">
-<link rel="stylesheet" href="/src/demo/demo.css">
-<link rel="stylesheet" href="/src/eggs/eggs.css">
-<link rel="stylesheet" href="/src/site.css">
+<link rel="preload" href="../shared/wood.webp" as="image" type="image/webp">
+<link rel="stylesheet" href="../shared/notch.css">
+<link rel="stylesheet" href="../shared/demo/demo.css">
+<link rel="stylesheet" href="../shared/eggs/eggs.css">
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <!-- ============================================================ NAV ====== -->
 <header class="nav" id="nav">
   <div class="nav__inner">
-    <a class="brand" href="#top" aria-label="Altillo, inicio">
+    <a class="brand" href="#top" aria-label="Altillo, home">
       <img src="/altillo-icon.png" alt="" width="22" height="22">
       <span>altillo</span>
     </a>
-    <nav class="nav__links" aria-label="Principal">
-      <a href="#features">Funciones</a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#features">Features</a>
       <a href="https://github.com/XusBadia/altillo">GitHub</a>
       <a href="#aurio">Aurio</a>
-      <a class="btn btn--amber btn--sm" href="https://github.com/XusBadia/altillo/releases/latest">Descargar</a>
+      <a class="btn btn--amber btn--sm" href="https://github.com/XusBadia/altillo/releases/latest">Download</a>
     </nav>
   </div>
 </header>
@@ -88,23 +88,23 @@
 
     <!-- The screen's menu bar: app on the left, a couple of links on the right. -->
     <div class="hero__bar">
-      <a class="brand" href="#top" aria-label="Altillo, inicio">
+      <a class="brand" href="#top" aria-label="Altillo, home">
         <img src="/altillo-icon.png" alt="" width="22" height="22">
         <span>altillo</span>
       </a>
       <div class="hero__bar-links">
-        <a href="#features">Funciones</a>
+        <a href="#features">Features</a>
         <a href="https://github.com/XusBadia/altillo">GitHub</a>
         <a href="#aurio">Aurio</a>
       </div>
     </div>
 
-    <div class="hero__notch" role="img" aria-label="El notch abriéndose en la pestaña Altillo, con seis archivos">
+    <div class="hero__notch" role="img" aria-label="The notch opening into Altillo's Shelf">
       <div class="hero__slab" aria-hidden="true"></div>
       <div class="an an-notch an-notch--open hero__open">
         <header class="an-band">
           <nav class="an-tabs an-tabs--dense">
-            <span class="an-tab is-active"><i class="an-house"></i>Altillo</span>
+            <span class="an-tab is-active"><i class="an-house"></i>Shelf</span>
             <span class="an-tab"><i class="an-i an-i--sparkle"></i></span>
             <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
             <span class="an-tab"><i class="an-i an-i--hand"></i></span>
@@ -113,7 +113,7 @@
             <span class="an-tab"><i class="an-i an-i--music"></i></span>
           </nav>
           <div class="an-accessory">
-            <span class="hide-narrow"><b class="an-figure">6</b> cosas arriba</span>
+            <span class="hide-narrow"><b class="an-figure">6</b> things up there</span>
             <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
           </div>
         </header>
@@ -123,15 +123,15 @@
             <div class="an-shelf__row">
               <div class="an-tile">
                 <div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div></div>
-                <div class="an-tile__name">Captura…10.24.12</div>
+                <div class="an-tile__name">Screen…10.24.12</div>
               </div>
               <div class="an-tile is-selected">
                 <div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div><span class="an-tile__pool"></span></div>
-                <div class="an-tile__name">Propu…Altillo v2</div>
+                <div class="an-tile__name">Propo…Altillo v2</div>
               </div>
               <div class="an-tile">
                 <div class="an-tile__thing"><div class="an-thumb an-thumb--text" style="--an-tilt:1.2deg"></div></div>
-                <div class="an-tile__name">notas-reunión</div>
+                <div class="an-tile__name">meeting-notes</div>
               </div>
               <div class="an-tile">
                 <div class="an-tile__thing"><div class="an-thumb an-thumb--zip"></div></div>
@@ -142,8 +142,8 @@
                 <div class="an-tile__name">getseam.app</div>
               </div>
               <div class="an-tile">
-                <div class="an-tile__thing"><div class="an-thumb an-thumb--note" style="--an-tilt:1deg"><span>Revisar la matriz de arrastre antes del viernes</span></div></div>
-                <div class="an-tile__name">Revisar la matriz de arrastre antes del viernes</div>
+                <div class="an-tile__thing"><div class="an-thumb an-thumb--note" style="--an-tilt:1deg"><span>Check the drag matrix before Friday</span></div></div>
+                <div class="an-tile__name">Check the drag matrix before Friday</div>
               </div>
             </div>
           </div>
@@ -163,17 +163,17 @@
     </div>
 
     <div class="hero__copy">
-      <p class="eyebrow">Para el notch de tu Mac</p>
-      <h1 id="hero-title"><span class="ln">Tu notch,</span> <span class="ln">a</span> <span class="ln"><em class="serif">trabajar.</em></span></h1>
-      <p class="hero__sub">Un estante para tus archivos, tu próxima reunión, lo que suena y tus límites de IA — al alcance del cursor, en el hueco que tu Mac ya tenía.</p>
+      <p class="eyebrow">For the notch on your Mac</p>
+      <h1 id="hero-title"><span class="ln">Your notch,</span> <span class="ln">put to</span> <span class="ln"><em class="serif">work.</em></span></h1>
+      <p class="hero__sub">A shelf for files, your next meeting, what's playing and your AI limits — one hover away, in the space your Mac already had.</p>
       <div class="ctas">
         <a class="btn btn--amber" href="https://github.com/XusBadia/altillo/releases/latest">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.74-.78-2.87-.76-1.47.02-2.83.86-3.59 2.18-1.54 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.73 2.2 1.1-.05 1.51-.71 2.84-.71 1.32 0 1.7.71 2.86.69 1.18-.02 1.93-1.07 2.65-2.13.84-1.22 1.18-2.41 1.2-2.47-.03-.01-2.3-.88-2.32-3.52ZM14.2 6.13c.6-.73 1.01-1.74.9-2.75-.87.04-1.92.58-2.55 1.3-.56.64-1.05 1.67-.92 2.66.97.07 1.96-.49 2.57-1.21Z" fill="currentColor"/></svg>
-          Descargar para Mac
+          Download for Mac
         </a>
-        <a class="btn btn--ghost" href="https://github.com/XusBadia/altillo">Ver en GitHub <span class="chev" aria-hidden="true">›</span></a>
+        <a class="btn btn--ghost" href="https://github.com/XusBadia/altillo">View on GitHub <span class="chev" aria-hidden="true">›</span></a>
       </div>
-      <p class="fine"><span>Gratis para siempre</span><i>·</i><span>Código abierto</span><i>·</i><span>macOS 26+</span><i class="fine__opt">·</i><span class="fine__opt">Firmada y notarizada</span></p>
+      <p class="fine"><span>Free forever</span><i>·</i><span>Open source</span><i>·</i><span>macOS 26+</span><i class="fine__opt">·</i><span class="fine__opt">Signed &amp; notarized</span></p>
     </div>
 
   </div>
@@ -182,85 +182,85 @@
 <!-- ========================================================== TRY IT ===== -->
 <section class="try" id="features" aria-labelledby="try-title">
   <div class="feature__head">
-    <p class="eyebrow">Funciones</p>
-    <h2 id="try-title" class="lines"><span class="ln">Míralo</span> <span class="ln">en acción.</span></h2>
-    <p class="lede reveal">Acerca el cursor al notch, suelta un archivo encima, dale al play. Nada es de verdad — salvo la música.</p>
+    <p class="eyebrow">Features</p>
+    <h2 id="try-title" class="lines"><span class="ln">See it</span> <span class="ln">in action.</span></h2>
+    <p class="lede reveal">Hover the notch, drop a file on it, press play. Nothing real happens — except the music.</p>
   </div>
 
-  <div class="try__chips" role="group" aria-label="Mostrar un módulo">
-    <button type="button" aria-controls="demo" data-show="shelf">Altillo</button>
-    <button type="button" aria-controls="demo" data-show="ask">Pregunta</button>
-    <button type="button" aria-controls="demo" data-show="usage">Uso de IA</button>
-    <button type="button" aria-controls="demo" data-show="agents">Agentes en directo</button>
-    <button type="button" aria-controls="demo" data-show="calendar">Agenda</button>
-    <button type="button" aria-controls="demo" data-show="music">Sonando</button>
-    <button type="button" aria-controls="demo" data-show="mirror">Espejo</button>
-    <button type="button" aria-controls="demo" data-show="drawer">Cajón</button>
+  <div class="try__chips" role="group" aria-label="Show a module">
+    <button type="button" aria-controls="demo" data-show="shelf">Shelf</button>
+    <button type="button" aria-controls="demo" data-show="ask">Ask</button>
+    <button type="button" aria-controls="demo" data-show="usage">AI usage</button>
+    <button type="button" aria-controls="demo" data-show="agents">Live agents</button>
+    <button type="button" aria-controls="demo" data-show="calendar">Calendar</button>
+    <button type="button" aria-controls="demo" data-show="music">Now playing</button>
+    <button type="button" aria-controls="demo" data-show="mirror">Mirror</button>
+    <button type="button" aria-controls="demo" data-show="drawer">Drawer</button>
   </div>
-  <p class="try__now" aria-live="polite">Toca un módulo o toca el notch.</p>
+  <p class="try__now" aria-live="polite">Tap a chip, or tap the notch.</p>
 
   <div class="try__grid">
     <div class="try__rail">
     <ol class="try__steps">
       <li class="step" data-module="shelf">
         <button type="button" class="step__btn" aria-controls="demo" data-show="shelf">
-          <span class="step__label"><i class="dot"></i>Altillo</span>
-          <span class="step__title">Suelta un archivo en el notch. Recógelo en otra ventana.</span>
+          <span class="step__label"><i class="dot"></i>Shelf</span>
+          <span class="step__title">Drop a file on the notch. Pick it up in another window.</span>
         </button>
-        <div class="step__more"><div class="step__inner"><p class="step__body">Altillo, el estante: un sitio de paso para el archivo que vas a necesitar enseguida.</p></div></div>
+        <div class="step__more"><div class="step__inner"><p class="step__body">A temporary place for the file you'll need in a moment.</p></div></div>
       </li>
       <li class="step" data-module="ask">
         <button type="button" class="step__btn" aria-controls="demo" data-show="ask">
-          <span class="step__label"><i class="dot"></i>Pregunta</span>
-          <span class="step__title">Un asistente que funciona en tu Mac.</span>
+          <span class="step__label"><i class="dot"></i>Ask</span>
+          <span class="step__title">An assistant that runs on your Mac.</span>
         </button>
-        <div class="step__more"><div class="step__inner"><p class="step__body">Responde a partir de tu calendario y tu portapapeles. En el propio Mac por defecto; solo busca en la web si se lo permites.</p></div></div>
+        <div class="step__more"><div class="step__inner"><p class="step__body">It answers from your calendar and clipboard. On-device by default; web search only when you allow it.</p></div></div>
       </li>
       <li class="step" data-module="usage">
         <button type="button" class="step__btn" aria-controls="demo" data-show="usage">
-          <span class="step__label"><i class="dot"></i>Uso de IA</span>
-          <span class="step__title">Claude, Codex, Cursor, Gemini, Copilot y cinco más.</span>
+          <span class="step__label"><i class="dot"></i>AI usage</span>
+          <span class="step__title">Claude, Codex, Cursor, Gemini, Copilot and five more.</span>
         </button>
-        <div class="step__more"><div class="step__inner"><p class="step__body">Tu cuota, tu ritmo y cuándo se recarga — de un vistazo.</p></div></div>
+        <div class="step__more"><div class="step__inner"><p class="step__body">Your quota, your pace, and when it refills — at a glance.</p></div></div>
       </li>
       <li class="step" data-module="agents">
         <button type="button" class="step__btn" aria-controls="demo" data-show="agents">
-          <span class="step__label"><i class="dot"></i>Agentes en directo</span>
-          <span class="step__title">«Claude Code quiere ejecutar <code>git push</code>».</span>
+          <span class="step__label"><i class="dot"></i>Live agents</span>
+          <span class="step__title">“Claude Code wants to run <code>git push</code>.”</span>
         </button>
-        <div class="step__more"><div class="step__inner"><p class="step__body">Aprueba o deniega desde el notch sin dejar lo que estás haciendo.</p></div></div>
+        <div class="step__more"><div class="step__inner"><p class="step__body">Approve or deny from the notch without leaving what you're doing.</p></div></div>
       </li>
       <li class="step" data-module="calendar">
         <button type="button" class="step__btn" aria-controls="demo" data-show="calendar">
-          <span class="step__label"><i class="dot"></i>Agenda</span>
-          <span class="step__title">Tu próxima reunión y un botón para unirte, ahí arriba.</span>
+          <span class="step__label"><i class="dot"></i>Calendar</span>
+          <span class="step__title">Your next meeting and a Join button, right up top.</span>
         </button>
       </li>
       <li class="step" data-module="music">
         <button type="button" class="step__btn" aria-controls="demo" data-show="music">
-          <span class="step__label"><i class="dot"></i>Sonando</span>
-          <span class="step__title">Pausa, salta, mira qué suena. Sin cambiar de app.</span>
+          <span class="step__label"><i class="dot"></i>Now playing</span>
+          <span class="step__title">Pause, skip, see what's on. No app switching.</span>
         </button>
       </li>
       <li class="step" data-module="mirror">
         <button type="button" class="step__btn" aria-controls="demo" data-show="mirror">
-          <span class="step__label"><i class="dot"></i>Espejo</span>
-          <span class="step__title">Échate un vistazo antes de la llamada.</span>
+          <span class="step__label"><i class="dot"></i>Mirror</span>
+          <span class="step__title">A quick look at yourself before the call.</span>
         </button>
       </li>
       <li class="step" data-module="drawer">
         <button type="button" class="step__btn" aria-controls="demo" data-show="drawer">
-          <span class="step__label"><i class="dot"></i>Cajón</span>
-          <span class="step__title">Guarda los iconos de la barra de menús que no necesitas ver.</span>
+          <span class="step__label"><i class="dot"></i>Drawer</span>
+          <span class="step__title">Tuck away the menu bar icons you don't need to see.</span>
         </button>
-        <div class="step__more"><div class="step__inner"><p class="step__fine">Oculta los iconos en macOS 26 y necesita permiso de Accesibilidad. En macOS 27 se quedan en la barra de menús.</p></div></div>
+        <div class="step__more"><div class="step__inner"><p class="step__fine">Hides icons on macOS 26 and needs Accessibility access. On macOS 27 they stay in the menu bar.</p></div></div>
       </li>
     </ol>
     </div>
 
     <div class="try__stage">
       <div class="try__sticky">
-        <p class="try__paused" hidden><span>Seguimiento en pausa</span><span aria-hidden="true">·</span><button type="button" class="try__resume">Reanudar</button></p>
+        <p class="try__paused" hidden><span>Following along paused</span><span aria-hidden="true">·</span><button type="button" class="try__resume">Resume</button></p>
         <div id="demo" class="try__demo"></div>
       </div>
     </div>
@@ -270,27 +270,27 @@
 <!-- ======================================================= BENTO ========= -->
 <section class="bento-wrap" aria-labelledby="bento-title">
   <div class="feature__head">
-    <h2 id="bento-title" class="lines"><span class="ln">Todo, ahí arriba.</span></h2>
+    <h2 id="bento-title" class="lines"><span class="ln">Everything up there.</span></h2>
   </div>
 
   <div class="bento" data-stagger>
 
     <!-- AI usage (full width: the stage) -->
     <article class="cell cell--full" data-rise>
-      <div class="cell__vis cell__vis--top" role="img" aria-label="Panel de Uso de Altillo: Claude al 85 por ciento de su límite de cinco horas, Codex al 34 por ciento">
+      <div class="cell__vis cell__vis--top" role="img" aria-label="Altillo's Usage panel: Claude at 85 percent of its five-hour limit, Codex at 34 percent">
         <div class="an an-notch an-notch--open cell__notch cell__notch--stage kit-narrow" aria-hidden="true" data-fill>
         <header class="an-band">
           <nav class="an-tabs an-tabs--dense">
             <span class="an-tab"><i class="an-house"></i></span>
             <span class="an-tab"><i class="an-i an-i--sparkle"></i></span>
-            <span class="an-tab is-active"><i class="an-i an-i--gauge"></i>Uso</span>
+            <span class="an-tab is-active"><i class="an-i an-i--gauge"></i>Usage</span>
             <span class="an-tab"><i class="an-i an-i--hand"></i></span>
             <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
             <span class="an-tab"><i class="an-i an-i--person-square"></i></span>
             <span class="an-tab"><i class="an-i an-i--music"></i></span>
           </nav>
           <div class="an-accessory">
-            <span class="an-dot hide-narrow"></span><span class="hide-narrow">Al día · hace 2 min</span>
+            <span class="an-dot hide-narrow"></span><span class="hide-narrow">Up to date · 2 min ago</span>
             <span class="an-accessory__refresh"><i class="an-i an-i--refresh"></i></span>
             <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
           </div>
@@ -314,12 +314,12 @@
                     <span class="an-chip">Max 20×</span>
                     <span class="an-usage-card__length">5 h</span>
                   </div>
-                  <div class="an-usage-card__refill">se repone en 1 h 11 min</div>
-                  <div class="an-pace an-pace--warning">vas 9 puntos por delante del ritmo</div>
+                  <div class="an-usage-card__refill">refills in 1 h 11 min</div>
+                  <div class="an-pace an-pace--warning">9 points ahead of pace</div>
                 </div>
               </div>
               <div class="an-bar-row">
-                <span class="an-bar-row__label">Semana</span>
+                <span class="an-bar-row__label">Week</span>
                 <span class="an-bar" style="--v:41; --pace:.55" data-v="41"></span>
                 <span class="an-bar-row__value">41 %</span>
                 <span class="an-bar-row__left">3 d 3 h</span>
@@ -342,12 +342,12 @@
                     <span class="an-chip">Pro</span>
                     <span class="an-usage-card__length">5 h</span>
                   </div>
-                  <div class="an-usage-card__refill">se repone en 3 h 4 min</div>
-                  <div class="an-pace">a buen ritmo</div>
+                  <div class="an-usage-card__refill">refills in 3 h 4 min</div>
+                  <div class="an-pace">on pace</div>
                 </div>
               </div>
               <div class="an-bar-row">
-                <span class="an-bar-row__label">Semana</span>
+                <span class="an-bar-row__label">Week</span>
                 <span class="an-bar" style="--v:58; --pace:.8" data-v="58"></span>
                 <span class="an-bar-row__value">58 %</span>
                 <span class="an-bar-row__left">1 d 8 h</span>
@@ -358,18 +358,18 @@
       </div>
       </div>
       <div class="cell__text">
-        <h3>Uso de IA</h3>
-        <p>Claude, Codex, Cursor, Gemini, Copilot y cinco más. Tu cuota, tu ritmo y cuándo se recarga — de un vistazo.</p>
+        <h3>AI usage</h3>
+        <p>Claude, Codex, Cursor, Gemini, Copilot and five more. Your quota, your pace, and when it refills — at a glance.</p>
       </div>
     </article>
 
     <!-- Shelf -->
     <article class="cell cell--wide">
-      <div class="cell__vis cell__vis--top" role="img" aria-label="La pestaña Altillo con cuatro archivos">
+      <div class="cell__vis cell__vis--top" role="img" aria-label="Altillo's Shelf holding four files">
         <div class="an an-notch an-notch--open cell__notch kit-narrow" aria-hidden="true">
           <header class="an-band">
             <nav class="an-tabs an-tabs--dense">
-              <span class="an-tab is-active"><i class="an-house"></i>Altillo</span>
+              <span class="an-tab is-active"><i class="an-house"></i>Shelf</span>
               <span class="an-tab"><i class="an-i an-i--sparkle"></i></span>
               <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
               <span class="an-tab"><i class="an-i an-i--hand"></i></span>
@@ -378,7 +378,7 @@
               <span class="an-tab"><i class="an-i an-i--music"></i></span>
             </nav>
             <div class="an-accessory">
-              <span class="hide-narrow"><b class="an-figure">4</b> cosas arriba</span>
+              <span class="hide-narrow"><b class="an-figure">4</b> things up there</span>
               <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
             </div>
           </header>
@@ -388,15 +388,15 @@
               <div class="an-shelf__row">
                 <div class="an-tile is-selected">
                   <div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div><span class="an-tile__pool"></span></div>
-                  <div class="an-tile__name">Captura…10.24.12</div>
+                  <div class="an-tile__name">Screen…10.24.12</div>
                 </div>
                 <div class="an-tile">
                   <div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div></div>
-                  <div class="an-tile__name">Factura-0925</div>
+                  <div class="an-tile__name">Invoice-0925</div>
                 </div>
                 <div class="an-tile">
-                  <div class="an-tile__thing"><div class="an-thumb an-thumb--note an-thumb--kraft" style="--an-tilt:-1deg"><span>Preguntar a Marta por el local</span></div></div>
-                  <div class="an-tile__name">Preguntar a Marta por el local</div>
+                  <div class="an-tile__thing"><div class="an-thumb an-thumb--note an-thumb--kraft" style="--an-tilt:-1deg"><span>Ask Marta about the venue</span></div></div>
+                  <div class="an-tile__name">Ask Marta about the venue</div>
                 </div>
                 <div class="an-tile">
                   <div class="an-tile__thing"><div class="an-thumb an-thumb--zip"></div></div>
@@ -408,44 +408,44 @@
         </div>
       </div>
       <div class="cell__text">
-        <h3>Altillo</h3>
-        <p>Suelta un archivo en el notch. Recógelo en otra ventana.</p>
+        <h3>Shelf</h3>
+        <p>Drop a file on the notch. Pick it up in another window.</p>
       </div>
     </article>
 
     <!-- Calendar -->
     <article class="cell">
-      <div class="cell__vis" role="img" aria-label="Próxima reunión: Revisión de diseño a las 15:00, con un botón para unirse">
+      <div class="cell__vis" role="img" aria-label="Next meeting: Design review at 3:00 PM, with a Join button">
         <div class="an mini-cal" aria-hidden="true">
           <article class="an-card an-card--lit an-event-card" style="--an-cal: var(--an-sky)">
             <span class="an-spine"></span>
             <div class="an-event-card__text">
-              <span class="an-event-card__title">Revisión de diseño</span>
-              <span class="an-event-card__when"><b>15:00</b><span class="an-countdown is-soon">en 12 min</span></span>
+              <span class="an-event-card__title">Design review</span>
+              <span class="an-event-card__when"><b>3:00 PM</b><span class="an-countdown is-soon">in 12 min</span></span>
             </div>
-            <span class="an-btn an-btn--primary an-btn--28">Unirse</span>
+            <span class="an-btn an-btn--primary an-btn--28">Join</span>
           </article>
           <div class="an-card an-event-row" style="--an-cal: var(--an-sage)">
             <span class="an-event-row__dot"></span>
-            <span class="an-event-row__time">16:00</span>
-            <span class="an-event-row__title">Entrega final</span>
+            <span class="an-event-row__time">4:00 PM</span>
+            <span class="an-event-row__title">Final hand-off</span>
           </div>
           <div class="an-card an-event-row" style="--an-cal: var(--an-rose)">
             <span class="an-event-row__dot"></span>
-            <span class="an-event-row__time">18:30</span>
-            <span class="an-event-row__title">Escalada con Marta</span>
+            <span class="an-event-row__time">6:30 PM</span>
+            <span class="an-event-row__title">Climbing with Marta</span>
           </div>
         </div>
       </div>
       <div class="cell__text">
-        <h3>Agenda</h3>
-        <p>Tu próxima reunión y un botón para unirte, ahí arriba.</p>
+        <h3>Calendar</h3>
+        <p>Your next meeting and a Join button, right up top.</p>
       </div>
     </article>
 
     <!-- Now playing -->
     <article class="cell">
-      <div class="cell__vis" role="img" aria-label="Sonando: Azotea, de Estudio Altillo, con controles de reproducción">
+      <div class="cell__vis" role="img" aria-label="Now playing: Azotea by Estudio Altillo, with playback controls">
         <div class="an mini-player" aria-hidden="true">
           <div class="an-card an-player">
             <div class="an-sleeve"><div class="an-art"><span>AZOTEA</span></div></div>
@@ -465,14 +465,14 @@
         </div>
       </div>
       <div class="cell__text">
-        <h3>Sonando</h3>
-        <p>Pausa, salta, mira qué suena. Sin cambiar de app.</p>
+        <h3>Now playing</h3>
+        <p>Pause, skip, see what's on. No app switching.</p>
       </div>
     </article>
 
     <!-- Mirror (kit) -->
     <article class="cell cell--wide">
-      <div class="cell__vis cell__vis--top" role="img" aria-label="El Espejo de Altillo mostrando cómo te ves">
+      <div class="cell__vis cell__vis--top" role="img" aria-label="Altillo's Mirror showing a preview of yourself">
         <div class="an an-notch an-notch--open cell__notch kit-narrow" aria-hidden="true">
           <header class="an-band">
             <nav class="an-tabs an-tabs--dense">
@@ -481,7 +481,7 @@
               <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
               <span class="an-tab"><i class="an-i an-i--hand"></i></span>
               <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
-              <span class="an-tab is-active"><i class="an-i an-i--person-square"></i>Espejo</span>
+              <span class="an-tab is-active"><i class="an-i an-i--person-square"></i>Mirror</span>
               <span class="an-tab"><i class="an-i an-i--music"></i></span>
             </nav>
             <div class="an-accessory"><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div>
@@ -490,36 +490,36 @@
             <div class="an-mirror">
               <div class="an-card an-mirror__frame"><div class="an-glass is-mirrored"><svg viewBox="0 0 256 144" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="256" height="144" fill="#d9c9b0"/><rect x="14" y="10" width="54" height="74" rx="2" fill="#f7efe0" stroke="#9c8568" stroke-width="3"/><path d="M0 128h256v16H0z" fill="#6d5846"/><path d="M84 144c3-34 18-52 44-52s41 18 44 52z" fill="#33495a"/><ellipse cx="128" cy="66" rx="22" ry="26" fill="#dca184"/><path d="M105 66c-2-24 10-37 26-36 17 1 26 14 22 34-5-4-7-11-7-18-10 6-22 8-38 7z" fill="#3b2a24"/></svg></div></div>
               <div class="an-mirror__controls">
-                <span class="an-btn an-btn--ghost an-btn--28"><i class="an-i an-i--flip"></i>Como un espejo</span>
-                <span class="an-mirror__camera"><i class="an-i an-i--camera"></i>Cámara FaceTime HD</span>
+                <span class="an-btn an-btn--ghost an-btn--28"><i class="an-i an-i--flip"></i>Mirrored</span>
+                <span class="an-mirror__camera"><i class="an-i an-i--camera"></i>FaceTime HD Camera</span>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="cell__text">
-        <h3>Espejo</h3>
-        <p>Échate un vistazo antes de la llamada.</p>
+        <h3>Mirror</h3>
+        <p>A quick look at yourself before the call.</p>
       </div>
     </article>
 
     <!-- Live agents (full width, lit) -->
     <article class="cell cell--full cell--lit" data-rise>
       <div class="cell__halo" aria-hidden="true"></div>
-      <div class="cell__vis cell__vis--top" role="img" aria-label="Claude pide ejecutar git push; botones Denegar, Permitir en esta sesión y Permitir">
+      <div class="cell__vis cell__vis--top" role="img" aria-label="Claude asks to run git push; Deny, Allow for this session and Allow buttons">
         <div class="an an-notch an-notch--open cell__notch cell__notch--stage kit-narrow" aria-hidden="true">
         <header class="an-band">
           <nav class="an-tabs an-tabs--dense">
             <span class="an-tab"><i class="an-house"></i></span>
             <span class="an-tab"><i class="an-i an-i--sparkle"></i></span>
             <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
-            <span class="an-tab is-active"><i class="an-knock"></i>Agentes</span>
+            <span class="an-tab is-active"><i class="an-knock"></i>Agents</span>
             <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
             <span class="an-tab"><i class="an-i an-i--person-square"></i></span>
             <span class="an-tab"><i class="an-i an-i--music"></i></span>
           </nav>
           <div class="an-accessory">
-            <span class="an-accessory__agents"><span class="an-amber">1 llama a la puerta</span><span class="hide-narrow">1 trabajando</span></span>
+            <span class="an-accessory__agents"><span class="an-amber">1 knocking</span><span class="hide-narrow">1 working</span></span>
             <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
           </div>
         </header>
@@ -529,8 +529,8 @@
               <i class="an-glyph an-glyph--claude" style="--s:26px"></i>
               <div class="an-agent-card__main">
                 <div class="an-agent-card__head">
-                  <span class="an-agent-card__ask">Claude quiere ejecutar un comando en <em>altillo</em></span>
-                  <span class="an-agent-card__meta"><i class="an-knock"></i><span class="an-ago">hace 8 s</span></span>
+                  <span class="an-agent-card__ask">Claude wants to run a command in <em>altillo</em></span>
+                  <span class="an-agent-card__meta"><i class="an-knock"></i><span class="an-ago">8 s ago</span></span>
                 </div>
                 <div class="an-slip">
                   <span class="an-slip__tool">Bash</span>
@@ -539,26 +539,26 @@
                 <div class="an-agent-card__actions">
                   <span class="an-btn an-btn--quiet an-btn--28 hide-narrow" style="font-size:12.5px"><i class="an-i an-i--open-app"></i>Terminal</span>
                   <span class="an-spacer"></span>
-                  <span class="an-btn an-btn--ghost an-btn--28">Denegar</span>
-                  <span class="an-btn an-btn--ghost an-btn--28 hide-narrow">Permitir en esta sesión</span>
-                  <span class="an-btn an-btn--primary an-btn--28">Permitir</span>
+                  <span class="an-btn an-btn--ghost an-btn--28">Deny</span>
+                  <span class="an-btn an-btn--ghost an-btn--28 hide-narrow">Allow for this session</span>
+                  <span class="an-btn an-btn--primary an-btn--28">Allow</span>
                 </div>
               </div>
             </article>
             <div class="an-card an-agent-row">
               <i class="an-glyph an-glyph--codex" style="--s:22px"></i>
               <span class="an-agent-row__project">atlas-api</span>
-              <span class="an-agent-row__activity">Pasando tests · 42 de 118</span>
-              <span class="an-ago">hace 3 s</span>
-              <span class="an-agent-row__status"><span class="an-dots"><i></i><i></i><i></i></span>Trabajando</span>
+              <span class="an-agent-row__activity">Running tests · 42 of 118</span>
+              <span class="an-ago">3 s ago</span>
+              <span class="an-agent-row__status"><span class="an-dots"><i></i><i></i><i></i></span>Working</span>
               <span class="an-agent-row__end"></span>
             </div>
             <div class="an-card an-agent-row">
               <i class="an-glyph an-glyph--claude" style="--s:22px"></i>
               <span class="an-agent-row__project">portfolio-site</span>
-              <span class="an-agent-row__activity">Todo listo. Terminó en 6 min 12 s</span>
-              <span class="an-ago">hace 4 min</span>
-              <span class="an-agent-row__status"><span class="an-stamp">Hecho</span></span>
+              <span class="an-agent-row__activity">All done. Finished in 6 min 12 s</span>
+              <span class="an-ago">4 min ago</span>
+              <span class="an-agent-row__status"><span class="an-stamp">Done</span></span>
               <span class="an-agent-row__end"></span>
             </div>
           </div>
@@ -566,19 +566,19 @@
       </div>
       </div>
       <div class="cell__text">
-        <h3>Agentes en directo</h3>
-        <p>«Claude Code quiere ejecutar <code>git push</code>». Aprueba o deniega desde el notch sin dejar lo que estás haciendo.</p>
+        <h3>Live agents</h3>
+        <p>“Claude Code wants to run <code>git push</code>.” Approve or deny from the notch without leaving what you're doing.</p>
       </div>
     </article>
 
     <!-- Ask (kit) -->
     <article class="cell cell--wide">
-      <div class="cell__vis cell__vis--top" role="img" aria-label="Pregunta respondiendo «¿Qué tengo hoy?» con los tres eventos del día">
+      <div class="cell__vis cell__vis--top" role="img" aria-label="Ask answering “What do I have today?” with today's three events">
         <div class="an an-notch an-notch--open cell__notch kit-narrow" aria-hidden="true">
           <header class="an-band">
             <nav class="an-tabs an-tabs--dense">
               <span class="an-tab"><i class="an-house"></i></span>
-              <span class="an-tab is-active"><i class="an-i an-i--sparkle"></i>Pregunta</span>
+              <span class="an-tab is-active"><i class="an-i an-i--sparkle"></i>Ask</span>
               <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
               <span class="an-tab"><i class="an-i an-i--hand"></i></span>
               <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
@@ -590,12 +590,12 @@
           <div class="an-body an-body--ask">
             <div class="an-ask">
               <div class="an-ask__scroll">
-                <div class="an-qslip" style="--an-tilt:.6deg">¿Qué tengo hoy?</div>
-                <div class="an-answer">Tres cosas hoy. <b>Revisión de diseño</b> a las 15:00 en el Estudio — dentro de 12 minutos, por Google Meet. Luego la <b>entrega final</b> a las 16:00 y <b>escalada con Marta</b> a las 18:30.</div>
-                <div class="an-answer-actions"><span class="an-btn an-btn--quiet"><i class="an-i an-i--copy"></i>Copiar</span><span class="an-btn an-btn--quiet"><i class="an-i an-i--put-up"></i>Súbelo</span><span class="an-btn an-btn--quiet hide-narrow"><i class="an-i an-i--bookmark"></i>Guardar</span></div>
+                <div class="an-qslip" style="--an-tilt:.6deg">What do I have today?</div>
+                <div class="an-answer">Three things today. <b>Design review</b> at 3:00 PM in Studio — that's in 12 minutes, on Google Meet. Then the <b>final hand-off</b> at 4:00, and <b>climbing with Marta</b> at 6:30.</div>
+                <div class="an-answer-actions"><span class="an-btn an-btn--quiet"><i class="an-i an-i--copy"></i>Copy</span><span class="an-btn an-btn--quiet"><i class="an-i an-i--put-up"></i>Put it up</span><span class="an-btn an-btn--quiet hide-narrow"><i class="an-i an-i--bookmark"></i>Save</span></div>
               </div>
               <div class="an-prompt">
-                <label class="an-field"><i class="an-i an-i--sparkle"></i><input type="text" placeholder="Pregunta por tu día, tu altillo, lo que sea…" tabindex="-1" aria-hidden="true"><span class="an-field__mic"><i class="an-i an-i--mic"></i></span></label>
+                <label class="an-field"><i class="an-i an-i--sparkle"></i><input type="text" placeholder="Ask about your day, your shelf, anything…" tabindex="-1" aria-hidden="true"><span class="an-field__mic"><i class="an-i an-i--mic"></i></span></label>
                 <span class="an-send is-empty"><i class="an-i an-i--arrow-up"></i></span>
               </div>
             </div>
@@ -603,29 +603,29 @@
         </div>
       </div>
       <div class="cell__text">
-        <h3>Pregunta</h3>
-        <p>Un asistente que funciona en tu Mac y responde a partir de tu calendario y tu portapapeles. <span class="cell__em">En el propio Mac por defecto; solo busca en la web si se lo permites.</span></p>
+        <h3>Ask</h3>
+        <p>An assistant that runs on your Mac, answering from your calendar and clipboard. <span class="cell__em">On-device by default; web search only when you allow it.</span></p>
       </div>
     </article>
 
     <!-- Drawer (kit, cropped at readable scale) -->
     <article class="cell cell--drawer">
-      <div class="cell__vis cell__vis--top cell__vis--crop" role="img" aria-label="El Cajón de Altillo con los iconos de la barra de menús guardados y el menú de la VPN abierto">
+      <div class="cell__vis cell__vis--top cell__vis--crop" role="img" aria-label="Altillo's Drawer holding tucked-away menu bar icons, with the VPN menu open">
         <div class="an an-notch an-notch--open cell__notch cell__notch--drawer" aria-hidden="true">
-          <header class="an-band"><span></span><div class="an-accessory"><span><b class="an-figure">2</b> cosas arriba</span><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div></header>
+          <header class="an-band"><span></span><div class="an-accessory"><span><b class="an-figure">2</b> things up there</span><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div></header>
           <div class="an-drawer">
             <span class="an-drawer__mark"><i class="an-i an-i--archive"></i></span>
             <div class="an-drawer__icons">
               <span class="an-drawer__icon" title="iCloud Drive"><i class="an-i an-i--cloud"></i></span>
               <span class="an-drawer__icon is-open" title="VPN"><i class="an-i an-i--shield"></i></span>
-              <span class="an-drawer__icon" title="Concentración"><i class="an-i an-i--moon"></i></span>
+              <span class="an-drawer__icon" title="Focus"><i class="an-i an-i--moon"></i></span>
             </div>
-            <span class="an-drawer__gear" title="Elige los iconos del Cajón"><i class="an-i an-i--sliders"></i></span>
-            <div class="an-menu" style="left:68px"><div class="an-menu__head"><i class="an-i an-i--shield"></i><div><b>VPN</b><small>Conectada · altillo-mini</small></div></div><div class="an-menu__sep"></div><span class="an-menu__item">Desconectar</span><span class="an-menu__item">Nodo de salida: ninguno</span></div>
+            <span class="an-drawer__gear" title="Choose Drawer icons"><i class="an-i an-i--sliders"></i></span>
+            <div class="an-menu" style="left:68px"><div class="an-menu__head"><i class="an-i an-i--shield"></i><div><b>VPN</b><small>Connected · altillo-mini</small></div></div><div class="an-menu__sep"></div><span class="an-menu__item">Disconnect</span><span class="an-menu__item">Exit node: none</span></div>
           </div>
           <div class="an-tabrow">
             <nav class="an-tabs">
-              <span class="an-tab is-active"><i class="an-house"></i>Altillo</span>
+              <span class="an-tab is-active"><i class="an-house"></i>Shelf</span>
               <span class="an-tab"><i class="an-i an-i--sparkle"></i></span>
               <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
               <span class="an-tab"><i class="an-i an-i--hand"></i></span>
@@ -636,17 +636,17 @@
             <div class="an-card an-shelf">
               <div class="an-plank"></div>
               <div class="an-shelf__row">
-                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div></div><div class="an-tile__name">Propu…Altillo v2</div></div>
-                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div></div><div class="an-tile__name">Captura…10.24.12</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div></div><div class="an-tile__name">Propo…Altillo v2</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div></div><div class="an-tile__name">Screen…10.24.12</div></div>
               </div>
             </div>
           </div>
         </div>
       </div>
       <div class="cell__text">
-        <h3>Cajón</h3>
-        <p>Guarda los iconos de la barra de menús que no necesitas ver.</p>
-        <p class="cell__fine">Oculta los iconos en macOS 26 y necesita permiso de Accesibilidad. En macOS 27 se quedan en la barra de menús.</p>
+        <h3>Drawer</h3>
+        <p>Tuck away the menu bar icons you don't need to see.</p>
+        <p class="cell__fine">Hides icons on macOS 26 and needs Accessibility access. On macOS 27 they stay in the menu bar.</p>
       </div>
     </article>
 
@@ -654,18 +654,18 @@
 </section>
 
 <!-- ===================================================== PRINCIPLES ====== -->
-<section class="principles" aria-label="Principios" data-stagger>
+<section class="principles" aria-label="Principles" data-stagger>
   <div class="principle">
-    <h3>Privada por diseño</h3>
-    <p>Las consultas de uso van directas a cada proveedor, con la credencial que ya guarda su propia herramienta. Sin servidores de Altillo.</p>
+    <h3>Private by design</h3>
+    <p>Usage checks go straight to each provider with the credential its own tool already stores. No Altillo servers.</p>
   </div>
   <div class="principle">
-    <h3>Nativa</h3>
-    <p>Hecha en Swift para macOS 26. Ligera con la batería y en silencio cuando no la usas.</p>
+    <h3>Native</h3>
+    <p>Built in Swift for macOS 26. Light on battery, quiet when idle.</p>
   </div>
   <div class="principle">
-    <h3>A tu medida</h3>
-    <p>Elige qué módulos aparecen y en qué orden.</p>
+    <h3>Yours to shape</h3>
+    <p>Choose which modules appear and in what order.</p>
   </div>
 </section>
 
@@ -673,12 +673,12 @@
 <section class="aurio" id="aurio" aria-labelledby="aurio-title">
   <div class="aurio__card reveal">
     <div class="aurio__copy">
-      <p class="eyebrow">También hacemos</p>
-      <h3 id="aurio-title">Apóyanos probando Aurio.</h3>
-      <p class="aurio__body">Ayúdanos a seguir construyendo Altillo probando nuestra otra app. Con Aurio llevas tus gastos, gestionas cuentas compartidas y sigues tu patrimonio.</p>
-      <a class="btn btn--ghost aurio__btn" href="https://www.aurioapp.com">Conoce Aurio <span class="chev" aria-hidden="true">›</span></a>
+      <p class="eyebrow">We also make</p>
+      <h3 id="aurio-title">Support us by trying Aurio.</h3>
+      <p class="aurio__body">Help us keep building Altillo by trying our other app. Use Aurio to track expenses, manage shared accounts and follow your net worth.</p>
+      <a class="btn btn--ghost aurio__btn" href="https://www.aurioapp.com">Meet Aurio <span class="chev" aria-hidden="true">›</span></a>
     </div>
-    <a class="aurio__mascot" href="https://www.aurioapp.com" aria-label="Conoce Aurio (aurioapp.com)">
+    <a class="aurio__mascot" href="https://www.aurioapp.com" aria-label="Meet Aurio (aurioapp.com)">
       <span class="aurio__halo" aria-hidden="true"></span>
       <span class="aurio__stage">
         <img class="aurio__img aurio__img--base" src="/media/aurio-mascot.webp" alt="" width="1448" height="1086" loading="lazy" decoding="async">
@@ -710,16 +710,16 @@
   </div>
   <div class="closing__copy">
     <img class="closing__icon reveal" src="/altillo-icon.png" alt="" width="88" height="88">
-    <h2 id="close-title" class="lines"><span class="ln">Gratis para siempre.</span> <span class="ln"><em class="serif">Código abierto.</em></span></h2>
-    <p class="lede reveal">Lee el código, compílalo tú mismo o descarga la versión firmada y sigue con tu día.</p>
+    <h2 id="close-title" class="lines"><span class="ln">Free forever.</span> <span class="ln"><em class="serif">Open source.</em></span></h2>
+    <p class="lede reveal">Read the code, build it yourself, or just download the signed release and get on with your day.</p>
     <div class="ctas reveal">
       <a class="btn btn--amber" href="https://github.com/XusBadia/altillo/releases/latest">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16.37 12.6c-.02-2.2 1.8-3.26 1.88-3.31-1.03-1.5-2.62-1.7-3.18-1.73-1.35-.14-2.64.8-3.33.8-.69 0-1.74-.78-2.87-.76-1.47.02-2.83.86-3.59 2.18-1.54 2.66-.39 6.6 1.1 8.76.73 1.06 1.6 2.24 2.73 2.2 1.1-.05 1.51-.71 2.84-.71 1.32 0 1.7.71 2.86.69 1.18-.02 1.93-1.07 2.65-2.13.84-1.22 1.18-2.41 1.2-2.47-.03-.01-2.3-.88-2.32-3.52ZM14.2 6.13c.6-.73 1.01-1.74.9-2.75-.87.04-1.92.58-2.55 1.3-.56.64-1.05 1.67-.92 2.66.97.07 1.96-.49 2.57-1.21Z" fill="currentColor"/></svg>
-        Descargar para Mac
+        Download for Mac
       </a>
       <a class="btn btn--ghost" href="https://github.com/XusBadia/altillo">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
-        Danos una estrella en GitHub
+        Star on GitHub
       </a>
     </div>
   </div>
@@ -730,13 +730,13 @@
 <footer class="footer" id="footer">
   <div class="footer__inner">
     <span>© 2026 Altillo</span>
-    <nav aria-label="Pie de página">
-      <a href="/es/privacidad/">Privacidad</a>
-      <a href="/" hreflang="en" lang="en">English</a>
+    <nav aria-label="Footer">
+      <a href="https://altillo.app/privacy/">Privacy</a>
+      <a href="https://altillo.app/es/" hreflang="es" lang="es">Español</a>
     </nav>
   </div>
 </footer>
 
-<script type="module" src="/src/site.js"></script>
+<script type="module" src="script.js"></script>
 </body>
 </html>

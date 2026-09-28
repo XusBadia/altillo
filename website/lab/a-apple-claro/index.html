@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Altillo — Your notch, put to work.</title>
+<meta name="description" content="A shelf for files, your next meeting, what's playing and your AI limits — one hover away, in the space your Mac already had.">
+<link rel="icon" href="/altillo-icon.png">
+<link rel="stylesheet" href="../shared/notch.css">
+<link rel="stylesheet" href="style.css">
+<script>document.documentElement.classList.add("js")</script>
+</head>
+<body>
+
+<!-- ============================================================ NAV ===== -->
+<header class="nav">
+  <div class="nav__inner">
+    <a class="nav__brand" href="#top">
+      <img src="/altillo-icon.png" alt="" width="22" height="22">
+      <span>Altillo</span>
+    </a>
+    <nav class="nav__links" aria-label="Primary">
+      <a href="#features">Features</a>
+      <a href="#open-source">Open source</a>
+      <a href="https://github.com/XusBadia/altillo">GitHub</a>
+      <a class="pill pill--sm" href="https://github.com/XusBadia/altillo/releases/latest">Download</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============================================================ HERO ==== -->
+<section class="hero">
+  <div class="hero__copy">
+    <p class="eyebrow reveal">For the notch on your Mac</p>
+    <h1 class="reveal">Your notch, put&nbsp;to&nbsp;work.</h1>
+    <p class="hero__sub reveal">A shelf for files, your next meeting, what’s playing and your AI limits — one hover away, in the space your Mac already had.</p>
+    <div class="ctas reveal">
+      <a class="pill" href="https://github.com/XusBadia/altillo/releases/latest">Download for Mac</a>
+      <a class="pill pill--outline" href="https://github.com/XusBadia/altillo">View on GitHub</a>
+    </div>
+    <p class="fineprint reveal"><span>Free forever</span> <i>·</i> <span>Open source</span> <i>·</i> <span>macOS 26+</span> <i>·</i> <span>Signed &amp; notarized</span></p>
+  </div>
+
+  <div class="hero__shot" data-hero>
+    <div class="an an-bezel hero__bezel" style="--an-screen-h: 300px">
+      <div class="an-bezel__screen wall--hero">
+        <div class="an-menubar">
+          <div><b>Finder</b><span>File</span></div>
+          <div><span>10:24</span></div>
+        </div>
+        <div class="an-notch an-notch--open hero-notch is-closed" aria-label="Altillo, Shelf">
+          <header class="an-band">
+            <nav class="an-tabs">
+              <span class="an-tab is-active"><i class="an-house"></i>Shelf</span>
+              <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
+              <span class="an-tab"><i class="an-knock"></i></span>
+              <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
+              <span class="an-tab"><i class="an-i an-i--music"></i></span>
+            </nav>
+            <div class="an-accessory">
+              <span><b class="an-figure">6</b> things up there</span>
+              <span class="an-btn an-btn--quiet">Empty</span>
+              <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
+            </div>
+          </header>
+          <div class="an-body an-body--shelf">
+            <div class="an-card an-shelf">
+              <div class="an-plank"></div>
+              <div class="an-shelf__row">
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div></div><div class="an-tile__name">Screen…10.24.12</div></div>
+                <div class="an-tile is-selected"><div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div><span class="an-tile__pool"></span></div><div class="an-tile__name">Propo…Altillo v2</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--text" style="--an-tilt:1.2deg"></div></div><div class="an-tile__name">meeting-notes</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--zip"></div></div><div class="an-tile__name">altillo-assets</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--postcard" style="--an-tilt:-1.3deg"><span>getseam.app</span></div></div><div class="an-tile__name">getseam.app</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--note" style="--an-tilt:1deg"><span>Check the drag matrix before Friday</span></div></div><div class="an-tile__name">Check the drag matrix before Friday</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= SHELF ======== -->
+<section class="feature feature--gray" id="features">
+  <div class="feature__head">
+    <p class="eyebrow reveal">Shelf</p>
+    <h2 class="reveal">Drop a file on the notch. Pick it up in another&nbsp;window.</h2>
+    <p class="lede reveal">A temporary place for the file you’ll need in a moment.</p>
+  </div>
+  <div class="screen wall--dusk reveal" data-fit="860" data-fit-sm="770" data-max="1.42">
+    <div class="an an-menubar"><div><b>Preview</b><span>File</span><span>Edit</span><span>View</span></div><div><span>Sat 27 Sep</span><span>10:24</span></div></div>
+    <div class="an an-notch an-notch--open" aria-label="Altillo, Shelf">
+      <header class="an-band">
+        <nav class="an-tabs">
+          <span class="an-tab is-active"><i class="an-house"></i>Shelf</span>
+          <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
+          <span class="an-tab"><i class="an-knock"></i></span>
+          <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
+          <span class="an-tab"><i class="an-i an-i--music"></i></span>
+        </nav>
+        <div class="an-accessory">
+          <span><b class="an-figure">4</b> things up there</span>
+          <span class="an-btn an-btn--quiet">Empty</span>
+          <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
+        </div>
+      </header>
+      <div class="an-body an-body--shelf">
+        <div class="an-card an-shelf">
+          <div class="an-plank"></div>
+          <div class="an-shelf__row">
+            <div class="an-tile is-selected"><div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div><span class="an-tile__pool"></span></div><div class="an-tile__name">Screen…10.24.12</div></div>
+            <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div></div><div class="an-tile__name">Propo…Altillo v2</div></div>
+            <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--note an-thumb--kraft" style="--an-tilt:-1deg"><span>Pick up the keys at four</span></div></div><div class="an-tile__name">Pick up the keys at four</div></div>
+            <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--zip"></div></div><div class="an-tile__name">altillo-assets</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= USAGE ======== -->
+<section class="feature">
+  <div class="feature__head">
+    <p class="eyebrow reveal">AI usage</p>
+    <h2 class="reveal">Your quota, your pace, and when it refills — at a&nbsp;glance.</h2>
+    <p class="lede reveal">Claude, Codex, Cursor, Gemini, Copilot and five more.</p>
+  </div>
+  <div class="screen wall--sea reveal" data-fit="860" data-fit-sm="770" data-max="1.42">
+    <div class="an an-menubar"><div><b>Terminal</b><span>Shell</span><span>Edit</span><span>View</span></div><div><span>Sat 27 Sep</span><span>10:24</span></div></div>
+    <div class="an an-notch an-notch--open" aria-label="Altillo, Usage">
+      <header class="an-band">
+        <nav class="an-tabs">
+          <span class="an-tab"><i class="an-house"></i></span>
+          <span class="an-tab is-active"><i class="an-i an-i--gauge"></i>Usage</span>
+          <span class="an-tab"><i class="an-knock"></i></span>
+          <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
+          <span class="an-tab"><i class="an-i an-i--music"></i></span>
+        </nav>
+        <div class="an-accessory">
+          <span class="an-dot"></span><span>Up to date · 2 min ago</span>
+          <span class="an-accessory__refresh"><i class="an-i an-i--refresh"></i></span>
+          <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
+        </div>
+      </header>
+      <div class="an-body an-body--usage">
+        <div class="an-usage">
+          <article class="an-card an-usage-card">
+            <div class="an-usage-card__top">
+              <div class="an-ring is-warning">
+                <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="an-ring__track" cx="50" cy="50" r="47" stroke-width="6"/><circle class="an-ring__arc" cx="50" cy="50" r="47" stroke-width="6" pathLength="100" stroke-dasharray="85 100" transform="rotate(-90 50 50)"/><line class="an-ring__pace" x1="50" y1="-1.5" x2="50" y2="7.5" stroke-width="1.5" transform="rotate(273.6 50 50)"/></svg>
+                <span class="an-ring__figure">85<small>%</small></span>
+              </div>
+              <div class="an-usage-card__text">
+                <div class="an-usage-card__title"><i class="an-glyph an-glyph--claude"></i><span class="an-usage-card__name">Claude</span><span class="an-chip">Max 20×</span><span class="an-usage-card__length">5 h</span></div>
+                <div class="an-usage-card__refill">refills in 1 h 11 min</div>
+                <div class="an-pace an-pace--warning">9 points ahead of pace</div>
+              </div>
+            </div>
+            <div class="an-bar-row"><span class="an-bar-row__label">Week</span><span class="an-bar" style="--v:41; --pace:.55"></span><span class="an-bar-row__value">41 %</span><span class="an-bar-row__left">3 d 3 h</span></div>
+          </article>
+          <article class="an-card an-usage-card">
+            <div class="an-usage-card__top">
+              <div class="an-ring">
+                <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="an-ring__track" cx="50" cy="50" r="47" stroke-width="6"/><circle class="an-ring__arc" cx="50" cy="50" r="47" stroke-width="6" pathLength="100" stroke-dasharray="34 100" transform="rotate(-90 50 50)"/><line class="an-ring__pace" x1="50" y1="-1.5" x2="50" y2="7.5" stroke-width="1.5" transform="rotate(129.6 50 50)"/></svg>
+                <span class="an-ring__figure">34<small>%</small></span>
+              </div>
+              <div class="an-usage-card__text">
+                <div class="an-usage-card__title"><i class="an-glyph an-glyph--codex"></i><span class="an-usage-card__name">Codex</span><span class="an-chip">Pro</span><span class="an-usage-card__length">5 h</span></div>
+                <div class="an-usage-card__refill">refills in 3 h 4 min</div>
+                <div class="an-pace">on pace</div>
+              </div>
+            </div>
+            <div class="an-bar-row"><span class="an-bar-row__label">Week</span><span class="an-bar" style="--v:58; --pace:.8"></span><span class="an-bar-row__value">58 %</span><span class="an-bar-row__left">1 d 8 h</span></div>
+          </article>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= AGENTS ======= -->
+<section class="feature feature--gray">
+  <div class="feature__head">
+    <p class="eyebrow reveal">Live agents</p>
+    <h2 class="reveal">“Claude Code wants to run git&nbsp;push.”</h2>
+    <p class="lede reveal">Approve or deny from the notch without leaving what you’re doing.</p>
+  </div>
+  <div class="screen wall--ember reveal" data-fit="860" data-fit-sm="770" data-max="1.42">
+    <div class="an an-menubar"><div><b>Xcode</b><span>File</span><span>Edit</span><span>View</span></div><div><span>Sat 27 Sep</span><span>10:24</span></div></div>
+    <div class="an an-notch an-notch--open" aria-label="Altillo, Agents">
+      <header class="an-band">
+        <nav class="an-tabs">
+          <span class="an-tab"><i class="an-house"></i></span>
+          <span class="an-tab"><i class="an-i an-i--gauge"></i></span>
+          <span class="an-tab is-active"><i class="an-knock"></i>Agents</span>
+          <span class="an-tab"><i class="an-i an-i--calendar"></i></span>
+          <span class="an-tab"><i class="an-i an-i--music"></i></span>
+        </nav>
+        <div class="an-accessory">
+          <span class="an-accessory__agents"><span class="an-amber">1 knocking</span><span>1 working</span></span>
+          <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
+        </div>
+      </header>
+      <div class="an-body an-body--agents">
+        <div class="an-agents">
+          <article class="an-card an-card--lit an-agent-card">
+            <i class="an-glyph an-glyph--claude" style="--s:26px"></i>
+            <div class="an-agent-card__main">
+              <div class="an-agent-card__head">
+                <span class="an-agent-card__ask">Claude wants to run a command in <em>altillo</em></span>
+                <span class="an-agent-card__meta"><i class="an-knock"></i><span class="an-ago">8 s ago</span></span>
+              </div>
+              <div class="an-slip"><span class="an-slip__tool">Bash</span><span class="an-slip__cmd">git push origin feat/notch-design</span></div>
+              <div class="an-agent-card__actions">
+                <span class="an-btn an-btn--quiet an-btn--28" style="font-size:12.5px"><i class="an-i an-i--open-app"></i>Terminal</span>
+                <span class="an-spacer"></span>
+                <span class="an-btn an-btn--ghost an-btn--28">Deny</span>
+                <span class="an-btn an-btn--ghost an-btn--28">Allow for this session</span>
+                <span class="an-btn an-btn--primary an-btn--28">Allow</span>
+              </div>
+            </div>
+          </article>
+          <div class="an-card an-agent-row">
+            <i class="an-glyph an-glyph--codex" style="--s:22px"></i>
+            <span class="an-agent-row__project">atlas-api</span>
+            <span class="an-agent-row__activity">Running tests · 42 of 118</span>
+            <span class="an-ago">3 s ago</span>
+            <span class="an-agent-row__status"><span class="an-dots"><i></i><i></i><i></i></span>Working</span>
+            <span class="an-agent-row__end"></span>
+          </div>
+          <div class="an-card an-agent-row">
+            <i class="an-glyph an-glyph--claude" style="--s:22px"></i>
+            <span class="an-agent-row__project">portfolio-site</span>
+            <span class="an-agent-row__activity">All done. Finished in 6 min 12 s</span>
+            <span class="an-ago">4 min ago</span>
+            <span class="an-agent-row__status"><span class="an-stamp">Done</span></span>
+            <span class="an-agent-row__end"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= BENTO ======== -->
+<section class="bento-section">
+  <div class="section-head">
+    <h2 class="reveal">Everything, one&nbsp;hover away.</h2>
+  </div>
+
+  <div class="bento">
+
+    <!-- Shelf -->
+    <article class="cell cell--wide reveal">
+      <div class="cell__visual" data-fit="800" data-max="1">
+        <div class="an an-notch an-notch--open">
+          <header class="an-band">
+            <nav class="an-tabs"><span class="an-tab is-active"><i class="an-house"></i>Shelf</span><span class="an-tab"><i class="an-i an-i--gauge"></i></span><span class="an-tab"><i class="an-knock"></i></span></nav>
+            <div class="an-accessory"><span><b class="an-figure">5</b> things up there</span><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div>
+          </header>
+          <div class="an-body an-body--shelf">
+            <div class="an-card an-shelf">
+              <div class="an-plank"></div>
+              <div class="an-shelf__row">
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--postcard" style="--an-tilt:-1.3deg"><span>getseam.app</span></div></div><div class="an-tile__name">getseam.app</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--text" style="--an-tilt:1.2deg"></div></div><div class="an-tile__name">meeting-notes</div></div>
+                <div class="an-tile is-selected"><div class="an-tile__thing"><div class="an-thumb an-thumb--pdf" style="--an-tilt:0.6deg"></div><span class="an-tile__pool"></span></div><div class="an-tile__name">Propo…Altillo v2</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--image" style="--an-tilt:-0.8deg"></div></div><div class="an-tile__name">Screen…10.24.12</div></div>
+                <div class="an-tile"><div class="an-tile__thing"><div class="an-thumb an-thumb--zip"></div></div><div class="an-tile__name">altillo-assets</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>Shelf</h3>
+        <p>Drop a file on the notch. Pick it up in another window.</p>
+      </div>
+    </article>
+
+    <!-- AI usage -->
+    <article class="cell reveal">
+      <div class="cell__visual" data-fit="420" data-max="1.05">
+        <div class="an an-notch an-notch--open cell-notch" style="--an-w: 380px">
+          <header class="an-band an-band--mini">
+            <nav class="an-tabs"><span class="an-tab is-active"><i class="an-i an-i--gauge"></i>Usage</span></nav>
+            <div class="an-accessory"><span class="an-dot"></span><span>2 min ago</span></div>
+          </header>
+          <div class="an-body an-body--usage">
+            <div class="an-usage" style="grid-template-columns: 1fr">
+              <article class="an-card an-usage-card">
+                <div class="an-usage-card__top">
+                  <div class="an-ring is-warning">
+                    <svg viewBox="0 0 100 100" aria-hidden="true"><circle class="an-ring__track" cx="50" cy="50" r="47" stroke-width="6"/><circle class="an-ring__arc" cx="50" cy="50" r="47" stroke-width="6" pathLength="100" stroke-dasharray="85 100" transform="rotate(-90 50 50)"/><line class="an-ring__pace" x1="50" y1="-1.5" x2="50" y2="7.5" stroke-width="1.5" transform="rotate(273.6 50 50)"/></svg>
+                    <span class="an-ring__figure">85<small>%</small></span>
+                  </div>
+                  <div class="an-usage-card__text">
+                    <div class="an-usage-card__title"><i class="an-glyph an-glyph--claude"></i><span class="an-usage-card__name">Claude</span><span class="an-chip">Max 20×</span></div>
+                    <div class="an-usage-card__refill">refills in 1 h 11 min</div>
+                    <div class="an-pace an-pace--warning">9 points ahead of pace</div>
+                  </div>
+                </div>
+                <div class="an-bar-row"><span class="an-bar-row__label">Week</span><span class="an-bar" style="--v:41; --pace:.55"></span><span class="an-bar-row__value">41 %</span></div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>AI usage</h3>
+        <p>Claude, Codex, Cursor, Gemini, Copilot and five more.</p>
+      </div>
+    </article>
+
+    <!-- Live agents -->
+    <article class="cell reveal">
+      <div class="cell__visual" data-fit="520" data-max="1">
+        <div class="an an-notch an-notch--open cell-notch" style="--an-w: 480px">
+          <header class="an-band an-band--mini">
+            <nav class="an-tabs"><span class="an-tab is-active"><i class="an-knock"></i>Agents</span></nav>
+            <div class="an-accessory"><span class="an-accessory__agents"><span class="an-amber">1 knocking</span></span></div>
+          </header>
+          <div class="an-body" style="--an-body-h: 122px">
+            <div class="an-agents">
+              <article class="an-card an-card--lit an-agent-card">
+                <i class="an-glyph an-glyph--claude" style="--s:26px"></i>
+                <div class="an-agent-card__main">
+                  <div class="an-agent-card__head"><span class="an-agent-card__ask">Claude wants to run a command in <em>altillo</em></span><span class="an-agent-card__meta"><span class="an-ago">8 s ago</span></span></div>
+                  <div class="an-slip"><span class="an-slip__tool">Bash</span><span class="an-slip__cmd">git push origin main</span></div>
+                  <div class="an-agent-card__actions"><span class="an-spacer"></span><span class="an-btn an-btn--ghost an-btn--28">Deny</span><span class="an-btn an-btn--ghost an-btn--28">Allow for this session</span><span class="an-btn an-btn--primary an-btn--28">Allow</span></div>
+                </div>
+              </article>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>Live agents</h3>
+        <p>Approve or deny from the notch without leaving what you’re doing.</p>
+      </div>
+    </article>
+
+    <!-- Calendar -->
+    <article class="cell cell--wide reveal">
+      <div class="cell__visual" data-fit="800" data-max="1">
+        <div class="an an-notch an-notch--open">
+          <header class="an-band">
+            <nav class="an-tabs"><span class="an-tab"><i class="an-house"></i></span><span class="an-tab"><i class="an-i an-i--gauge"></i></span><span class="an-tab is-active"><i class="an-i an-i--calendar"></i>Calendar</span></nav>
+            <div class="an-accessory"><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div>
+          </header>
+          <div class="an-body an-body--module">
+            <div class="an-agenda">
+              <article class="an-card an-card--lit an-event-card" style="--an-cal: var(--an-sky)">
+                <span class="an-spine"></span>
+                <div class="an-event-card__text"><span class="an-event-card__title">Design review</span><span class="an-event-card__when"><b>3:00 – 3:30 PM</b>·<span>Studio</span></span></div>
+                <span class="an-countdown is-soon"><i class="an-i an-i--clock"></i>in 12 min</span>
+                <span class="an-btn an-btn--primary an-btn--28">Join</span>
+              </article>
+              <div class="an-card an-event-row" style="--an-cal: var(--an-sage)"><span class="an-event-row__dot"></span><span class="an-event-row__time">4:00 PM</span><span class="an-event-row__title">Final hand-off</span></div>
+              <div class="an-card an-event-row" style="--an-cal: var(--an-rose)"><span class="an-event-row__dot"></span><span class="an-event-row__time">6:30 PM</span><span class="an-event-row__title">Climbing with Marta</span><span class="an-event-row__place">Sharma Gym</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>Calendar</h3>
+        <p>Your next meeting and a Join button, right up top.</p>
+      </div>
+    </article>
+
+    <!-- Now playing -->
+    <article class="cell reveal">
+      <div class="cell__visual" data-fit="520" data-max="1">
+        <div class="an an-notch an-notch--open cell-notch" style="--an-w: 470px">
+          <header class="an-band an-band--mini">
+            <nav class="an-tabs"><span class="an-tab is-active"><i class="an-i an-i--music"></i>Now playing</span></nav>
+            <div class="an-accessory"><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div>
+          </header>
+          <div class="an-body an-body--module">
+            <div class="an-card an-player">
+              <div class="an-sleeve"><div class="an-art"><span>ARRIBA</span></div></div>
+              <div class="an-player__col">
+                <div><div class="an-player__title">Al otro lado</div><div class="an-player__by"><span>Altillo</span><span>·</span><span>Sessions</span></div></div>
+                <div class="an-groove-row"><span class="an-groove" style="--v:34"></span><span class="an-groove__time">1:17</span></div>
+                <div class="an-controls">
+                  <span class="an-btn an-btn--quiet an-btn--32"><i class="an-i an-i--prev"></i></span>
+                  <span class="an-btn an-btn--primary an-btn--36"><i class="an-i an-i--pause"></i></span>
+                  <span class="an-btn an-btn--quiet an-btn--32"><i class="an-i an-i--next"></i></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>Now playing</h3>
+        <p>Pause, skip, see what’s on. No app switching.</p>
+      </div>
+    </article>
+
+    <!-- Mirror -->
+    <article class="cell reveal">
+      <div class="cell__visual" data-fit="520" data-max="1">
+        <div class="an an-notch an-notch--open cell-notch" style="--an-w: 420px">
+          <header class="an-band an-band--mini">
+            <nav class="an-tabs"><span class="an-tab is-active"><i class="an-i an-i--video"></i>Mirror</span></nav>
+            <div class="an-accessory"><span class="an-dot mirror-live"></span><span>Camera on</span></div>
+          </header>
+          <div class="an-body an-body--module">
+            <div class="an-card mirror">
+              <div class="mirror__frame">
+                <span class="mirror__head"></span>
+                <span class="mirror__body"></span>
+                <span class="mirror__lamp"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>Mirror</h3>
+        <p>A quick look at yourself before the call.</p>
+      </div>
+    </article>
+
+    <!-- Drawer -->
+    <article class="cell reveal">
+      <div class="cell__visual cell__visual--drawer" data-fit="520" data-max="1">
+        <div class="an drawer">
+          <div class="drawer__bar">
+            <div class="drawer__left"><b>Finder</b><span>File</span><span>Edit</span></div>
+            <div class="an-notch an-notch--closed drawer__notch"></div>
+            <div class="drawer__right">
+              <span class="drawer__handle" aria-label="Drawer"></span>
+              <i class="an-i an-i--music"></i>
+              <span>10:24</span>
+            </div>
+          </div>
+          <div class="an-card drawer__tray">
+            <i class="an-i an-i--calendar"></i>
+            <i class="an-i an-i--clock"></i>
+            <i class="an-i an-i--link"></i>
+            <i class="an-i an-i--plane"></i>
+            <i class="an-i an-i--sparkle"></i>
+            <i class="an-i an-i--timer"></i>
+          </div>
+        </div>
+      </div>
+      <div class="cell__text">
+        <h3>Drawer</h3>
+        <p>Tuck away the menu bar icons you don’t need to see.</p>
+      </div>
+    </article>
+
+    <!-- Ask -->
+    <article class="cell cell--full reveal">
+      <div class="cell__text cell__text--side">
+        <h3>Ask</h3>
+        <p>An assistant that runs entirely on your Mac, answering from your calendar and clipboard. <strong>Nothing leaves the device.</strong></p>
+      </div>
+      <div class="cell__visual" data-fit="780" data-max="1">
+        <div class="an an-notch an-notch--open">
+          <header class="an-band">
+            <nav class="an-tabs"><span class="an-tab"><i class="an-house"></i></span><span class="an-tab"><i class="an-i an-i--calendar"></i></span><span class="an-tab is-active"><i class="an-i an-i--sparkle"></i>Ask</span></nav>
+            <div class="an-accessory"><span class="an-dot"></span><span>On this Mac</span><span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span></div>
+          </header>
+          <div class="an-body an-body--module">
+            <div class="ask">
+              <div class="an-slip ask__q"><i class="an-i an-i--sparkle an-amber"></i><span>When is my next meeting, and where?</span></div>
+              <div class="an-card ask__a">
+                <p>Design review, <b class="an-figure">3:00 – 3:30 PM</b> in Studio. It starts in 12 minutes.</p>
+                <div class="ask__src">
+                  <span class="an-chip"><i class="an-i an-i--calendar"></i>&nbsp;Calendar</span>
+                  <span class="an-btn an-btn--primary an-btn--28">Join</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</section>
+
+<!-- ======================================================= PRINCIPLES === -->
+<section class="principles">
+  <div class="principles__grid">
+    <div class="principle reveal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.6 3.2 8.4 7.5 9.5 4.3-1.1 7.5-4.9 7.5-9.5V6L12 3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 12.2 11.2 14.4 15.2 10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <h3>Private by design</h3>
+      <p>Usage checks go straight to each provider with the credential its own tool already stores. No Altillo servers.</p>
+    </div>
+    <div class="principle reveal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 5h4v1.4a1 1 0 0 1-1 1h-2a1 1 0 0 1-1-1V5Z" fill="currentColor"/><path d="M1.5 19.5h21" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <h3>Native</h3>
+      <p>Built in Swift for macOS 26. Light on battery, quiet when idle.</p>
+    </div>
+    <div class="principle reveal">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="16" cy="7" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="8" cy="17" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+      <h3>Yours to shape</h3>
+      <p>Choose which modules appear and in what order.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ======================================================= CLOSING ====== -->
+<section class="closing" id="open-source">
+  <img class="closing__icon reveal" src="/altillo-icon.png" alt="" width="84" height="84">
+  <h2 class="reveal">Free forever. Open&nbsp;source.</h2>
+  <p class="lede reveal">Read the code, build it yourself or just download the signed release.</p>
+  <div class="ctas reveal">
+    <a class="pill" href="https://github.com/XusBadia/altillo/releases/latest">Download for Mac</a>
+    <a class="pill pill--outline" href="https://github.com/XusBadia/altillo">Star on GitHub</a>
+  </div>
+  <p class="fineprint reveal"><span>macOS 26+</span> <i>·</i> <span>Signed &amp; notarized</span></p>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <span>© 2026 Altillo</span>
+    <nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/es/">Español</a></nav>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

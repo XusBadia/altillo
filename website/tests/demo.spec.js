@@ -1,118 +1,135 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from "@playwright/test";
+import { LOCALES, gotoPage, waitForDemo, demoState, centre, isWide } from "./helpers.js";
 
-test.beforeEach(async ({ page }) => {
-  await page.goto('/es/');
-  await page.locator('.story-step[data-chapter="shelf"]').evaluate((el) => {
-    const r = el.getBoundingClientRect();
-    window.scrollTo({ top: scrollY + r.top + r.height / 2 - innerHeight * (innerWidth < 1000 ? 0.72 : 0.5), behavior: 'instant' });
+for (const L of LOCALES) {
+  test.describe(`${L.code} demo`, () => {
+    test("mounts in the page's language, styled by the page's own CSS", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      await expect(page.locator("#demo .dm-screen")).toBeVisible();
+      // The page links the kit, so the demo mustn't inject a second copy.
+      const injected = await page.locator('link[rel="stylesheet"][href*="/assets/notch-"], link[rel="stylesheet"][href*="/assets/demo-"]').count();
+      expect(injected).toBe(0);
+      const markers = await page.evaluate(() => {
+        const s = getComputedStyle(document.documentElement);
+        return [s.getPropertyValue("--an-kit").trim(), s.getPropertyValue("--dm-kit").trim()];
+      });
+      expect(markers).toEqual(["1", "1"]);
+      // Its own copy is localised too.
+      await page.evaluate(() => window.altilloDemo.show("usage"));
+      await expect(page.locator("#demo .an-tab.is-active")).toContainText(L.tab.usage);
+    });
+
+    test("steps or chips switch the module", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      const wide = isWide(page);
+      const button = (id) => page.locator(wide ? `.step__btn[data-show="${id}"]` : `.try__chips [data-show="${id}"]`);
+      // Wide: park the calendar step mid-screen, then pick its neighbours
+      // (already on screen, so clicking doesn't scroll the steps around).
+      if (wide) {
+        await centre(page, '.step[data-module="calendar"]');
+        await expect.poll(async () => (await demoState(page)).module).toBe("calendar");
+      }
+      for (const id of wide ? ["music", "agents"] : ["calendar", "usage", "mirror"]) {
+        if (wide) await expect(button(id)).toBeInViewport();
+        await button(id).click();
+        await expect.poll(async () => (await demoState(page)).module).toBe(id);
+        await expect.poll(async () => (await demoState(page)).open).toBe(true);
+        if (wide) {
+          await expect(page.locator(`.step[data-module="${id}"]`)).toHaveClass(/is-active/);
+          await expect(button(id)).toHaveAttribute("aria-current", "step");
+        } else {
+          await expect(button(id)).toHaveAttribute("aria-pressed", "true");
+        }
+        await expect(page.locator(".try__now")).toHaveText((await page.locator(`.step[data-module="${id}"] .step__title`).textContent()).trim());
+      }
+    });
+
+    test("a file dragged with the mouse lands on the shelf", async ({ page }) => {
+      test.skip(page.viewportSize().width < 700, "mouse drag on desktop layouts");
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      await page.locator("#demo").scrollIntoViewIfNeeded();
+      // Reaching into the demo first stops scrolling from driving it, so
+      // nothing reopens the notch behind our back.
+      await page.locator("#demo .dm-files").click({ position: { x: 4, y: 4 } });
+      if (isWide(page)) await expect(page.locator(".try__paused")).toBeVisible();
+      await page.evaluate(() => window.altilloDemo.close());
+      await expect.poll(async () => (await demoState(page)).open).toBe(false);
+      expect((await demoState(page)).shelf).not.toContain("proposal");
+
+      const file = page.locator('#demo .dm-file[data-file="proposal"]');
+      const fb = await file.boundingBox();
+      await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
+      await page.mouse.down();
+      // Travel towards the notch: nearby, it opens on the Shelf. Positions
+      // are re-read on every move, since the notch springs as it opens.
+      const notchCentre = async () => {
+        const nb = await page.locator("#demo .dm-notch").boundingBox();
+        return { x: nb.x + nb.width / 2, y: nb.y + nb.height / 2 };
+      };
+      let c = await notchCentre();
+      await page.mouse.move(c.x, c.y + 120, { steps: 12 });
+      let wiggle = 0;
+      await expect.poll(async () => {
+        c = await notchCentre();
+        await page.mouse.move(c.x + (wiggle++ % 2), c.y + 110);
+        return (await demoState(page)).open;
+      }).toBe(true);
+      // Over the open panel (the Shelf lights up to take it), then let go.
+      await expect.poll(async () => {
+        c = await notchCentre();
+        await page.mouse.move(c.x + (wiggle++ % 2), c.y, { steps: 3 });
+        return page.locator("#demo .an-shelf.an-card--lit").count();
+      }).toBeGreaterThan(0);
+      await page.mouse.up();
+      await expect.poll(async () => (await demoState(page)).shelf).toContain("proposal");
+      await expect(page.locator('#demo .an-tile[data-shelf="proposal"]')).toBeVisible();
+    });
   });
-  await expect(page.locator('.story-step[data-chapter="shelf"]')).toHaveClass(/is-active/);
-  await page.getByRole('button', { name: 'Reiniciar vista' }).click();
-});
-
-test('adds, delivers and removes a document while keeping its original', async ({ page }) => {
-  const demo = page.locator('#interactive-demo');
-  await demo.getByRole('button', { name: 'Subir al estante' }).click();
-  await expect(demo.getByRole('status')).toHaveText('Ideas.pdf añadido al estante.');
-  await expect(demo.getByRole('button', { name: 'En el estante', exact: true })).toBeDisabled();
-  await demo.getByRole('button', { name: /^Llevar a Entregas/ }).click();
-  await expect(demo.getByRole('status')).toHaveText('Ideas.pdf llevado a Entregas.');
-  await expect(demo.locator('.ad-destination')).toContainText('1 archivo recibido');
-  await expect(demo.getByRole('button', { name: 'Ideas.pdf, documento de ejemplo', exact: true })).toBeVisible();
-  await demo.getByRole('button', { name: 'Subir al estante' }).click();
-  await demo.getByRole('button', { name: 'Retirar Ideas.pdf', exact: true }).click();
-  await expect(demo.getByRole('status')).toHaveText('Ideas.pdf retirado del estante.');
-  await expect(demo.getByRole('button', { name: 'Subir al estante' })).toBeEnabled();
-});
-
-test('selects another file with a pointer before adding it', async ({ page }) => {
-  const demo = page.locator('#interactive-demo');
-  await demo.getByRole('button', { name: 'Escapada.jpg, documento de ejemplo', exact: true }).click();
-  await expect(demo.getByRole('button', { name: 'Escapada.jpg, documento de ejemplo', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await expect(demo.getByRole('button', { name: 'Ideas.pdf, documento de ejemplo', exact: true })).toHaveAttribute('aria-pressed', 'false');
-  await demo.getByRole('button', { name: 'Subir al estante' }).click();
-  await expect(demo.getByRole('status')).toHaveText('Escapada.jpg añadido al estante.');
-  await expect(demo.getByRole('button', { name: 'Retirar Escapada.jpg', exact: true })).toBeVisible();
-});
-
-test('shows both usage providers and closes the panel with Escape', async ({ page }) => {
-  const demo = page.locator('#interactive-demo');
-  const trigger = demo.getByRole('button', { name: 'Ver consumo de Claude y Codex' });
-  await trigger.click();
-  await expect(trigger).toHaveAttribute('aria-expanded', 'true');
-  await expect(demo.getByRole('img', { name: 'Claude: 85% consumido' })).toBeVisible();
-  await expect(demo.getByRole('img', { name: 'Codex: 34% consumido' })).toBeVisible();
-  await expect(demo.getByRole('meter', { name: 'Consumo semanal de Claude' })).toHaveAttribute('aria-valuenow', '41');
-  await expect(demo.getByRole('meter', { name: 'Consumo semanal de Codex' })).toHaveAttribute('aria-valuenow', '58');
-  await expect(demo.getByText('Consumo de ejemplo · datos locales en la app')).toBeVisible();
-  await trigger.press('Escape');
-  await expect(trigger).toHaveAttribute('aria-expanded', 'false');
-  await expect(demo.locator('.ad-notch-panel')).toBeHidden();
-  await expect(trigger).toBeFocused();
-});
-
-test('allows and denies simulated requests and resets desktop state', async ({ page }) => {
-  const demo = page.locator('#interactive-demo');
-  await demo.getByRole('button', { name: 'Subir al estante' }).click();
-  await demo.getByRole('button', { name: 'Cerrar Altillo' }).click();
-  await demo.getByRole('button', { name: /Pedir permiso para continuar/ }).click();
-  await expect(demo.getByText('Solicitud de ejemplo · tú decides; Altillo nunca autoaprueba')).toBeVisible();
-  await demo.getByRole('button', { name: 'Permitir', exact: true }).click();
-  await expect(demo.getByText('El agente puede continuar.')).toBeVisible();
-  await expect(demo.locator('.ad-terminal-result')).toContainText('Cambios publicados en esta vista');
-  await demo.getByRole('button', { name: 'Otra solicitud', exact: true }).click();
-  await demo.getByRole('button', { name: 'Denegar', exact: true }).click();
-  await expect(demo.getByText('El comando no se ejecutará.')).toBeVisible();
-  await expect(demo.locator('.ad-terminal-result')).toContainText('No se ha publicado nada');
-  await demo.getByRole('button', { name: 'Reiniciar vista' }).click();
-  await expect(demo.getByRole('status')).toHaveText('Vista reiniciada.');
-  await expect(demo.locator('.ad-notch-panel')).toBeHidden();
-  await expect(demo.getByRole('button', { name: 'Subir al estante' })).toBeEnabled();
-  await expect(demo.locator('.ad-destination')).toContainText('Carpeta vacía');
-  await expect(demo.getByRole('button', { name: /Pedir permiso para continuar/ })).toBeVisible();
-});
-
-async function center(locator) {
-  const box = await locator.boundingBox();
-  expect(box).not.toBeNull();
-  return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-}
-async function mouseDrag(page, source, target) {
-  const start = await center(source);
-  await page.mouse.move(start.x, start.y);
-  await page.mouse.down();
-  await page.mouse.move(start.x + 8, start.y - 8);
-  await expect(page.locator('.ad-drag-ghost')).toBeVisible();
-  const end = await center(target);
-  await page.mouse.move(end.x, end.y, { steps: 12 });
-  await page.mouse.up();
 }
 
-test('drags a file to the notch and then to Entregas with a mouse', async ({ page, isMobile }) => {
-  test.skip(isMobile, 'Native touch is covered by the mobile test.');
-  const demo = page.locator('#interactive-demo');
-  await mouseDrag(page, demo.getByRole('button', { name: 'Ideas.pdf, documento de ejemplo', exact: true }), demo.locator('.ad-notch'));
-  await expect(demo.getByRole('status')).toHaveText('Ideas.pdf añadido al estante.');
-  await mouseDrag(page, demo.getByRole('button', { name: 'Ideas.pdf, en el estante', exact: true }), demo.locator('.ad-destination'));
-  await expect(demo.getByRole('status')).toHaveText('Ideas.pdf llevado a Entregas.');
-  await expect(demo.locator('.ad-destination')).toContainText('1 archivo recibido');
-  await expect(page.locator('.ad-drag-ghost')).toHaveCount(0);
-});
+test.describe("scroll-driven demo (wide screens)", () => {
+  test.beforeEach(({ page }) => test.skip(!isWide(page), "steps only show from 1300 px"));
 
-test('drags into the notch with native touch', async ({ page, context, isMobile }) => {
-  test.skip(!isMobile, 'Native touch runs in the mobile Chromium project.');
-  const session = await context.newCDPSession(page);
-  const demo = page.locator('#interactive-demo');
-  const start = await center(demo.getByRole('button', { name: 'Ideas.pdf, documento de ejemplo', exact: true }));
-  const point = (x, y) => [{ x, y, id: 1, radiusX: 4, radiusY: 4, force: 1 }];
-  await session.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: point(start.x, start.y) });
-  await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: point(start.x + 10, start.y - 10) });
-  await expect(page.locator('.ad-drag-ghost')).toBeVisible();
-  const end = await center(demo.locator('.ad-notch'));
-  for (let n = 1; n <= 10; n++) await session.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: point(start.x + (end.x - start.x) * n / 10, start.y + (end.y - start.y) * n / 10) });
-  await session.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
-  await expect(demo.getByRole('status')).toHaveText('Ideas.pdf añadido al estante.');
-  await expect(demo.getByRole('button', { name: 'Retirar Ideas.pdf', exact: true })).toBeVisible();
-  await expect(page.locator('.ad-drag-ghost')).toHaveCount(0);
-  await session.detach();
+  for (const L of LOCALES) {
+    test(`${L.code}: scrolling drives the demo; reaching in pauses it until Resume`, async ({ page }) => {
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+
+      await centre(page, '.step[data-module="calendar"]');
+      await expect.poll(async () => (await demoState(page)).module).toBe("calendar");
+      await expect(page.locator('.step[data-module="calendar"]')).toHaveClass(/is-active/);
+
+      // Reaching into the demo takes the wheel.
+      const pill = page.locator(".try__paused");
+      await expect(pill).toBeHidden();
+      await page.locator("#demo .dm-files").click({ position: { x: 4, y: 4 } });
+      await expect(pill).toBeVisible();
+
+      // Scrolling on no longer changes the module…
+      await centre(page, '.step[data-module="mirror"]');
+      await page.waitForFunction(() => {
+        const el = document.querySelector('.step[data-module="mirror"]').getBoundingClientRect();
+        return el.top < innerHeight / 2 && el.bottom > innerHeight / 2;
+      });
+      await page.evaluate(() => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))));
+      expect((await demoState(page)).module).toBe("calendar");
+
+      // …until Resume hands it back, catching up with the step on the
+      // centre line.
+      // (Dispatched, so the click itself can't scroll the page.)
+      const resume = page.getByRole("button", { name: L.resume });
+      await expect(resume).toBeVisible();
+      await resume.dispatchEvent("click");
+      await expect(pill).toBeHidden();
+      const centred = () => page.evaluate(() => [...document.querySelectorAll(".step")].find((el) => {
+        const r = el.getBoundingClientRect();
+        return r.top <= innerHeight / 2 && r.bottom >= innerHeight / 2;
+      })?.dataset.module);
+      await expect.poll(async () => (await demoState(page)).module === (await centred())).toBe(true);
+      expect((await demoState(page)).module).not.toBe("calendar");
+    });
+  }
 });
