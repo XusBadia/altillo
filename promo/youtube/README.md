@@ -1,6 +1,6 @@
 # Canal de YouTube
 
-Estado (29/09/2026): canal **Altillo** (@Altilloapp, https://www.youtube.com/@Altilloapp) configurado con nombre, descripción, enlaces, email, banner y foto de perfil. Vídeo en inglés subido como **no listado**: https://youtu.be/L33ophXDYUM (categoría Ciencia y tecnología, idioma inglés, sin promoción pagada, uso de IA declarado por las imágenes generadas). Pendiente: verificar el canal por teléfono para poder subir `ytthumb.png` y pasar el vídeo a público el día del lanzamiento.
+Estado (29/09/2026): canal **Altillo** (@Altilloapp, https://www.youtube.com/@Altilloapp) configurado con nombre, descripción, enlaces, email, banner y foto de perfil. Vídeo en inglés subido como **no listado**: https://youtu.be/L33ophXDYUM (categoría Ciencia y tecnología, idioma inglés, sin promoción pagada, uso de IA declarado por las imágenes generadas). Miniatura propia (`ytthumb.png`) ya puesta. Pendiente: pasar el vídeo a público el día del lanzamiento.
 
 Imágenes generadas con `src/anuncio/YouTube.tsx` (composiciones `YTBanner`, `YTAvatar` y `YTThumb`).
 

@@ -50,8 +50,8 @@ Las capturas 01–06 salen del anuncio en inglés; la 07, la 08 y la miniatura, 
 ## Checklist del lanzamiento
 
 - [x] Subir el vídeo a YouTube: https://youtu.be/L33ophXDYUM (no listado, canal @Altilloapp).
-- [ ] Pegar la URL en la galería de Product Hunt y pasar el vídeo a «Público» el día del lanzamiento.
-- [ ] Verificar el canal por teléfono y subir `../youtube/ytthumb.png` como miniatura (sin verificar, YouTube no permite miniaturas propias).
+- [x] Miniatura propia puesta en YouTube.
+- [ ] Día del lanzamiento (lo hace Claude): pegar https://youtu.be/L33ophXDYUM en la galería de Product Hunt y pasar el vídeo a «Público».
 - [ ] Revisar y ajustar la tagline, la descripción y el primer comentario.
 - [ ] Programar el lanzamiento a las 00:01 PT (09:01 en la España peninsular) de un martes, miércoles o jueves.
 - [ ] Añadir a los makers y enlazar la web y GitHub.
