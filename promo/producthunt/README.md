@@ -8,7 +8,7 @@ Todo en inglés (audiencia de Product Hunt). Los textos son **borradores** para 
 |---|---|---|
 | Miniatura (animada) | `thumbnail.gif` | 240×240, bucle de 3 s, 0,6 MB (límite 3 MB); se anima al pasar el ratón, sin destellos |
 | Miniatura (estática) | `thumbnail.png` | 240×240 |
-| Vídeo de galería | `altillo-producthunt.mp4` | 32 s, 1920×1080, 60 fps, con música; se entiende sin sonido. Product Hunt lo enlaza: **súbelo a YouTube** y pega la URL en el primer hueco de la galería |
+| Vídeo de galería | `altillo-producthunt.mp4` | 32 s, 1920×1080, 60 fps, con música; se entiende sin sonido. Ya está en YouTube (no listado): **https://youtu.be/L33ophXDYUM**. Pega esa URL en el primer hueco de la galería |
 | Galería | `gallery/01…08.png` | 1270×760 |
 
 Orden de la galería (tras el vídeo) y texto alternativo:
@@ -49,7 +49,9 @@ Las capturas 01–06 salen del anuncio en inglés; la 07, la 08 y la miniatura, 
 
 ## Checklist del lanzamiento
 
-- [ ] Subir `altillo-producthunt.mp4` a YouTube (puede ser «no listado») y pegar la URL en la galería.
+- [x] Subir el vídeo a YouTube: https://youtu.be/L33ophXDYUM (no listado, canal @Altilloapp).
+- [ ] Pegar la URL en la galería de Product Hunt y pasar el vídeo a «Público» el día del lanzamiento.
+- [ ] Verificar el canal por teléfono y subir `../youtube/ytthumb.png` como miniatura (sin verificar, YouTube no permite miniaturas propias).
 - [ ] Revisar y ajustar la tagline, la descripción y el primer comentario.
 - [ ] Programar el lanzamiento a las 00:01 PT (09:01 en la España peninsular) de un martes, miércoles o jueves.
 - [ ] Añadir a los makers y enlazar la web y GitHub.
