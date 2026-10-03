@@ -13,14 +13,14 @@
 ## Antes de crear o programar fichas
 
 - [ ] Leer reglas el 12/10 y registrar cuenta autenticada; verificar Peerlist Xus y su ventana real de programación.
-- [ ] Buscar fichas Altillo existentes para evitar duplicados.
-- [ ] Confirmar PH 20/10, 00:01 America/Los_Angeles, 09:01 Madrid, 07:01 UTC; revisar límite de descripción (guía: 500; fallback: 260).
-- [ ] Seleccionar perfiles personales en Buffer/X/LinkedIn; mantener Aurio 14/10 y sus publicaciones separadas.
-- [ ] Aprobar textos y acciones externas concretas; nada está programado por este kit.
+- [x] Peerlist/PH/X revisados sin duplicados; consultar EXECUTION antes de continuar en otros canales.
+- [x] PH confirma 20/10, 00:01 PDT, 09:01 Madrid, 07:01 UTC; descripción de 447 aceptada.
+- [x] X y LinkedIn personales: tres posts ES con vídeo programados y verificados; Aurio intacto.
+- [x] Textos, fechas y acciones del calendario aprobados por Xus el 03/10. Consultar [EXECUTION.md](EXECUTION.md) para conocer qué está realmente programado; no repetir esta aprobación.
 - [ ] HN: autor redacta personalmente y comprueba elegibilidad. No usar texto generado por IA.
 - [ ] Reddit: identidad, karma local, 30 días desde promoción anterior, reglas leídas, vía de confianza o App Pile; editar antes de enviar.
-- [ ] Comprobar DMG y enlaces; release universal Intel x86_64 + Apple Silicon arm64; verificar versión final.
-- [ ] Revisar galería 07/08: Drawer correcto y privacidad sin «credentials never leave your Mac».
+- [x] DMG 0.10.0, enlaces y firma verificados; binario universal Intel x86_64 + Apple Silicon arm64. Releer el 18/10.
+- [x] Galería 07/08 corregida y guardada en PH: Drawer y privacidad exactos.
 - [ ] Pitches: destinatario oficial y aprobación de envío; sin contactos inventados ni gastos.
 - [ ] Colas y badges: usar gratis; aprobar cualquier backlink público; si no hay opción gratuita, omitir.
 

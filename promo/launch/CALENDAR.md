@@ -1,15 +1,15 @@
 # Calendario operativo · 12–25 octubre de 2026
 
-Zona del usuario: **Europe/Madrid**. Del 12 al 24: CEST, UTC+2. El domingo 25 cambia a CET, UTC+1. Product Hunt: **America/Los_Angeles**, PDT/UTC−7 en estas fechas. La guía de PH usa también la palabra «PST»; comprobar la hora real del formulario antes de confirmar. La propuesta equivale a **20/10 07:01 UTC / 09:01 Madrid / 00:01 PDT**.
+Zona del usuario: **Europe/Madrid**. Del 12 al 24: CEST, UTC+2. El domingo 25 cambia a CET, UTC+1. Product Hunt: **America/Los_Angeles**, PDT/UTC−7 en estas fechas. La guía de PH usa también la palabra «PST»; comprobar la hora real del formulario antes de confirmar. La programación confirmada equivale a **20/10 07:01 UTC / 09:01 Madrid / 00:01 PDT**.
 
-Todos los eventos son tareas propuestas de Xus. El [ICS](launch-week.ics) no está importado ni reserva plazas, crea borradores o publica contenido. Horas libres elegidas para operación, salvo las ventanas oficiales de Peerlist y PH.
+Xus aprobó este calendario el 03/10; la ejecución real se registra en [EXECUTION.md](EXECUTION.md). El [ICS](launch-week.ics) no está importado ni reserva plazas, crea borradores o publica contenido. Horas libres elegidas para operación, salvo las ventanas oficiales de Peerlist y PH.
 
 ## Preparación
 
 | Fecha | Madrid | UTC | Tarea y salida comprobable |
 |---|---|---|---|
 | Lun 12 | 10:00 | 08:00 | Revisar reglas y acceso; comprobar perfil Peerlist Xus ya verificado y cuenta personal PH; comprobar HN y Reddit; anotar gates en CHANNELS |
-| Mar 13 | 10:00 | 08:00 | Preparar borradores de fichas y galería; solicitar revisión final de copy y fecha PH 20; registrar URLs reales si se crean |
+| Mar 13 | 10:00 | 08:00 | Preparar borradores de fichas y galería; releer copy aprobado y fecha PH 20 ya programada; registrar URLs reales sin duplicar fichas |
 | Mié 14 | 10:00 | 08:00 | Revisar pitches editoriales y sus destinatarios oficiales; envío solo tras autorización; sin compra de publicidad |
 | Jue 15 | 10:00 | 08:00 | Ensayo descarga→DMG→Applications→abrir; comprobar web/privacidad/soporte EN y ES y miniatura social; mantener QA ya confirmada |
 | Vie 16 | 10:00 | 08:00 | Congelar textos y versión de lanzamiento; revisar anuncios nativos EN/ES, galería y FAQ; confirmar horas de respuesta disponibles |
@@ -24,7 +24,7 @@ Todos los eventos son tareas propuestas de Xus. El [ICS](launch-week.ics) no est
 | Lun 19 | 09:30 | 07:30 | X y LinkedIn | SOCIAL día de lanzamiento EN o ES según cuenta; vídeo nativo; enlace web |
 | Lun 19 | 09:00–12:00 | 07:00–10:00 | Peerlist respuestas | Respuestas humanas usando FAQ como referencia; registrar bugs y preguntas |
 | Lun 19 | 18:00 | 16:00 | Revisión Peerlist | Corregir solo errores concretos; no repostear enlace en feeds ajenos |
-| Mar 20 | **09:01** | **07:01** | **PH tentativo: 00:01 PDT** | Ficha y maker comment preparados; revisar página pública; nunca pedir votos |
+| Mar 20 | **09:01** | **07:01** | **PH programado: 00:01 PDT** | Ficha y maker comment preparados; revisar página pública; nunca pedir votos |
 | Mar 20 | 09:05 | 07:05 | YouTube | Pasar vídeo existente a público tras aprobación; URL completa válida en galería PH |
 | Mar 20 | 09:15 | 07:15 | X/LinkedIn comentario | Nota PH en SOCIAL; añadir únicamente URL real de la ficha tras verificarla |
 | Mar 20 | 09:00–12:00 y 17:00–19:00 | 07:00–10:00 y 15:00–17:00 | PH/Peerlist | Responder, revisar descargas/links e incidencias; ajustar disponibilidad con Xus |
@@ -40,4 +40,12 @@ El cierre del sábado, 24/10 23:59 UTC, corresponde al domingo 25 a las 01:59 CE
 
 ## Plan si un canal falla
 
-Peerlist sin verificación/plaza: mantener anuncio propio el lunes y PH 20; preparar el siguiente lunes disponible sin afirmar una reserva. PH 20 sin aprobación/acceso: mantener la semana 19 y seguir con HN/comunidad/directorios; no cambiar la fecha públicamente hasta decidirla. HN restringido: omitir Show HN, publicar explicación técnica en un canal que sí permita ese contenido. Reddit sin requisitos: continuar AlternativeTo/MacUpdate/directorio notch; no usar cuentas alternativas ni volver a publicar tras retirada.
+Peerlist sin verificación/plaza: mantener anuncio propio el lunes y PH 20; preparar el siguiente lunes disponible sin afirmar una reserva. PH 20 con incidencia de publicación: mantener la semana 19 y seguir con HN/comunidad/directorios; no cambiar la fecha públicamente hasta decidirla. HN restringido: omitir Show HN, publicar explicación técnica en un canal que sí permita ese contenido. Reddit sin requisitos: continuar AlternativeTo/MacUpdate/directorio notch; no usar cuentas alternativas ni volver a publicar tras retirada.
+
+## Difusión posterior confirmada
+
+TinyLaunch tiene ficha Altillo creada y reserva Standard Free para **lunes
+2/11/2026 a medianoche PT**, pendiente de aprobación editorial. Octubre está
+lleno y Aurio mantiene el 26/10. Se usa la alternativa ya prevista de aceptar
+la siguiente plaza gratuita; la semana principal de Altillo sigue siendo
+19–25/10. Esta reserva posterior no está incluida en el ICS de esa semana.

@@ -1,10 +1,10 @@
 # Pitches editoriales · no enviados
 
-Revisar y aprobar destinatario/mensaje antes de enviarlos desde la cuenta habitual de Xus. No hay contactos confirmados ni compromiso de cobertura. No se ha reservado publicidad ni se pagará colocación. Adjuntar enlaces; evitar enviar vídeos pesados por email. El ZIP local se puede compartir después de elegir dónde alojarlo, sin inventar una URL pública.
+Calendario y textos aprobados el 03/10. Dos borradores sin enviar guardados en Gmail de Xus con contactos editoriales oficiales comprobados; IDs en EXECUTION. Releer destinatario y enlaces antes del envío previsto el 14/10. No hay compromiso de cobertura. No se ha reservado publicidad ni se pagará colocación. Adjuntar enlaces; evitar enviar vídeos pesados por email. El ZIP local se puede compartir después de elegir dónde alojarlo, sin inventar una URL pública.
 
 ## MacStories · producto Mac
 
-Ruta oficial: [About / contactos del equipo](https://www.macstories.net/about/). Elegir contacto editorial que aparezca allí al enviar; no usar email de soporte de suscripciones.
+Ruta oficial: [About / contactos del equipo](https://www.macstories.net/about/). Contacto comprobado el 03/10 en esa página: **John Voorhees, Managing Editor, voorhees@macstories.net**. Borrador de Gmail `r9012108539352630877`, sin enviar; no usar soporte de suscripciones.
 
 Subject: `Altillo: a free, open-source file shelf and agent island for Mac`
 
@@ -28,7 +28,7 @@ Xus
 
 ## 9to5Mac · tip editorial general
 
-Ruta oficial: [Contact the 9to5Mac team](https://9to5mac.com/contact/), formulario de noticias o newsroom publicado allí. No prometer Indie App Spotlight: el trabajo de Aurio indicó que esa sección pedía link App Store; Altillo distribuye DMG.
+Ruta oficial: [Contact the 9to5Mac team](https://9to5mac.com/contact/), newsroom oficial **tips+contact@9to5mac.com**, comprobado el 03/10. Borrador de Gmail `r7523951229157796926`, sin enviar. No prometer Indie App Spotlight: el trabajo de Aurio indicó que esa sección pedía link App Store; Altillo distribuye DMG.
 
 Subject: `A free Mac notch utility with a file shelf and coding-agent requests`
 
@@ -52,7 +52,7 @@ Xus Badia
 
 ## SwiftLee Weekly · enfoque técnico, no spot comprado
 
-[Newsletter oficial](https://swiftlee-weekly.com/); su web enlaza una sección para autores. Comprobar el formulario real; no inventar email editorial. El encaje es una explicación técnica propia o código abierto, no un anuncio genérico de utilidad Mac. Si pide artículo público, aportar una URL real cuando exista; no enviar el borrador DEV como si estuviera publicado.
+[Newsletter oficial](https://swiftlee-weekly.com/); su [ruta para autores](https://swiftlee-weekly.com/for-writers/) recomienda un artículo práctico propio, RSS válido e iOS Dev Directory. No ofrece un email editorial ni formulario de alta en esa página; no inventarlos. El encaje es una explicación técnica propia o código abierto, no un anuncio genérico de utilidad Mac. Si pide artículo público, aportar una URL real cuando exista; no enviar el borrador DEV como si estuviera publicado.
 
 Subject: `Swift/macOS: explicit agent requests in a compact desktop interface`
 

@@ -1,6 +1,6 @@
 # X y LinkedIn · ES/EN
 
-Usar **@XusBadia y el perfil personal de LinkedIn** que se usan para Aurio; no las cuentas de marca Aurio. Elegir una lengua por cuenta/post o escalonar las dos si tienen audiencias distintas. No publicar las dos versiones seguidas por defecto. Todos son borradores locales, sin envío ni programación.
+Usar **@XusBadia y el perfil personal de LinkedIn** que se usan para Aurio; no las cuentas de marca Aurio. Elegir una lengua por cuenta/post o escalonar las dos si tienen audiencias distintas. No publicar las dos versiones seguidas por defecto. Textos aprobados el 03/10. Los tres anuncios ES están programados en X y LinkedIn; sus confirmaciones e IDs disponibles constan en [EXECUTION.md](EXECUTION.md). Las variantes EN son alternativas, no publicaciones adicionales por defecto.
 
 Prelaunch: viernes 16/10, 18:00 Madrid/16:00 UTC. Evita los posts Aurio del 13–15. Lanzamiento: lunes 19, 09:30 Madrid/07:30 UTC. Follow-up: domingo 25, 18:00 CET/17:00 UTC. Son ventanas propuestas de operación, sin promesa de alcance. Adjuntar vídeo nativo del idioma; reutilizar el anuncio existente. X está escrito para un post normal; confirmar contador del editor antes de enviar. CTA de descarga directa; no gatear enlaces con comentarios.
 
