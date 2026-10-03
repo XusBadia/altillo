@@ -158,7 +158,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium webkit
       - run: npm run build
-      - run: npm test -- --workers=1
+      - run: npm test -- --workers=1 --fail-on-flaky-tests --forbid-only
 
       - name: Upload Playwright report on failure
         if: failure()

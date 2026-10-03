@@ -60,8 +60,9 @@ for (const L of LOCALES) {
       expect((await demoState(page)).shelf).not.toContain("proposal");
 
       const file = page.locator('#demo .dm-file[data-file="proposal"]');
-      const fb = await file.boundingBox();
-      await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
+      // Hover waits for a stable, visible source before holding the mouse.
+      // Raw viewport points can go stale while the page is still scrolling.
+      await file.hover();
       await page.mouse.down();
       // Travel towards the notch: nearby, it opens on the Shelf. Positions
       // are re-read on every move, since the notch springs as it opens.
@@ -98,8 +99,10 @@ for (const L of LOCALES) {
       await page.locator('#demo [data-act="empty"]').click();
       await expect.poll(async () => (await demoState(page)).shelf).toEqual([]);
 
-      const fb = await page.locator('#demo .dm-file[data-file="proposal"]').boundingBox();
-      await page.mouse.move(fb.x + fb.width / 2, fb.y + fb.height / 2);
+      const file = page.locator('#demo .dm-file[data-file="proposal"]');
+      // Emptying can leave smooth scrolling in progress. Use the locator's
+      // actionability checks so pointerdown lands on the file, not stale points.
+      await file.hover();
       await page.mouse.down();
       // Aim a little under the short, empty panel: it lights up as it's
       // approached, and a lit shelf takes the file.

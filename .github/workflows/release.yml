@@ -72,7 +72,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium webkit
       - run: npm run build
-      - run: npm test -- --workers=1
+      - run: npm test -- --workers=1 --fail-on-flaky-tests --forbid-only
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4

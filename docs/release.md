@@ -194,7 +194,10 @@ no puede activar una segunda publicación sin las credenciales preparadas.
    momento si el usuario pulsa "Check for Updates…".
 
 El workflow remoto ejecuta antes, como puertas obligatorias, AltilloKit, la
-suite macOS, el control de localización, el build de la web y Playwright. Las
+suite macOS, el control de localización, el build de la web y Playwright. Tanto
+CI como el workflow de release fallan si una prueba web necesita un reintento
+para pasar o si se deja un `test.only`; un resultado intermitente no abre la
+puerta de publicación. Las
 suites Swift y Xcode se ejecutan en serie porque comparten el socket de hooks.
 El script compartido añade también la comprobación de CI para el SHA exacto,
 de modo que publicar desde local y desde Actions obedece la misma regla.
