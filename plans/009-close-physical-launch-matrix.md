@@ -4,7 +4,7 @@
 
 ## Estado
 
-- **Estado**: BLOCKED — el equipo disponible es un Mac mini con macOS 27 y no puede representar notch físico ni macOS 26; evidencia parcial en `docs/launch-qa-2026-09-26.md`
+- **Estado**: DONE — QA aceptada por confirmación del usuario («Qa hecho.»), 03-10-2026; [registro de aceptación](../docs/launch-qa-2026-10-03.md). La matriz del 26-09 conserva la evidencia histórica parcial, sin añadir hardware ni PASS por caso no proporcionados.
 - **Prioridad**: P0 · **Esfuerzo**: M · **Riesgo**: LOW · **Depende de**: 006–008
 - **Categoría**: tests/direction · **Planned at**: `7f80680`, 26-09-2026
 
@@ -30,8 +30,8 @@ primero el fallo.
    exacto, comando peligroso y Altillo cerrado.
 4. Prueba Music, Spotify y tercera app; Calendar Join; cámara; permisos
    concedidos/denegados; VoiceOver; teclado; Reduce Motion/Transparency.
-5. Registra PASS/FAIL y corrige solo P0/P1. En macOS 27, el copy de Drawer debe
-   decir que agrupa/abre/mueve, pero solo oculta en macOS 26.
+5. Registra PASS/FAIL y corrige solo P0/P1. El copy vigente de Drawer debe
+   decir que oculta en macOS 27 y agrupa/abre/mueve sin ocultar en macOS 26.
 
 ## Verificación
 

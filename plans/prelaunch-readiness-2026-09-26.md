@@ -1,5 +1,30 @@
 # Preparación para lanzamiento público — Altillo
 
+## Actualización para el lanzamiento (03-10-2026)
+
+- Versión pública vigente: **0.10.0**, firmada y notarizada, con Sparkle.
+  No hace falta crear otra release para anunciarla.
+- QA aceptada por confirmación del usuario: «Qa hecho.» Los planes 002 y 009
+  quedan DONE con ese origen de aceptación, sin inventar hardware ni resultados
+  por caso: [registro](../docs/launch-qa-2026-10-03.md).
+- 006–008 y 010 están DONE. Se refuerza 008 para que la publicación local
+  también exija el último CI verde de `main` para el commit exacto, un árbol
+  limpio y el smoke del DMG; el dispatch manual no evita las puertas ni el opt-in.
+- Compatibilidad corregida: el Cajón **oculta en macOS 27**; en macOS 26
+  agrupa/mueve/abre sin ocultar. La captura opcional de iconos necesita permiso
+  de captura de pantalla y las imágenes se quedan en el Mac.
+- Las credenciales de consumo se envían solo al proveedor al que pertenecen;
+  Altillo no recibe ni conserva una copia. El README y el contexto de marca
+  reflejan la distribución pública y este contrato.
+- Semana objetivo del anuncio amplio: **19–25 de octubre de 2026**.
+  Preparación multicanal y materiales: [paquete de lanzamiento](../promo/launch/README.md).
+
+Lo que sigue conserva la auditoría original como evidencia histórica; sus
+pendientes, versiones y claims no describen el estado vigente. El score 72/100
+es una heurística fechada, no una medición actual ni se recalcula sin auditoría.
+
+## Auditoría histórica (26-09-2026)
+
 26-09-2026 · Estado auditado: `7f80680` · **72/100** (heurística de producto,
 no una métrica observada)
 
@@ -47,10 +72,8 @@ seguir con una beta pública pequeña.
   de OpenUsage, mientras `PLAN.md:138` y la implementación dicen que esa fuente
   se retiró. La documentación pública debe decir que OpenUsage es solo una
   referencia con atribución.
-- `website/index.html:143` y `website/es/index.html:145` sugieren que Drawer
-  “guarda/recoge” iconos; `PLAN.md:280` y `docs/cajon.md:33-44` aclaran que en
-  macOS 27 puede catalogar, mover y abrir menús, pero no ocultar. El claim debe
-  especificar “ocultación en macOS 26”.
+- La auditoría original invirtió la compatibilidad de Drawer. Corrección:
+  oculta en macOS 27, y cataloga/mueve/abre sin ocultar en macOS 26.
 - La privacidad no puede decir que las credenciales o cifras “nunca salen del
   Mac”: los tokens se envían al proveedor correspondiente para leer consumo
   (`ClaudeCollector.swift:68-79`, `CodexCollector.swift:98-118`). La afirmación

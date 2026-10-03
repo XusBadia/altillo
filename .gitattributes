@@ -1,0 +1,2 @@
+# Calendar exports use the CRLF line endings required by iCalendar.
+promo/launch/*.ics text eol=crlf whitespace=cr-at-eol

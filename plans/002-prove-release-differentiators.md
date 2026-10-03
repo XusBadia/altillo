@@ -9,6 +9,7 @@
 
 ## Estado
 
+- **Estado**: DONE — QA aceptada por confirmación del usuario («Qa hecho.»), 03-10-2026; [registro de aceptación](../docs/launch-qa-2026-10-03.md). No se atribuyen al asistente pruebas físicas ni resultados por caso no proporcionados.
 - **Prioridad**: P1
 - **Esfuerzo**: M
 - **Riesgo**: MED
@@ -25,7 +26,7 @@ A la vez, la web llama “en desarrollo” a agentes, limita música a dos apps,
 README presenta iOS como terminado aunque es placeholder. Antes de otro vídeo,
 el producto debe tener una matriz de aceptación reproducible y mensajes ciertos.
 
-## Estado actual
+## Línea base al planificar (26-09-2026)
 
 - `HookDecisionOutput.swift` documenta Codex 0.152.0 y degrada
   `allowForSession` a `allow`; las pruebas usan fixtures de esquema publicado.
@@ -117,6 +118,10 @@ base indicado en el índice.
 - Checklist manual con versiones para hardware y apps externas.
 
 ## Hecho cuando
+
+Cierre de lanzamiento: el usuario confirma QA terminada el 03-10-2026. El
+registro enlazado documenta esa aceptación; los criterios originales siguientes
+no se transforman en resultados técnicos detallados que no se han proporcionado.
 
 - [ ] Un payload real de permisos Codex está probado de extremo a extremo.
 - [ ] Seguridad y terminal exacto pasan en hardware.

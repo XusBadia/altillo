@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: write
+  actions: read # release.sh verifies the exact source commit's CI run before publishing
 
 # Serialize releases: each run reads appcast.xml from gh-pages, regenerates it, and pushes the branch.
 # Without this, two tags pushed close together could race and drop a feed entry.
@@ -71,7 +72,7 @@ jobs:
       - run: npm ci
       - run: npx playwright install chromium webkit
       - run: npm run build
-      - run: npm test -- --workers=1
+      - run: npm test -- --workers=1 --fail-on-flaky-tests --forbid-only
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -85,7 +86,8 @@ jobs:
     # ALTILLO_CI_RELEASE is "true" (docs/release.md). Until then releases are published locally with
     # `script/release.sh <version> --publish`, whose tag must not start a second, secret-less run.
     needs: [quality, website]
-    if: github.event_name == 'workflow_dispatch' || vars.ALTILLO_CI_RELEASE == 'true'
+    # Manual dispatch uses the same opt-in and gates as tag pushes; it cannot bypass them.
+    if: vars.ALTILLO_CI_RELEASE == 'true'
     runs-on: macos-26
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4

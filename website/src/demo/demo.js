@@ -1206,6 +1206,9 @@ export function mountDemo(root, options = {}) {
     if (!file && !tile) return;
     const id = file ? file.dataset.file : tile.dataset.shelf;
     if (file && S.shelf.includes(id)) return;
+    // A drag uses viewport points: stop any smooth focus scroll left by the
+    // previous action before those points can drift away from the shelf.
+    window.scrollTo({ left: scrollX, top: scrollY, behavior: "instant" });
     drag = { id, from: file ? "finder" : "shelf", src: file || tile, x0: e.clientX, y0: e.clientY, pid: e.pointerId, ghost: null, over: null, openedByDrag: false };
   }
   function onPointerMove(e) {
