@@ -1,71 +1,102 @@
-# Kit de Product Hunt
+# Kit de Product Hunt · Altillo
 
-Todo en inglés (audiencia de Product Hunt). Los textos son **borradores** para revisar antes de publicar.
+Textos EN preparados para revisión. **Fecha propuesta: martes 20/10/2026, 00:01 Pacific (America/Los_Angeles, PDT): 07:01 UTC / 09:01 Europe/Madrid.** Este kit no ha creado ni comprobado fichas Altillo externas ni ha programado una fecha. Usar la cuenta personal de Xus ya usada para Aurio y una ficha independiente. Aurio está programada el 14; no modificar sus publicaciones.
 
 ## Archivos
 
 | Qué | Archivo | Especificación |
 |---|---|---|
-| Miniatura (animada) | `thumbnail.gif` | 240×240, bucle de 3 s, 0,6 MB (límite 3 MB); se anima al pasar el ratón, sin destellos |
-| Miniatura (estática) | `thumbnail.png` | 240×240 |
-| Vídeo de galería | `altillo-producthunt.mp4` | 32 s, 1920×1080, 60 fps, con música; se entiende sin sonido. Ya está en YouTube (no listado): **https://youtu.be/L33ophXDYUM**. Pega esa URL en el primer hueco de la galería |
-| Galería | `gallery/01…08.png` | 1270×760 |
+| Miniatura recomendada para subir | `thumbnail-600.png` | 600×600, estática |
+| Miniatura estática alternativa | `thumbnail.png` | 240×240 |
+| Miniatura animada | `thumbnail.gif` | 240×240, 3 s, 0,6 MB; límite 3 MB, animación al pasar el ratón |
+| Vídeo de galería | `altillo-producthunt.mp4` | 32 s, 1920×1080, 60 fps; vídeo existente en YouTube, registrado no listado |
+| Galería | `gallery/01…08.png` | 1270×760; subir al menos dos imágenes |
 
-Orden de la galería (tras el vídeo) y texto alternativo:
+**URL completa del vídeo:** https://www.youtube.com/watch?v=L33ophXDYUM. La guía oficial exige URL completa; no pegar `youtu.be`. No puede estar privado; el estado no listado permite compartirlo y el cambio a público queda para el lanzamiento tras aprobación.
 
-1. `01-hero.png`: "Your Mac already had an attic. It just needed a door."
-2. `02-drop-into-the-notch.png`: dragging a PDF onto Altillo's box in the notch.
-3. `03-drag-it-out.png`: dragging the file from the notch into a Mail message.
+Orden y alt text de galería tras el vídeo:
+
+1. `01-hero.png`: “Your Mac already had an attic. It just needed a door.”
+2. `02-drop-into-the-notch.png`: A PDF is dragged onto Altillo's file shelf in the notch.
+3. `03-drag-it-out.png`: The file is dragged from the notch into a Mail message.
 4. `04-ai-usage.png`: Claude and Codex quotas with time to refill.
-5. `05-ask.png`: Ask, the on-device assistant, answering about today and the clipboard.
-6. `06-agents.png`: a Claude Code permission request answered from the notch.
-7. `07-everything.png`: Now Playing, Calendar, Drawer, Glances, Limits, Shelf.
-8. `08-free-open-source.png`: free forever, open source, native, private.
+5. `05-ask.png`: Ask uses an on-device model to answer about calendar and clipboard context. Web lookups use external services.
+6. `06-agents.png`: A Claude Code permission request answered explicitly by the user.
+7. `07-everything.png`: Music, Calendar, Drawer, Glances, Limits and Shelf. Drawer hides icons on macOS 27; on 26 originals remain visible.
+8. `08-free-open-source.png`: Free, MIT open source, native. No Altillo backend; usage checks connect directly to their provider.
 
-Las capturas 01–06 salen del anuncio en inglés; la 07, la 08 y la miniatura, de `src/anuncio/ProductHunt.tsx` (composiciones `PHFeatures`, `PHOpen` y `PHThumb`). Todas usan la interfaz real de la app.
+01–06 salen del anuncio EN; 07/08 y miniatura de `src/anuncio/ProductHunt.tsx`. La galería muestra interfaz de la app; el vídeo incluye piezas visuales generadas y no debe describirse como una captura íntegra sin edición.
 
-## Ficha
+## Ficha para pegar
 
-- **Name:** Altillo
-- **Tagline** (máx. 60 caracteres). Recomendada:
-  - **A shelf, AI usage and live agents in your Mac's notch** (53)
-  - Alternativas: *Turn your Mac's notch into a shelf, AI meter and more* (53) · *Your Mac already had an attic. Now it has a door* (48, más marca que descripción)
-- **Description** (máx. 260; esta tiene 255):
-  > Altillo turns your MacBook's notch into a small attic. Drop files there and drag them out in any window, see how much Claude and Codex you have left, and answer your coding agents from the top. Plus music, calendar and on-device Ask. Free and open source.
-- **Links:** https://altillo.app · https://github.com/XusBadia/altillo
-- **Pricing:** Free
-- **Topics:** Mac · Productivity · Developer Tools (alternativa: Open Source)
-- **Platforms:** macOS (26 or later)
+**Name:** Altillo
 
-## Primer comentario del creador (borrador)
+**Tagline · 53 caracteres, máximo oficial 60:**
 
-> Hi Product Hunt! 👋 I'm Xus, and Altillo is the app I wanted every day on my Mac.
->
-> The notch was just a black bar I worked around. Then I realised it's the one spot that's always on screen and never in the way, so I turned it into an *altillo*, the little attic every Spanish home has for the things you want out of sight but within reach.
->
-> What it does today: drop a file on the notch and drag it out later into any window; see how much Claude and Codex you have left (and when it refills); get a knock when your coding agent needs permission and answer it right there. Altillo never approves anything on its own. There's also music controls, your calendar, a Drawer for menu bar icons, and Ask, an assistant that runs on your Mac with Apple Intelligence.
->
-> It's native (Swift 6, macOS 26), free forever and open source (MIT). No analytics, and your files and credentials stay on your Mac. It's still pre-1.0, so I'd love to hear what feels rough and what you'd put up there next.
+```text
+A shelf, AI usage and live agents in your Mac's notch
+```
 
-## Checklist del lanzamiento
+**Description · recomendada, ≤500 según guía oficial:**
 
-- [x] Subir el vídeo a YouTube: https://youtu.be/L33ophXDYUM (no listado, canal @Altilloapp).
-- [x] Miniatura propia puesta en YouTube.
-- [ ] Día del lanzamiento (lo hace Claude): pegar https://youtu.be/L33ophXDYUM en la galería de Product Hunt y pasar el vídeo a «Público».
-- [ ] Revisar y ajustar la tagline, la descripción y el primer comentario.
-- [ ] Programar el lanzamiento a las 00:01 PT (09:01 en la España peninsular) de un martes, miércoles o jueves.
-- [ ] Añadir a los makers y enlazar la web y GitHub.
-- [ ] Publicar el primer comentario en cuanto se abra el lanzamiento y responder los comentarios durante el día.
-- [ ] Los posts de lanzamiento en redes pueden reutilizar `../videos/altillo-anuncio.mp4` (ES) y `../videos/altillo-anuncio-en.mp4` (EN).
+```text
+Altillo puts a file shelf, Claude/Codex usage and coding-agent requests in your Mac's notch or a virtual island. Drop files at the top and drag them out later. Agent permissions stay your decision. Native for macOS 26+, free and MIT open source. Ask uses an on-device model; web lookups contact external services. Optional usage checks authenticate directly with the relevant provider. Drawer hides icons on macOS 27; on 26 originals stay visible.
+```
 
-## Regenerar
+**Fallback ≤260 si el editor sigue usando el límite anterior:**
+
+```text
+Altillo puts a file shelf, Claude/Codex usage and coding-agent requests in your Mac's notch or a virtual island. Drop files at the top and drag them out later. Agent permissions stay your decision. Native for macOS 26+, free and MIT open source.
+```
+
+- URL principal: https://altillo.app/ (sin acortador ni UTM).
+- Enlace adicional: https://github.com/XusBadia/altillo.
+- Pricing: Free. Sin promo code necesario.
+- Hasta tres tags sugeridos: Mac, Productivity, Developer Tools; usar Open Source como alternativa si el formulario no ofrece alguno.
+- Platform: macOS 26+. Release universal: Intel x86_64 y Apple Silicon arm64. Ask depende de Apple Intelligence.
+- Maker: Xus Badia, seleccionando el perfil personal real en el editor; no inventar username.
+
+## Primer comentario del creador
+
+```text
+Hi Product Hunt! I'm Xus, and Altillo is the app I wanted on my Mac.
+
+I needed somewhere to put a file down while finding the window where it belonged. The notch became that place. “Altillo” is Spanish for a small attic: things out of sight, but within reach.
+
+Drop a file at the top, switch windows, then drag it out. You can also see Claude/Codex usage and respond when a coding agent needs permission. Every approval or denial is your decision; Altillo never approves automatically.
+
+It's native for macOS 26+, free and MIT open source, signed and notarized. On a display without a notch, it uses a virtual island. There are music controls, calendar, timers and reminders too. Ask runs its model on your Mac when Apple Intelligence is available; web lookups contact external services.
+
+There is no Altillo backend or app analytics. Optional usage checks present the credential already stored by the provider's own tool directly to that same provider. Drawer needs Accessibility, hides selected icons on macOS 27, and opens them without hiding the originals on 26. Screen Recording is optional for showing the actual menu bar icon images.
+
+It's still pre-1.0. I'd love feedback on the first file drop and the agent permission flow, especially if you use an external display.
+```
+
+## Checklist
+
+- [x] Vídeo existente registrado en YouTube; miniatura propia preparada.
+- [x] Copy, compatibilidad de Drawer y privacidad corregidos en el kit.
+- [x] Miniatura 600×600 y galería preparadas.
+- [ ] Revisar y aprobar fecha, texto y acciones externas con Xus.
+- [ ] Comprobar si ya existe ficha Altillo; crear borrador independiente desde su cuenta personal.
+- [ ] Subir miniatura, ≥2 imágenes y URL completa YouTube; comprobar reproducción.
+- [ ] Confirmar límite de descripción y hora Pacific real del editor. La guía menciona PST genéricamente; el 20/10 Los Ángeles usa PDT.
+- [ ] Añadir maker real y guardar/programar solo tras revisión; no afirmar programación sin confirmación.
+- [ ] El día del lanzamiento: comprobar página pública, maker comment y vídeo; pasar YouTube a público tras aprobación.
+- [ ] Compartir el enlace real y pedir feedback, nunca votos; responder preguntas humanas.
+
+Fuentes: [guía oficial](https://www.producthunt.com/launch), [preparación y campos](https://www.producthunt.com/launch/preparing-for-launch), verificadas 03/10. Más calendario, perfiles y textos en [launch/README.md](../launch/README.md).
+
+## Regenerar si cambia el producto
 
 ```sh
 cd promo
-npm run render:anuncio:en && cp videos/altillo-anuncio-en.mp4 producthunt/altillo-producthunt.mp4
+npm run render:anuncio:en
+cp videos/altillo-anuncio-en.mp4 producthunt/altillo-producthunt.mp4
 npx remotion still src/index.ts PHFeatures producthunt/gallery/07-everything.png
 npx remotion still src/index.ts PHOpen producthunt/gallery/08-free-open-source.png
 npx remotion still src/index.ts PHThumb producthunt/thumbnail.png --frame=45
+npx remotion still src/index.ts PHThumb producthunt/thumbnail-600.png --frame=45 --scale=2.5
 ```
 
-Las capturas 01–06 se extraen del vídeo inglés con ffmpeg (`scale=-2:760,crop=1270:760`) en los segundos 4,9 · 8,15 · 11,35 · 16,6 · 19,6 y 24,25.
+No es necesario regenerar teasers del usuario. Las capturas 01–06 se extraen del anuncio EN con ffmpeg (`scale=-2:760,crop=1270:760`) a 4,9 · 8,15 · 11,35 · 16,6 · 19,6 · 24,25 segundos.
