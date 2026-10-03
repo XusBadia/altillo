@@ -42,8 +42,8 @@ DTSTAMP:20261003T000000Z
 DTSTART;TZID=Europe/Madrid:20261013T100000
 DTEND;TZID=Europe/Madrid:20261013T103000
 SUMMARY:Revisar borradores y fecha PH
-DESCRIPTION:Preparar fichas Altillo independientes y solicitar revisión fi
- nal. Aurio mantiene su lanzamiento del 14.
+DESCRIPTION:Preparar fichas Altillo independientes y releer textos ya aprob
+ ados. Aurio mantiene su lanzamiento del 14.
 STATUS:TENTATIVE
 TRANSP:TRANSPARENT
 BEGIN:VALARM
@@ -106,9 +106,9 @@ DTSTAMP:20261003T000000Z
 DTSTART;TZID=Europe/Madrid:20261016T180000
 DTEND;TZID=Europe/Madrid:20261016T183000
 SUMMARY:Prelaunch Altillo en perfiles personales
-DESCRIPTION:Propuesta X/LinkedIn ES o EN. Revisar SOCIAL.md y aprobar antes
-  de publicar. Separado de Aurio 13-15.
-STATUS:TENTATIVE
+DESCRIPTION:Propuesta X/LinkedIn ES o EN. Revisar SOCIAL.md y autorización
+  vigente antes de publicar. Separado de Aurio 13-15.
+STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 BEGIN:VALARM
 TRIGGER:-PT30M
@@ -171,8 +171,9 @@ DTSTART;TZID=Europe/Madrid:20261019T093000
 DTEND;TZID=Europe/Madrid:20261019T100000
 SUMMARY:Anuncio Altillo en X y LinkedIn
 DESCRIPTION:Usar perfiles personales de Xus. Una lengua por audiencia\, ví
- deo nativo y enlace web. Revisar y aprobar antes de publicar.
-STATUS:TENTATIVE
+ deo nativo y enlace web. Usar aprobación vigente; comprobar estado antes
+  de publicar.
+STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 BEGIN:VALARM
 TRIGGER:-PT30M
@@ -185,10 +186,10 @@ UID:altillo-launch-20261019-11@altillo.app
 DTSTAMP:20261003T000000Z
 DTSTART;TZID=Europe/Madrid:20261020T090100
 DTEND;TZID=Europe/Madrid:20261020T093100
-SUMMARY:Product Hunt Altillo: fecha propuesta
+SUMMARY:Product Hunt Altillo: programado
 DESCRIPTION:20 octubre 00:01 America/Los_Angeles PDT = 07:01 UTC = 09:01 Ma
- drid. Confirmar formulario\, ficha y aprobación. No está programado.
-STATUS:TENTATIVE
+ drid. Programado el 03/10. Confirmar página pública y comentario maker.
+STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 BEGIN:VALARM
 TRIGGER:-PT30M
@@ -316,7 +317,7 @@ DTEND;TZID=Europe/Madrid:20261025T183000
 SUMMARY:Cerrar semana y follow-up: CET
 DESCRIPTION:Madrid ya UTC+1: 18:00 CET = 17:00 UTC. Guardar contador DMG y
   feedback. Publicar resultados solo con evidencia.
-STATUS:TENTATIVE
+STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 BEGIN:VALARM
 TRIGGER:-PT30M

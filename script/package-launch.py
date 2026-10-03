@@ -103,7 +103,7 @@ def main():
         "launch_week": "2026-10-19/2026-10-25",
         "timezone": "Europe/Madrid",
         "source_commit": git("rev-parse", "HEAD"),
-        "status": "Prepared assets and drafts; platform submissions are not performed by this tool.",
+        "status": "Launch kit; confirmed platform states and authorization are recorded in promo/launch/EXECUTION.md. This tool does not submit anything.",
         "files": [inspect(path) for path in files],
     }
     print(f"Validated {len(files)} files ({sum(item['bytes'] for item in manifest['files']) / 1_000_000:.1f} MB)")
@@ -120,7 +120,7 @@ def main():
             for path in files:
                 archive.write(path, path.relative_to(ROOT).as_posix())
             archive.writestr("manifest.json", json.dumps(manifest, indent=2, ensure_ascii=False) + "\n")
-            archive.writestr("START-HERE.md", "# Altillo · 19–25 October 2026\n\nStart with [the launch instructions](promo/launch/README.md).\n\nThe calendar is a local reminder, not a scheduled platform launch. All copy is prepared for review; this ZIP does not register, publish or send anything.\n\nThe file manifest records SHA-256 hashes, image dimensions and any local changes included at packaging time.\n")
+            archive.writestr("START-HERE.md", "# Altillo · 19–25 October 2026\n\nStart with [the launch instructions](promo/launch/README.md) and [the execution register](promo/launch/EXECUTION.md) for approval and confirmed platform states.\n\nThe calendar is a local reminder and does not reserve platform slots. This ZIP does not register, publish or send anything.\n\nThe file manifest records SHA-256 hashes, image dimensions and any local changes included at packaging time.\n")
         temp_path.replace(output)
     finally:
         temp_path.unlink(missing_ok=True)

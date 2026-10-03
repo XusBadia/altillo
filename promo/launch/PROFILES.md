@@ -5,12 +5,12 @@ Decisión del usuario: usar los mismos perfiles que Aurio. Son **cuentas de Xus*
 | Plataforma | Identidad / evidencia local | Acción Altillo |
 |---|---|---|
 | Peerlist | https://peerlist.io/xusbadia; verificado por Xus 27/09; sesión y escrituras documentadas hasta 03/10 por la tarde | Crear proyecto Altillo nuevo; comprobar verificación actual; semana 19. No reutilizar `/project/aurio` |
-| PH | Cuenta personal Xus usada para Aurio; handle exacto no documentado | Confirmar perfil maker; ficha Altillo separada; Aurio ya programada el 14/10, mantener ambos calendarios |
+| PH | https://www.producthunt.com/@xusbadia; sesión personal autenticada en Chrome el 03/10 | Maker/hunter Xus confirmado; Altillo programado el 20/10 a las 09:01 Madrid; Aurio 14/10 intacto |
 | Indie Hackers | Perfil xusbadia; ficha Aurio creada el 26/09; “You can't create posts yet” observado | Revisar permiso actual; crear Altillo por separado si está habilitado; no prometer post el 23 |
 | X | @XusBadia, personal | Anuncios Altillo ES/EN según audiencia; no usar @aurio_app |
-| LinkedIn | Perfil personal de Xus en Buffer; URL pública exacta no documentada | Seleccionar perfil personal, revisar destino antes de guardar/programar |
+| LinkedIn | https://www.linkedin.com/in/xusbadia/; sesión personal nativa de Chrome confirmada 03/10, sin canal LinkedIn en Buffer personal | Programación nativa en su perfil personal; ver estados confirmados en EXECUTION.md |
 | AlternativeTo / SaaSHub / TinyLaunch | Accesos usados con Google xus@badia.me en el trabajo de Aurio | Reutilizar sesión si disponible; fichas y logo Altillo nuevos |
-| TinyLaunch | Perfil @xusbadia; cola gratuita el 12 y el 19/10 llena al 26/09; Aurio el 26/10 | Buscar fecha gratuita real de Altillo; no prometer el 19 ni sustituir la reserva Aurio |
+| TinyLaunch | Perfil @xusbadia; cola octubre llena al 03/10; Altillo reservado 2/11 pendiente revisión; Aurio 26/10 intacto | Confirmación nativa y coste 0 registrados en EXECUTION; comprobar revisión antes del 2/11 |
 | Reddit / HN | Handle y elegibilidad no confirmados en los archivos consultados | Leer perfil autenticado y gates antes de publicar; no inventar identidad |
 
 Procedencia: repo hermano `aurio/marketing/lanzamientos/directorios-2026/`, archivos `tracker.csv`, `directorios.md` y `peerlist-log.md`, revisados el 03/10. Son evidencia de trabajo anterior, no una comprobación en vivo para Altillo. Estas referencias externas no se incluyen en el ZIP; los hechos necesarios están resumidos aquí.
@@ -22,6 +22,10 @@ Procedencia: repo hermano `aurio/marketing/lanzamientos/directorios-2026/`, arch
 - La pasada del 03/10 confirmó un tope de 1000 caracteres: un comentario de 1008 quedó truncado sin aviso. Usar el comentario corto del kit, medirlo e insertarlo entero y releer antes de enviar. Es un límite observado, no una especificación oficial universal.
 - Métricas del panel de Aurio llegaron a diferir del botón y el puesto. Registrar qué superficie aporta cada dato y no declarar fallo/éxito a partir de un único contador.
 
-Comprobación del navegador colaborativo el 03/10: el perfil Peerlist de Xus es accesible, muestra Aurio y ofrece «Log in»; Product Hunt muestra «Sign in». Estas sesiones no están autenticadas y no permiten guardar borradores de Altillo con las cuentas existentes. La evidencia de Aurio corresponde a otra sesión y no transfiere su acceso a este navegador.
-
-No se lee ni escribe ninguna credencial. El operador selecciona las cuentas existentes a través del flujo autenticado habitual.
+El navegador de vista previa de T3 no tenía sesiones autenticadas. Xus autorizó
+usar Chrome abierto; el 03/10 se confirmaron allí las cuentas personales
+`peerlist.io/xusbadia`, PH `@xusbadia` y LinkedIn `/in/xusbadia/`.
+La ficha Peerlist está guardada y PH confirma `Scheduled` para el 20/10.
+Consultar [EXECUTION.md](EXECUTION.md) antes de actuar para evitar duplicados.
+Las sesiones existentes se usan mediante el flujo habitual, sin crear cuentas
+ni ampliar permisos.

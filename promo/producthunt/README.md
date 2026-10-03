@@ -1,6 +1,6 @@
 # Kit de Product Hunt · Altillo
 
-Textos EN preparados para revisión. **Fecha propuesta: martes 20/10/2026, 00:01 Pacific (America/Los_Angeles, PDT): 07:01 UTC / 09:01 Europe/Madrid.** Este kit no ha creado ni comprobado fichas Altillo externas ni ha programado una fecha. Usar la cuenta personal de Xus ya usada para Aurio y una ficha independiente. Aurio está programada el 14; no modificar sus publicaciones.
+Textos EN y fecha aprobados por Xus el 03/10. **Martes 20/10/2026, 00:01 Pacific (America/Los_Angeles, PDT): 07:01 UTC / 09:01 Europe/Madrid.** Programación confirmada por Product Hunt el 03/10: `Successfully Scheduled!` y panel `Scheduled`. [Panel de prelaunch](https://www.producthunt.com/products/altillo/altillo/prelaunch). Usar la cuenta personal de Xus ya usada para Aurio y una ficha independiente. Aurio está programada el 14; no modificar sus publicaciones. Estado real en [EXECUTION.md](../launch/EXECUTION.md).
 
 ## Archivos
 
@@ -77,11 +77,11 @@ It's still pre-1.0. I'd love feedback on the first file drop and the agent permi
 - [x] Vídeo existente registrado en YouTube; miniatura propia preparada.
 - [x] Copy, compatibilidad de Drawer y privacidad corregidos en el kit.
 - [x] Miniatura 600×600 y galería preparadas.
-- [ ] Revisar y aprobar fecha, texto y acciones externas con Xus.
-- [ ] Comprobar si ya existe ficha Altillo; crear borrador independiente desde su cuenta personal.
-- [ ] Subir miniatura, ≥2 imágenes y URL completa YouTube; comprobar reproducción.
-- [ ] Confirmar límite de descripción y hora Pacific real del editor. La guía menciona PST genéricamente; el 20/10 Los Ángeles usa PDT.
-- [ ] Añadir maker real y guardar/programar solo tras revisión; no afirmar programación sin confirmación.
+- [x] Fecha, texto y acciones externas aprobados por Xus el 03/10; no repetir la aprobación.
+- [x] Ficha Altillo independiente creada desde @xusbadia, sin duplicados.
+- [x] Miniatura 600×600, ocho imágenes y URL completa YouTube guardadas; comprobar reproducción el día de lanzamiento.
+- [x] Descripción de 447 caracteres aceptada; editor confirma 20/10 12:01am PT / 09:01am GMT+2 (PDT en Los Ángeles).
+- [x] Xus Badia @xusbadia como maker/hunter único, precio Free, ficha programada y confirmada.
 - [ ] El día del lanzamiento: comprobar página pública, maker comment y vídeo; pasar YouTube a público tras aprobación.
 - [ ] Compartir el enlace real y pedir feedback, nunca votos; responder preguntas humanas.
 

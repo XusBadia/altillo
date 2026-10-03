@@ -1,8 +1,8 @@
 # Lanzamiento de Altillo · 19–25 octubre de 2026
 
-Preparado el 03/10/2026. **Kit local para revisión y ejecución; ninguna ficha creada, publicación enviada ni fecha programada en una plataforma.** QA de la versión pública confirmado por Xus el 03/10. Propietario de todos los pasos externos: Xus.
+Preparado el 03/10/2026. **Calendario y despliegue aprobados por Xus; ejecución en curso.** QA de la versión pública confirmado por Xus el 03/10. Estado real, autorización y evidencia en [EXECUTION.md](EXECUTION.md).
 
-**Orden recomendado: Peerlist lunes 19 → Product Hunt martes 20 → Show HN miércoles 21 → comunidad Mac y directorios → retrospectiva domingo 25.** Product Hunt es una propuesta de fecha, pendiente de disponibilidad en su formulario. Peerlist abre exclusivamente el lunes UTC. Las horas de los demás canales son ventanas de trabajo elegidas para poder responder, no horarios óptimos demostrados.
+**Orden recomendado: Peerlist lunes 19 → Product Hunt martes 20 → Show HN miércoles 21 → comunidad Mac y directorios → retrospectiva domingo 25.** Product Hunt está programado y confirmado para el martes 20 a las 09:01 Madrid. Peerlist abre exclusivamente el lunes UTC. Las horas de los demás canales son ventanas de trabajo elegidas para poder responder, no horarios óptimos demostrados.
 
 El viernes 16 empieza la comunicación previa de Altillo; las publicaciones de Aurio del 13–15 quedan separadas.
 
@@ -18,6 +18,7 @@ La frase de marca es **«Tu Mac ya tenía un altillo. Solo le faltaba una puerta
 
 | Artefacto | Contenido |
 |---|---|
+| [EXECUTION.md](EXECUTION.md) | Aprobación, despliegue y confirmaciones reales de programación |
 | [CALENDAR.md](CALENDAR.md) | Preparación, ejecución y seguimiento; Madrid/UTC/plataforma |
 | [launch-week.ics](launch-week.ics) | Agenda importable con alarmas; importar es un paso manual, no programa publicaciones |
 | [PROFILES.md](PROFILES.md) | Identidades de Aurio reutilizables, evidencia y límites |
@@ -44,10 +45,10 @@ La frase de marca es **«Tu Mac ya tenía un altillo. Solo le faltaba una puerta
 
 ## Pendientes concretos
 
-Los textos y activos están preparados. Se reutilizan los perfiles personales de Xus usados con Aurio, documentados en [PROFILES.md](PROFILES.md). Peerlist consta verificado el 27/09; el navegador compartido muestra «Log in» en Peerlist y «Sign in» en PH el 03/10. Hace falta iniciar sesión con esas cuentas existentes para guardar borradores. Hay que comprobar su estado actual, la elegibilidad de Show HN y las reglas de Reddit. Este kit no ha creado ni comprobado una URL de ficha Altillo en esos sitios. Revisar los textos, crear borradores y aprobar fecha/acciones externas antes de programar, enviar pitches o publicar. Las políticas se vuelven a comprobar el 12 y el 18 de octubre.
+Los textos y activos y su calendario están aprobados. Se reutilizan los perfiles personales de Xus usados con Aurio, documentados en [PROFILES.md](PROFILES.md). Chrome autorizado tiene ambas sesiones personales autenticadas. Peerlist tiene la ficha Altillo guardada y Product Hunt la tiene programada para el 20. X y LinkedIn tienen tres posts ES con vídeo programados en cada perfil personal. Peerlist abre la reserva de la semana 43 durante el 12–18/10. Hay que comprobar la elegibilidad de Show HN y las reglas de Reddit. Consultar [EXECUTION.md](EXECUTION.md) antes de cualquier acción para evitar duplicados y repetir solicitudes de aprobación ya resueltas. TinyLaunch está reservado gratis para el 2/11, pendiente de revisión, porque octubre está lleno. AlternativeTo/MacMenuBar/SaaSHub/MacUpdate conservan sus envíos manuales y requisitos concretos en EXECUTION. Las políticas se vuelven a comprobar el 12 y el 18 de octubre.
 
 DEV necesita una pieza humana que cumpla su política: el borrador educativo adjunto no es un anuncio listo para publicar. Un canal que no supere su requisito de acceso se sustituye por el siguiente del calendario, sin inventar cuentas ni saltarse moderación.
 
 ## Verificación y entrega
 
-Desde la raíz del repo, `python3 script/package-launch.py --check` verifica la integridad del paquete. `python3 script/package-launch.py` genera `dist/Altillo-launch-2026-10-19.zip` con copy, agenda y activos. Es un archivo local para revisión; no publica contenido. Las correcciones de producto/web se revisan en [PR #1](https://github.com/XusBadia/altillo/pull/1); el kit no las declara desplegadas.
+Desde la raíz del repo, `python3 script/package-launch.py --check` verifica la integridad del paquete. `python3 script/package-launch.py` genera `dist/Altillo-launch-2026-10-19.zip` con copy, agenda y activos. El empaquetador no publica contenido. Las correcciones del [PR #1](https://github.com/XusBadia/altillo/pull/1) están fusionadas y desplegadas; ver evidencia en [EXECUTION.md](EXECUTION.md).
