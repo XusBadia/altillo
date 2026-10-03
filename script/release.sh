@@ -16,7 +16,7 @@ set -euo pipefail
 #   --publish    After building, notarizing, and packaging, create the GitHub release (`gh release
 #                 create`) and push the updated appcast.xml to the gh-pages branch. Requires
 #                 notarization (never publishes an un-notarized build) and a `gh` CLI authenticated with
-#                 push access to XusBadia/altillo.
+#                 push access to XusBadia/altillo. Requires a clean tree and green CI for exact HEAD.
 #
 # Without either flag, the script does everything --publish does except the final publish step: it
 # still notarizes and produces a real, ready-to-upload dist/Altillo-<version>.dmg and dist/appcast.xml.
@@ -92,6 +92,13 @@ fi
 if [ "$DRY_RUN" = 1 ] && [ "$PUBLISH" = 1 ]; then
   echo "--dry-run and --publish are mutually exclusive." >&2
   exit 1
+fi
+
+source "$ROOT_DIR/script/release-gates.sh"
+RELEASE_SOURCE_SHA="$(git rev-parse HEAD)"
+if [ "$PUBLISH" = 1 ]; then
+  require_release_snapshot "$RELEASE_SOURCE_SHA"
+  require_release_ci "$REPO_SLUG" "$RELEASE_SOURCE_SHA"
 fi
 
 # ---- prerequisites ------------------------------------------------------------------------------------
@@ -366,6 +373,13 @@ if [ "$PUBLISH" = 0 ]; then
   exit 0
 fi
 
+# Recheck after the build: a changed tree/HEAD or a newer unsuccessful CI run cannot publish.
+require_release_snapshot "$RELEASE_SOURCE_SHA"
+require_release_ci "$REPO_SLUG" "$RELEASE_SOURCE_SHA"
+
+# Existing tags must identify the same source as the artifact. New tags are pinned with --target.
+require_release_tag "https://github.com/$REPO_SLUG.git" "v$VERSION" "$RELEASE_SOURCE_SHA"
+
 echo "==> publishing v$VERSION"
 RELEASE_NOTES="$ROOT_DIR/docs/releases/$VERSION.md"
 [[ -f "$RELEASE_NOTES" ]] || {
@@ -377,6 +391,7 @@ PRERELEASE_ARGS=()
 [[ "$VERSION" == *-* ]] && PRERELEASE_ARGS=(--prerelease)
 gh release create "v$VERSION" "$DMG_PATH" \
   --repo "$REPO_SLUG" \
+  --target "$RELEASE_SOURCE_SHA" \
   --title "Altillo $VERSION" \
   --notes-file "$RELEASE_NOTES" \
   "${PRERELEASE_ARGS[@]}"

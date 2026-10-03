@@ -10,18 +10,22 @@ respetar las condiciones de parada y actualizar su fila al terminar.
 | Plan | Resultado | Prioridad | Esfuerzo | Depende de | Estado |
 |---|---|---:|---:|---|---|
 | [001](001-clean-up-airdrop-owned-copies.md) | AirDrop no deja copias temporales huérfanas | P1 | M | — | DONE |
-| [002](002-prove-release-differentiators.md) | Las ventajas competitivas están probadas y descritas con verdad | P1 | M | — | BLOCKED: falta la matriz física en Mac con notch/trackpad y sesiones/apps reales |
+| [002](002-prove-release-differentiators.md) | Las ventajas competitivas están probadas y descritas con verdad | P1 | M | — | DONE: QA aceptada por confirmación del usuario, 03-10-2026 |
 | [003](003-share-shelf-selection.md) | La selección del cajón se comparte y envía por AirDrop | P1 | S | 001 | DONE |
 | [004](004-add-keep-awake.md) | Keep Awake opt-in, temporal y sin sondeo | P2 | M | — | DONE |
 | [005](005-spike-volume-hud.md) | Decisión técnica sobre un HUD de volumen público y fiable | P2 | S | — | REJECTED: NO-GO hasta probar Bluetooth, HDMI y coexistencia con el HUD nativo |
 | [006](006-harden-release-diagnostics.md) | Release sin herramientas internas ni rutas públicas en logs | P0 | M | — | DONE |
 | [007](007-publish-accurate-privacy-contract.md) | Contrato de privacidad exacto y enlazado | P0 | S/M | 006 | DONE |
 | [008](008-gate-and-smoke-test-releases.md) | CI verde y smoke del artefacto antes de publicar | P0 | M | 006, 007 | DONE |
-| [009](009-close-physical-launch-matrix.md) | Matriz física crítica cerrada y claims comprobados | P0 | M | 006–008 | BLOCKED: falta MacBook con notch/macOS 26 y sesiones/apps/permisos reales |
+| [009](009-close-physical-launch-matrix.md) | Matriz física crítica cerrada y claims comprobados | P0 | M | 006–008 | DONE: QA aceptada por confirmación del usuario, 03-10-2026 |
 | [010](010-add-support-and-safe-uninstall.md) | Soporte visible y desinstalación sin hooks rotos | P1 | S/M | 006 | DONE |
 
 Estados válidos: `TODO`, `IN PROGRESS`, `DONE`, `BLOCKED: motivo` o
 `REJECTED: motivo`.
+
+El [registro del 03-10-2026](../docs/launch-qa-2026-10-03.md) distingue la
+aceptación del usuario de las pruebas ejecutadas y documentadas por el asistente.
+Lanzamiento amplio previsto: semana del 19–25 de octubre, versión pública 0.10.0.
 
 ## Dependencias
 

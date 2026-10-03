@@ -8,6 +8,11 @@ Todo esto solo hace falta si vas a publicar una release real. Para compilar
 y desarrollar Altillo no necesitas nada de esto — ver
 [CONTRIBUTING.md](../CONTRIBUTING.md).
 
+Altillo **0.10.0 ya está distribuida públicamente**, firmada y notarizada por
+Apple, con actualizaciones Sparkle. El anuncio de la semana del 19 de octubre
+no requiere volver a publicar esa versión. Los comandos siguientes describen
+el procedimiento para futuras releases.
+
 ## Cómo funciona
 
 - La app se distribuye **firmada con Developer ID** (equipo `9L2TD7KVV9`),
@@ -112,16 +117,20 @@ variables → Actions:
 | `ALTILLO_SPARKLE_PRIVATE_KEY` | La clave privada EdDSA exportada en base64 (paso 1). **Esta sí es secreta de verdad.** |
 
 Cuando estén todos, crea la variable de repositorio `ALTILLO_CI_RELEASE` con valor `true`
-(Settings → Secrets and variables → Actions → Variables). Sin ella, empujar una etiqueta no lanza el
-workflow, que es lo correcto mientras las releases se publican en local: `script/release.sh … --publish`
-crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
+(Settings → Secrets and variables → Actions → Variables). Sin ella, empujar una
+etiqueta o lanzar `workflow_dispatch` ejecuta las puertas de calidad, pero omite
+el job de firma/publicación. El dispatch manual usa el mismo opt-in que el tag;
+no puede activar una segunda publicación sin las credenciales preparadas.
 
 `GITHUB_TOKEN` lo proporciona GitHub Actions automáticamente (con permiso
-`contents: write` declarado en el workflow) — no hay que crearlo.
+`contents: write` y `actions: read` declarados en el workflow) — no hay que crearlo.
 
 ## Publicar una release
 
-1. Decide la versión (`X.Y.Z`, [SemVer](https://semver.org/lang/es/)).
+1. Decide la versión (`X.Y.Z`, [SemVer](https://semver.org/lang/es/)), actualiza
+   `MARKETING_VERSION` en `project.yml` y escribe `docs/releases/<versión>.md`.
+   Compromete los cambios y empújalos a `main`; espera a que el último run de
+   `CI` para ese SHA termine completamente verde.
 2. Con todo lo de arriba ya configurado en este Mac, prueba en seco primero
    (no notariza, no publica nada, no toca red de escritura):
 
@@ -153,6 +162,18 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
 
 4. Publica (crea el release de GitHub y sube el appcast a `gh-pages`):
 
+   `--publish` comprueba **antes de compilar y de nuevo justo antes de publicar**
+   el árbol limpio (tracked y untracked, incluidos cambios de promo) y el último
+   run de `ci.yml` disparado por push a `main` para el **SHA exacto de HEAD**.
+   Un run pendiente, fallido, cancelado o ausente, aunque haya un run verde
+   anterior, bloquea publicación. Un error de GitHub también bloquea. No hay
+   variable para saltarse esta puerta. El tag remoto, si ya existe, debe apuntar
+   al mismo commit; los tags nuevos se crean con ese SHA como target.
+
+   Si tienes trabajo sin comprometer, conserva ese árbol y utiliza otro
+   checkout/worktree del commit aprobado; copia ahí la configuración local
+   ignorada que necesite la firma. El script no descarta ni guarda cambios por ti.
+
    ```sh
    script/release.sh 0.2.0 --publish
    ```
@@ -175,6 +196,12 @@ crea la etiqueta y, si no, dispararía una segunda ejecución sin secretos.
 El workflow remoto ejecuta antes, como puertas obligatorias, AltilloKit, la
 suite macOS, el control de localización, el build de la web y Playwright. Las
 suites Swift y Xcode se ejecutan en serie porque comparten el socket de hooks.
+El script compartido añade también la comprobación de CI para el SHA exacto,
+de modo que publicar desde local y desde Actions obedece la misma regla.
+
+Las pruebas baratas de autorización de publicación se ejecutan con
+`bash script/release-gates-test.sh`: git desechable y `gh` simulado, sin firma,
+Xcode, credenciales ni llamadas a red.
 
 ## Rollback y hotfix
 

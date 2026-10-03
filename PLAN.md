@@ -1,5 +1,13 @@
 # Altillo: plan de desarrollo
 
+Estado de lanzamiento, 03-10-2026: **0.10.0 pública, firmada y notarizada**.
+Xus ha confirmado la QA terminada; la aceptación se registra en
+[docs/launch-qa-2026-10-03.md](docs/launch-qa-2026-10-03.md).
+El anuncio amplio se prepara para el 19–25 de octubre en el
+[kit de lanzamiento](promo/launch/README.md). Los pendientes manuales de los
+relatos de fases anteriores son históricos; para el cierre de lanzamiento
+manda el registro de aceptación y el checklist del kit.
+
 > Altillo convierte el notch del Mac en **un sitio arriba donde dejar cosas y ver lo importante**:
 > - archivos que dejas un momento y luego bajas donde quieras;
 > - cuánto te queda de tus agentes de IA y qué están haciendo ahora mismo;

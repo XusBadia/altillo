@@ -69,9 +69,13 @@ for (const L of LOCALES) {
       await expect(page.locator(`.footer a[href="${L.other}"]`)).toHaveCount(1);
 
       // In-page anchors land on their sections.
-      const inView = (sel) => page.locator(sel).evaluate((el) => {
-        const r = el.getBoundingClientRect();
-        return r.top < innerHeight * 0.5 && r.bottom > 0;
+      // Wait for the anchor to arrive below the fixed nav. Merely entering
+      // the viewport can still mean the smooth scroll is halfway through;
+      // starting a second one there races WebKit's first navigation.
+      const atAnchor = (sel) => page.locator(sel).evaluate((el) => {
+        const top = el.getBoundingClientRect().top;
+        const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+        return Math.abs(top - padding) <= 2;
       });
       // Phones keep only Download in the bar.
       if (page.viewportSize().width <= 760) {
@@ -85,10 +89,10 @@ for (const L of LOCALES) {
       await expect(links.nth(0)).toBeVisible();
       await links.nth(0).click();
       await expect(page).toHaveURL(/#features$/);
-      await expect.poll(() => inView("#features")).toBe(true);
+      await expect.poll(() => atAnchor("#features")).toBe(true);
       await links.nth(2).click();
       await expect(page).toHaveURL(/#aurio$/);
-      await expect.poll(() => inView("#aurio")).toBe(true);
+      await expect.poll(() => atAnchor("#aurio")).toBe(true);
     });
 
     test("the language switch leads to the other page", async ({ page }) => {

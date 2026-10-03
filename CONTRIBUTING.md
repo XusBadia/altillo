@@ -1,6 +1,6 @@
 # Contributing to Altillo
 
-Altillo is early-stage (phase 0) — see [PLAN.md](PLAN.md) for the full plan,
+Altillo is a public, pre-1.0 macOS app — see [PLAN.md](PLAN.md) for the full plan,
 principles, and roadmap before diving in. If you're unsure whether something
 fits, open an issue first.
 

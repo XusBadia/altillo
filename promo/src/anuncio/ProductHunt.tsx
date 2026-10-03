@@ -31,7 +31,7 @@ const Notch = ({state, width, maxHeight}: {state: Scenario; width: number; maxHe
 const FEATURES: Array<{state: Scenario; title: string; line: string}> = [
   {state: 'openNowPlaying', title: 'Now Playing', line: 'Control whatever is playing.'},
   {state: 'openCalendar', title: 'Calendar', line: 'Your day, and a Join button.'},
-  {state: 'openDrawer', title: 'Drawer', line: 'Tuck menu bar icons away.'},
+  {state: 'openDrawer', title: 'Drawer', line: 'Hide icons on macOS 27.'},
   {state: 'peekAlert', title: 'Glances', line: 'A meeting in 5 minutes? It tells you.'},
   {state: 'peekUsageAlert', title: 'Limits', line: 'Before Claude runs out, not after.'},
   {state: 'peekShelf', title: 'Shelf', line: 'Six things waiting up there.'},
@@ -58,8 +58,8 @@ export const PHFeatures = () => (
 );
 
 const PROMISES = [
-  ['Native', 'Swift 6, made for macOS 26.'],
-  ['Private', 'Your files and credentials stay on your Mac.'],
+  ['Native', 'Swift 6, made for macOS 26+.'],
+  ['Private', 'No analytics or Altillo account.'],
   ['In control', 'Altillo never approves anything for you.'],
 ];
 

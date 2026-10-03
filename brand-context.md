@@ -10,7 +10,7 @@ Personas que trabajan muchas horas en un Mac, mueven archivos entre aplicaciones
 
 ## Posicionamiento
 
-Una utilidad nativa para macOS que convierte un espacio que ya estaba ahí en un lugar útil, cálido y discreto. Invisible hasta que hace falta. Los datos y credenciales permanecen en el Mac, y Altillo nunca toma decisiones por el usuario.
+Una utilidad nativa para macOS que convierte un espacio que ya estaba ahí en un lugar útil, cálido y discreto. Invisible hasta que hace falta. Sin servicio de telemetría de Altillo; las consultas de consumo usan la credencial solo ante su propio proveedor. Altillo nunca toma decisiones por el usuario.
 
 ## Idea creativa principal
 
@@ -33,6 +33,9 @@ Cálida, doméstica y directa. Verbos propios: subir, bajar, dejar arriba, guard
 
 - Nativo para macOS.
 - Código abierto.
-- Las credenciales y los datos de uso no salen del Mac.
+- Las credenciales se presentan solo a su propio proveedor para consultar consumo; no se envían a Altillo ni se guarda una copia. Las tendencias se almacenan localmente.
+- Ask funciona en el dispositivo por defecto; la búsqueda web autorizada y la carga opt-in de letras contactan los servicios descritos en privacidad.
+- La captura opcional de iconos del Cajón necesita permiso de captura de pantalla; las imágenes se quedan en el Mac.
 - Altillo nunca aprueba acciones automáticamente.
-- El producto está en desarrollo; las piezas públicas deben identificar los prototipos como tales.
+- Altillo 0.10.0 ya se distribuye públicamente, firmada y notarizada, con actualizaciones Sparkle. Sigue siendo pre-1.0; iOS/iPadOS/widgets son scaffolds y no funciones distribuidas.
+- Lanzamiento amplio previsto para la semana del 19–25 de octubre de 2026; QA aceptada por confirmación del usuario el 3 de octubre.

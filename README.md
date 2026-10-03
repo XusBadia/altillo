@@ -5,7 +5,7 @@
 > 🇪🇸 Este README está en inglés para llegar a más gente, pero el plan de
 > desarrollo completo está en español: **[PLAN.md](PLAN.md)**.
 
-**Status: actively developed, current version 0.7.6.** Public, notarized
+**Status: actively developed, current version 0.10.0.** Public, notarized
 builds are available from [altillo.app](https://altillo.app/) and
 [GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
 with Sparkle auto-update. It's a working app used daily, but still pre-1.0 —
@@ -34,7 +34,7 @@ screen:
   restored after relaunch.
 - **Focus and reminders** — run a persistent Pomodoro cycle from the timer and
   see, complete or open today's and upcoming reminders without leaving the notch.
-- **Drawer** — keep the menu bar icons you rarely need in a compact shelf above Altillo's navigation and open their menus from there. Drag apps between the Altillo and Menu Bar zones; on macOS 27 their icons leave the menu bar entirely (no divider, no gap). Needs only Accessibility access. [Setup and limitations](docs/cajon.md).
+- **Drawer** — keep the menu bar icons you rarely need in a compact shelf above Altillo's navigation and open their menus from there. Drag apps between the Altillo and Menu Bar zones; on macOS 27 their icons leave the menu bar entirely (no divider, no gap). Needs Accessibility access; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md).
 - **iPhone/iPad groundwork** — app and widget targets compile, but the mobile
   companion and Live Activities are placeholders, not shipped features yet.
 
@@ -209,6 +209,8 @@ See the [safe uninstall guide](docs/desinstalacion-segura.md).
   search, weather or reference service named in the privacy policy.
 - **Lyrics are opt-in per track.** Pressing “Load Lyrics” sends that track's
   title, artist, album and duration to LRCLIB; no audio or music library is uploaded.
+- **Drawer icon capture is optional.** If enabled, macOS screen-capture permission
+  lets Altillo capture menu bar icons for the Drawer. Images stay on your Mac.
 - **Altillo never auto-approves anything.** When an AI agent asks for
   permission, Altillo only ever relays your explicit choice — it never
   decides or filters on your behalf. If Altillo is closed, agents behave
