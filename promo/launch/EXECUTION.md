@@ -94,6 +94,21 @@ se publiquen. No programar la nota de PH hasta comprobar que su ficha está viva
   el texto literal de What’s new del release 0.10.0, verificado contra GitHub. Envío previsto 23/10, 10:00
   Madrid, sin borrador guardado en servidor ni reserva de publicación.
 
+## Prensa preparada en Gmail
+
+Cuenta habitual `xus@badia.me`, solo borradores sin enviar; no se creó una
+publicación ni se reservó cobertura. Se buscó Altillo en Drafts antes de crear
+para evitar duplicados. Los cuerpos reproducen los textos aprobados de OUTREACH.
+
+| Destino editorial oficial | Draft ID | Message ID | Estado |
+|---|---|---|---|
+| MacStories, John Voorhees, `voorhees@macstories.net` | `r9012108539352630877` | `1a1025e2beefbf67` | DRAFT, sin enviar |
+| 9to5Mac newsroom, `tips+contact@9to5mac.com` | `r7523951229157796926` | `1a1025e2d9adaeaf` | DRAFT, sin enviar |
+
+Contactos comprobados el 03/10 en las páginas oficiales enlazadas en OUTREACH;
+releer antes del envío del 14. SwiftLee requiere un artículo técnico real y
+su vía de descubrimiento RSS/directorio, sin inventar contacto o artículo.
+
 Los demás canales conservan las fechas, condiciones y textos aprobados de
 [CALENDAR.md](CALENDAR.md) y [CHANNELS.md](CHANNELS.md). HN exige redacción
 humana del autor y sus comentarios; no automatizar el briefing del kit como post.

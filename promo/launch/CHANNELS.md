@@ -23,7 +23,7 @@ Prioridad: P1 encaje directo; P2 distribución adicional; P3 condicionado. Coste
 | [DEV](https://dev.to/guidelines-for-ai-assisted-articles-on-dev) | P3 / gratis | AI-assisted no puede promover programa propio; disclosure; comentarios humanos | DEV educativo | No anunciar con copy IA; borrador educativo sin CTA, revisión autor obligatoria |
 | X / LinkedIn personal | P1 / orgánico | @XusBadia y perfil personal usado en Aurio; destino Buffer verificado | SOCIAL + vídeo nativo EN/ES | Tres posts ES con vídeo en cada perfil programados: 16/10 18:00, 19/10 09:30, 25/10 18:00 Madrid; Aurio intacto |
 | YouTube @Altilloapp | P1 / gratis | Canal Altillo existente; vídeo registrado no listado | Kit YouTube | Preparado; pasar a público tras autorización el 20/10 |
-| MacStories / 9to5Mac / SwiftLee Weekly | P2 / editorial, sin gasto | Rutas oficiales de contacto; selección independiente, no garantía | OUTREACH+FAQ-PRESS | Pitches preparados, no enviados; SwiftLee orientado a pieza técnica |
+| MacStories / 9to5Mac / SwiftLee Weekly | P2 / editorial, sin gasto | Rutas oficiales de contacto; selección independiente, no garantía | OUTREACH+FAQ-PRESS | MacStories/9to5Mac: dos borradores Gmail con destinatarios oficiales, sin envío. SwiftLee: artículo técnico real + RSS/directorio, sin email inventado |
 
 ## No invertir esta semana
 
