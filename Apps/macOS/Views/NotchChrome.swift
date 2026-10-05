@@ -80,8 +80,8 @@ struct NotchChrome: Equatable {
         static let shelf: CGFloat = 150
         /// Just the plank with the house and one sentence above it: nothing below the board.
         static let emptyShelf: CGFloat = 130
-        /// Ring, plan, countdown and pace, with the week's bar underneath.
-        static let usage: CGFloat = 160
+        /// Three provider rows with room for limits and status; longer lists scroll vertically.
+        static let usage: CGFloat = 280
         /// The one knocking on a tall card plus a useful part of the vertical queue.
         static let agents: CGFloat = 220
         /// The cardboard box and the paper plane.

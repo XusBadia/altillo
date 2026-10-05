@@ -2,11 +2,8 @@ import AltilloCore
 import AltilloDesign
 import SwiftUI
 
-/// The usage tab: one wood card per provider. The limit that matters most as a ring with its figure (the session, or
-/// for providers without one the fullest limit they have: a month, a request quota), the plan, when it refills and
-/// the pace in italics ("Runs out at 16:40"), and the next limit's bar underneath with a notch where an even pace
-/// would be, or a balance ("$7.50 left") when there's no other limit. A provider with only balances (prepaid credits)
-/// shows the balance as the figure. A provider in trouble says so in one sentence, with a way out when there is one.
+/// The usage tab: full-width provider rows on a shared walnut panel, with readable plans, usage bars,
+/// refill dates and status sentences. Balances retain their own units; missing readings never become zeroes.
 ///
 /// Real numbers come from `UsageStore`; design scenarios show `DemoContent`'s. Countdowns move with a `TimelineView`
 /// that only exists while the tab is on screen: nothing ticks when the notch is closed.
@@ -47,412 +44,289 @@ struct DesvanUsageView: View {
     }
 }
 
-/// The cards side by side; with three or more providers they scroll sideways, two and a bit at a time, settling on
-/// a card's edge.
+/// One shared walnut panel. Providers occupy the full width and scroll vertically when the list is taller
+/// than the notch. Text owns its height; a narrower display changes the row's arrangement, never its contents.
 private struct DesvanUsageBoard: View {
     let model: NotchModel
     let providers: [ProviderUsage]
     let trends: [UsageProviderID: [UsageTrendPoint]]
     let retry: (() -> Void)?
 
-    @State private var width: CGFloat = 0
-    private static let spacing: CGFloat = 10
-
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 30)) { context in
-            if providers.count <= 2 {
-                HStack(spacing: Self.spacing) {
-                    ForEach(providers) { usage in
-                        DesvanUsageCard(usage: usage, trend: trends[usage.id] ?? [], now: context.date, retry: retry)
-                    }
-                }
-            } else {
-                ScrollView(.horizontal) {
-                    HStack(spacing: Self.spacing) {
+        GeometryReader { geometry in
+            TimelineView(.periodic(from: .now, by: 30)) { context in
+                ScrollView(.vertical) {
+                    VStack(spacing: 0) {
                         ForEach(providers) { usage in
-                            DesvanUsageCard(usage: usage, trend: trends[usage.id] ?? [], now: context.date, retry: retry)
-                                .frame(width: cardWidth)
+                            DesvanUsageRow(
+                                usage: usage,
+                                trend: trends[usage.id] ?? [],
+                                now: context.date,
+                                retry: retry,
+                                width: max(geometry.size.width - 32, 0)
+                            )
+                            .padding(.vertical, 13)
+                            if usage.id != providers.last?.id {
+                                Rectangle()
+                                    .fill(Desvan.Palette.hairlineStrong)
+                                    .frame(height: 0.5)
+                                    .accessibilityHidden(true)
+                            }
                         }
                     }
-                    .scrollTargetLayout()
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 3)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
-                .scrollTargetBehavior(.viewAligned)
-                .scrollIndicators(.never)
-                .scrollClipDisabled()
-                // A swipe over the cards scrolls them; it never changes section.
-                .reportsHorizontalScroll(id: "usage.cards", model: model)
+                .scrollIndicators(.automatic)
+                .scrollBounceBehavior(.basedOnSize)
             }
         }
-        .frame(maxHeight: .infinity)
-        .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
-    }
-
-    /// Two cards and the edge of the next, so it's clear there are more.
-    private var cardWidth: CGFloat {
-        guard width > 0 else { return 220 }
-        return max(200, ((width - 2 * Self.spacing) / 2.25).rounded())
+        .desvanCard()
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
 }
 
-private struct DesvanUsageCard: View {
+private struct DesvanUsageRow: View {
     let usage: ProviderUsage
     let trend: [UsageTrendPoint]
     let now: Date
     let retry: (() -> Void)?
+    let width: CGFloat
 
-    /// The card measures itself: its ring shrinks with it, and each line drops what it can't hold (the window's
-    /// length first, then the plan chip, "refills", the week's name). The notch can be as narrow as 440 pt, which
-    /// leaves ~190 pt per provider.
-    @State private var width: CGFloat = 0
-    private var isRoomy: Bool { width <= 0 || width >= 300 }
-
-    private static let inset: CGFloat = 14
-
-    /// The ring: 100 pt when the card has room, down to 64 pt in the narrowest notch. With the week's row under it,
-    /// 100 + 10 + 17 fits the card's 132 pt inside (usage content 160 minus the insets).
-    private var ringSide: CGFloat {
-        guard width > 0 else { return 100 }
-        return min(100, max(64, ((width - 2 * Self.inset) * 0.36).rounded()))
-    }
-
-    /// The limit the ring shows: the session when there is one, otherwise the headline (the week, or for a
-    /// provider without either the fullest limit it has).
+    /// Keep the same main limit as the former card: session first, then the provider's headline.
     private var main: UsageWindow? { usage.session ?? usage.headline }
-    /// The row underneath: the week, or the fullest other limit there is.
     private var secondary: UsageWindow? {
         guard let main else { return nil }
         if main.kind != .weekly, let weekly = usage.weekly { return weekly }
         return usage.windows.filter { $0.id != main.id }.max { $0.used < $1.used }
     }
-
     private var isStale: Bool { usage.isStale(now: now, limit: UsageStore.staleAfter) }
+    private var hasOldNumbers: Bool { isStale || usage.problem != nil }
+    private var isWide: Bool { width >= 470 }
 
     var body: some View {
         Group {
-            if let main {
-                VStack(alignment: .leading, spacing: 0) {
-                    ring(main)
-                    Spacer(minLength: 10)
-                    if let secondary {
-                        bar(secondary)
-                    } else if let balance = usage.balances.first {
-                        balanceRow(balance)
-                    }
+            if isWide {
+                HStack(alignment: .center, spacing: 18) {
+                    identity
+                        .frame(width: min(180, width * 0.28), alignment: .leading)
+                    measurements
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    details
+                        .frame(width: min(220, width * 0.32), alignment: .leading)
                 }
-            } else if let balance = usage.balances.first(where: { UsageText.figure(for: $0) != nil }) {
-                balanceOnly(balance)
             } else {
-                problemOnly
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(alignment: .top, spacing: 14) {
+                        identity
+                            .frame(width: min(155, width * 0.42), alignment: .leading)
+                        measurements
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    details
+                }
             }
         }
-        .padding(Self.inset)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-        .desvanCard()
-        .onGeometryChange(for: CGFloat.self, of: \.size.width) { width = $0 }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text(verbatim: usage.displayName))
     }
 
-    // MARK: Header (glyph, name, plan)
-
-    /// The name, then the plan chip and the window's length while they fit.
-    private func title(showsLength window: UsageWindow?) -> some View {
-        ViewThatFits(in: .horizontal) {
-            titleRow(plan: true, length: window)
-            titleRow(plan: true, length: nil)
-            titleRow(plan: false, length: nil)
-        }
-    }
-
-    private func titleRow(plan showsPlan: Bool, length window: UsageWindow?) -> some View {
-        HStack(spacing: 6) {
-            AgentGlyph(provider: usage.id, name: usage.displayName, size: 18)
-            Text(usage.displayName)
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paper)
-                .lineLimit(1)
-                .truncationMode(.middle)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .help(usage.displayName)
-                .accessibilityLabel(Text(verbatim: usage.displayName))
-            if showsPlan, let plan = usage.plan, !plan.isEmpty {
-                Text(plan)
-                    .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .lineLimit(1)
-                    .padding(.horizontal, 7)
-                    .frame(height: 19)
-                    .background(Capsule().fill(Desvan.Palette.woodRaised))
-                    .overlay(Capsule().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
-                    .fixedSize()
-            }
-            if let window, let length = UsageText.length(of: window) {
-                Spacer(minLength: 4)
-                Text(verbatim: length)
-                    .font(Desvan.Typeface.rounded(12, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .fixedSize()
-                    .help(String(localized: "\(UsageText.name(for: window)): \(length)"))
-            }
-        }
-    }
-
-    // MARK: Ring
-
-    private func ring(_ window: UsageWindow) -> some View {
-        let used = window.used
-        let side = ringSide
-        return HStack(spacing: 14) {
-            DesvanRing(value: used, lineWidth: max(4, (side * 0.06).rounded()), pace: window.elapsedFraction(now: now)) {
-                HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(Int((min(max(used, 0), 1) * 100).rounded()))")
-                        .font(Desvan.Typeface.figure((side * 0.28).rounded(), weight: .semibold))
-                        .contentTransition(.numericText(value: used))
-                    Text("%")
-                        .font(Desvan.Typeface.figure(max(10.5, (side * 0.14).rounded()), weight: .medium))
+    private var identity: some View {
+        HStack(alignment: .top, spacing: 10) {
+            AgentGlyph(provider: usage.id, name: usage.displayName, size: 30)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 5) {
+                Text(verbatim: usage.displayName)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(Desvan.Palette.paper)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let plan = usage.plan, !plan.isEmpty {
+                    Text(verbatim: plan)
+                        .font(Desvan.Typeface.rounded(11, weight: .medium))
                         .foregroundStyle(Desvan.Palette.paperSecondary)
-                }
-                .foregroundStyle(Desvan.Palette.paper)
-                .offset(x: 1)
-            }
-            .frame(width: side, height: side)
-            .opacity(isStale ? 0.6 : 1)
-
-            VStack(alignment: .leading, spacing: 4) {
-                title(showsLength: window)
-                ViewThatFits(in: .horizontal) {
-                    refill(UsageText.refillsIn(window, now: now))
-                    refill(compactRefill(window))
-                }
-                .help(UsageText.refillsIn(window, now: now))
-                HStack(spacing: 6) {
-                    status(pace: window)
-                    Spacer(minLength: 0)
-                    if trend.count > 1 {
-                        DesvanUsageTrend(points: trend)
-                            .frame(width: 42, height: 15)
-                    }
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(RoundedRectangle(cornerRadius: 8).fill(Desvan.Palette.woodRaised))
+                        .overlay(RoundedRectangle(cornerRadius: 8)
+                            .strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5))
                 }
             }
         }
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(ringAccessibilityLabel(window))
     }
 
-    private func ringAccessibilityLabel(_ window: UsageWindow) -> String {
-        var label = "\(usage.displayName), \(UsageText.name(for: window)), \(NotchFormat.percent(window.used)) used. \(barHelp(window))"
-        if trend.count > 1 { label += ". \(usageTrendSummary(trend))" }
-        return label
-    }
-
-    private func refill(_ text: String) -> some View {
-        Text(verbatim: text)
-            .font(Desvan.Typeface.rounded(13.5, weight: .medium))
-            .foregroundStyle(Desvan.Palette.paper.opacity(0.85))
-            .monospacedDigit()
-            .lineLimit(1)
-            .fixedSize()
-    }
-
-    private func compactRefill(_ window: UsageWindow) -> String {
-        guard let resetsAt = window.resetsAt else {
-            return window.kind == .session ? String(localized: "not started") : String(localized: "no date")
-        }
-        return String(localized: "in \(NotchFormat.countdown(to: resetsAt, now: now))")
-    }
-
-    /// The pace in italics (for a limit), or, when the numbers aren't fresh, why ("Unreachable · 20 min ago").
     @ViewBuilder
-    private func status(pace window: UsageWindow?) -> some View {
-        if let problem = usage.problem {
-            let sentence = UsageText.sentence(for: problem, provider: usage.id, displayName: usage.displayName, now: now)
-            DesvanUsageNote(
-                text: isRoomy
-                    ? "\(UsageText.shortStatus(for: problem)) · \(NotchFormat.ago(usage.fetchedAt, now: now))"
-                    : UsageText.shortStatus(for: problem),
-                tone: .warning, symbol: "exclamationmark.triangle.fill"
-            )
-            .help(usage.problemDetail.map { "\(sentence) \($0)" } ?? sentence)
-        } else if isStale {
-            DesvanUsageNote(text: String(localized: "Stale · \(NotchFormat.ago(usage.fetchedAt, now: now))"),
-                            tone: .warning, symbol: "clock")
-                .help("These numbers are from \(NotchFormat.ago(usage.fetchedAt, now: now)).")
-        } else if let window, let pace = UsageText.pace(for: window, now: now) {
-            DesvanUsageNote(text: pace.text, tone: pace.tone, symbol: nil)
-        }
-    }
-
-    // MARK: Bar
-
-    /// One line: the week's bar, its figure and when it refills; the name and the countdown give way first.
-    private func bar(_ window: UsageWindow) -> some View {
-        ViewThatFits(in: .horizontal) {
-            barRow(window, label: true, countdown: true)
-            barRow(window, label: true, countdown: false)
-            barRow(window, label: false, countdown: false)
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .opacity(isStale ? 0.6 : 1)
-        .help(barHelp(window))
-        .accessibilityElement(children: .combine)
-    }
-
-    private func barRow(_ window: UsageWindow, label: Bool, countdown: Bool) -> some View {
-        HStack(spacing: 8) {
-            if label {
-                Text(UsageText.name(for: window))
-                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .lineLimit(1)
-                    .fixedSize()
+    private var measurements: some View {
+        if let main {
+            VStack(alignment: .leading, spacing: 8) {
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(UsageText.name(for: main))
+                        .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: 0)
+                    Text(NotchFormat.percent(main.used))
+                        .font(Desvan.Typeface.figure(19, weight: .semibold))
+                        .foregroundStyle(Desvan.usageTint(main.used))
+                        .monospacedDigit()
+                        .fixedSize()
+                        .contentTransition(.numericText(value: main.used))
+                }
+                DesvanBar(value: main.used, pace: hasOldNumbers ? nil : main.elapsedFraction(now: now))
+                    .accessibilityLabel("\(UsageText.name(for: main)), \(NotchFormat.percent(main.used)) used")
+                if let secondary {
+                    Text(verbatim: windowSummary(secondary))
+                        .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .help(windowHelp(secondary))
+                } else if let balance = usage.balances.first {
+                    balanceSummary(balance)
+                }
             }
-            DesvanBar(value: window.used, pace: window.elapsedFraction(now: now))
-                .frame(minWidth: 96)
-            Text(NotchFormat.percent(window.used))
-                .font(Desvan.Typeface.figure(14, weight: .medium))
-                .foregroundStyle(Desvan.usageTint(window.used))
-                .monospacedDigit()
-                .fixedSize()
-            if countdown, let resetsAt = window.resetsAt {
-                Text(NotchFormat.countdown(to: resetsAt, now: now))
-                    .font(Desvan.Typeface.rounded(12.5, weight: .medium))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .monospacedDigit()
-                    .fixedSize()
-            }
-        }
-        .lineLimit(1)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(UsageText.name(for: window)), \(NotchFormat.percent(window.used)) used. \(barHelp(window))")
-    }
-
-    private func barHelp(_ window: UsageWindow) -> String {
-        var parts = ["\(UsageText.name(for: window)): \(UsageText.refillsIn(window, now: now))"]
-        if let pace = UsageText.pace(for: window, now: now) { parts.append(pace.text) }
-        return parts.joined(separator: " · ")
-    }
-
-    // MARK: Balances
-
-    /// A balance on one line, under the ring when there's no second limit: "Credits  $7.50 left".
-    private func balanceRow(_ balance: UsageBalance) -> some View {
-        ViewThatFits(in: .horizontal) {
-            balanceLine(balance, label: true)
-            balanceLine(balance, label: false)
-        }
-        .fixedSize(horizontal: false, vertical: true)
-        .opacity(isStale ? 0.6 : 1)
-        .help("\(balance.label): \(UsageText.summary(of: balance))")
-        .accessibilityElement(children: .combine)
-    }
-
-    private func balanceLine(_ balance: UsageBalance, label: Bool) -> some View {
-        HStack(spacing: 8) {
-            if label {
+            .opacity(hasOldNumbers ? 0.85 : 1)
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(UsageText.name(for: main)), \(NotchFormat.percent(main.used)) used")
+            .accessibilityValue(measurementAccessibility)
+        } else if let balance = usage.balances.first(where: { UsageText.figure(for: $0) != nil }) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text(verbatim: balance.label)
-                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paperTertiary)
-                    .lineLimit(1)
-                    .fixedSize()
-            }
-            if let spent = UsageText.spentFraction(of: balance) {
-                DesvanBar(value: spent, pace: nil)
-                    .frame(minWidth: 60)
-            } else {
-                Spacer(minLength: 0)
-            }
-            Text(verbatim: UsageText.summary(of: balance))
-                .font(Desvan.Typeface.figure(14, weight: .medium))
-                .foregroundStyle(Desvan.Palette.paper)
-                .monospacedDigit()
-                .lineLimit(1)
-                .fixedSize()
-        }
-        .lineLimit(1)
-    }
-
-    /// No limit to draw a ring with, only balances (prepaid credits, dollars left): the first one as the figure,
-    /// its bar when it has a limit, and the next balance underneath.
-    private func balanceOnly(_ balance: UsageBalance) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            title(showsLength: nil)
-            Text(verbatim: balance.label)
-                .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                .foregroundStyle(Desvan.Palette.paperTertiary)
-                .lineLimit(1)
-                .padding(.top, 4)
-            if let figure = UsageText.figure(for: balance) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text(verbatim: figure.value)
-                        .font(Desvan.Typeface.figure(30, weight: .semibold))
+                    .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if UsageText.figure(for: balance) != nil {
+                    Text(verbatim: UsageText.summary(of: balance))
+                        .font(Desvan.Typeface.figure(17, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paper)
                         .monospacedDigit()
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.6)
+                        .fixedSize(horizontal: false, vertical: true)
                         .contentTransition(.numericText())
-                    Text(verbatim: figure.caption)
-                        .font(Desvan.Typeface.rounded(13.5, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.paperSecondary)
-                        .lineLimit(1)
                 }
-                .opacity(isStale ? 0.6 : 1)
+                if let spent = UsageText.spentFraction(of: balance) {
+                    DesvanBar(value: spent, pace: nil)
+                }
+                if let next = usage.balances.first(where: { $0.id != balance.id }) {
+                    balanceSummary(next)
+                }
             }
-            status(pace: nil)
-            Spacer(minLength: 0)
-            if let next = usage.balances.first(where: { $0.id != balance.id }) {
-                balanceRow(next)
-            } else if let spent = UsageText.spentFraction(of: balance) {
-                DesvanBar(value: spent, pace: nil)
-                    .opacity(isStale ? 0.6 : 1)
-            }
+            .opacity(hasOldNumbers ? 0.85 : 1)
+            .accessibilityElement(children: .combine)
+        } else if usage.problem == nil {
+            Text("No limits to show for this plan.")
+                .font(.system(size: 12))
+                .foregroundStyle(Desvan.Palette.paperSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .accessibilityElement(children: .combine)
     }
 
-    // MARK: No numbers at all
+    private func balanceSummary(_ balance: UsageBalance) -> some View {
+        Text(verbatim: "\(balance.label) · \(UsageText.summary(of: balance))")
+            .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+            .foregroundStyle(Desvan.Palette.paperSecondary)
+            .monospacedDigit()
+            .fixedSize(horizontal: false, vertical: true)
+    }
 
-    /// Nothing to draw a ring with: what's wrong, in one sentence, and "Try again" when it can help.
-    private var problemOnly: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            title(showsLength: nil)
+    private var details: some View {
+        VStack(alignment: .leading, spacing: 5) {
             if let problem = usage.problem {
-                Text(UsageText.sentence(for: problem, provider: usage.id, displayName: usage.displayName, now: now))
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .lineLimit(3)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .help(usage.problemDetail ?? "")
-                Spacer(minLength: 0)
+                DesvanUsageNote(text: UsageText.shortStatus(for: problem), tone: .warning,
+                                symbol: "exclamationmark.triangle.fill")
+                if main == nil, !usage.balances.contains(where: { UsageText.figure(for: $0) != nil }) {
+                    Text(UsageText.sentence(for: problem, provider: usage.id,
+                                           displayName: usage.displayName, now: now))
+                        .font(.system(size: 12))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("These numbers are from \(NotchFormat.ago(usage.fetchedAt, now: now)).")
+                        .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
                 if let retry, UsageText.canRetry(problem) {
                     Button("Try again", action: retry)
                         .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
                 }
-            } else {
-                Text("No limits to show for this plan.")
-                    .font(.system(size: 12.5))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                Spacer(minLength: 0)
+            } else if isStale {
+                DesvanUsageNote(text: String(localized: "Stale · \(NotchFormat.ago(usage.fetchedAt, now: now))"),
+                                tone: .warning, symbol: "clock")
+            } else if let main {
+                Label {
+                    Text(verbatim: UsageText.refillsIn(main, now: now))
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "clock")
+                }
+                .font(Desvan.Typeface.rounded(12, weight: .medium))
+                .foregroundStyle(Desvan.Palette.paper)
+                .monospacedDigit()
+                if let pace = UsageText.pace(for: main, now: now) {
+                    DesvanUsageNote(text: pace.text, tone: pace.tone, symbol: nil)
+                }
+            }
+            if trend.count > 1 {
+                DesvanUsageTrend(points: trend)
+                    .frame(width: 54, height: 13)
+                    .padding(.top, 3)
             }
         }
-        .accessibilityElement(children: .contain)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .help(problemHelp)
+    }
+
+    private var problemHelp: String {
+        guard let problem = usage.problem else { return "" }
+        let sentence = UsageText.sentence(for: problem, provider: usage.id,
+                                          displayName: usage.displayName, now: now)
+        return usage.problemDetail.map { "\(sentence) \($0)" } ?? sentence
+    }
+
+    private func windowSummary(_ window: UsageWindow) -> String {
+        let summary = "\(UsageText.name(for: window)) · \(NotchFormat.percent(window.used))"
+        // Expired historical limits must not pretend they are currently refilling.
+        guard !hasOldNumbers else { return summary }
+        return "\(summary) · \(UsageText.refillsIn(window, now: now))"
+    }
+
+    private func windowHelp(_ window: UsageWindow) -> String {
+        var parts = [windowSummary(window)]
+        if !hasOldNumbers, let pace = UsageText.pace(for: window, now: now) { parts.append(pace.text) }
+        return parts.joined(separator: " · ")
+    }
+
+    private var measurementAccessibility: String {
+        var parts: [String] = []
+        if let secondary { parts.append(windowSummary(secondary)) }
+        else if let balance = usage.balances.first { parts.append("\(balance.label): \(UsageText.summary(of: balance))") }
+        if hasOldNumbers {
+            parts.append(String(localized: "These numbers are from \(NotchFormat.ago(usage.fetchedAt, now: now))."))
+        }
+        return parts.joined(separator: ". ")
     }
 }
 
-/// The line under the countdown, in SF Pro Rounded italic: the pace, or what's off with the numbers.
+/// Status sentences wrap with the row, including full reset projections and fetch failures.
 private struct DesvanUsageNote: View {
     let text: String
     let tone: UsageText.Tone
     let symbol: String?
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(alignment: .firstTextBaseline, spacing: 5) {
             if let symbol {
-                Image(systemName: symbol).font(.system(size: 10.5, weight: .semibold))
+                Image(systemName: symbol).font(.system(size: 11, weight: .semibold))
+                    .accessibilityHidden(true)
             }
             Text(verbatim: text)
-                .font(.system(size: 12.5, weight: .medium, design: .rounded).italic())
+                .font(Desvan.Typeface.rounded(12, weight: .medium))
                 .monospacedDigit()
+                .fixedSize(horizontal: false, vertical: true)
         }
         .foregroundStyle(color)
-        .lineLimit(1)
     }
 
     private var color: Color {
@@ -465,7 +339,7 @@ private struct DesvanUsageNote: View {
     }
 }
 
-/// A quiet 30-day sparkline. The current reading remains the card's main figure; this only answers “which way has
+/// A quiet 30-day sparkline. The current reading remains the row's main figure; this only answers “which way has
 /// it been moving?” and exposes the same information as a sentence to VoiceOver.
 private struct DesvanUsageTrend: View {
     let points: [UsageTrendPoint]
@@ -531,7 +405,7 @@ private struct DesvanBar: View {
                         startPoint: .top,
                         endPoint: .bottom
                     ))
-                    .frame(width: max(8, width * clamped))
+                    .frame(width: clamped > 0 ? min(width, max(2, width * clamped)) : 0)
                 // The notch: where an even pace would be.
                 if let pace {
                     let x = width * min(max(pace, 0), 1)
