@@ -24,9 +24,10 @@ require_release_ci() {
   command -v gh >/dev/null 2>&1 || { echo "--publish needs the gh CLI." >&2; return 1; }
   # Do not filter by success: a newer failing, cancelled or pending run must block publication.
   # Restrict to push/main: an unrelated PR run cannot authorize a public artifact.
+  # TSV preserves integer run IDs; Go templates print large IDs in scientific notation.
   if ! result="$(gh run list --repo "$repo" --workflow ci.yml --branch main --event push \
     --commit "$expected_sha" --limit 1 --json headSha,status,conclusion,databaseId \
-    --template '{{range .}}{{.headSha}} {{.status}} {{.conclusion}} {{.databaseId}}{{end}}')"; then
+    --jq '.[] | [.headSha, .status, .conclusion, .databaseId] | @tsv')"; then
     echo "Could not verify CI for $expected_sha; refusing publication." >&2
     return 1
   fi

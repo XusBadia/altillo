@@ -79,6 +79,9 @@ for flag, value in [('--workflow', 'ci.yml'), ('--branch', 'main'), ('--event', 
 assert '--status' not in args, 'Filtering by success could accept an older green run'
 PY
 echo 'PASS: latest exact CI query'
+printf '%s\tcompleted\tsuccess\t37342537137\n' "$SOURCE_SHA" > "$ALTILLO_TEST_GH_RESPONSE"
+require_release_ci XusBadia/altillo "$SOURCE_SHA"
+echo 'PASS: large integer CI run ID accepted'
 for conclusion in failure cancelled skipped neutral timed_out; do
   printf '%s completed %s 123\n' "$SOURCE_SHA" "$conclusion" > "$ALTILLO_TEST_GH_RESPONSE"
   reject "CI $conclusion" require_release_ci XusBadia/altillo "$SOURCE_SHA"
