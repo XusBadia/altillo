@@ -15,10 +15,19 @@ struct MenuBarGlyphTests {
 
     @Test func textStatusItemsShareAHeightAndOccupyWholeSlots() {
         let source = CGSize(width: 96, height: 12)
-        #expect(MenuBarGlyph.size(for: source) == CGSize(width: 144, height: 18))
-        #expect(MenuBarGlyph.cellWidth(for: source) == 154)
+        #expect(MenuBarGlyph.size(for: source) == CGSize(width: 96, height: 12))
+        #expect(MenuBarGlyph.cellWidth(for: source) == 114)
         #expect(MenuBarGlyph.cellWidth(for: CGSize(width: 18, height: 18)) == 34)
         #expect(MenuBarGlyph.cellWidth(for: CGSize(width: 24, height: 24)) == 34)
+    }
+
+    @Test func batteryProportionsStayWithinOneTile() {
+        let battery = CGSize(width: 26, height: 12)
+        let size = MenuBarGlyph.size(for: battery)
+        #expect(size.width == 24)
+        #expect(abs(size.height - 12 * 24 / 26) < 0.001)
+        #expect(MenuBarGlyph.cellWidth(for: battery) == 34)
+        #expect(MenuBarGlyph.size(for: CGSize(width: 100, height: 20)).height == 14)
     }
 
     @Test func oversizedStatusItemsFitSettingsWithoutDistortion() {

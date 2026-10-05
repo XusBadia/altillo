@@ -161,10 +161,11 @@ final class MenuBarGlyphCapture {
         guard !pixels.isEmpty, let cropped = bar.cropping(to: pixels),
               let bitmap = RGBA(cropped), let ink = bitmap.inkBounds(),
               let trimmed = cropped.cropping(to: ink) else { return nil }
-        return (trimmed, bitmap.isMonochrome(in: ink))
+        guard !bitmap.isBlankRectangle(in: ink) else { return nil }
+        return (trimmed, bitmap.hasAlphaMask(in: ink) && bitmap.isMonochrome(in: ink))
     }
 
-    /// Straight RGBA8 pixels of a small image, for trimming and colour checks.
+    /// Premultiplied RGBA8 pixels of a small image, for trimming and colour checks.
     struct RGBA {
         let width: Int
         let height: Int
@@ -188,6 +189,40 @@ final class MenuBarGlyphCapture {
         }
 
         func alpha(_ x: Int, _ y: Int) -> UInt8 { data[(y * width + x) * 4 + 3] }
+
+        /// A template uses only alpha: opaque artwork would otherwise become a solid tinted tile.
+        func hasAlphaMask(in rect: CGRect) -> Bool {
+            var minimum = 255, maximum = 0
+            for y in Int(rect.minY)..<Int(rect.maxY) {
+                for x in Int(rect.minX)..<Int(rect.maxX) {
+                    let value = Int(alpha(x, y))
+                    minimum = min(minimum, value)
+                    maximum = max(maximum, value)
+                }
+            }
+            return maximum - minimum > 32 && minimum < maximum / 2
+        }
+
+        /// A featureless grey rectangle is a failed capture, not useful menu-bar artwork.
+        /// Keep opaque artwork with detail, as well as genuinely coloured square logos.
+        func isBlankRectangle(in rect: CGRect) -> Bool {
+            var minimumAlpha = 255, maximumAlpha = 0
+            var minimumGrey = 255, maximumGrey = 0
+            for y in Int(rect.minY)..<Int(rect.maxY) {
+                for x in Int(rect.minX)..<Int(rect.maxX) {
+                    let index = (y * width + x) * 4
+                    let a = Int(data[index + 3])
+                    guard a > 24 else { return false }
+                    let channels = (0..<3).map { Int(data[index + $0]) * 255 / a }
+                    guard channels.max()! - channels.min()! <= 8 else { return false }
+                    minimumAlpha = min(minimumAlpha, a)
+                    maximumAlpha = max(maximumAlpha, a)
+                    minimumGrey = min(minimumGrey, channels.min()!)
+                    maximumGrey = max(maximumGrey, channels.max()!)
+                }
+            }
+            return maximumAlpha - minimumAlpha <= 8 && maximumGrey - minimumGrey <= 8
+        }
 
         /// Bounds of pixels a person can see (top-left origin, like `CGImage.cropping`).
         func inkBounds(threshold: UInt8 = 24) -> CGRect? {
@@ -248,9 +283,10 @@ final class MenuBarGlyphCapture {
         guard parts.count == 3, let scale = Double(parts[1]), scale > 0,
               let source = CGImageSourceCreateWithURL(file as CFURL, nil),
               let cgImage = CGImageSourceCreateImageAtIndex(source, 0, nil) else { return nil }
-        let image = NSImage(cgImage: cgImage, size: CGSize(width: Double(cgImage.width) / scale,
-                                                           height: Double(cgImage.height) / scale))
-        image.isTemplate = parts[2] == "t"
-        return image
+        // Old cache metadata may call opaque grayscale artwork a template. Recheck its pixels
+        // with the same rules as a fresh capture so existing installs recover without deleting files.
+        return glyph(from: cgImage,
+                     crop: CGRect(x: 0, y: 0, width: Double(cgImage.width) / scale,
+                                  height: Double(cgImage.height) / scale), scale: scale)
     }
 }

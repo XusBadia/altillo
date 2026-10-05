@@ -3,7 +3,7 @@ import SwiftUI
 
 /// The capture is already trimmed to its visible pixels and sized in native points (pixels / capture scale).
 /// Every compact glyph is fitted to one optical box, so a 12 pt owner glyph and a 24 pt system glyph have the same
-/// visual weight in the Drawer. Wide status text keeps its aspect ratio and a variable width, at the same height.
+/// visual weight in the Drawer. Wide status text keeps its aspect ratio at a quieter, native-sized height.
 /// Monochrome captures arrive as templates and take the surrounding foreground style.
 struct MenuBarGlyph: View {
     let image: NSImage
@@ -15,9 +15,14 @@ struct MenuBarGlyph: View {
             return CGSize(width: box, height: box)
         }
         let isWide = imageSize.width / imageSize.height > 2
-        let scale = isWide
-            ? min(box / imageSize.height, 178 / imageSize.width)
-            : box / max(imageSize.width, imageSize.height)
+        // A battery is wide, but still one icon. Only longer sources are status text.
+        let isStatus = isWide && imageSize.width > 36
+        let scale: CGFloat
+        if isStatus {
+            scale = min(allowsEnlarging ? CGFloat.infinity : 1, 14 / imageSize.height, 178 / imageSize.width)
+        } else {
+            scale = min((isWide ? 24 : box) / imageSize.width, box / imageSize.height)
+        }
         return CGSize(width: imageSize.width * scale, height: imageSize.height * scale)
     }
 

@@ -1,5 +1,6 @@
 import AppKit
 import CoreGraphics
+import CryptoKit
 import Foundation
 import Testing
 @testable import Altillo
@@ -413,6 +414,8 @@ struct DrawerTests {
         // CGContext has a bottom-left origin; the glyph rectangles below are in top-left pixels.
         context.setFillColor(CGColor(red: 1, green: 1, blue: 1, alpha: 1))
         context.fill(CGRect(x: 20, y: 60 - 10 - 16, width: 12, height: 16))
+        // Give the glyph an actual alpha silhouette, not a featureless white tile.
+        context.clear(CGRect(x: 24, y: 60 - 14 - 8, width: 4, height: 8))
         context.setFillColor(CGColor(red: 1, green: 0, blue: 0, alpha: 1))
         context.fill(CGRect(x: 60, y: 60 - 20 - 8, width: 8, height: 8))
         return context.makeImage()!
@@ -432,6 +435,53 @@ struct DrawerTests {
 
     @Test func anEmptySpotHasNoGlyph() {
         #expect(MenuBarGlyphCapture.glyph(from: Self.bar(), crop: CGRect(x: 0, y: 20, width: 5, height: 5), scale: 2) == nil)
+    }
+
+    private static func opaqueArtwork(detailed: Bool = false, colored: Bool = false) -> CGImage {
+        let context = CGContext(data: nil, width: 16, height: 16, bitsPerComponent: 8, bytesPerRow: 0,
+                                space: CGColorSpace(name: CGColorSpace.sRGB)!,
+                                bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)!
+        context.setFillColor(CGColor(red: 1, green: colored ? 0 : 1, blue: colored ? 0 : 1, alpha: 1))
+        context.fill(CGRect(x: 0, y: 0, width: 16, height: 16))
+        if detailed {
+            // These two greys are close enough to pass the old monochrome heuristic.
+            context.setFillColor(CGColor(red: 0.88, green: 0.88, blue: 0.88, alpha: 1))
+            context.fill(CGRect(x: 4, y: 4, width: 8, height: 8))
+        }
+        return context.makeImage()!
+    }
+
+    @Test func blankWhiteCapturesUseTheFallback() {
+        #expect(MenuBarGlyphCapture.glyph(from: Self.opaqueArtwork(),
+            crop: CGRect(x: 0, y: 0, width: 16, height: 16), scale: 1) == nil)
+    }
+
+    @Test func opaqueGrayscaleArtworkKeepsItsDetailsInsteadOfBecomingAWhiteSquare() throws {
+        let glyph = try #require(MenuBarGlyphCapture.glyph(from: Self.opaqueArtwork(detailed: true),
+            crop: CGRect(x: 0, y: 0, width: 16, height: 16), scale: 1))
+        #expect(!glyph.isTemplate)
+        #expect(glyph.size == CGSize(width: 16, height: 16))
+    }
+
+    @Test func oldCachedTemplatesAreRevalidatedWithoutDiscardingColoredSquares() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let fixtures = [Self.item("blank"), Self.item("grayscale"), Self.item("colored")]
+        let artwork = [Self.opaqueArtwork(), Self.opaqueArtwork(detailed: true), Self.opaqueArtwork(colored: true)]
+        for (entry, pixels) in zip(fixtures, artwork) {
+            let key = SHA256.hash(data: Data(entry.id.utf8)).map { String(format: "%02x", $0) }.joined()
+            let file = directory.appendingPathComponent("\(key).2.t.png")
+            let png = try #require(NSBitmapImageRep(cgImage: pixels).representation(using: .png, properties: [:]))
+            try png.write(to: file)
+        }
+        let capture = MenuBarGlyphCapture(directory: directory, preflight: { true })
+        #expect(capture.image(for: fixtures[0]) == nil)
+        for entry in fixtures.dropFirst() {
+            let glyph = try #require(capture.image(for: entry))
+            #expect(!glyph.isTemplate)
+            #expect(glyph.size == CGSize(width: 8, height: 8))
+        }
     }
 
     @Test func foldedIconsAreNeverCaptured() {
