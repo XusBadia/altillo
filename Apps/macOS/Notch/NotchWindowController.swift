@@ -23,6 +23,7 @@ final class NotchWindowController {
         let bounds = NSRect(origin: .zero, size: NotchLayout.panelSize)
         let host = NotchHostView(frame: bounds)
         host.visibleShapeSize = { [weak model] in model?.visibleShapeSize ?? .zero }
+        host.visibleShapeOffset = { [weak model] in model?.visibleShapeOffset ?? 0 }
 
         dropTarget = DropTargetView(frame: bounds)
         dropTarget.autoresizingMask = [.width, .height]

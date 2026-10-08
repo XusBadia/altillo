@@ -7,18 +7,34 @@ import SwiftUI
 /// The band beside the hardware notch: a left ear, the notch body (kept clear), a right ear.
 struct EarBand<Leading: View, Trailing: View>: View {
     let chrome: NotchChrome
-    var earWidth: CGFloat
+    var leadingWidth: CGFloat
+    var trailingWidth: CGFloat
     @ViewBuilder var leading: Leading
     @ViewBuilder var trailing: Trailing
+
+    init(chrome: NotchChrome, earWidth: CGFloat,
+         @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
+        self.init(chrome: chrome, leadingWidth: earWidth, trailingWidth: earWidth, leading: leading, trailing: trailing)
+    }
+
+    /// Ears of their own widths (the resting ears fit what each one says).
+    init(chrome: NotchChrome, leadingWidth: CGFloat, trailingWidth: CGFloat,
+         @ViewBuilder leading: () -> Leading, @ViewBuilder trailing: () -> Trailing) {
+        self.chrome = chrome
+        self.leadingWidth = leadingWidth
+        self.trailingWidth = trailingWidth
+        self.leading = leading()
+        self.trailing = trailing()
+    }
 
     var body: some View {
         HStack(spacing: 0) {
             leading
-                .frame(width: earWidth, alignment: .center)
+                .frame(width: leadingWidth, alignment: .center)
                 .padding(.leading, chrome.topRadius)
             Color.clear.frame(width: chrome.clearWidth)
             trailing
-                .frame(width: earWidth, alignment: .center)
+                .frame(width: trailingWidth, alignment: .center)
                 .padding(.trailing, chrome.topRadius)
         }
         .frame(height: chrome.bandHeight)

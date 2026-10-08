@@ -70,26 +70,34 @@ enum NotchActivityLogic {
 
     /// The single activity the contextual ear shows, in priority order, among the sections that are on.
     static func resolve(_ inputs: NotchActivityInputs, enabled modules: Set<NotchModule>, now: Date) -> NotchActivity {
+        resolveAll(inputs, enabled: modules, now: now).first ?? .rest
+    }
+
+    /// Every activity going on, most important first: the contextual ear shows the first, and an ear that would
+    /// otherwise stay empty the next (`EarsArrangementLogic`). Never contains `.rest`.
+    static func resolveAll(_ inputs: NotchActivityInputs, enabled modules: Set<NotchModule>, now: Date) -> [NotchActivity] {
+        var activities: [NotchActivity] = []
         if modules.contains(.agents), let request = inputs.agentRequest {
-            return .agentRequest(request)
+            activities.append(.agentRequest(request))
         }
         if modules.contains(.calendar), let event = inputs.nextEvent, isImminent(event, now: now) {
-            return .imminentEvent(event)
+            activities.append(.imminentEvent(event))
         }
         // A timer about to ring (or ringing) outranks the music; one that's just running comes after it.
-        if modules.contains(.timer), let timer = inputs.timer, timer.isImminent || timer.isRinging {
-            return .timer(timer)
+        let timer = modules.contains(.timer) ? inputs.timer : nil
+        if let timer, timer.isImminent || timer.isRinging {
+            activities.append(.timer(timer))
         }
         if modules.contains(.nowPlaying), let playback = inputs.playback {
-            return .playback(playback)
+            activities.append(.playback(playback))
         }
-        if modules.contains(.timer), let timer = inputs.timer {
-            return .timer(timer)
+        if let timer, !(timer.isImminent || timer.isRinging) {
+            activities.append(.timer(timer))
         }
         if modules.contains(.usage), let usage = inputs.usage {
-            return .usage(usage)
+            activities.append(.usage(usage))
         }
-        return .rest
+        return activities
     }
 
     static func isImminent(_ event: EarEvent, now: Date) -> Bool {
@@ -113,12 +121,7 @@ enum NotchActivityLogic {
             }
             return String(localized: "\(request.agentName) is waiting for you")
         case let .imminentEvent(event):
-            let name = event.title.isEmpty ? String(localized: "Next event") : event.title
-            switch EarsLogic.label(for: event, now: now) {
-            case .now: return String(localized: "\(name) is starting now")
-            case let .countdown(minutes): return String(localized: "\(name) in \(minutes) minutes")
-            case let .at(date): return String(localized: "\(name) at \(date.formatted(date: .omitted, time: .shortened))")
-            }
+            return eventAccessibilityLabel(event, label: EarsLogic.label(for: event, now: now))
         case let .playback(playback):
             let title = playback.title.isEmpty ? playback.appName : playback.title
             if playback.artist.isEmpty { return String(localized: "Now playing: \(title)") }
@@ -131,6 +134,30 @@ enum NotchActivityLogic {
             return String(localized: "\(name) rings at \(timer.endsAt.formatted(date: .omitted, time: .shortened))")
         case .rest:
             return String(localized: "Nothing going on")
+        }
+    }
+
+    /// What VoiceOver reads for an event ear.
+    static func eventAccessibilityLabel(_ event: EarEvent, label: EarsLogic.EventLabel) -> String {
+        let name = event.title.isEmpty ? String(localized: "Next event") : event.title
+        switch label {
+        case .now: return String(localized: "\(name) is starting now")
+        case let .countdown(minutes): return String(localized: "\(name) in \(minutes) minutes")
+        case let .at(date): return String(localized: "\(name) at \(date.formatted(date: .omitted, time: .shortened))")
+        }
+    }
+
+    /// The tooltip over a resting ear: the whole sentence, for when its title was cut short.
+    static func earHelp(for item: EarItem, now: Date) -> String {
+        switch item {
+        case let .agentRequest(request): accessibilityLabel(for: .agentRequest(request), now: now)
+        case let .agents(counts): AgentsLogic.earAccessibilityLabel(counts)
+        case let .event(event, label): eventAccessibilityLabel(event, label: label)
+        case let .playback(playback): accessibilityLabel(for: .playback(playback), now: now)
+        case let .usage(usage, _): accessibilityLabel(for: .usage(usage), now: now)
+        case let .timer(timer): accessibilityLabel(for: .timer(timer), now: now)
+        case let .shelf(count): String(localized: "\(count) items on the shelf")
+        case let .quiet(content): content.title
         }
     }
 

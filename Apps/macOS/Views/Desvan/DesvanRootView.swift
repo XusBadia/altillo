@@ -41,6 +41,7 @@ struct DesvanRootView: View {
                 }
                 .clipShape(shape)
         }
+        .contentShape(shape)
         // The silhouette's size is animated here, one axis at a time, so each picks its own spring (the grown one
         // overshoots, the shrunk one never does) and a peek can grow sideways before it drops. The size is
         // interpolated frame by frame, so the shadow, the clip and the pinned face always agree mid-flight.
@@ -48,14 +49,18 @@ struct DesvanRootView: View {
         .transaction(value: chrome.size.height) { transaction in
             animate(&transaction, axis: .vertical, from: from, to: chrome)
         }
-        .modifier(SilhouetteLength(axis: .horizontal, length: chrome.size.width))
-        .transaction(value: chrome.size.width) { transaction in
+        // Width and offset move together: lopsided ears shift the shape's centre while the camera's band stays
+        // exactly over the notch, on every frame of the spring.
+        .modifier(SilhouetteSpan(width: chrome.size.width, offset: chrome.centerOffset))
+        .transaction(value: SpanKey(width: chrome.size.width, offset: chrome.centerOffset)) { transaction in
             animate(&transaction, axis: .horizontal, from: from, to: chrome)
         }
-        .contentShape(shape)
         .onChange(of: chrome.size, initial: true) { _, size in
             // Hit-testing follows the shape the notch is heading for.
             model.visibleShapeSize = size
+        }
+        .onChange(of: chrome.centerOffset, initial: true) { _, offset in
+            model.visibleShapeOffset = offset
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .environment(\.colorScheme, .dark)
@@ -174,6 +179,26 @@ private struct SilhouetteLength: ViewModifier, Animatable {
     }
 }
 
+/// The silhouette's width and its centre's offset from the notch, animated as one value (see `SilhouetteLength`).
+private struct SilhouetteSpan: ViewModifier, Animatable {
+    var width: CGFloat
+    var offset: CGFloat
+
+    nonisolated var animatableData: AnimatablePair<CGFloat, CGFloat> {
+        get { AnimatablePair(width, offset) }
+        set { (width, offset) = (newValue.first, newValue.second) }
+    }
+
+    func body(content: Content) -> some View {
+        content.frame(width: max(0, width)).offset(x: offset)
+    }
+}
+
+private struct SpanKey: Equatable {
+    var width: CGFloat
+    var offset: CGFloat
+}
+
 /// Picks the content for a face and lays the bulb's light over it.
 private struct DesvanFaceView: View {
     let model: NotchModel
@@ -204,36 +229,33 @@ private struct DesvanFaceView: View {
 
 // MARK: - Ears
 
-/// The resting notch with ears: whatever the user put in each one (Settings › Sections or edit mode). While ears
-/// only show with activity, a quiet one stays empty; when they always show, a quiet one keeps its glyph, unlit.
+/// The resting notch with ears (`NotchModel.earsArrangement`): each ear as wide as what it says, none at all for
+/// one with nothing to say, so the shape is lopsided rather than padded with black.
 private struct DesvanEarsFace: View {
     let model: NotchModel
     let chrome: NotchChrome
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
-        EarBand(chrome: chrome, earWidth: NotchChrome.earWidth) {
-            if model.scenario == .idleWithEars {
-                DesvanUsageEar(usage: model.demo.primaryUsage)
-            } else if model.scenario?.isAgentWaitingEars == true {
-                // What the contextual ear shows for a knocking agent (`DesvanContextualEar`).
-                DesvanKnockingHand(size: 13)
-            } else if model.scenario == nil {
-                DesvanEarContent(content: model.settings.leftEar, model: model, style: restingStyle)
-            }
+        let ears = model.earsArrangement
+        EarBand(chrome: chrome, leadingWidth: chrome.leftEarWidth, trailingWidth: chrome.rightEarWidth) {
+            ear(ears.left)
         } trailing: {
-            if model.scenario?.isAgentWaitingEars == true {
-                DesvanAgentsEar(counts: AgentsLogic.counts(model.demo.agents))
-            } else if model.scenario != nil {
-                // Design review: the shelf's sample count.
-                if !model.shelf.isEmpty { DesvanShelfCount(count: model.shelf.count) }
-            } else {
-                DesvanEarContent(content: model.settings.rightEar, model: model, style: restingStyle)
-            }
+            ear(ears.right)
         }
     }
 
-    private var restingStyle: DesvanEarContent.Style {
-        model.settings.earsVisibility == .always ? .resting : .live
+    private func ear(_ item: EarItem?) -> some View {
+        ZStack {
+            if let item {
+                DesvanEarItemView(item: item, model: model)
+                    .id(DesvanEarItemView.Kind(item))
+                    .transition(.contentSwap(shift: 3, reduceMotion: reduceMotion))
+            }
+        }
+        .animation(Desvan.Motion.pick(Desvan.Motion.content, reduceMotion: reduceMotion),
+                   value: item.map(DesvanEarItemView.Kind.init))
     }
 }
 

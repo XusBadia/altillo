@@ -74,6 +74,7 @@ final class NotchPanel: NSPanel {
 /// Root view of the panel. Only the visible notch shape is hit-testable; the rest of the panel is empty space.
 final class NotchHostView: NSView {
     var visibleShapeSize: () -> CGSize = { .zero }
+    var visibleShapeOffset: () -> CGFloat = { 0 }
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -86,10 +87,12 @@ final class NotchHostView: NSView {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
-    /// The drawn shape is centred horizontally and glued to the top edge.
+    /// The drawn shape is glued to the top edge, centred on the notch (or beside it, by its offset, when its ears
+    /// differ in width).
     var visibleShapeRect: NSRect {
         let size = visibleShapeSize()
-        return NSRect(x: bounds.midX - size.width / 2, y: bounds.maxY - size.height, width: size.width, height: size.height)
+        let midX = bounds.midX + visibleShapeOffset()
+        return NSRect(x: midX - size.width / 2, y: bounds.maxY - size.height, width: size.width, height: size.height)
     }
 
     override func hitTest(_ point: NSPoint) -> NSView? {

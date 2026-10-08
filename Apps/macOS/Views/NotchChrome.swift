@@ -45,6 +45,13 @@ struct NotchChrome: Equatable {
     /// Height reserved for the open notch's body (0 unless `face == .expanded`).
     var contentHeight: CGFloat = 0
     var showsDrawer: Bool = false
+    /// Width of each ear on the resting notch (`.ears` only, 0 elsewhere): each one grows to fit what it says, and
+    /// one with nothing to say takes no room.
+    var leftEarWidth: CGFloat = 0
+    var rightEarWidth: CGFloat = 0
+    /// How far the shape's centre sits right of the notch's (negative: left). Ears of different widths make the
+    /// shape lopsided while the camera's clear band stays exactly over the hardware notch.
+    var centerOffset: CGFloat = 0
     static let drawerHeight: CGFloat = 46
     /// The tab row under the Drawer: the tabs' 28 pt targets plus a little air.
     static let drawerNavigationHeight: CGFloat = 32
@@ -99,8 +106,7 @@ struct NotchChrome: Equatable {
     /// Room between the band (or each Drawer row) and what comes below it.
     static let expandedContentGap: CGFloat = 8
     static let expandedBottomInset: CGFloat = 16
-    /// Enough room for the widest compact indicator (a calendar plus a full clock time) to keep visible air on
-    /// both sides instead of touching either the hardware notch or the outer fillet.
+    /// The hover hint's ears, on either side of the notch. The resting ears fit their content instead (`EarMetrics`).
     static let earWidth: CGFloat = 68
     /// Peeks never narrow the ears that were already visible before the alert arrived.
     static let peekEarWidth: CGFloat = 76
@@ -139,7 +145,15 @@ struct NotchChrome: Equatable {
             showsShadow = !hasNotch
             topRadius = 6
             bottomRadius = hasNotch ? 10 : notch.height / 2
-            size = CGSize(width: clearWidth + 2 * Self.earWidth + 2 * topRadius, height: notch.height)
+            let ears = model.earsArrangement
+            let left = EarMetrics.width(for: ears.left)
+            let right = EarMetrics.width(for: ears.right)
+            leftEarWidth = left
+            rightEarWidth = right
+            // Over a hardware notch the shape leans towards the wider ear so the camera's band stays put; the island
+            // has no camera to dodge and stays centred on the screen.
+            centerOffset = hasNotch ? (right - left) / 2 : 0
+            size = CGSize(width: clearWidth + left + right + 2 * topRadius, height: notch.height)
         case .peek(.hint):
             topRadius = 6
             if hasNotch {
@@ -229,10 +243,10 @@ struct NotchChrome: Equatable {
         }
     }
 
-    /// Ears only appear when there is something to show (PLAN §3).
+    /// Ears only appear when there is something to show (PLAN §3): with ears always on, a quiet ear's glyph counts.
     @MainActor
     static func showsEars(_ model: NotchModel) -> Bool {
         if let scenario = model.scenario { return scenario == .idleWithEars || scenario.isAgentWaitingEars }
-        return model.ears.showsEars(for: model)
+        return !model.earsArrangement.isEmpty
     }
 }

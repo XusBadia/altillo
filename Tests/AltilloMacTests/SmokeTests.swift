@@ -47,17 +47,21 @@ struct SmokeTests {
         #expect(NotchChrome.drawerNavigationHeight >= DesvanHitTarget.minimum)
     }
 
-    /// A full calendar time and the usage ring with “100” keep enough room to clear the island's rounded edge
-    /// instead of looking pinned to it.
-    @Test func restingIndicatorsKeepBreathingRoom() {
-        #expect(NotchChrome.earWidth >= 68)
+    /// Each resting ear is as wide as what it says plus air on both sides; beside a hardware notch the shape is
+    /// lopsided with the camera's band still over the notch, and the island stays centred.
+    @Test func restingEarsFitWhatTheySay() {
         let model = NotchModel.preview(.idleWithEars)
         for hasNotch in [true, false] {
             model.hasNotch = hasNotch
             let chrome = NotchChrome(model: model)
             #expect(chrome.face == .ears)
-            let expectedWidth = chrome.clearWidth + 2 * NotchChrome.earWidth + 2 * chrome.topRadius
+            let ears = model.earsArrangement
+            #expect(ears.left != nil && ears.right != nil)
+            #expect(chrome.leftEarWidth >= EarMetrics.contentWidth(for: ears.left!) + 2 * EarMetrics.padding - 1)
+            #expect(chrome.rightEarWidth >= EarMetrics.contentWidth(for: ears.right!) + 2 * EarMetrics.padding - 1)
+            let expectedWidth = chrome.clearWidth + chrome.leftEarWidth + chrome.rightEarWidth + 2 * chrome.topRadius
             #expect(abs(chrome.size.width - expectedWidth) < 0.001)
+            #expect(abs(chrome.centerOffset - (hasNotch ? (chrome.rightEarWidth - chrome.leftEarWidth) / 2 : 0)) < 0.001)
         }
     }
 

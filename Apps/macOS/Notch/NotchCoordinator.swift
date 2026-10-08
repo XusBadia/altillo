@@ -785,12 +785,20 @@ final class NotchCoordinator {
         let clearWidth = chrome.face == .ears || chrome.hasNotch ? chrome.clearWidth : 0
         let shape = window.visibleShapeScreenRect
         guard shape.contains(point) else { return nil }
+        // Lopsided ears move the shape's centre off the notch's; the camera's band stays over the notch.
+        let notchMidX = shape.midX - (chrome.face == .ears ? chrome.centerOffset : 0)
         let side: EarSide
-        if point.x < shape.midX - clearWidth / 2 { side = .left }
-        else if point.x > shape.midX + clearWidth / 2 { side = .right }
+        if point.x < notchMidX - clearWidth / 2 { side = .left }
+        else if point.x > notchMidX + clearWidth / 2 { side = .right }
         else { return nil }
-        let content = side == .left ? model.settings.leftEar : model.settings.rightEar
-        let module = content == .automatic ? model.contextualActivity.module : content.module
+        let module: NotchModule?
+        if chrome.face == .ears {
+            // Whatever that ear is showing right now, including an activity filling an otherwise empty ear.
+            module = model.earsArrangement.item(on: side)?.module
+        } else {
+            let content = side == .left ? model.settings.leftEar : model.settings.rightEar
+            module = content == .automatic ? model.contextualActivity.module : content.module
+        }
         guard let module, model.settings.modules.contains(module) else { return nil }
         return module
     }

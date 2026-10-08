@@ -93,6 +93,8 @@ final class NotchModel {
     /// Size of the black notch shape currently drawn, reported by the views.
     /// The coordinator uses it for hit-testing and hover tracking.
     var visibleShapeSize: CGSize = .zero
+    /// How far that shape's centre sits right of the notch's (lopsided ears, `NotchChrome.centerOffset`).
+    var visibleShapeOffset: CGFloat = 0
 
     var actions = NotchActions()
 
@@ -143,7 +145,12 @@ final class NotchModel {
     /// An agent waiting for the user comes first (`AgentHub`); AI usage takes part while its main limit runs high
     /// (`UsageStore.contextualSignal`).
     var contextualActivity: NotchActivity {
-        guard scenario == nil else { return .rest }
+        contextualActivities.first ?? .rest
+    }
+
+    /// Everything going on, most important first (`NotchActivityLogic.resolveAll`).
+    var contextualActivities: [NotchActivity] {
+        guard scenario == nil else { return [] }
         let inputs = NotchActivityInputs(
             agentRequest: AgentsLogic.requestSignal(in: agentHub.sessions),
             nextEvent: ears.nextEvent,
@@ -151,7 +158,58 @@ final class NotchModel {
             usage: usage.contextualSignal,
             timer: timers.contextualSignal
         )
-        return NotchActivityLogic.resolve(inputs, enabled: Set(settings.modules), now: ears.clock)
+        return NotchActivityLogic.resolveAll(inputs, enabled: Set(settings.modules), now: ears.clock)
+    }
+
+    /// What each ear beside the resting notch shows right now (`EarsArrangementLogic`). Design scenarios show
+    /// their sample content instead.
+    var earsArrangement: EarsArrangement {
+        if scenario == .idleWithEars {
+            let primary = demo.primaryUsage
+            let left = primary.headline.map {
+                EarItem.usage(UsageSignal(providerName: primary.displayName, fraction: $0.used), isStale: false)
+            }
+            return EarsArrangement(left: left, right: shelf.isEmpty ? nil : .shelf(count: shelf.count))
+        }
+        if scenario?.isAgentWaitingEars == true {
+            return EarsArrangement(
+                left: AgentsLogic.requestSignal(in: demo.agents).map(EarItem.agentRequest),
+                right: .agents(AgentsLogic.counts(demo.agents))
+            )
+        }
+        guard scenario == nil else { return EarsArrangement() }
+        return EarsArrangementLogic.arrange(
+            left: settings.leftEar,
+            right: settings.rightEar,
+            visibility: settings.earsVisibility,
+            activities: contextualActivities,
+            now: ears.clock
+        ) { content in
+            fixedEarItem(content)
+        }
+    }
+
+    /// What a fixed ear says right now, or nil while it has nothing to say.
+    private func fixedEarItem(_ content: EarContent) -> EarItem? {
+        switch content {
+        case .none, .automatic:
+            return nil
+        case .shelf:
+            return shelf.isEmpty ? nil : .shelf(count: shelf.count)
+        case .nextEvent:
+            guard let event = ears.nextEvent, let label = ears.nextEventLabel else { return nil }
+            return .event(event, label)
+        case .nowPlaying:
+            return nowPlaying.isPlaying ? nowPlaying.playbackSignal.map(EarItem.playback) : nil
+        case .usage:
+            guard let primary = usage.primary, let window = primary.headline else { return nil }
+            return .usage(UsageSignal(providerName: primary.displayName, fraction: window.used),
+                          isStale: primary.isStale(limit: UsageStore.staleAfter))
+        case .agents:
+            guard settings.isEnabled(.agents) else { return nil }
+            let counts = AgentsLogic.counts(agentHub.sessions)
+            return counts.active > 0 ? .agents(counts) : nil
+        }
     }
 
     /// The neighbouring section in the tab strip (`offset` +1 right, -1 left), or nil at either end.
