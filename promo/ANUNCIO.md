@@ -61,6 +61,23 @@ Los datos (archivos, agentes, eventos, canción, respuesta de Pregunta) son el c
 - **MacBook y fondos:** `public/anuncio/product/`, generados con gpt-image (prompts en su `README.md`). El MacBook no lleva logotipo. La pantalla real se compone encima.
 - **Tipografía:** fuente del sistema (SF) mediante `system-ui`.
 
+## Teaser «Mira arriba»
+
+`videos/altillo-teaser.mp4` (ES) y `videos/altillo-teaser-en.mp4` (EN): 16 s, 1920×1080, 60 fps, para X. Pieza propia (`src/anuncio/Misterio.tsx`), no un remontaje del anuncio. Es misteriosa: lleva el nombre, pero no la web.
+
+| Compás | Tiempo | Plano |
+|---|---|---|
+| 1–2 | 0–4 s | El notch cerrado en la oscuridad; la luz cálida de la rendija crece despacio, sin parpadeos. «Llevas años mirándolo.» / «Pero nunca has mirado dentro.» |
+| 3–4 | 4–8 s | Plano fijo: el notch se abre y cambia de pestaña cada dos tiempos (Altillo, Uso, Agentes, Cajón) |
+| 5 | 8–10 s | Una pestaña por tiempo: Sonando, Pregunta, Agenda, Uso |
+| 6 | 10–12 s | Una por medio tiempo, con la subida; el notch se cierra justo antes del silencio |
+| 7 | 12–13 s | Silencio total: «Mira arriba.» |
+| 7–8 | 13–16 s | Golpe final: notch con luz, «Altillo», «Muy pronto.» |
+
+La cámara no salta: un solo plano con el borde de la pantalla arriba, empuje lento (2,05 → 2,4 px/pt) y un paneo de 20 pt. Los cambios de pestaña usan los muelles del anuncio (la forma se ajusta y el contenido cruza). La secuencia está en `TABS`.
+
+Música: `public/anuncio/audio/teaser-misterio.wav`, generada con `python3 scripts/teaser-music.py`. Es la B del anuncio oída «a través del techo»: paso bajo que se abre de 260 Hz a 12 kHz, silencio en «Mira arriba» y golpe final sin filtro a los 13,000 s. Mide −13,9 LUFS y −2,1 dBTP.
+
 ## Product Hunt
 
 Kit completo en `producthunt/` (miniatura, galería 1270×760, vídeo y textos): ver `producthunt/README.md`.
@@ -71,4 +88,6 @@ Kit completo en `producthunt/` (miniatura, galería 1270×760, vídeo y textos):
 cd promo
 npm run render:anuncio      # español
 npm run render:anuncio:en   # inglés
+npm run render:teaser       # teaser «Mira arriba», español
+npm run render:teaser:en    # teaser, inglés
 ```
