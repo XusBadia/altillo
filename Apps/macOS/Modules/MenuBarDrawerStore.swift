@@ -85,6 +85,16 @@ final class MenuBarDrawerStore: NSObject {
     /// Bundles already shown once for their glyph: each is revealed at most once per launch.
     @ObservationIgnored private var glyphRevealAttempts: Set<String> = []
     @ObservationIgnored private var reportedMenuBarInteraction = false
+    /// The processes the last scan read. Menu-bar-only apps launch and quit without workspace notifications.
+    @ObservationIgnored private var scannedPIDs: Set<Int32> = []
+    /// Every Drawer button on screen, by entry id, to recognise a click another app's panel swallowed.
+    @ObservationIgnored private var anchors: [String: MenuBarPopupAnchor] = [:]
+    /// Identifies the newest activation, so an older one finishing never clears it.
+    @ObservationIgnored private var activationToken: UUID?
+    /// The icon the newest activation is opening.
+    @ObservationIgnored private var activatingEntryID: String?
+    /// When the open panel appeared: a second click right after is part of the same gesture, not a close.
+    @ObservationIgnored private var menuOpenedAt: ContinuousClock.Instant?
     @ObservationIgnored private var currentMenuSession: MenuBarMenuSession?
     @ObservationIgnored private var currentMenuEntryID: String?
     @ObservationIgnored private var accessRecheckTask: Task<Void, Never>?
@@ -112,6 +122,10 @@ final class MenuBarDrawerStore: NSObject {
     /// An app's own panel is opening from the Drawer (true) or has closed (false). The open notch stays where it
     /// is, but steps down to the status bar's level so the panel can draw over it.
     @ObservationIgnored var menuBarInteractionChanged: ((Bool) -> Void)?
+    /// Folds the open notch, for an icon behind it whose app answers nothing but a real click.
+    @ObservationIgnored var foldNotchForClick: (() -> Void)?
+    /// The open notch's visible shape in screen coordinates, so a panel drawn below its level can open under it.
+    @ObservationIgnored var notchVisibleFrame: (() -> CGRect?)?
 
     private func reportMenuBarInteraction() {
         let active = isPerformingMenuBarInteraction
@@ -449,6 +463,7 @@ final class MenuBarDrawerStore: NSObject {
             return
         }
         checkAccess()
+        if catalogIsStale == false, Set(runningApplications().map(\.pid)) != scannedPIDs { catalogIsStale = true }
         if DrawerRefreshPolicy.needsScan(isStale: catalogIsStale, hasEntries: !entries.isEmpty,
                                          lastScan: lastScan, now: .now, maxAge: Self.catalogMaxAge) {
             scheduleRefresh(after: .milliseconds(120))
@@ -499,6 +514,7 @@ final class MenuBarDrawerStore: NSObject {
         isLoading = true
         catalogIsStale = false
         let applications = runningApplications()
+        scannedPIDs = Set(applications.map(\.pid))
         scanTask = Task { [weak self, accessibility] in
             let result = await accessibility.scan(applications: applications)
             guard !Task.isCancelled, let self else { return }
@@ -660,24 +676,50 @@ final class MenuBarDrawerStore: NSObject {
 
     // MARK: - Opening an icon
 
-    /// Opens an icon's menu beside `anchor`, whether or not the icon is hidden: macOS keeps concealed items
+    /// Opens an icon's menu at its Drawer button, whether or not the icon is hidden: macOS keeps concealed items
     /// in the Accessibility tree with their actions.
+    ///
+    /// Standard menus are mirrored at the button. Anything else is opened by the app itself: its real icon is
+    /// shown for a moment and clicked (Accessibility's press when it can't be clicked or the click didn't take),
+    /// and the panel it opens is brought to the button, or just below the open notch when it would draw under it.
+    /// A click is never dropped: a newer one replaces whatever is still in progress.
     func activate(_ entry: MenuBarEntry, anchor: MenuBarPopupAnchor) {
         checkAccess()
-        guard hasAccess, let anchorRect = anchor.screenRect(), activationTask == nil else { return }
-        menuSessionTask?.cancel()
-        menuSessionTask = nil
+        guard hasAccess, let anchorRect = anchor.screenRect() else {
+            Self.log.debug("activate \(entry.id, privacy: .public) skipped ax=\(self.hasAccess)")
+            return
+        }
+        // A second click on the icon that's still opening is impatience, not a request to close and start over.
+        if activationTask != nil, activatingEntryID == entry.id { return }
+        if currentMenuEntryID == entry.id, let openedAt = menuOpenedAt, ContinuousClock.now - openedAt < .milliseconds(600) {
+            return
+        }
+        Self.log.debug("activate \(entry.id, privacy: .public) busy=\(self.activationTask != nil)")
+        let previousActivation = activationTask
+        previousActivation?.cancel()
         problem = nil
+        let token = UUID()
+        activationToken = token
+        activatingEntryID = entry.id
+        // Started before the watcher stops, so the notch never leaves its interaction level in between.
         activationTask = Task { [weak self, accessibility] in
+            await previousActivation?.value
             guard let self else { return }
-            defer { self.activationTask = nil }
-            if let previous = self.currentMenuSession {
-                let wasPresented = await previous.isPresented() == true
-                let closesSamePanel = self.currentMenuEntryID == entry.id && wasPresented
-                guard await self.dismissMenu(previous, entryID: self.currentMenuEntryID) else {
-                    self.problem = String(localized: "Close the open menu, then try again.")
-                    return
+            defer {
+                if self.activationToken == token {
+                    self.activationTask = nil
+                    self.activatingEntryID = nil
                 }
+            }
+            guard !Task.isCancelled else { return }
+            // A glyph reveal in flight would hide the icon again under the click.
+            await self.glyphRevealTask?.value
+            if let previous = self.currentMenuSession {
+                let previousIsOpen = await previous.isPresented() == true
+                let closesSamePanel = self.currentMenuEntryID == entry.id && previousIsOpen
+                // Best effort: a panel that won't close (or an app window) never blocks the next icon.
+                let dismissed = await self.dismissMenu(previous, entryID: self.currentMenuEntryID)
+                Self.log.debug("previous menu dismissed=\(dismissed) samePanel=\(closesSamePanel)")
                 self.currentMenuSession = nil
                 self.currentMenuEntryID = nil
                 if closesSamePanel {
@@ -687,7 +729,24 @@ final class MenuBarDrawerStore: NSObject {
             }
             // Whatever the previous menu showed goes back into hiding (its watcher may have been cancelled).
             self.endRevealForMenu()
+            guard !Task.isCancelled else { return }
+            // An app that quit and came back has new status items: read them before opening one.
+            var entry = entry
+            let itemFrame = await accessibility.currentFrame(id: entry.id)
+            if NSRunningApplication(processIdentifier: entry.application.pid) == nil || itemFrame == nil {
+                Self.log.debug("stale item \(entry.id, privacy: .public): rescanning")
+                self.catalogIsStale = true
+                self.refresh()
+                await self.scanTask?.value
+                guard !Task.isCancelled else { return }
+                guard let fresh = self.entries.first(where: { $0.id == entry.id }) else {
+                    self.problem = String(localized: "This icon is no longer in the menu bar.")
+                    return
+                }
+                entry = fresh
+            }
             if let snapshot = await accessibility.menuSnapshot(id: entry.id), !snapshot.nodes.isEmpty {
+                Self.log.debug("path=mirrored nodes=\(snapshot.nodes.count)")
                 switch self.menuPresenter.present(snapshot.nodes, at: anchorRect,
                                                 hasUnsupportedContent: snapshot.hasUnsupportedContent) {
                 case .selected(let actionID):
@@ -697,60 +756,133 @@ final class MenuBarDrawerStore: NSObject {
                     }
                 case .unavailable:
                     self.problem = String(localized: "This menu couldn't be displayed. Try opening it again.")
-                case .cancelled: break
+                case .cancelled:
+                    // A click on another Drawer icon closes the menu first, as in the menu bar; then opens that icon.
+                    let sinceClick = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .leftMouseDown)
+                    if sinceClick < 0.4, let (other, otherAnchor) = self.drawerIcon(at: NSEvent.mouseLocation), other.id != entry.id {
+                        Self.log.debug("menu closed by a click on \(other.id, privacy: .public): opening it")
+                        self.activate(other, anchor: otherAnchor)
+                    }
                 }
                 return
             }
-            // No standard menu to mirror: click the real icon, shown for a moment if it's hidden, so its app
-            // opens its own menu or panel the way it was written to. The notch stays open (the click passes
-            // through it) and the panel is brought to the Drawer button, as if it had opened from there.
-            let panelOwner = Self.panelOwnerPID(for: entry)
-            let top = NSScreen.screens.first?.frame.maxY ?? 0
-            let point = CGPoint(x: anchorRect.minX, y: top - anchorRect.minY + 4)
-            let screens = NSScreen.screens.map {
-                DrawerGeometry.accessibilityFrame($0.frame, primaryScreenHeight: top)
-            }
-            // Both read the owner's windows before the click, so its new panel is the one they follow.
-            let clickPlacement = MenuBarPopoverPlacement(pid: panelOwner)
-            let clickSession = MenuBarMenuSession(pid: panelOwner)
-            if case .clicked(let revealed) = await self.clickRealIcon(entry) {
-                self.revealedForMenu = revealed
-                guard !Task.isCancelled else {
-                    self.endRevealForMenu()
-                    return
-                }
-                // Ordinary menus can't be moved and stay under the real icon, which is fine: they draw above the notch.
-                _ = await clickPlacement.place(at: point, screens: screens)
-                guard !Task.isCancelled else {
-                    self.endRevealForMenu()
-                    return
-                }
-                self.currentMenuEntryID = entry.id
-                self.watchMenu(clickSession)
-                return
-            }
-            // The icon can't be shown where a click reaches it (e.g. behind the notch): open it through
-            // Accessibility and move its panel beside the Drawer instead.
-            let placement = MenuBarPopoverPlacement(pid: panelOwner)
-            let session = MenuBarMenuSession(pid: panelOwner)
-            let outcome = await accessibility.perform(id: entry.id, showMenu: false)
-            guard !Task.isCancelled else { return }
-            if case .unavailable = outcome {
-                self.problem = String(localized: "This app doesn't expose a menu that Altillo can open.")
-                return
-            }
-            guard await placement.place(at: point, screens: screens) else {
-                if !(await session.dismiss()), await session.isPresented() == true {
-                    // Control Center's popovers ignore Escape; their status action toggles them closed.
-                    _ = await accessibility.perform(id: entry.id, showMenu: false)
-                }
-                self.problem = String(localized: "macOS didn't allow this app's panel to open beside its icon.")
-                return
-            }
-            guard !Task.isCancelled else { _ = await session.dismiss(); return }
-            self.currentMenuEntryID = entry.id
-            self.watchMenu(session)
+            await self.openOwnPanel(of: entry, at: anchorRect)
         }
+        menuSessionTask?.cancel()
+        menuSessionTask = nil
+    }
+
+    func registerAnchor(_ anchor: MenuBarPopupAnchor, for entry: MenuBarEntry) {
+        anchors[entry.id] = anchor
+    }
+
+    /// The Drawer icon at `point` (AppKit screen coordinates), with its button.
+    private func drawerIcon(at point: CGPoint) -> (MenuBarEntry, MenuBarPopupAnchor)? {
+        for entry in drawerEntries {
+            if let anchor = anchors[entry.id], anchor.screenRect()?.contains(point) == true { return (entry, anchor) }
+        }
+        return nil
+    }
+
+    /// While an app's menu or panel is open, a click on another Drawer icon goes to that app (which closes its panel)
+    /// rather than to Altillo. Like the menu bar, that one click also opens the icon clicked; a click on the icon
+    /// whose panel is open only closes it.
+    func handleClickWhileMenuOpen(at point: CGPoint) {
+        guard isPerformingMenuBarInteraction, !MenuBarItemClicker.isClicking, let (entry, anchor) = drawerIcon(at: point),
+              entry.id != currentMenuEntryID else { return }
+        Self.log.debug("click on \(entry.id, privacy: .public) taken by the open panel: opening it")
+        activate(entry, anchor: anchor)
+    }
+
+    /// Opens the app's own menu or panel (see `activate`) and follows it until it closes.
+    private func openOwnPanel(of entry: MenuBarEntry, at anchorRect: CGRect) async {
+        let panelOwner = Self.panelOwnerPID(for: entry)
+        let top = NSScreen.screens.first?.frame.maxY ?? 0
+        let screens = NSScreen.screens.map { DrawerGeometry.accessibilityFrame($0.frame, primaryScreenHeight: top) }
+        let button = DrawerGeometry.accessibilityFrame(anchorRect, primaryScreenHeight: top)
+        // The open notch, in Accessibility coordinates: panels drawn below its level must clear it, and an icon
+        // underneath it can't be clicked.
+        let notch = notchVisibleFrame?().map { DrawerGeometry.accessibilityFrame($0, primaryScreenHeight: top) }
+        let notchBottom = notch?.maxY ?? button.maxY
+        // Both read the owner's windows before anything opens, so its new panel is the one they follow.
+        let placement = MenuBarPopoverPlacement(pid: panelOwner)
+        let session = MenuBarMenuSession(pid: panelOwner)
+
+        let bundleID = entry.application.bundleID
+        let reveal = isConcealing && isInDrawer(entry)
+        // A hidden icon keeps a stale frame until MenuBarAgent draws it again.
+        let hiddenFrame = reveal ? await accessibility.currentFrame(id: entry.id) : nil
+        if reveal {
+            temporarilyShown.insert(bundleID)
+            revealedForMenu = bundleID
+            applyConcealment()
+            await concealTask?.value
+        }
+        var opened = false
+        let target = await clickTarget(for: entry, hiddenFrame: hiddenFrame, avoiding: notch)
+        if case .clickable(let frame) = target {
+            let clicked = await MenuBarItemClicker.click(frame)
+            opened = clicked ? await waitUntilPresented(session) : false
+            Self.log.debug("path=click target=\(String(describing: frame), privacy: .public) clicked=\(clicked) opened=\(opened)")
+        }
+        if !opened, !Task.isCancelled {
+            // No click to make, or it didn't take: some apps only answer Accessibility's press.
+            let outcome = await accessibility.perform(id: entry.id, showMenu: false)
+            opened = await waitUntilPresented(session)
+            Self.log.debug("path=press outcome=\(String(describing: outcome), privacy: .public) opened=\(opened)")
+            if !opened, !Task.isCancelled, case .underNotch(let frame) = target {
+                // The app only answers a real click, and the open notch covers its icon: fold the notch first.
+                foldNotchForClick?()
+                try? await Task.sleep(for: .milliseconds(300))
+                let clicked = await MenuBarItemClicker.click(frame)
+                opened = clicked ? await waitUntilPresented(session) : false
+                Self.log.debug("path=fold+click clicked=\(clicked) opened=\(opened)")
+            }
+            if !opened, target?.isReachable != true {
+                problem = if case .unavailable = outcome {
+                    String(localized: "This app doesn't expose a menu that Altillo can open.")
+                } else if target == nil {
+                    // Drawn where no click reaches it (macOS's overflow «, behind the camera), and no answer to the press.
+                    String(localized: "This app didn't open its menu from Altillo. Try it from the menu bar.")
+                } else {
+                    // Never drawn: usually an icon turned off in System Settings.
+                    String(localized: "This app didn't open its menu. Check that its icon is allowed in System Settings › Menu Bar.")
+                }
+                endRevealForMenu()
+                return
+            }
+        }
+        guard !Task.isCancelled else {
+            endRevealForMenu()
+            return
+        }
+        let placed = await placement.place(screens: screens) { window in
+            // Centred under the button. Panels above the notch's level can overlap it; the rest open below it.
+            let x = button.midX - window.content.width / 2
+            let y = window.layer >= Int(CGWindowLevelForKey(.statusWindow)) ? button.maxY + 4 : notchBottom + 6
+            return CGPoint(x: x, y: y)
+        }
+        Self.log.debug("placement=\(String(describing: placed), privacy: .public)")
+        if placed == .standardWindow {
+            // The app opened one of its own windows: it's the app's from here on. The notch closes as usual
+            // once the pointer leaves it.
+            endRevealForMenu()
+            return
+        }
+        currentMenuEntryID = entry.id
+        menuOpenedAt = .now
+        watchMenu(session, presentedAlready: opened)
+    }
+
+    /// Up to `timeout` for the owner to show a menu or panel.
+    private func waitUntilPresented(_ session: MenuBarMenuSession, timeout: Duration = .milliseconds(700)) async -> Bool {
+        let deadline = ContinuousClock.now + timeout
+        while ContinuousClock.now < deadline {
+            if await session.isPresented() == true { return true }
+            guard !Task.isCancelled else { return false }
+            try? await Task.sleep(for: .milliseconds(60))
+        }
+        return false
     }
 
     private func dismissMenu(_ session: MenuBarMenuSession, entryID: String?) async -> Bool {
@@ -765,46 +897,59 @@ final class MenuBarDrawerStore: NSObject {
         return false
     }
 
-    /// Clicks `entry`'s real icon. A hidden icon's app is shown first (growing the allow-list is seamless) and
-    /// its fresh frame awaited. Returns nil when no click happened; otherwise the bundle shown for the click, if any.
-    private enum ClickOutcome {
-        case notClicked
-        /// `revealed`: the Drawer app shown in the menu bar for this click, to hide again when its menu closes.
-        case clicked(revealed: String?)
+    /// Where a click can reach an icon.
+    private enum ClickTarget {
+        case clickable(CGRect)
+        /// Allowed, but never drawn: macOS itself keeps it out of the menu bar (System Settings › Menu Bar).
+        case notDrawn
+        /// Drawn, but behind the open notch: reachable only once the notch folds.
+        case underNotch(CGRect)
+
+        var isReachable: Bool {
+            if case .notDrawn = self { false } else { true }
+        }
     }
 
-    private func clickRealIcon(_ entry: MenuBarEntry) async -> ClickOutcome {
-        let bundleID = entry.application.bundleID
-        let reveal = isConcealing && isInDrawer(entry)
-        if reveal {
-            temporarilyShown.insert(bundleID)
-            applyConcealment()
-            await concealTask?.value
-            // MenuBarAgent draws the icon and updates its Accessibility frame a moment later.
-            try? await Task.sleep(for: .milliseconds(150))
-        }
-        var settled: CGRect?
+    /// Where a click reaches `entry`'s icon, or nil when it can't be clicked where it's drawn (behind the camera
+    /// housing, folded into macOS's overflow «). A revealed icon's frame is only trusted once MenuBarAgent has
+    /// moved it, or after a while.
+
+    private func clickTarget(for entry: MenuBarEntry, hiddenFrame: CGRect?, avoiding notch: CGRect?) async -> ClickTarget? {
+        let start = ContinuousClock.now
         var previous: CGRect?
-        for _ in 0..<15 {
-            guard !Task.isCancelled else { break }
+        while ContinuousClock.now - start < .milliseconds(1_200) {
+            guard !Task.isCancelled else { return nil }
             let frame = await accessibility.currentFrame(id: entry.id)
-            // Icons folded into macOS's overflow («) share one frame; a click there opens the overflow instead.
+            // Icons folded into the overflow share one frame; a click there opens the overflow instead.
             // Compare with where the neighbours are now: revealing an icon shifts them.
             let neighbours = Array(await accessibility.currentFrames(
                 ids: drawnEntries.map(\.id).filter { $0 != entry.id }).values)
-            if let frame, frame == previous, MenuBarItemClicker.isClickable(frame),
+            let fresh = hiddenFrame == nil || frame != hiddenFrame || ContinuousClock.now - start > .milliseconds(450)
+            if let frame, frame == previous, fresh, MenuBarItemClicker.isClickable(frame),
                !MenuBarGlyphCapture.overlapsAnother(frame, among: neighbours) {
-                settled = frame
-                break
+                // Under the open notch a click lands on Altillo, not the icon.
+                if let notch, notch.intersects(frame) {
+                    Self.log.debug("icon under the notch: pressing it instead")
+                    return .underNotch(frame)
+                }
+                return .clickable(frame)
             }
             previous = frame
-            try? await Task.sleep(for: .milliseconds(100))
+            try? await Task.sleep(for: .milliseconds(70))
         }
-        guard let settled, await MenuBarItemClicker.click(settled) else {
-            if reveal { endTemporaryReveal(of: bundleID) }
-            return .notClicked
+        Self.log.debug("no click target: last=\(String(describing: previous), privacy: .public)")
+        if hiddenFrame != nil, let previous, !Self.isInMenuBar(previous) { return .notDrawn }
+        return nil
+    }
+
+    /// Status items sit in a screen's top band; MenuBarAgent parks undrawn ones elsewhere (bottom-left).
+    private static func isInMenuBar(_ frame: CGRect) -> Bool {
+        guard let primary = NSScreen.screens.first else { return false }
+        let top = primary.frame.maxY
+        return NSScreen.screens.contains { screen in
+            let bounds = DrawerGeometry.accessibilityFrame(screen.frame, primaryScreenHeight: top)
+            return bounds.contains(CGPoint(x: frame.midX, y: frame.midY)) && frame.minY - bounds.minY < 40
         }
-        return .clicked(revealed: reveal ? bundleID : nil)
     }
 
     private func endRevealForMenu() {
@@ -821,10 +966,10 @@ final class MenuBarDrawerStore: NSObject {
 
     /// Follows an open panel until it closes, so the notch's hover doesn't interfere meanwhile.
     /// A cancelled watcher leaves the reveal to whoever cancelled it (a new activation, or `stop()`).
-    private func watchMenu(_ session: MenuBarMenuSession) {
+    private func watchMenu(_ session: MenuBarMenuSession, presentedAlready: Bool = false) {
         currentMenuSession = session
         menuSessionTask = Task { [weak self] in
-            var observedMenu = false
+            var observedMenu = presentedAlready
             var closedSamples = 0
             // A missing AX answer is never grounds to consider a menu closed.
             for sample in 0..<1_200 {
@@ -835,7 +980,9 @@ final class MenuBarDrawerStore: NSObject {
                 if presented == true { observedMenu = true; closedSamples = 0 }
                 else if presented == false, observedMenu { closedSamples += 1 }
                 else { closedSamples = 0 }
-                if closedSamples >= 2 || (sample >= 11 && !observedMenu) {
+                // Nothing seen after the press either: an immediate action, so don't hold the notch for long.
+                if closedSamples >= 2 || (sample >= (presentedAlready ? 11 : 4) && !observedMenu) {
+                    Self.log.debug("menu session ended observed=\(observedMenu) sample=\(sample)")
                     // Closed, or an immediate action without any panel.
                     self.currentMenuSession = nil
                     self.currentMenuEntryID = nil

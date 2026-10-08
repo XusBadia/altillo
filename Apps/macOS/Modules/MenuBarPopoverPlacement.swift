@@ -9,6 +9,24 @@ actor MenuBarPopoverPlacement {
     private struct Window {
         let id: CGWindowID
         let frame: CGRect
+        let layer: Int
+    }
+
+    /// A window the owner opened after the click: what decides where it goes.
+    struct OpenedWindow: Sendable {
+        /// The visible part, in Accessibility coordinates (Control Center's backing window is mostly transparent).
+        let content: CGRect
+        /// The WindowServer layer: status-item panels sit at the status bar's level or above, ordinary windows at 0.
+        let layer: Int
+    }
+
+    enum Outcome: Sendable, Equatable {
+        /// Moved where `destination` asked.
+        case placed(layer: Int)
+        /// The app opened one of its own windows: it's left where the app put it.
+        case standardWindow
+        /// No movable new window appeared (ordinary menus aren't windows Accessibility can move).
+        case none
     }
 
     private let pid: Int32
@@ -21,40 +39,53 @@ actor MenuBarPopoverPlacement {
         originalWindowIDs = Set(Self.windows(pid: pid).map(\.id))
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 0.1)
-        originalAXWindows = Self.axWindows(application)
+        originalAXWindows = Self.axWindows(application) + Self.axPopovers(application)
     }
 
     /// Coordinates use the Accessibility / CoreGraphics global top-left origin.
     func place(at point: CGPoint, screens: [CGRect]) async -> Bool {
         guard point.x.isFinite, point.y.isFinite else { return false }
+        if case .placed = await place(screens: screens, destination: { _ in point }) { return true }
+        return false
+    }
+
+    /// Waits briefly for the owner's new window and moves its visible part to `destination`'s top-left point.
+    /// Standard app windows are reported, never moved: they belong where the app opens them.
+    func place(screens: [CGRect], attempts: Int = 16,
+               destination: @Sendable (OpenedWindow) -> CGPoint) async -> Outcome {
         let application = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(application, 0.1)
-        for _ in 0..<10 {
-            guard !Task.isCancelled else { return false }
+        for _ in 0..<attempts {
+            guard !Task.isCancelled else { return .none }
             let candidates = Self.windows(pid: pid, includeOffscreen: true).filter { !originalWindowIDs.contains($0.id) }
-            for element in Self.axWindows(application) {
+            // NSPopover isn't one of the app's windows for Accessibility: it hangs off its status items.
+            for element in Self.axWindows(application) + Self.axPopovers(application) {
                 guard !originalAXWindows.contains(where: { CFEqual($0, element) }),
                       let original = Self.frame(element),
                       let candidate = candidates.first(where: { Self.matches($0.frame, original) }) else { continue }
+                if candidate.layer == 0, Self.isStandardWindow(element) { return .standardWindow }
                 var settable = DarwinBoolean(false)
                 guard AXUIElementIsAttributeSettable(element, kAXPositionAttribute as CFString, &settable) == .success,
                       settable.boolValue else { continue }
-                let content = Self.visibleContentFrame(windowFrame: original,
-                                                       descendants: Self.descendantFrames(element))
+                // A popover's bubble fills its window; only Control Center pads its cards with transparency.
+                let content = Self.isPopover(element) ? original
+                    : Self.visibleContentFrame(windowFrame: original, descendants: Self.descendantFrames(element))
+                let point = destination(OpenedWindow(content: content, layer: candidate.layer))
+                guard point.x.isFinite, point.y.isFinite else { return .none }
                 let visibleOrigin = Self.clampedOrigin(point, windowSize: content.size, screens: screens)
-                var destination = CGPoint(x: visibleOrigin.x - (content.minX - original.minX),
-                                          y: visibleOrigin.y - (content.minY - original.minY))
-                guard let value = AXValueCreate(.cgPoint, &destination),
+                var target = CGPoint(x: visibleOrigin.x - (content.minX - original.minX),
+                                     y: visibleOrigin.y - (content.minY - original.minY))
+                guard let value = AXValueCreate(.cgPoint, &target),
                       AXUIElementSetAttributeValue(element, kAXPositionAttribute as CFString, value) == .success else { continue }
                 // AX can acknowledge the setter before WindowServer commits the move.
                 // Verify compositor bounds, not just the AX value we have just assigned.
                 for _ in 0..<10 {
                     try? await Task.sleep(for: .milliseconds(50))
-                    guard !Task.isCancelled else { return false }
+                    guard !Task.isCancelled else { return .none }
                     if let actual = Self.windows(pid: pid).first(where: { $0.id == candidate.id }),
-                       abs(actual.frame.minX - destination.x) <= 2,
-                       abs(actual.frame.minY - destination.y) <= 2 {
-                        return true
+                       abs(actual.frame.minX - target.x) <= 2,
+                       abs(actual.frame.minY - target.y) <= 2 {
+                        return .placed(layer: candidate.layer)
                     }
                 }
                 var restore = original.origin
@@ -64,7 +95,18 @@ actor MenuBarPopoverPlacement {
             }
             try? await Task.sleep(for: .milliseconds(50))
         }
-        return false
+        return .none
+    }
+
+    /// Titled windows with the standard subrole are the app's own windows, not status-item panels.
+    private static func isStandardWindow(_ element: AXUIElement) -> Bool {
+        AXUIElementSetMessagingTimeout(element, 0.1)
+        var subrole: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXSubroleAttribute as CFString, &subrole) == .success,
+              subrole as? String == kAXStandardWindowSubrole as String else { return false }
+        // Some tray popups call themselves standard windows; a real one has a close button.
+        var close: CFTypeRef?
+        return AXUIElementCopyAttributeValue(element, kAXCloseButtonAttribute as CFString, &close) == .success && close != nil
     }
 
     nonisolated static func clampedOrigin(_ desired: CGPoint, windowSize: CGSize, screens: [CGRect]) -> CGPoint {
@@ -118,7 +160,33 @@ actor MenuBarPopoverPlacement {
                   let bounds = row[kCGWindowBounds as String] as? [String: Any],
                   let frame = CGRect(dictionaryRepresentation: bounds as CFDictionary),
                   frame.width > 0, frame.height > 32 else { return nil }
-            return Window(id: id.uint32Value, frame: frame)
+            return Window(id: id.uint32Value, frame: frame, layer: (row[kCGWindowLayer as String] as? NSNumber)?.intValue ?? 0)
+        }
+    }
+
+    private static func isPopover(_ element: AXUIElement) -> Bool {
+        var role: CFTypeRef?
+        return AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &role) == .success
+            && role as? String == "AXPopover"
+    }
+
+    /// Open NSPopovers, which Accessibility lists beside the status items (or the app's own children).
+    private static func axPopovers(_ application: AXUIElement) -> [AXUIElement] {
+        var containers = [application]
+        var extras: CFTypeRef?
+        if AXUIElementCopyAttributeValue(application, kAXExtrasMenuBarAttribute as CFString, &extras) == .success,
+           let extras, CFGetTypeID(extras) == AXUIElementGetTypeID() {
+            containers.append(unsafeDowncast(extras, to: AXUIElement.self))
+        }
+        return containers.flatMap { container -> [AXUIElement] in
+            AXUIElementSetMessagingTimeout(container, 0.1)
+            var raw: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(container, kAXChildrenAttribute as CFString, &raw) == .success else { return [] }
+            return (raw as? [AXUIElement] ?? []).filter { child in
+                var role: CFTypeRef?
+                return AXUIElementCopyAttributeValue(child, kAXRoleAttribute as CFString, &role) == .success
+                    && role as? String == "AXPopover"
+            }
         }
     }
 

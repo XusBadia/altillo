@@ -72,6 +72,7 @@ struct DesvanDrawerView: View {
                                     }
                                 }
                                 .help(entry.hoverName)
+                                .onAppear { if !isDemo { store.registerAnchor(anchor, for: entry) } }
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityLabel("Open \(entry.title) from \(entry.application.name)")
                                 .accessibilityAction {

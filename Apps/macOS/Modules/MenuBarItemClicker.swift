@@ -22,6 +22,9 @@ enum MenuBarItemClicker {
         }
     }
 
+    /// True while Altillo's own synthetic click is in flight, so it isn't mistaken for the user's.
+    private(set) static var isClicking = false
+
     /// Posts a left click at the icon's centre and puts the pointer back where it was.
     @discardableResult
     static func click(_ frame: CGRect) async -> Bool {
@@ -48,14 +51,23 @@ enum MenuBarItemClicker {
             window.level.rawValue >= NSWindow.Level.statusBar.rawValue && !window.ignoresMouseEvents
                 && DrawerGeometry.accessibilityFrame(window.frame, primaryScreenHeight: primaryTop).contains(point)
         }
-        overlays.forEach { $0.ignoresMouseEvents = true }
+        isClicking = true
+        defer { isClicking = false }
+        overlays.forEach { Self.passClicks(through: $0, true) }
+        // WindowServer applies the change asynchronously; the click must not reach the notch first.
+        if !overlays.isEmpty { try? await Task.sleep(for: .milliseconds(40)) }
         down.post(tap: .cghidEventTap)
         try? await Task.sleep(for: .milliseconds(50))
         up.post(tap: .cghidEventTap)
         if let pointer { CGWarpMouseCursorPosition(pointer) }
         try? await Task.sleep(for: .milliseconds(50))
-        overlays.forEach { $0.ignoresMouseEvents = false }
+        overlays.forEach { Self.passClicks(through: $0, false) }
         return true
+    }
+
+    /// The notch keeps its own click-through state (it may change meanwhile, e.g. Esc): only lift the pass-through.
+    private static func passClicks(through window: NSWindow, _ passes: Bool) {
+        if let panel = window as? NotchPanel { panel.passesClicksThrough = passes } else { window.ignoresMouseEvents = passes }
     }
 
     private static var mouseIsDown: Bool {

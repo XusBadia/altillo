@@ -122,8 +122,21 @@ final class NotchCoordinator {
             // the status bar's level, below the notch's: step down to it meanwhile (still above the menu bar),
             // so the panel, ordered in later, draws on top.
             panel.level = active ? .statusBar : .mainMenu + 3
+            // A close scheduled before the click must not fold the notch under the panel.
+            if active { self.cancel(.closeGrace) }
             // Pointer moves were ignored meanwhile; catch up with where it is now.
             if !active { self.mouseMoved(to: NSEvent.mouseLocation) }
+        }
+        model.drawer.foldNotchForClick = { [weak self] in
+            guard let self else { return }
+            self.cancel(.hoverIntent)
+            self.cancel(.hoverSustained)
+            self.isHovering = false
+            self.send(.escape)
+        }
+        model.drawer.notchVisibleFrame = { [weak self] in
+            guard let self, let window = self.window, window.isShown, self.model.state == .open else { return nil }
+            return window.visibleShapeScreenRect
         }
         appliedScreenSettings = (model.settings.displayMode, model.settings.fullScreenBehaviour)
         arrangeScreens()
@@ -503,7 +516,9 @@ final class NotchCoordinator {
     }
 
     private func mouseMoved(to point: CGPoint) {
-        guard !model.drawer.isPerformingMenuBarInteraction else { return }
+        // While an app's panel is open from the Drawer, the open notch stays put. Once it's closed (Esc, say), the
+        // panel no longer holds it: hover brings it back as usual.
+        guard !(model.drawer.isPerformingMenuBarInteraction && model.state == .open) else { return }
         guard model.scenario == nil else { return }
         followPointer(to: point)
         guard let window else { return }
@@ -538,7 +553,11 @@ final class NotchCoordinator {
     }
 
     private func mouseDown(at point: CGPoint, isLocal: Bool, isRight: Bool) {
-        guard !model.drawer.isPerformingMenuBarInteraction else { return }
+        if model.drawer.isPerformingMenuBarInteraction, model.state == .open {
+            // An app's open panel takes clicks meant for the Drawer; Altillo's own clicks reach its buttons.
+            if !isLocal, !isRight { model.drawer.handleClickWhileMenuOpen(at: point) }
+            return
+        }
         // Design scenarios stay frozen (e.g. while taking a ⇧⌘4 screenshot); leave them with Esc or the menu.
         guard let window, model.scenario == nil else { return }
         // A notch kept out of sight over a full-screen app has no shape to click.

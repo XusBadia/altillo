@@ -28,6 +28,22 @@ final class NotchPanel: NSPanel {
         panel.ignoresMouseEvents = true
     }
 
+    /// What the notch itself wants; `passesClicksThrough` can override it for a moment.
+    private var wantsToIgnoreMouseEvents = false
+
+    /// Lets a synthetic click reach the menu bar under the notch without losing the notch's own click-through state.
+    var passesClicksThrough = false {
+        didSet { super.ignoresMouseEvents = wantsToIgnoreMouseEvents || passesClicksThrough }
+    }
+
+    override var ignoresMouseEvents: Bool {
+        get { super.ignoresMouseEvents }
+        set {
+            wantsToIgnoreMouseEvents = newValue
+            super.ignoresMouseEvents = newValue || passesClicksThrough
+        }
+    }
+
     /// Called for ⌘W / ⌘Q and Esc while the notch has keyboard focus.
     var onCloseRequest: () -> Void = {}
 
