@@ -18,7 +18,7 @@ Entrega (32 s, 1920×1080, 60 fps), con la música B (indie-pop):
 | 2–3 | 2–6 s | El MacBook entra: «Tu Mac / ya tenía / un altillo.» y «Solo le faltaba una puerta.» |
 | 4–5 | 6–10 s | Un solo plano: se arrastra el PDF desde el Finder hasta el notch («Súbelo ↑», zona de soltar). Zoom a la caja justo cuando el archivo llega y las solapas se abren. Se suelta, el documento cae dentro, aparece el estante y la cámara vuelve al plano medio. «Súbelo al notch.» |
 | 6–7 | 10–14 s | Plano medio notch + Mail: sacarlo del estante y soltarlo en el correo. «Bájalo donde lo necesites.» |
-| 7½–9 | 13–18 s | Primer plano: el notch se abre y un clic en la pestaña Uso muestra Claude y Codex. El panel de Uso (filas, 339 pt de alto) no cabe sobre el titular a 2,3 px/pt: la cámara se aleja a 1,95 mientras se abre (`USAGE_SHOT`) y vuelve al primer plano con Pregunta; el cursor se aparca en la madera libre |
+| 7½–9 | 13–18 s | Primer plano: el notch se abre y un clic en la pestaña Uso muestra Claude y Codex. Desde 0.10.5 el panel de Uso mide lo que sus filas (239 pt con Claude y Codex, sin texto partido) y cabe sobre el titular a 2,3 px/pt: el plano se queda en el primer plano (`CLOSE`), sin el alejamiento de antes; el cursor se aparca en la madera libre |
 | 10 | 18–20 s | Clic en ✦: Pregunta |
 | 11 | 20–22 s | «Toc, toc.»: la música se para y el notch avisa del `git push` |
 | 12–13 | 22–26 s | Agentes: clic en Permitir |
@@ -46,7 +46,8 @@ No es una réplica: son los **estados de diseño reales de la app** (`DesignScen
    ```
    Repite con `en`.
 3. Copia el resultado a `public/anuncio/ui/{es,en}/` y ejecuta `python3 scripts/anuncio-manifest.py`, que mide el contorno de cada estado.
-4. Desde 0.10.4 el panel mide 780×480 pt: recorta cada PNG a 2340×1320 px (los 440 pt de arriba; debajo no hay nada) antes de copiarlo. Copia solo los estados que hayan cambiado; el 08/10 se reexportaron `idleWithEars` e `idleWithAgentWaiting` (orejas a la medida de su contenido) y después `openUsage` (panel en filas desde 0.10.2, `ExpandedContent.usage` = 280). Los demás estados salen idénticos píxel a píxel; `idleWithAgentWaiting` varía unos píxeles en cada exportación (texto que depende de la hora) y no hace falta copiarlo. La hora de «Hasta las…» del panel de Uso es la del momento de exportar.
+4. Desde 0.10.4 el panel mide 780×480 pt: recorta cada PNG a 2340×1320 px (los 440 pt de arriba; debajo no hay nada) antes de copiarlo. Copia solo los estados que hayan cambiado; el 08/10 se reexportaron `idleWithEars` e `idleWithAgentWaiting` (orejas a la medida de su contenido) y después `openUsage` (panel en filas desde 0.10.2; reexportado con 0.10.5, que ajusta la altura a las filas: 239 pt en vez de 339). Los demás estados salen idénticos píxel a píxel; `idleWithAgentWaiting` varía unos píxeles en cada exportación (texto que depende de la hora) y no hace falta copiarlo. La hora de «Hasta las…» del panel de Uso es la del momento de exportar. `Agenda`, `peekUsageAlert` y las orejas también dependen de la fecha y la hora, así que salen distintos en cada exportación aunque la app no cambie.
+5. **El test lee los ajustes del dominio de su bundle.** Con el `Config/Local.xcconfig` real (`me.badia.altillo`) hereda tus ajustes (ancho, secciones, Cajón) y los paneles salen distintos. En el worktree usa un `Local.xcconfig` propio: `ALTILLO_BUNDLE_PREFIX = dev.altillo.promoexport` y `ALTILLO_MAC_SIGN_IDENTITY = -`. Recorta con PIL (`im.crop((0, 0, 2340, 1320))`): `sips -c` recorta desde el centro e ignora `--cropOffset`.
 
 Las orejas en reposo ya no son simétricas respecto al notch. Por eso la transición entre estados (`NotchPanel`) interpola el borde izquierdo del cuerpo de la forma además del ancho; con formas centradas el resultado es el mismo de antes.
 

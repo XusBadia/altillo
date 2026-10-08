@@ -72,9 +72,8 @@ const WIDE = {scale: 1.18, top: 36, fx: C}; // pantalla entera (entrada desde el
 const FINDER_SHOT = {scale: 1.55, top: 64, fx: 668}; // Finder + notch
 const MAIL_SHOT = {scale: 1.55, top: 64, fx: 858}; // notch + Mail
 const CLOSE = {scale: 2.3, top: 118, fx: C};
-// Uso (filas, 280 pt desde 0.10.2): el panel mide 339 pt de alto; a 2,3 tocaría el titular, así que la cámara se
-// aleja un poco mientras está abierto y vuelve al primer plano con Pregunta.
-const USAGE_SHOT = {scale: 1.95, top: 100, fx: C};
+// Uso: desde 0.10.5 el panel mide lo que sus filas (239 pt con dos proveedores) y cabe sobre el titular a 2,3,
+// así que el plano de Uso se queda en el primer plano (CLOSE) sin alejarse.
 type Framing = typeof WIDE;
 
 // Planos con corte seco: [fotograma, encuadre].
@@ -203,9 +202,6 @@ const CAMERA: Array<[number, Framing]> = [
   [bar(7, 2) + 6, MAIL_SHOT],
   [bar(7, 3) + 26, CLOSE], // se acerca al notch mientras el cursor sube a abrirlo
   [CLICK_USAGE - 14, CLOSE],
-  [CLICK_USAGE + 16, USAGE_SHOT], // el panel de Uso crece y la cámara le hace sitio sobre el titular
-  [CLICK_ASK - 6, USAGE_SHOT],
-  [CLICK_ASK + 22, CLOSE],
   [T.signature, CLOSE],
 ];
 

@@ -243,13 +243,13 @@ export const UI_BOXES: Record<string, Record<string, [number, number, number, nu
    110.7,
    0.0,
    669.3,
-   339.0
+   239.0
   ],
   "es": [
    110.7,
    0.0,
    669.3,
-   339.0
+   239.0
   ]
  },
  "peekAgentWaiting": {
