@@ -382,6 +382,108 @@
 .an-ear .an-knock { font-size: 12.5px; }
 .an-ring.an-ear-ring { --an-ring: 14px; }
 
+/* Resting ears that fit what they say (NotchEars.swift · EarMetrics, and
+   DesvanEarItem.swift). The element itself is only the camera's band, centred
+   like the hardware notch; each ear hangs off one side, as wide as its content
+   plus 9 pt of air (150 pt at most), so the black shape leans towards the
+   wider ear while the band stays put. Leave an ear out and it takes no room.
+     <div class="an an-notch an-notch--fit">
+       <span class="an-fear an-fear--l"><span class="an-fear__in">…</span></span>
+       <span class="an-fear an-fear--r"><span class="an-fear__in">…</span></span>
+     </div>                                                                    */
+.an-notch--fit { --an-w: var(--an-camera); }
+.an-notch--fit:has(> .an-fear--l) { border-bottom-left-radius: 0; }
+.an-notch--fit:has(> .an-fear--r) { border-bottom-right-radius: 0; }
+.an-fear {
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  max-width: var(--an-fear-max, 150px);
+  padding: 0 9px;
+  background: var(--an-notch);
+  white-space: nowrap;
+}
+.an-fear--l { right: 100%; border-bottom-left-radius: var(--an-bottom); }
+.an-fear--r { left: 100%; border-bottom-right-radius: var(--an-bottom); }
+/* Each ear carries the fillet on its outer edge. */
+.an-fear::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  width: var(--an-fillet);
+  height: var(--an-fillet);
+  pointer-events: none;
+}
+.an-fear--l::before { right: 100%; background: radial-gradient(circle at 0 100%, transparent calc(var(--an-fillet) - 0.5px), var(--an-notch) var(--an-fillet)); }
+.an-fear--r::before { left: 100%; background: radial-gradient(circle at 100% 100%, transparent calc(var(--an-fillet) - 0.5px), var(--an-notch) var(--an-fillet)); }
+.an-fear__in {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--an-paper);
+}
+.an-fear__in > * { flex: none; }
+/* Words: the figure (when, the percentage, the count), titles cut at 64 pt,
+   secondary names cut at 52 pt. */
+.an-fear__fig { font: 500 12.5px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; }
+.an-fear__title,
+.an-fear__name {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.2;
+}
+.an-fear__title { max-width: 64px; font: 500 12px / 1.2 var(--an-rounded); }
+.an-fear__name { max-width: 52px; font: 400 11px / 1.2 var(--an-rounded); color: var(--an-paper-2); }
+.an-fear__title.an-2 { color: var(--an-paper-2); }
+/* Glyphs at EarMetrics' sizes. */
+.an-fear .an-i--calendar { width: 13px; font-size: 11px; height: 11px; color: var(--an-paper-2); }
+.an-fear .an-knock { width: 14px; font-size: 13px; height: 13px; }
+.an-fear .an-house { font-size: 13px; width: 14px; }
+.an-fear .an-ring { --an-ring: 14px; }
+.an-fear .an-i--timer { width: 14px; font-size: 13px; height: 13px; color: var(--an-paper-2); }
+.an-fear .an-dots { width: 16px; justify-content: center; }
+/* The song's sleeve at ear size (DesvanEarSleeve). */
+.an-fear-sleeve {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 0.5px var(--an-hairline-strong);
+}
+.an-fear-sleeve > .an-art > span { display: none; }
+/* Four amber bars, each on its own rhythm (DesvanEqualiser, 15 × 11 pt). */
+.an-eq4 { display: inline-flex; align-items: flex-end; gap: 1.8px; width: 15px; height: 11px; }
+.an-eq4 i {
+  width: 2.4px;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--an-bulb);
+  transform-origin: 50% 100%;
+  transform: scaleY(var(--an-eq-rest, 0.6));
+  animation: an-eq4 var(--an-eq-period, 0.6s) ease-in-out infinite;
+}
+.an-eq4 i:nth-child(1) { --an-eq-rest: 0.45; --an-eq-period: 0.81s; }
+.an-eq4 i:nth-child(2) { --an-eq-rest: 0.9; --an-eq-period: 0.62s; animation-delay: -0.2s; }
+.an-eq4 i:nth-child(3) { --an-eq-rest: 0.6; --an-eq-period: 0.91s; animation-delay: -0.45s; }
+.an-eq4 i:nth-child(4) { --an-eq-rest: 0.75; --an-eq-period: 0.7s; animation-delay: -0.3s; }
+.an-eq4.is-paused i { animation: none; transform: scaleY(calc(var(--an-eq-rest) * 0.7)); }
+@keyframes an-eq4 {
+  0%, 100% { transform: scaleY(var(--an-eq-rest)); }
+  35% { transform: scaleY(1); }
+  70% { transform: scaleY(0.25); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .an-eq4 i { animation: none; }
+}
+
 /* Open: 760 pt wide including the 14 pt fillets, bottom radius 24. */
 .an-notch--open {
   --an-fillet: 14px;

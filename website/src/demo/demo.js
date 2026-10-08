@@ -78,6 +78,9 @@ const COPY = {
       music: "Three original tracks, real audio.",
       drawer: "The menu bar icons now live in the Drawer strip — tap the strip to use them.",
     },
+    earNow: "now", earMin: (n) => `${n} min`,
+    earEvent: (e, n) => (n ? `${e} in ${n} min` : `${e} is starting`),
+    earAgent: (a) => `${a} is waiting for you`, earMusic: (s) => `Now playing: ${s}`, earUsage: (p, n) => `${p} at ${n}%`,
     opened: "Altillo open", closed: "Altillo closed",
     shelvedA: (f) => `${f} is on the shelf.`, deliveredA: (f) => `${f} delivered.`,
   },
@@ -137,6 +140,9 @@ const COPY = {
       music: "Tres canciones originales, audio real.",
       drawer: "Los iconos de la barra viven ahora en el Cajón — toca la tira para usarlos.",
     },
+    earNow: "ahora", earMin: (n) => `${n} min`,
+    earEvent: (e, n) => (n ? `${e} en ${n} min` : `${e} empieza ya`),
+    earAgent: (a) => `${a} te está esperando`, earMusic: (s) => `Sonando: ${s}`, earUsage: (p, n) => `${p} al ${n} %`,
     opened: "Altillo abierto", closed: "Altillo cerrado",
     shelvedA: (f) => `${f} está en el altillo.`, deliveredA: (f) => `${f} entregado.`,
   },
@@ -247,6 +253,7 @@ function spring(duration, bounce) {
 const SPRING_OPEN = spring(0.4, 0.3);
 const SPRING_SECTION = spring(0.32, 0.15);
 const SPRING_FOCUS = spring(0.3, 0);
+const SPRING_EARS = spring(0.35, 0.2);
 
 function ensureStyles() {
   // Each stylesheet sets a marker property on :root, so a page that already
@@ -427,6 +434,8 @@ export function mountDemo(root, options = {}) {
   root.style.setProperty("--dm-spring-section-ms", SPRING_SECTION.ms + "ms");
   root.style.setProperty("--dm-spring-focus", SPRING_FOCUS.easing);
   root.style.setProperty("--dm-spring-focus-ms", SPRING_FOCUS.ms + "ms");
+  root.style.setProperty("--dm-spring-ears", SPRING_EARS.easing);
+  root.style.setProperty("--dm-spring-ears-ms", SPRING_EARS.ms + "ms");
 
   // ----------------------------------------------------------- layout ----
   let kitW = 732; // open body width in kit px (fillets excluded)
@@ -453,6 +462,11 @@ export function mountDemo(root, options = {}) {
       root.style.setProperty("--dm-an", an.toFixed(3));
       kitW = 732;
     }
+    // No ear grows past 150 pt, nor past the screen's edge beside the camera.
+    const an = parseFloat(root.style.getPropertyValue("--dm-an")) || 1;
+    const screenKit = (compact ? screen.clientWidth : SCENE_W) / (KIT_ZOOM * an);
+    earsEl.style.setProperty("--an-fear-max", Math.max(40, Math.min(150, Math.floor((screenKit - CAMERA) / 2 - 6))) + "px");
+    measureEars(false);
     sizeNotch(false);
     updateCue();
   }
@@ -476,12 +490,14 @@ export function mountDemo(root, options = {}) {
   }
   function sizeNotch(animate = true) {
     notch.classList.toggle("dm-no-anim", !animate);
+    // Lopsided ears move the shape's centre off the camera's (0 when open).
+    notch.style.setProperty("--dm-off", (S.open ? 0 : (earW[1] - earW[0]) / 2) + "px");
     if (S.open) {
       notch.style.setProperty("--an-w", kitW + "px");
       notch.style.height = openHeight() + "px";
       openEl.style.width = kitW + "px";
     } else {
-      notch.style.setProperty("--an-w", (S.compact ? 289 : 321) + "px");
+      notch.style.setProperty("--an-w", CAMERA + earW[0] + earW[1] + "px");
       notch.style.height = "32px";
     }
     // Compact: the desktop makes room under the open notch, so the Finder
@@ -492,16 +508,118 @@ export function mountDemo(root, options = {}) {
   }
 
   // ------------------------------------------------------------ ears ----
+  // The resting ears, as in the app (NotchEars.swift): the left one is "What
+  // matters now", the right one the Shelf. Each is as wide as what it says;
+  // an ear with nothing to say borrows the next activity, and with nothing
+  // left it takes no room. The shape leans towards the wider ear while the
+  // camera's band stays put.
+  const CAMERA = 185;
+  const earEls = [];
+  let earKinds = [null, null];
+  const earHtml = ["", ""];
+  let earW = [0, 0];
+  function earsArrangement() {
+    // "What matters now": agent asking > event within 15 min > music > AI usage running high.
+    const pool = [];
+    if (S.agent.phase === "waiting") pool.push({ kind: "agent", module: "agents" });
+    pool.push({ kind: "event", module: "calendar" });
+    if (S.music.playing) pool.push({ kind: "music", module: "music" });
+    if (S.usage.claude >= 80) pool.push({ kind: "usage", module: "usage" });
+    const left = pool.shift() || null;
+    let right = S.dropLit ? { kind: "drop", module: "shelf" } : S.shelf.length ? { kind: "shelf", module: "shelf" } : null;
+    if (!right) right = pool.shift() || null;
+    return [left, right];
+  }
+  function earMarkup(item) {
+    switch (item.kind) {
+      case "agent":
+        return { html: `<i class="an-knock dm-ear-knock"></i><span class="an-fear__title an-amber">Claude</span>`, label: t.earAgent("Claude") };
+      case "event": {
+        const e0 = EVENTS[0];
+        const now = S.cal !== "idle";
+        return {
+          html: `${icon("calendar")}<span class="an-fear__fig an-amber">${now ? esc(t.earNow) : esc(t.earMin(e0.mins))}</span><span class="an-fear__title an-2">${esc(e0.title)}</span>`,
+          label: t.earEvent(e0.title, now ? 0 : e0.mins),
+        };
+      }
+      case "music": {
+        const tr = TRACKS[S.music.track];
+        return {
+          html: `<span class="an-fear-sleeve"><span class="an-art dm-art-${S.music.track}"></span></span><span class="an-fear__title">${esc(tr.title)}</span><span class="an-eq4"><i></i><i></i><i></i><i></i></span>`,
+          label: t.earMusic(tr.title),
+        };
+      }
+      case "usage": {
+        const n = S.usage.claude;
+        const level = n >= 95 ? "is-critical" : n >= 80 ? "is-warning" : "";
+        const tint = n >= 95 ? "var(--an-tomato)" : n >= 80 ? "var(--an-mustard)" : "var(--an-paper)";
+        return {
+          html: `<span class="an-ring ${level}"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="an-ring__track" cx="50" cy="50" r="41.4" stroke-width="17.1"/><circle class="an-ring__arc" cx="50" cy="50" r="41.4" stroke-width="17.1" pathLength="100" stroke-dasharray="${n} 100" transform="rotate(-90 50 50)"/></svg></span><span class="an-fear__fig" style="color:${tint}">${n}</span><span class="an-fear__name">Claude</span>`,
+          label: t.earUsage("Claude", n),
+        };
+      }
+      case "drop":
+        return { html: `<i class="an-house"></i><span class="an-fear__fig an-amber">+</span>`, label: t.shelfDropTitle };
+      default:
+        return { html: `<i class="an-house"></i><span class="an-fear__fig">${S.shelf.length}</span>`, label: `${S.shelf.length} ${t.thingsUp(S.shelf.length)}` };
+    }
+  }
   function renderEars() {
-    const ring = `<span class="an-ring an-ear-ring is-warning"><svg viewBox="0 0 100 100" aria-hidden="true"><circle class="an-ring__track" cx="50" cy="50" r="41.4" stroke-width="17.1"/><circle class="an-ring__arc" cx="50" cy="50" r="41.4" stroke-width="17.1" pathLength="100" stroke-dasharray="${S.usage.claude} 100" transform="rotate(-90 50 50)"/></svg></span><span style="color: var(--an-mustard)">${S.usage.claude}</span>`;
-    let right;
-    if (S.agent.phase === "waiting") right = `<i class="an-knock dm-ear-knock"></i><span class="an-amber">1</span>`;
-    else if (S.dropLit) right = `<i class="an-house"></i><span class="an-amber">+</span>`;
-    else if (S.music.playing) right = `<span class="dm-eq"><i></i><i></i><i></i></span>`;
-    else if (S.session.status === "working") right = `<span class="an-dots an-dots--sm an-dots--live"><i></i><i></i><i></i></span><span>1</span>`;
-    else right = `<i class="an-house${S.shelf.length ? "" : " an-house--off"}"></i><span>${S.shelf.length}</span>`;
-    earsEl.innerHTML = `<span class="an-ear">${ring}</span><span class="an-ear">${right}</span>`;
-    notchBtn.setAttribute("aria-label", `${t.openAltillo} · ${S.shelf.length} ${t.thingsUp(S.shelf.length)}${S.agent.phase === "waiting" ? " · " + t.knocking(1) : ""}`);
+    if (!earEls.length) {
+      earsEl.innerHTML = `<span class="an-fear an-fear--l"><span class="an-fear__in"></span></span><span class="an-fear an-fear--r"><span class="an-fear__in"></span></span>`;
+      earEls.push(...earsEl.children);
+    }
+    const items = earsArrangement();
+    S.ears = items;
+    const labels = [];
+    items.forEach((item, i) => {
+      const el = earEls[i];
+      const inner = el.firstElementChild;
+      el.hidden = !item;
+      if (!item) { inner.innerHTML = earHtml[i] = ""; earKinds[i] = null; return; }
+      const { html, label } = earMarkup(item);
+      labels.push(label);
+      if (earHtml[i] !== html) inner.innerHTML = earHtml[i] = html;
+      // A new kind of thing swaps in; a new figure or song updates in place.
+      if (earKinds[i] !== item.kind && earKinds[i] !== null && !mqReduce.matches) {
+        inner.classList.remove("dm-ear-swap"); void inner.offsetWidth; inner.classList.add("dm-ear-swap");
+      }
+      earKinds[i] = item.kind;
+    });
+    measureEars();
+    notchBtn.setAttribute("aria-label", S.open ? t.closeAltillo : [t.openAltillo, ...labels].join(" · "));
+  }
+  // Ear widths in kit px, read against the camera's band (185 kit px), so
+  // zoom and scene scale cancel out. Without layout (hidden page), estimate.
+  let earsReady = false;
+  function measureEars(animate = true) {
+    if (!earEls.length) return;
+    const cam = earsEl.getBoundingClientRect().width;
+    const next = earEls.map((el, i) => {
+      if (el.hidden) return 0;
+      if (cam > 0) return Math.round((el.getBoundingClientRect().width * CAMERA) / cam);
+      return earW[i] || 96;
+    });
+    const changed = next[0] !== earW[0] || next[1] !== earW[1];
+    earW = next;
+    const first = !earsReady;
+    if (cam > 0) earsReady = true;
+    if (changed && !S.open && animate && !first) {
+      notch.classList.add("dm-ears-spring");
+      cancel(earSpringTimer);
+      earSpringTimer = later(() => notch.classList.remove("dm-ears-spring"), SPRING_EARS.ms);
+      sizeNotch(true);
+    } else if (changed && !S.open) sizeNotch(false);
+  }
+  let earSpringTimer = 0;
+  // Which ear sits under a point (for clicks and hover): its section, or null.
+  function earModuleAt(x) {
+    if (S.open || !S.ears) return null;
+    const cam = earsEl.getBoundingClientRect();
+    if (!cam.width) return null;
+    if (x < cam.left) return S.ears[0]?.module || null;
+    if (x > cam.right) return S.ears[1]?.module || null;
+    return null;
   }
 
   // ------------------------------------------------------ open content ----
@@ -1318,7 +1436,8 @@ export function mountDemo(root, options = {}) {
     }
     if (el.classList.contains("dm-notch-btn")) {
       const knocked = onCameraClick();
-      if (!S.open) open(S.module, e.detail === 0 ? "keyboard" : mqHover.matches ? "click" : "tap");
+      // Clicking an ear opens the section for what it shows.
+      if (!S.open) open((e.detail !== 0 && earModuleAt(e.clientX)) || S.module, e.detail === 0 ? "keyboard" : mqHover.matches ? "click" : "tap");
       else if (!knocked && S.pinned && S.via !== "hover") close("click");
       else S.pinned = true;
       return;
@@ -1340,7 +1459,7 @@ export function mountDemo(root, options = {}) {
       case "request": request(el.dataset.req); if (!S.open || S.module !== "agents") open("agents", "api"); break;
       case "join":
         if (S.cal !== "idle") break;
-        S.cal = "joining"; renderBody();
+        S.cal = "joining"; renderBody(); renderEars();
         later(() => { S.cal = "joined"; if (S.open && S.module === "calendar") renderBody(); emit("joined-call", { event: EVENTS[0].title, provider: EVENTS[0].provider }); announce(t.joined); }, mqReduce.matches ? 200 : 1400);
         break;
       case "flip": S.mirror = !S.mirror; renderBody(); emit("mirror-flipped", { mirrored: S.mirror }); break;
@@ -1408,8 +1527,11 @@ export function mountDemo(root, options = {}) {
     cancel(closeTimer);
     if (S.open || drag) return;
     cancel(openTimer);
-    openTimer = later(() => open(S.module, "hover"), 120);
+    hoverX = e.clientX;
+    openTimer = later(() => open(earModuleAt(hoverX) || S.module, "hover"), 120);
   };
+  let hoverX = 0;
+  const onHoverMove = (e) => { if (e.pointerType === "mouse") hoverX = e.clientX; };
   const onLeave = (e) => {
     if (e.pointerType !== "mouse") return;
     cancel(openTimer);
@@ -1431,6 +1553,7 @@ export function mountDemo(root, options = {}) {
   listen(root, "dragstart", (e) => e.preventDefault());
   listen(notch, "pointerenter", onEnter);
   listen(notch, "pointerleave", onLeave);
+  listen(notch, "pointermove", onHoverMove);
   listen(root, "focusout", () => later(() => { if (S.open && !S.pinned && !root.contains(document.activeElement)) scheduleClose(); }, 0));
   const onMq = () => { updateCue(); root.classList.toggle("dm--reduce", mqReduce.matches); };
   mqHover.addEventListener?.("change", onMq);

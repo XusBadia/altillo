@@ -38,18 +38,33 @@ const H = {
    ========================================================================== */
 let vh = innerHeight;
 let sx0 = 0.44, sy0 = 0.155, dy = 180; // pill/panel ratios; panel − pill height
+let dx0 = 0; // how far the pill's centre sits right of the panel's (lopsided ears)
 let docH = 0;
 const rises = $$("[data-rise]").map((el) => ({ el, top: 0, h: 0 }));
 const closing = { ears: $(".closing__ears"), closed: $(".closing__closed"), glow: $(".closing__glow"), house: $(".closing__ears .an-house") };
+
+// The resting notch is the camera's band plus the ears hanging off it: the
+// black shape is the union of all of them.
+function shapeRect(el) {
+  let { left, right, top, bottom } = el.getBoundingClientRect();
+  for (const c of el.children) {
+    const r = c.getBoundingClientRect();
+    if (!r.width) continue;
+    left = Math.min(left, r.left); right = Math.max(right, r.right);
+    top = Math.min(top, r.top); bottom = Math.max(bottom, r.bottom);
+  }
+  return { left, right, width: right - left, height: bottom - top };
+}
 
 const docTop = (el) => { let y = 0; for (let n = el; n; n = n.offsetParent) y += n.offsetTop; return y; };
 
 function measure() {
   vh = innerHeight;
   const o = H.open.getBoundingClientRect();
-  const e = H.ears.getBoundingClientRect();
+  const e = shapeRect(H.ears);
   if (o.width && o.height) {
     sx0 = e.width / o.width;
+    dx0 = (e.left + e.right) / 2 - (o.left + o.width / 2);
     sy0 = e.height / o.height;
     dy = o.height - e.height;
   }
@@ -70,7 +85,7 @@ const backOut = (t) => { const c1 = 0.55, c3 = c1 + 1; return 1 + c3 * Math.pow(
 function paintHero(v, y) {
   const ex = backOut(clamp(v / 0.78));
   const ey = backOut(clamp((v - 0.06) / 0.94));
-  H.slab.style.transform = v >= 1 ? "none" : `scale(${lerp(sx0, 1, ex).toFixed(4)}, ${lerp(sy0, 1, ey).toFixed(4)})`;
+  H.slab.style.transform = v >= 1 ? "none" : `translateX(${lerp(dx0, 0, ex).toFixed(2)}px) scale(${lerp(sx0, 1, ex).toFixed(4)}, ${lerp(sy0, 1, ey).toFixed(4)})`;
   H.ears.style.opacity = (1 - clamp(v / 0.18)).toFixed(3);
   const c = easeOut(clamp((v - 0.3) / 0.6));
   for (const el of H.parts) {

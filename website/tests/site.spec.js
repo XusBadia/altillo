@@ -52,6 +52,21 @@ for (const L of LOCALES) {
       await expect(page.locator(".hero__open .an-tile").first()).toBeVisible();
     });
 
+    test("the closed notches speak in words, leaning around the camera", async ({ page }) => {
+      await gotoPage(page, L.path);
+      for (const sel of [".hero__ears", ".closing__ears"]) {
+        const g = await page.locator(sel).evaluate((el) => {
+          const cam = el.getBoundingClientRect();
+          const [l, r] = [...el.querySelectorAll(":scope > .an-fear")].map((e) => e.getBoundingClientRect());
+          return { lw: l.width, rw: r.width, joinsL: Math.abs(l.right - cam.left), joinsR: Math.abs(r.left - cam.right), text: el.textContent.replace(/\s+/g, " ").trim() };
+        });
+        expect(g.joinsL).toBeLessThan(1);
+        expect(g.joinsR).toBeLessThan(1);
+        expect(Math.abs(g.lw - g.rw)).toBeGreaterThan(4);
+        expect(g.text).toMatch(/[A-Za-z]{4,}/);
+      }
+    });
+
     test("navigation links go where they say", async ({ page }) => {
       await gotoPage(page, L.path);
       const links = page.locator(".nav__links a");

@@ -505,8 +505,11 @@
   width: var(--an-w, 321px);
   height: 32px;
   isolation: isolate;
+  /* Lopsided ears shift the shape; the camera's band stays centred. */
+  translate: var(--dm-off, 0px) 0;
   transition:
     width 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    translate 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
     height 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
     --an-fillet 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
     --an-bottom 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
@@ -518,6 +521,7 @@
   box-shadow: 0 10px 36px rgb(0 0 0 / 0.55), 0 1px 6px rgb(0 0 0 / 0.25);
   transition:
     width var(--dm-spring-section-ms) var(--dm-spring-section),
+    translate var(--dm-spring-section-ms) var(--dm-spring-section),
     height var(--dm-spring-section-ms) var(--dm-spring-section),
     --an-fillet 260ms ease-out,
     --an-bottom 260ms ease-out,
@@ -526,10 +530,21 @@
 .dm-notch.dm-opening {
   transition:
     width var(--dm-spring-open-ms) var(--dm-spring-open),
+    translate var(--dm-spring-open-ms) var(--dm-spring-open),
     height var(--dm-spring-open-ms) var(--dm-spring-open) 30ms,
     --an-fillet 260ms ease-out,
     --an-bottom 260ms ease-out,
     box-shadow 260ms;
+}
+/* An ear growing or shrinking at rest: width and offset on one spring. */
+.dm-notch.dm-ears-spring:not([data-state="open"]) {
+  transition:
+    width var(--dm-spring-ears-ms) var(--dm-spring-ears),
+    translate var(--dm-spring-ears-ms) var(--dm-spring-ears),
+    height 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    --an-fillet 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    --an-bottom 200ms cubic-bezier(0.3, 0.7, 0.2, 1),
+    box-shadow 200ms;
 }
 .dm-notch.dm-no-anim { transition: none !important; }
 .dm-clip { position: absolute; inset: 0; overflow: hidden; overflow: clip; border-radius: inherit; }
@@ -551,26 +566,31 @@
 .dm-notch[data-state="open"] .dm-notch-btn { left: 50%; width: var(--an-camera); transform: translateX(-50%); cursor: default; }
 .dm .dm-notch-btn:focus-visible { outline: 2px solid var(--an-bulb); outline-offset: 2px; }
 
+/* The ears hang off the camera's band (kit .an-fear), which sits over the
+   hardware notch: half the shape's offset left of the notch's centre. */
 .dm-ears {
   position: absolute;
-  left: 50%;
+  left: calc(50% - var(--dm-off, 0px));
   top: 0;
-  width: 321px;
+  width: var(--an-camera);
   height: 32px;
   transform: translateX(-50%);
-  display: grid;
-  grid-template-columns: 68px 1fr 68px;
-  align-items: center;
   pointer-events: none;
   transition: opacity 0.2s 0.08s, filter 0.2s 0.08s, transform 0.2s 0.08s;
 }
 .dm-ears.is-hidden { opacity: 0; filter: blur(3px); transform: translateX(-50%) scale(0.98); transition: opacity 0.12s, filter 0.12s, transform 0.12s; }
-.dm-ears .an-ear:last-child { grid-column: 3; }
-.dm-eq { display: inline-flex; align-items: flex-end; gap: 2px; height: 12px; }
-.dm-eq i { width: 3px; height: 100%; border-radius: 1px; background: var(--an-bulb); transform-origin: 50% 100%; animation: dm-eq 0.9s ease-in-out infinite; }
-.dm-eq i:nth-child(2) { animation-delay: -0.3s; }
-.dm-eq i:nth-child(3) { animation-delay: -0.6s; }
-@keyframes dm-eq { 0%, 100% { transform: scaleY(0.35); } 50% { transform: scaleY(1); } }
+/* The notch draws the black shape; the ears only lay out what they say. */
+.dm-ears .an-fear { background: none; }
+.dm-ears .an-fear::before { display: none; }
+.dm-ears .an-fear[hidden] { display: none; }
+/* Compact: the screen's edge is close, so the ears take less air and the
+   event says only when (glyph and title give way). */
+.dm--compact .dm-ears .an-fear { padding: 0 6px; }
+.dm--compact .dm-ears .an-fear__in { gap: 4px; }
+.dm--compact .dm-ears .an-fear .an-i--calendar,
+.dm--compact .dm-ears .an-fear__title.an-2 { display: none; }
+.dm-ear-swap { animation: dm-ear-swap var(--dm-spring-focus-ms) var(--dm-spring-focus) both; }
+@keyframes dm-ear-swap { from { opacity: 0; filter: blur(2px); transform: translateY(3px); } }
 
 .dm-open {
   position: absolute;
@@ -730,13 +750,10 @@
    ========================================================================== */
 .dm--reduce *, .dm--reduce *::before, .dm--reduce *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; }
 .dm--reduce .dm-notch, .dm--reduce .dm-notch[data-state="open"], .dm--reduce .dm-notch.dm-opening { transition-duration: 1ms !important; transition-delay: 0ms !important; }
-.dm--reduce .dm-ears, .dm--reduce .dm-open .dm-arc, .dm--reduce .dm-open .dm-bar, .dm--reduce .dm-tray__items, .dm--reduce .dm-tray__items > * { transition-duration: 1ms !important; }
+.dm--reduce .dm-notch.dm-ears-spring, .dm--reduce .dm-ears, .dm--reduce .dm-open .dm-arc, .dm--reduce .dm-open .dm-bar, .dm--reduce .dm-tray__items, .dm--reduce .dm-tray__items > * { transition-duration: 1ms !important; }
 .dm--reduce .dm-open.dm-focus-in, .dm--reduce .dm-open.dm-focus-out { animation: none; }
 .dm-lower { display: contents; }
 
-/* Compact: narrower ears so the menu bar keeps a sliver either side. */
-.dm--compact .dm-ears { width: 289px; grid-template-columns: 52px 1fr 52px; }
-.dm--compact .dm-ears .an-ear { gap: 4px; }
 .dm--compact .an-event-card__text { overflow: hidden; }
 .dm--compact .an-event-card__when { overflow: hidden; text-overflow: ellipsis; }
 .dm--compact .an-event-card__when > span { overflow: hidden; text-overflow: ellipsis; }

@@ -20,6 +20,51 @@ for (const L of LOCALES) {
       await expect(page.locator("#demo .an-tab.is-active")).toContainText(L.tab.usage);
     });
 
+    test("the resting ears fit what they say and lean around the camera", async ({ page }) => {
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      await page.locator("#demo .dm-screen").scrollIntoViewIfNeeded();
+      // Reaching into the demo stops scrolling from driving it.
+      await page.locator("#demo .dm-files").click({ position: { x: 4, y: 4 } });
+      const geometry = () => page.evaluate(() => {
+        const notch = document.querySelector("#demo .dm-notch").getBoundingClientRect();
+        const cam = document.querySelector("#demo .dm-ears").getBoundingClientRect();
+        const screen = document.querySelector("#demo .dm-screen").getBoundingClientRect();
+        const ears = [...document.querySelectorAll("#demo .dm-ears .an-fear")].map((e) => (e.hidden ? null : { text: e.textContent, w: e.getBoundingClientRect().width, clipped: e.firstElementChild.scrollWidth > e.firstElementChild.clientWidth + 1 }));
+        return { left: notch.left, right: notch.right, camL: cam.left, camR: cam.right, sL: screen.left, sR: screen.right, ears };
+      });
+      const settled = async () => {
+        await page.evaluate(() => window.altilloDemo.close());
+        await expect.poll(async () => (await demoState(page)).open).toBe(false);
+        // Wait for the spring to land.
+        let last = null;
+        await expect.poll(async () => { const g = await geometry(); const same = last && Math.abs(g.left - last.left) < 0.5 && Math.abs(g.right - last.right) < 0.5; last = g; return same; }, { intervals: [150] }).toBe(true);
+        return last;
+      };
+      // At rest: the next event on the left (words, not just a number), the shelf on the right.
+      let g = await settled();
+      expect(g.ears[0].text).toContain("12 min");
+      expect(g.ears[1].text.trim()).toBe("3");
+      // Lopsided: the event ear is wider, and the camera's band stays centred on the screen.
+      expect(g.ears[0].w).toBeGreaterThan(g.ears[1].w);
+      expect(Math.abs((g.camL + g.camR) / 2 - (g.sL + g.sR) / 2)).toBeLessThan(1.5);
+      expect(g.camL - g.left).toBeGreaterThan(g.right - g.camR);
+      expect(g.left).toBeGreaterThanOrEqual(g.sL);
+      expect(g.right).toBeLessThanOrEqual(g.sR);
+      // Claude knocks: the left ear says who; an empty shelf borrows the next activity.
+      await page.evaluate(() => { window.altilloDemo.show("agents"); });
+      g = await settled();
+      expect(g.ears[0].text).toContain("Claude");
+      // An empty shelf ear borrows the next activity (Empty lives in the wide layout).
+      if ((await demoState(page)).compact) return;
+      await page.evaluate(() => { window.altilloDemo.reset(); window.altilloDemo.show("shelf"); });
+      await page.locator('#demo [data-act="empty"]').click();
+      g = await settled();
+      expect(g.ears[0].text).toContain("12 min");
+      expect(g.ears[1].text).toContain("Claude");
+      expect(g.ears[1].text).toMatch(/8\d/);
+    });
+
     test("steps or chips switch the module", async ({ page }) => {
       await gotoPage(page, L.path);
       await waitForDemo(page);
