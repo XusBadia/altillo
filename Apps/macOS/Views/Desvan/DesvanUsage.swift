@@ -104,17 +104,21 @@ private struct DesvanUsageRow: View {
     private var isStale: Bool { usage.isStale(now: now, limit: UsageStore.staleAfter) }
     private var hasOldNumbers: Bool { isStale || usage.problem != nil }
     private var isWide: Bool { width >= 470 }
+    /// Room for the longest refill line on one line, clock included.
+    static let detailsMinWidth: CGFloat = 172
 
     var body: some View {
         Group {
             if isWide {
                 HStack(alignment: .center, spacing: 18) {
+                    // The name and plan need little; the refill line ("se repone en 1 h 11 min") must never wrap,
+                    // so it keeps at least `detailsMinWidth` and the bar takes what's left.
                     identity
-                        .frame(width: min(180, width * 0.28), alignment: .leading)
+                        .frame(width: min(160, width * 0.24), alignment: .leading)
                     measurements
                         .frame(maxWidth: .infinity, alignment: .leading)
                     details
-                        .frame(width: min(220, width * 0.32), alignment: .leading)
+                        .frame(width: min(220, max(Self.detailsMinWidth, width * 0.32)), alignment: .leading)
                 }
             } else {
                 VStack(alignment: .leading, spacing: 10) {
@@ -177,12 +181,13 @@ private struct DesvanUsageRow: View {
                 DesvanBar(value: main.used, pace: hasOldNumbers ? nil : main.elapsedFraction(now: now))
                     .accessibilityLabel("\(UsageText.name(for: main)), \(NotchFormat.percent(main.used)) used")
                 if let secondary {
-                    Text(verbatim: windowSummary(secondary))
-                        .font(Desvan.Typeface.rounded(11.5, weight: .medium))
-                        .foregroundStyle(Desvan.Palette.paperSecondary)
-                        .monospacedDigit()
-                        .fixedSize(horizontal: false, vertical: true)
-                        .help(windowHelp(secondary))
+                    // One line always: the whole sentence when it fits, otherwise without the refill (still in
+                    // the tooltip), rather than breaking "se repone / en 3 d 3 h" over two lines.
+                    ViewThatFits(in: .horizontal) {
+                        secondaryLine(windowSummary(secondary))
+                        secondaryLine(windowSummary(secondary, includesRefill: false))
+                    }
+                    .help(windowHelp(secondary))
                 } else if let balance = usage.balances.first {
                     balanceSummary(balance)
                 }
@@ -222,6 +227,15 @@ private struct DesvanUsageRow: View {
         }
     }
 
+    private func secondaryLine(_ text: String) -> some View {
+        Text(verbatim: text)
+            .font(Desvan.Typeface.rounded(11.5, weight: .medium))
+            .foregroundStyle(Desvan.Palette.paperSecondary)
+            .monospacedDigit()
+            .lineLimit(1)
+            .fixedSize()
+    }
+
     private func balanceSummary(_ balance: UsageBalance) -> some View {
         Text(verbatim: "\(balance.label) · \(UsageText.summary(of: balance))")
             .font(Desvan.Typeface.rounded(11.5, weight: .medium))
@@ -257,7 +271,8 @@ private struct DesvanUsageRow: View {
             } else if let main {
                 Label {
                     Text(verbatim: UsageText.refillsIn(main, now: now))
-                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
                 } icon: {
                     Image(systemName: "clock")
                 }
@@ -285,10 +300,10 @@ private struct DesvanUsageRow: View {
         return usage.problemDetail.map { "\(sentence) \($0)" } ?? sentence
     }
 
-    private func windowSummary(_ window: UsageWindow) -> String {
+    private func windowSummary(_ window: UsageWindow, includesRefill: Bool = true) -> String {
         let summary = "\(UsageText.name(for: window)) · \(NotchFormat.percent(window.used))"
         // Expired historical limits must not pretend they are currently refilling.
-        guard !hasOldNumbers else { return summary }
+        guard !hasOldNumbers, includesRefill else { return summary }
         return "\(summary) · \(UsageText.refillsIn(window, now: now))"
     }
 

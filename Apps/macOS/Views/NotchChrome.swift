@@ -87,8 +87,18 @@ struct NotchChrome: Equatable {
         static let shelf: CGFloat = 150
         /// Just the plank with the house and one sentence above it: nothing below the board.
         static let emptyShelf: CGFloat = 130
-        /// Three provider rows with room for limits and status; longer lists scroll vertically.
+        /// Up to three provider rows with room for limits and status; longer lists scroll vertically.
         static let usage: CGFloat = 280
+        /// The notices (checking, nothing set up yet) before there are rows.
+        static let usageNotice: CGFloat = 160
+        /// One provider row: name and plan, the bar with its two lines, the refill and status, plus its padding.
+        static let usageRow: CGFloat = 86
+
+        /// As tall as the rows need, never past `usage`: two providers don't leave a third of empty wood.
+        static func usage(rows: Int) -> CGFloat {
+            guard rows > 0 else { return usageNotice }
+            return min(usage, max(emptyShelf, CGFloat(rows) * usageRow + 8))
+        }
         /// The one knocking on a tall card plus a useful part of the vertical queue.
         static let agents: CGFloat = 220
         /// The cardboard box and the paper plane.
@@ -212,7 +222,9 @@ struct NotchChrome: Equatable {
         if model.isEditing { return ExpandedContent.editing }
         switch model.module {
         case .shelf: return model.shelf.isEmpty ? ExpandedContent.emptyShelf : ExpandedContent.shelf
-        case .usage: return ExpandedContent.usage
+        case .usage:
+            let rows = model.scenario != nil ? model.demo.usage.count : model.usage.providers.count
+            return ExpandedContent.usage(rows: rows)
         case .agents: return ExpandedContent.agents
         case .assistant: return ExpandedContent.assistant
         case .calendar:
