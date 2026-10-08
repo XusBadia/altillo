@@ -12,7 +12,7 @@ Textos EN y fecha aprobados por Xus el 03/10. **Martes 20/10/2026, 00:01 Pacific
 | Vídeo de galería | `altillo-producthunt.mp4` | 32 s, 1920×1080, 60 fps; vídeo existente en YouTube, registrado no listado |
 | Galería | `gallery/01…08.png` | 1270×760; subir al menos dos imágenes |
 
-**URL completa del vídeo:** https://www.youtube.com/watch?v=L33ophXDYUM. La guía oficial exige URL completa; no pegar `youtu.be`. No puede estar privado; el estado no listado permite compartirlo y el cambio a público queda para el lanzamiento tras aprobación.
+**URL completa del vídeo:** https://www.youtube.com/watch?v=rCEkdwiwNGw. La guía oficial exige URL completa; no pegar `youtu.be`. No puede estar privado; el estado no listado permite compartirlo y el cambio a público queda para el lanzamiento tras aprobación.
 
 Orden y alt text de galería tras el vídeo:
 

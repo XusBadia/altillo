@@ -1,6 +1,6 @@
 # Canal de YouTube · lanzamiento de Altillo
 
-Estado registrado el 29/09/2026: canal **Altillo**, @Altilloapp, https://www.youtube.com/@Altilloapp, configurado con nombre, descripción, enlaces, email, banner y avatar. Vídeo EN existente **no listado**: https://www.youtube.com/watch?v=L33ophXDYUM. Miniatura propia puesta; Ciencia y tecnología, idioma inglés, sin promoción pagada, uso de IA declarado por imágenes generadas. La sesión y el estado actual del vídeo no se han verificado en este trabajo.
+Estado registrado el 29/09/2026: canal **Altillo**, @Altilloapp, https://www.youtube.com/@Altilloapp, configurado con nombre, descripción, enlaces, email, banner y avatar. Vídeo EN existente **no listado**: https://www.youtube.com/watch?v=rCEkdwiwNGw (subido el 08/10/2026 con las orejas y el panel de Uso de 0.10.5; sustituye a L33ophXDYUM, que queda no listado y sin usar). Miniatura propia puesta; Ciencia y tecnología, idioma inglés, sin promoción pagada, uso de IA declarado por imágenes generadas. La sesión y el estado actual del vídeo no se han verificado en este trabajo.
 
 **Propuesta:** hacerlo público el martes 20/10/2026 a las 09:05 Europe/Madrid (07:05 UTC), después de comprobar la ficha PH. Requiere revisión final; nada programado ni publicado por este kit. PH acepta un vídeo no listado mientras no sea privado; usar siempre URL completa.
 

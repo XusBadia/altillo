@@ -18,7 +18,7 @@ The file gesture is the story: put a file down at the top, find the destination 
 I'm introducing it during the week of October 19. The signed, notarized macOS 26+ release is already downloadable, with MIT source. There's no Altillo backend or app analytics. Optional quota checks contact the relevant provider directly. Drawer icon hiding requires macOS 27; on macOS 26 it opens icons without hiding them.
 
 Download and overview: https://altillo.app/
-32-second demo: https://www.youtube.com/watch?v=L33ophXDYUM
+32-second demo: https://www.youtube.com/watch?v=rCEkdwiwNGw
 Source: https://github.com/XusBadia/altillo
 
 If it fits your Mac utility coverage, I can provide screenshots and answer implementation questions.
@@ -42,7 +42,7 @@ The app is free, MIT open source, signed and notarized, distributed as a DMG rat
 There is no Altillo backend or app analytics. Optional usage checks talk directly to the corresponding provider. Agent permissions always need the user's choice. Drawer hides icons on macOS 27; on macOS 26 originals stay visible.
 
 Download: https://altillo.app/
-Demo: https://www.youtube.com/watch?v=L33ophXDYUM
+Demo: https://www.youtube.com/watch?v=rCEkdwiwNGw
 Source: https://github.com/XusBadia/altillo
 
 Happy to provide screenshots or a short technical explanation if this is relevant to your Mac app coverage.
@@ -83,7 +83,7 @@ Soy Xus Badia, creador de Altillo, una utilidad nativa y gratuita para macOS 26+
 
 También muestra el consumo de Claude/Codex y peticiones de agentes que el usuario aprueba o deniega. El código es MIT, y la descarga está firmada y notarizada. No hay servidores de Altillo ni analítica; las consultas opcionales de uso van directamente al proveedor correspondiente.
 
-La presento durante la semana del 19 de octubre. Web y descarga: https://altillo.app/ · Demo: https://www.youtube.com/watch?v=L33ophXDYUM · Código: https://github.com/XusBadia/altillo
+La presento durante la semana del 19 de octubre. Web y descarga: https://altillo.app/ · Demo: https://www.youtube.com/watch?v=rCEkdwiwNGw · Código: https://github.com/XusBadia/altillo
 
 Puedo facilitar capturas y explicar el funcionamiento si encaja con vuestra cobertura de aplicaciones Mac.
 

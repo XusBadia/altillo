@@ -39,7 +39,7 @@ La frase de marca es **«Tu Mac ya tenía un altillo. Solo le faltaba una puerta
 - Vídeo principal EN: [altillo-anuncio-en.mp4](../videos/altillo-anuncio-en.mp4); ES: [altillo-anuncio.mp4](../videos/altillo-anuncio.mp4).
 - Galería de ocho capturas, 1270×760: [producthunt/gallery](../producthunt/gallery). Usar 01 como cubierta y 02/03 para explicar el arrastre; 04/06 para audiencia de agentes.
 - Logo cuadrado: [thumbnail.png](../producthunt/thumbnail.png); GIF: [thumbnail.gif](../producthunt/thumbnail.gif).
-- Demo YouTube existente, registrada como no listada: https://www.youtube.com/watch?v=L33ophXDYUM. El estado autenticado actual no se ha comprobado en este trabajo.
+- Demo YouTube existente, registrada como no listada: https://www.youtube.com/watch?v=rCEkdwiwNGw. El estado autenticado actual no se ha comprobado en este trabajo.
 - Enlace de descarga para fichas generales: https://altillo.app/. Fuente: https://github.com/XusBadia/altillo. DMG verificado al preparar el kit: https://github.com/XusBadia/altillo/releases/download/v0.10.0/Altillo-0.10.0.dmg.
 - Los teasers y sus cambios locales pertenecen al trabajo previo del usuario. Este kit no los modifica ni exige regenerarlos.
 

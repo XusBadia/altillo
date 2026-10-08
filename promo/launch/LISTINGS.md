@@ -29,7 +29,7 @@ Download: https://altillo.app/
 Source: https://github.com/XusBadia/altillo
 ```
 
-Tags: Swift, macOS, Open Source, Productivity, Developer Tools. Cubierta 01; imágenes adicionales 02/04/06; demo https://www.youtube.com/watch?v=L33ophXDYUM.
+Tags: Swift, macOS, Open Source, Productivity, Developer Tools. Cubierta 01; imágenes adicionales 02/04/06; demo https://www.youtube.com/watch?v=rCEkdwiwNGw.
 
 Maker comment, deliberadamente por debajo del límite observado de 1000 caracteres:
 ```text
