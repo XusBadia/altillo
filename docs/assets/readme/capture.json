@@ -1,6 +1,6 @@
 {
-  "source_commit": "3675f1d8676193f90a9154261b9cd94a7609d0df",
-  "captured_at": "2026-10-08T11:41:09.346146+00:00",
+  "source_commit": "37782acc28a4289678fbcb51189116c57e27ee45",
+  "captured_at": "2026-10-08T11:49:53.055195+00:00",
   "open_width_points": 700,
   "render_scale": 2,
   "content": "Design scenarios with sample data; native NSHostingView rendering",
@@ -11,19 +11,19 @@
     },
     "ask.png": {
       "scenario": "openAssistant",
-      "sha256": "b2aa02e7a82716d36da3f3895e8b069a7b43a3d58afa64c268102b815204fbb2"
+      "sha256": "d1b64c6d6fb30d2de01385cb8a12bccf512c70c7dded9393d7e067e5f4a8d3d9"
     },
     "usage.png": {
       "scenario": "openUsage",
-      "sha256": "437eaff4c72343e121075639012521fb3f377195dc4048d7e1aaa7be46cbea1a"
+      "sha256": "bef36b0acbb4b06cea7369c6cf774e485bc05b80f0e7369e437d83f167187715"
     },
     "agents.png": {
       "scenario": "openAgents",
-      "sha256": "6c07a6875ac0cb856294fceaeedfbb770c38d4aa01bafc54a1525bc9c7c67d79"
+      "sha256": "be49df6a5641f80fe3da09db9fbcb3da2a9be014e0929b8247a0c733d4bbbdd0"
     },
     "calendar.png": {
       "scenario": "openCalendar",
-      "sha256": "c139a310aa825cf5b47dac7f4e2ddd5596e0f43f7a2134538bad68b16d328716"
+      "sha256": "57baf9d22a116fb7e270d3c2e17a30de818ff68a0706bd85cdd0b7bcf297d890"
     },
     "drawer.png": {
       "scenario": "openDrawer",
@@ -31,11 +31,11 @@
     },
     "idle.png": {
       "scenario": "idleWithEars",
-      "sha256": "323e2347279629574c28c6692de82d15bcf0788cbe5665d3dd6b60b224a0d766"
+      "sha256": "c409c78847ffb48f8a74632c325f4f53fcce5b7b6b8c7867e1a96a63a71b1bcd"
     },
     "idle-agents.png": {
       "scenario": "idleWithAgentWaiting",
-      "sha256": "28684d2d813f31724dde51bdab01e9919629a1aea19adc6c6768025a7a701dfd"
+      "sha256": "8669ddaee01bf307007126e01b3332a33b7d6412a334b35d977c54dfaaa1dd68"
     }
   }
 }
