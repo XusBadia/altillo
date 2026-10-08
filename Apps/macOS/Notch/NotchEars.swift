@@ -152,20 +152,20 @@ enum EarMetrics {
     static func contentWidth(for item: EarItem) -> CGFloat {
         switch item {
         case let .agentRequest(request):
-            return Glyph.hand + spacing + title(request.agentName)
+            return Glyph.hand + spacing + measuredTitleWidth(request.agentName)
         case let .agents(counts):
             return Glyph.dots + spacing + text(agentsText(counts), size: TextSize.title, weight: .medium) + 1
         case let .event(event, label):
             let when = eventText(for: label, hasTitle: !event.title.isEmpty)
             var width = Glyph.calendar + spacing + figure(when)
-            if !event.title.isEmpty { width += spacing + title(event.title) }
+            if !event.title.isEmpty { width += spacing + measuredTitleWidth(event.title) }
             return width
         case let .playback(playback):
             let name = playback.title.isEmpty ? playback.appName : playback.title
-            return Glyph.sleeve + spacing + (name.isEmpty ? 0 : title(name) + spacing) + Glyph.equaliser
+            return Glyph.sleeve + spacing + (name.isEmpty ? 0 : measuredTitleWidth(name) + spacing) + Glyph.equaliser
         case let .usage(usage, _):
             var width = Glyph.ring + spacing + figure(percentText(usage.fraction))
-            if !usage.providerName.isEmpty { width += spacing + name(usage.providerName) }
+            if !usage.providerName.isEmpty { width += spacing + measuredNameWidth(usage.providerName) }
             return width
         case let .timer(timer):
             var width = Glyph.timer
@@ -174,7 +174,7 @@ enum EarMetrics {
                 let countdown = TimerFormat.ear(max(0, timer.endsAt.timeIntervalSinceNow))
                 width += spacing + figure(String(countdown.map { $0.isNumber ? "0" : $0 }))
             }
-            if !timer.label.isEmpty { width += spacing + name(timer.label) }
+            if !timer.label.isEmpty { width += spacing + measuredNameWidth(timer.label) }
             return width
         case let .shelf(count):
             return Glyph.house + spacing + figure("\(count)")
@@ -203,11 +203,12 @@ enum EarMetrics {
         text(string, size: TextSize.figure, weight: .medium) + 1
     }
 
-    private static func title(_ string: String) -> CGFloat {
+    /// Match the text frame to its measured width, capped only for truncation.
+    static func measuredTitleWidth(_ string: String) -> CGFloat {
         min(text(string, size: TextSize.title, weight: .medium) + 1, titleWidth)
     }
 
-    private static func name(_ string: String) -> CGFloat {
+    static func measuredNameWidth(_ string: String) -> CGFloat {
         min(text(string, size: TextSize.name, weight: .regular) + 1, nameWidth)
     }
 

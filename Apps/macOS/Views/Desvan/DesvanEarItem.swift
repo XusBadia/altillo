@@ -94,7 +94,7 @@ struct DesvanEarItemView: View {
             .foregroundStyle(color)
             .lineLimit(1)
             .truncationMode(.tail)
-            .frame(maxWidth: EarMetrics.titleWidth, alignment: .leading)
+            .frame(width: EarMetrics.measuredTitleWidth(text), alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -104,7 +104,7 @@ struct DesvanEarItemView: View {
             .foregroundStyle(Desvan.Palette.paperSecondary)
             .lineLimit(1)
             .truncationMode(.tail)
-            .frame(maxWidth: EarMetrics.nameWidth, alignment: .leading)
+            .frame(width: EarMetrics.measuredNameWidth(text), alignment: .leading)
             .fixedSize(horizontal: false, vertical: true)
     }
 
@@ -150,7 +150,7 @@ struct DesvanEventEar: View {
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(maxWidth: EarMetrics.titleWidth, alignment: .leading)
+                    .frame(width: EarMetrics.measuredTitleWidth(event.title), alignment: .leading)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

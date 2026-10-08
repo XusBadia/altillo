@@ -461,10 +461,11 @@ struct DesvanShelfCount: View {
     let count: Int
 
     var body: some View {
-        HStack(spacing: 4) {
-            DesvanHouseMark(size: 13)
+        HStack(spacing: EarMetrics.spacing) {
+            DesvanHouseMark(size: EarMetrics.Glyph.house)
+                .frame(width: EarMetrics.Glyph.house)
             Text("\(count)")
-                .font(Desvan.Typeface.figure(13, weight: .medium))
+                .font(Desvan.Typeface.figure(EarMetrics.TextSize.figure, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paper)
                 .contentTransition(.numericText(value: Double(count)))
         }
