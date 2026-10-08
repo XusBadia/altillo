@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://altillo.app/">
-    <img src="website/public/og.png" alt="Altillo — Your notch, put to work. A shelf for files, your next meeting, what's playing and your AI limits." width="1200">
+    <img src="docs/assets/readme/banner.png" alt="Altillo — Your notch, put to work. A shelf for files, your next meeting, what's playing and your AI limits." width="1200">
   </a>
 </p>
 
@@ -25,6 +25,7 @@
 
 <p align="center">
   <a href="#what-it-does">Features</a> ·
+  <a href="#beside-the-notch">Beside the notch</a> ·
   <a href="#screenshots">Screenshots</a> ·
   <a href="#installing">Install</a> ·
   <a href="#support-us-by-trying-aurio">Aurio</a> ·
@@ -43,15 +44,19 @@ breaking changes.
 
 | Feature | In your notch |
 | --- | --- |
+| **Beside the notch** | See your next meeting, current song, AI usage, agent activity or shelf count while Altillo is closed. Configure each side, or let “What matters now” choose what needs your attention, including active timers. |
 | **Shelf** | Drop files for a moment, then drag them out, share them or AirDrop the current selection. A temporary shelf of references, not a permanent home. |
 | **Ask** | An on-device assistant powered by Apple Intelligence, with context from your shelf, calendar, music and clipboard. Summon it from any app with ⌃⌥A; put an answer on the shelf and drag it wherever you need it. |
 | **Glances** | A brief heads-up for a meeting in five minutes or a new song, then the notch closes on its own. |
 | **Now Playing** | Control the active media session, with artwork and progress. Load synced lyrics on demand; Apple Music and Spotify have a compatibility fallback. |
 | **AI usage** | Check your remaining Claude, Codex and other provider quotas, with a private 30-day trend kept on your Mac. |
-| **Live agents** | See coding agents working, waiting for permission or done. Approve or deny requests directly from the notch. |
+| **Live agents** | Follow Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor and OpenCode. See requests, running sessions and finished work; approve, deny or reply from the notch when the agent’s hooks or local API support it. |
 | **Calendar** | See today's events and the month at a glance. |
 | **Mirror** | Check your camera preview without opening another app. |
-| **Focus & reminders** | Run a persistent Pomodoro cycle and see, complete or open today's and upcoming reminders. |
+| **Timers & focus** | Run several named timers or a persistent Pomodoro cycle, with a countdown beside the notch and a glance when time is up. |
+| **Reminders** | See, complete or open today's and upcoming reminders. |
+| **Clipboard** | Search recently copied text, images and file references, then copy or paste them back. Image text recognition runs on your Mac; keeping history after quitting is optional. |
+| **Note & Shortcuts** | Write a quick note you can drag into another app, and run your favourite Apple Shortcuts from the notch. |
 | **Keep Awake** | Keep your Mac awake for 30 minutes, one hour, two hours or until you stop it. The display may still turn off; the setting resets on relaunch. |
 | **Drawer** | Keep rarely used menu bar icons above Altillo's navigation and open their menus there. On macOS 27, their icons leave the menu bar entirely. Requires Accessibility; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md). |
 
@@ -59,13 +64,32 @@ Built with Swift 6 for macOS 26+. iPhone, iPad, widget and Live Activity targets
 are groundwork only; the mobile companion is not shipped yet. See [PLAN.md](PLAN.md)
 for the module design, roadmap and open decisions.
 
-## Screenshots
+## Beside the notch
+
+Useful information stays visible on either side, even while Altillo is closed.
+The sides grow to fit what they show: a meeting's time and title, a song's artwork
+and name, an AI provider and its usage, or the agent waiting for you.
 
 <p align="center">
-  <img src="docs/assets/readme/idle.png" alt="The closed notch at rest, with usage and shelf ears" width="161">
+  <img src="docs/assets/readme/idle.png" alt="The resting notch with Claude usage and provider name on the left, and six shelf items on the right" width="420">
   <br>
-  <sub>At rest — small ears for AI usage and the shelf.</sub>
+  <sub>AI usage on the left, your shelf count on the right.</sub>
 </p>
+
+<p align="center">
+  <img src="docs/assets/readme/idle-agents.png" alt="The resting notch with Claude asking for attention on the left and one waiting agent on the right" width="460">
+  <br>
+  <sub>An agent needs your attention, without opening the panel.</sub>
+</p>
+
+Click either side to open its section. Right-click the notch and choose
+**Customize…** to configure each side. With **What matters now**, Altillo picks
+the most relevant activity and can fill an empty side with the next one.
+
+## Screenshots
+
+These are the app's design-review scenarios, with sample files, quotas and agent
+sessions. Your enabled sections and panel size can differ.
 
 | Shelf · drop files, drag them out | Ask · answers from your Mac |
 | :---: | :---: |
