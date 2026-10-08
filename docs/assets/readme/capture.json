@@ -1,0 +1,41 @@
+{
+  "source_commit": "3675f1d8676193f90a9154261b9cd94a7609d0df",
+  "captured_at": "2026-10-08T11:41:09.346146+00:00",
+  "open_width_points": 700,
+  "render_scale": 2,
+  "content": "Design scenarios with sample data; native NSHostingView rendering",
+  "assets": {
+    "shelf.png": {
+      "scenario": "openShelf",
+      "sha256": "d72ee2c8828129761a690e7fbf6da5419b58630af3b78c622b58b5695c1c8f72"
+    },
+    "ask.png": {
+      "scenario": "openAssistant",
+      "sha256": "b2aa02e7a82716d36da3f3895e8b069a7b43a3d58afa64c268102b815204fbb2"
+    },
+    "usage.png": {
+      "scenario": "openUsage",
+      "sha256": "437eaff4c72343e121075639012521fb3f377195dc4048d7e1aaa7be46cbea1a"
+    },
+    "agents.png": {
+      "scenario": "openAgents",
+      "sha256": "6c07a6875ac0cb856294fceaeedfbb770c38d4aa01bafc54a1525bc9c7c67d79"
+    },
+    "calendar.png": {
+      "scenario": "openCalendar",
+      "sha256": "c139a310aa825cf5b47dac7f4e2ddd5596e0f43f7a2134538bad68b16d328716"
+    },
+    "drawer.png": {
+      "scenario": "openDrawer",
+      "sha256": "aa81a3847ca370669a0c79df388e5bd5beeb176e506e70ea79b243c9fcc9ea28"
+    },
+    "idle.png": {
+      "scenario": "idleWithEars",
+      "sha256": "323e2347279629574c28c6692de82d15bcf0788cbe5665d3dd6b60b224a0d766"
+    },
+    "idle-agents.png": {
+      "scenario": "idleWithAgentWaiting",
+      "sha256": "28684d2d813f31724dde51bdab01e9919629a1aea19adc6c6768025a7a701dfd"
+    }
+  }
+}

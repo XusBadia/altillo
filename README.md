@@ -88,16 +88,20 @@ the most relevant activity and can fill an empty side with the next one.
 
 ## Screenshots
 
-These are the app's design-review scenarios, with sample files, quotas and agent
-sessions. Your enabled sections and panel size can differ.
+Captured from the current app, using design-review scenarios with sample files,
+quotas and agent sessions. Your enabled sections and panel size can differ.
 
 | Shelf · drop files, drag them out | Ask · answers from your Mac |
 | :---: | :---: |
 | ![The shelf with files](docs/assets/readme/shelf.png) | ![Ask, the on-device assistant](docs/assets/readme/ask.png) |
 
-| AI usage · quotas, pace and refill | Live agents · permission requests |
-| :---: | :---: |
-| ![AI usage for Claude and Codex](docs/assets/readme/usage.png) | ![Live agents with a pending permission request](docs/assets/readme/agents.png) |
+**AI usage** — provider rows with plans, usage bars, pace and refill times.
+
+![AI usage with full-width provider rows for Claude and Codex](docs/assets/readme/usage.png)
+
+**Live agents** — a featured request and the other sessions below it.
+
+![Live agents with a pending permission request](docs/assets/readme/agents.png)
 
 | Calendar · events and month view | Drawer · your menu bar icons |
 | :---: | :---: |
