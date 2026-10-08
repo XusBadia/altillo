@@ -5,15 +5,20 @@ import {AltilloProductDemo} from './AltilloProductDemo';
 import {AltilloDirectorCut,DIRECTOR_FRAMES} from './AltilloDirectorCut';
 import {AltilloAnuncio, ANUNCIO_FPS, ANUNCIO_FRAMES} from './anuncio/Anuncio';
 import {YTAvatar, YTBanner, YTThumb} from './anuncio/YouTube';
+import {AltilloMisterio, MISTERIO_FPS, MISTERIO_FRAMES} from './anuncio/Misterio';
 import {PHFeatures, PHOpen, PHThumb, PH_THUMB_FRAMES} from './anuncio/ProductHunt';
 
 const AltilloAnuncioEN = () => <AltilloAnuncio lang="en" score="b"/>;
+
+const AltilloMisterioEN = () => <AltilloMisterio lang="en"/>;
 
 const AltilloTrailerDemo = () => <AltilloLaPuerta productDemo/>;
 
 export const RemotionRoot = () => (
   <>
     <Composition id="AltilloAnuncio" component={AltilloAnuncio} durationInFrames={ANUNCIO_FRAMES} fps={ANUNCIO_FPS} width={1920} height={1080}/>
+    <Composition id="AltilloMisterio" component={AltilloMisterio} durationInFrames={MISTERIO_FRAMES} fps={MISTERIO_FPS} width={1920} height={1080}/>
+    <Composition id="AltilloMisterioEN" component={AltilloMisterioEN} durationInFrames={MISTERIO_FRAMES} fps={MISTERIO_FPS} width={1920} height={1080}/>
     <Composition id="PHFeatures" component={PHFeatures} durationInFrames={1} fps={30} width={1270} height={760}/>
     <Composition id="PHOpen" component={PHOpen} durationInFrames={1} fps={30} width={1270} height={760}/>
     <Composition id="PHThumb" component={PHThumb} durationInFrames={PH_THUMB_FRAMES} fps={30} width={240} height={240}/>
