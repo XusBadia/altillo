@@ -1,6 +1,55 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Allow Screen Recording to show menu bar icons. Altillo only captures the menu bar." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Screen Recording to show menu bar icons. Altillo only captures the menu bar." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Permite la grabación de pantalla para ver los iconos de la barra de menús. Altillo solo captura la barra de menús." } }
+      }
+    },
+    "App icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "App icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iconos de app" } }
+      }
+    },
+    "As in the menu bar" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "As in the menu bar" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Como en la barra de menús" } }
+      }
+    },
+    "Drawer icons" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drawer icons" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iconos del Cajón" } }
+      }
+    },
+    "Each app's own icon, in colour. macOS's items keep their menu bar look." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Each app's own icon, in colour. macOS's items keep their menu bar look." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El icono de cada app, en color. Los elementos de macOS conservan su aspecto de la barra de menús." } }
+      }
+    },
+    "Each icon looks exactly as it does in your menu bar." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Each icon looks exactly as it does in your menu bar." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cada icono se ve exactamente como en tu barra de menús." } }
+      }
+    },
+    "Until Screen Recording is allowed, the Drawer shows each app's icon." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Until Screen Recording is allowed, the Drawer shows each app's icon." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hasta que permitas la grabación de pantalla, el Cajón muestra el icono de cada app." } }
+      }
+    },
     "%@, %@ used" : {
       "extractionState" : "manual",
       "localizations" : {

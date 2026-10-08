@@ -41,10 +41,11 @@ enum MenuBarItemClicker {
         down.setIntegerValueField(.mouseEventClickState, value: 1)
         up.setIntegerValueField(.mouseEventClickState, value: 1)
         let pointer = CGEvent(source: nil)?.location
-        // Altillo's own panels above the menu bar must let this click through to the icon.
+        // Altillo's own panels above the menu bar must let this click through to the icon. That includes the open
+        // notch, which steps down to the status bar's level while an app's panel opens from the Drawer.
         let primaryTop = NSScreen.screens.first?.frame.maxY ?? 0
         let overlays = NSApplication.shared.windows.filter { window in
-            window.level.rawValue > NSWindow.Level.statusBar.rawValue && !window.ignoresMouseEvents
+            window.level.rawValue >= NSWindow.Level.statusBar.rawValue && !window.ignoresMouseEvents
                 && DrawerGeometry.accessibilityFrame(window.frame, primaryScreenHeight: primaryTop).contains(point)
         }
         overlays.forEach { $0.ignoresMouseEvents = true }

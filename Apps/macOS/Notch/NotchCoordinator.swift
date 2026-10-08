@@ -116,12 +116,14 @@ final class NotchCoordinator {
             isVisible: { [weak self] in self?.model.state == .open && self?.model.module == .assistant }
         )
 
-        model.drawer.prepareForMenuBarInteraction = { [weak self] in
-            guard let self else { return }
-            self.cancel(.hoverIntent)
-            self.cancel(.hoverSustained)
-            self.isHovering = false
-            self.send(.escape)
+        model.drawer.menuBarInteractionChanged = { [weak self] active in
+            guard let self, let panel = self.window?.panel else { return }
+            // The app's panel opens from the Drawer button with the notch still open. Status-item panels sit at
+            // the status bar's level, below the notch's: step down to it meanwhile (still above the menu bar),
+            // so the panel, ordered in later, draws on top.
+            panel.level = active ? .statusBar : .mainMenu + 3
+            // Pointer moves were ignored meanwhile; catch up with where it is now.
+            if !active { self.mouseMoved(to: NSEvent.mouseLocation) }
         }
         appliedScreenSettings = (model.settings.displayMode, model.settings.fullScreenBehaviour)
         arrangeScreens()

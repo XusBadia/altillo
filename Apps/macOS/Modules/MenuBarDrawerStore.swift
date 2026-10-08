@@ -18,6 +18,8 @@ final class MenuBarDrawerStore: NSObject {
     private(set) var hidesDrawerIcons: Bool
     /// Icons of apps Altillo has never seen go straight to the Drawer instead of the menu bar.
     private(set) var newIconsGoToDrawer: Bool
+    /// How the Drawer draws its icons: as they look in the menu bar, or as their apps' icons.
+    private(set) var iconStyle: DrawerIconStyle
     private(set) var hasAccess = false
     private(set) var isLoading = false
     /// The Drawer's apps are hidden from the menu bar right now.
@@ -72,8 +74,17 @@ final class MenuBarDrawerStore: NSObject {
     @ObservationIgnored private var concealTask: Task<Void, Never>?
     @ObservationIgnored private var scanTask: Task<Void, Never>?
     @ObservationIgnored private var permissionTask: Task<Void, Never>?
-    @ObservationIgnored private var activationTask: Task<Void, Never>?
-    @ObservationIgnored private var menuSessionTask: Task<Void, Never>?
+    @ObservationIgnored private var activationTask: Task<Void, Never>? {
+        didSet { reportMenuBarInteraction() }
+    }
+    @ObservationIgnored private var menuSessionTask: Task<Void, Never>? {
+        didSet { reportMenuBarInteraction() }
+    }
+    /// Briefly shows hidden Drawer apps whose menu-bar glyph was never captured, so it can be.
+    @ObservationIgnored private var glyphRevealTask: Task<Void, Never>?
+    /// Bundles already shown once for their glyph: each is revealed at most once per launch.
+    @ObservationIgnored private var glyphRevealAttempts: Set<String> = []
+    @ObservationIgnored private var reportedMenuBarInteraction = false
     @ObservationIgnored private var currentMenuSession: MenuBarMenuSession?
     @ObservationIgnored private var currentMenuEntryID: String?
     @ObservationIgnored private var accessRecheckTask: Task<Void, Never>?
@@ -98,13 +109,22 @@ final class MenuBarDrawerStore: NSObject {
     static let permissionCheckCount = 60
     /// `.debug` only: free unless someone streams it (`log stream --level debug --predicate 'category == "drawer"'`).
     static let log = Logger(subsystem: "me.badia.altillo", category: "drawer")
-    /// The expanded notch sits above the menu bar. Fold it before opening an item's panel.
-    @ObservationIgnored var prepareForMenuBarInteraction: (() -> Void)?
+    /// An app's own panel is opening from the Drawer (true) or has closed (false). The open notch stays where it
+    /// is, but steps down to the status bar's level so the panel can draw over it.
+    @ObservationIgnored var menuBarInteractionChanged: ((Bool) -> Void)?
+
+    private func reportMenuBarInteraction() {
+        let active = isPerformingMenuBarInteraction
+        guard active != reportedMenuBarInteraction else { return }
+        reportedMenuBarInteraction = active
+        menuBarInteractionChanged?(active)
+    }
 
     private enum Key {
         static let enabled = "drawer.enabled"
         static let hidesIcons = "drawer.hidesIcons"
         static let newIconsGoToDrawer = "drawer.newIconsGoToDrawer"
+        static let iconStyle = "drawer.iconStyle"
         static let bundleIDs = "drawer.bundleIDs"
         static let knownBundleIDs = "drawer.knownBundleIDs"
         static let order = "drawer.order"
@@ -127,6 +147,7 @@ final class MenuBarDrawerStore: NSObject {
         self.enabled = defaults.bool(forKey: Key.enabled)
         self.hidesDrawerIcons = (defaults.object(forKey: Key.hidesIcons) as? Bool) ?? true
         self.newIconsGoToDrawer = defaults.bool(forKey: Key.newIconsGoToDrawer)
+        self.iconStyle = defaults.string(forKey: Key.iconStyle).flatMap(DrawerIconStyle.init(rawValue:)) ?? .menuBar
         self.knownBundleIDs = Set(defaults.stringArray(forKey: Key.knownBundleIDs) ?? [])
         self.drawerOrder = defaults.stringArray(forKey: Key.order) ?? []
         if let saved = defaults.stringArray(forKey: Key.bundleIDs) {
@@ -216,9 +237,11 @@ final class MenuBarDrawerStore: NSObject {
     func stop() {
         menuPresenter.cancel()
         started = false
-        for task in [scanTask, permissionTask, activationTask, menuSessionTask, accessRecheckTask, concealTask] {
+        for task in [scanTask, permissionTask, activationTask, menuSessionTask, accessRecheckTask, concealTask,
+                     glyphRevealTask] {
             task?.cancel()
         }
+        glyphRevealTask = nil
         scanTask = nil
         permissionTask = nil
         activationTask = nil
@@ -281,6 +304,13 @@ final class MenuBarDrawerStore: NSObject {
         newIconsGoToDrawer = value
         defaults.set(value, forKey: Key.newIconsGoToDrawer)
         applyConcealment()
+    }
+
+    func setIconStyle(_ value: DrawerIconStyle) {
+        guard value != iconStyle else { return }
+        iconStyle = value
+        defaults.set(value.rawValue, forKey: Key.iconStyle)
+        captureMissingGlyphs()
     }
 
     /// Shows the hidden icons in the menu bar until the user hides them again.
@@ -481,6 +511,10 @@ final class MenuBarDrawerStore: NSObject {
             guard !Task.isCancelled else { return }
             self.didScan(result)
             if thenConceal { self.applyConcealment() }
+            if self.isVisible {
+                await self.concealTask?.value
+                self.captureMissingGlyphs()
+            }
         }
     }
 
@@ -511,11 +545,51 @@ final class MenuBarDrawerStore: NSObject {
 
     // MARK: - Icons
 
-    /// A stable, recognisable image per icon: SF Symbols for macOS's own items, the owner's icon otherwise.
-    /// Concealed icons aren't drawn at all, so their pixels can't be captured.
-    func stripIcon(for entry: MenuBarEntry) -> NSImage? { glyphs.image(for: entry) ?? catalogIcon(for: entry) }
+    /// One image per icon, in the chosen `iconStyle`. Menu-bar style shows the captured glyph and falls back to the
+    /// owner's icon until one exists (concealed icons aren't drawn, so `captureMissingGlyphs` shows them once).
+    /// App style shows the owner's icon; macOS's own items have no app icon of their own and keep their glyph.
+    func stripIcon(for entry: MenuBarEntry) -> NSImage? { icon(for: entry) }
 
-    func settingsIcon(for entry: MenuBarEntry) -> NSImage { glyphs.image(for: entry) ?? catalogIcon(for: entry) }
+    func settingsIcon(for entry: MenuBarEntry) -> NSImage { icon(for: entry) }
+
+    private func icon(for entry: MenuBarEntry) -> NSImage {
+        switch iconStyle {
+        case .menuBar:
+            return glyphs.image(for: entry) ?? catalogIcon(for: entry)
+        case .application:
+            if DrawerMembership.isSystemHosted(entry.application.bundleID) {
+                return glyphs.image(for: entry) ?? catalogIcon(for: entry)
+            }
+            return applicationIcon(for: entry) ?? glyphs.image(for: entry) ?? catalogIcon(for: entry)
+        }
+    }
+
+    /// Hidden Drawer icons never captured (hidden before Screen Recording was allowed, or before they had a
+    /// glyph) would otherwise show their app's icon among real glyphs. Shows their apps in the menu bar for a
+    /// moment, once per launch: hiding them again captures their glyphs on the way out (`applyConcealment`).
+    private func captureMissingGlyphs() {
+        guard iconStyle == .menuBar, enabled, isConcealing, glyphs.hasAccess, glyphRevealTask == nil,
+              !isPerformingMenuBarInteraction else { return }
+        let missing = drawerEntries.filter {
+            canMove($0) && glyphs.image(for: $0) == nil && !glyphRevealAttempts.contains($0.application.bundleID)
+        }
+        let bundles = Set(missing.map(\.application.bundleID)).subtracting(temporarilyShown)
+        guard !bundles.isEmpty else { return }
+        glyphRevealAttempts.formUnion(bundles)
+        Self.log.debug("revealing \(bundles.count) apps for their glyphs")
+        glyphRevealTask = Task { [weak self] in
+            guard let self else { return }
+            defer { self.glyphRevealTask = nil }
+            self.temporarilyShown.formUnion(bundles)
+            self.applyConcealment()
+            await self.concealTask?.value
+            // MenuBarAgent draws the icons and updates their Accessibility frames a moment later.
+            try? await Task.sleep(for: .milliseconds(400))
+            let shownForMenu = self.revealedForMenu
+            for bundle in bundles where bundle != shownForMenu { self.temporarilyShown.remove(bundle) }
+            self.applyConcealment()
+        }
+    }
 
     var hasIconAccess: Bool { glyphs.hasAccess }
 
@@ -527,7 +601,11 @@ final class MenuBarDrawerStore: NSObject {
             for _ in 0..<60 {
                 try? await Task.sleep(for: .seconds(2))
                 guard let self, !Task.isCancelled else { return }
-                if self.glyphs.hasAccess { await self.captureDrawn(force: true); return }
+                if self.glyphs.hasAccess {
+                    await self.captureDrawn(force: true)
+                    self.captureMissingGlyphs()
+                    return
+                }
             }
         }
     }
@@ -624,17 +702,31 @@ final class MenuBarDrawerStore: NSObject {
                 return
             }
             // No standard menu to mirror: click the real icon, shown for a moment if it's hidden, so its app
-            // opens its own menu or panel the way it was written to.
-            self.prepareForMenuBarInteraction?()
+            // opens its own menu or panel the way it was written to. The notch stays open (the click passes
+            // through it) and the panel is brought to the Drawer button, as if it had opened from there.
             let panelOwner = Self.panelOwnerPID(for: entry)
+            let top = NSScreen.screens.first?.frame.maxY ?? 0
+            let point = CGPoint(x: anchorRect.minX, y: top - anchorRect.minY + 4)
+            let screens = NSScreen.screens.map {
+                DrawerGeometry.accessibilityFrame($0.frame, primaryScreenHeight: top)
+            }
+            // Both read the owner's windows before the click, so its new panel is the one they follow.
+            let clickPlacement = MenuBarPopoverPlacement(pid: panelOwner)
+            let clickSession = MenuBarMenuSession(pid: panelOwner)
             if case .clicked(let revealed) = await self.clickRealIcon(entry) {
                 self.revealedForMenu = revealed
                 guard !Task.isCancelled else {
                     self.endRevealForMenu()
                     return
                 }
+                // Ordinary menus can't be moved and stay under the real icon, which is fine: they draw above the notch.
+                _ = await clickPlacement.place(at: point, screens: screens)
+                guard !Task.isCancelled else {
+                    self.endRevealForMenu()
+                    return
+                }
                 self.currentMenuEntryID = entry.id
-                self.watchMenu(MenuBarMenuSession(pid: panelOwner))
+                self.watchMenu(clickSession)
                 return
             }
             // The icon can't be shown where a click reaches it (e.g. behind the notch): open it through
@@ -646,11 +738,6 @@ final class MenuBarDrawerStore: NSObject {
             if case .unavailable = outcome {
                 self.problem = String(localized: "This app doesn't expose a menu that Altillo can open.")
                 return
-            }
-            let top = NSScreen.screens.first?.frame.maxY ?? 0
-            let point = CGPoint(x: anchorRect.minX, y: top - anchorRect.minY + 4)
-            let screens = NSScreen.screens.map {
-                DrawerGeometry.accessibilityFrame($0.frame, primaryScreenHeight: top)
             }
             guard await placement.place(at: point, screens: screens) else {
                 if !(await session.dismiss()), await session.isPresented() == true {
@@ -858,6 +945,12 @@ final class MenuBarDrawerStore: NSObject {
 
 /// What the Drawer can do on this macOS. The catalog (strip, Settings, opening menus) needs macOS 26; hiding
 /// needs the system allow-list that arrived with macOS 27, checked at run time.
+/// How the Drawer draws its icons. Menu-bar glyphs need Screen Recording; without it every style shows app icons.
+enum DrawerIconStyle: String, CaseIterable, Sendable {
+    case menuBar
+    case application
+}
+
 struct DrawerSupport: Equatable, Sendable {
     var catalog: Bool
     var hiding: Bool

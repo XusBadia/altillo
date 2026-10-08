@@ -153,6 +153,39 @@ struct DrawerTests {
         #expect(store.entries.isEmpty)
     }
 
+    @Test func iconStyleDefaultsToTheMenuBarAndIsRemembered() {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+
+        let store = Self.makeStore(storage.defaults, concealer: FakeConcealer())
+        #expect(store.iconStyle == .menuBar)
+        store.setIconStyle(.application)
+        #expect(Self.makeStore(storage.defaults, concealer: FakeConcealer()).iconStyle == .application)
+    }
+
+    @Test func appStyleShowsTheAppsIconEvenWithACapturedGlyph() throws {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        // A running app (this test host) so the owner's icon exists.
+        let entry = Self.item("com.a", pid: ProcessInfo.processInfo.processIdentifier)
+        let key = SHA256.hash(data: Data(entry.id.utf8)).map { String(format: "%02x", $0) }.joined()
+        let png = try #require(NSBitmapImageRep(cgImage: Self.opaqueArtwork(colored: true))
+            .representation(using: .png, properties: [:]))
+        try png.write(to: directory.appendingPathComponent("\(key).2.c.png"))
+        let glyphs = MenuBarGlyphCapture(directory: directory, preflight: { true })
+        let store = MenuBarDrawerStore(defaults: storage.defaults, majorVersion: 27, concealer: FakeConcealer(),
+                                       glyphs: glyphs, runningBundleIDs: { ["com.a"] })
+        let glyph = try #require(glyphs.image(for: entry))
+
+        #expect(store.stripIcon(for: entry) === glyph)
+        store.setIconStyle(.application)
+        #expect(store.stripIcon(for: entry) !== glyph)
+        #expect(store.settingsIcon(for: entry) !== glyph)
+    }
+
     // MARK: - Membership
 
     @Test func entryIDsNameTheirOwner() {

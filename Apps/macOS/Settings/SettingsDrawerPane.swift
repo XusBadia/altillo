@@ -50,7 +50,7 @@ struct SettingsDrawerPane: View {
                     if store.enabled, store.isSupported, store.hasAccess {
                         optionsCard
                             .transition(.settingsReveal)
-                        iconAccessCard
+                        iconStyleCard
                             .transition(.settingsReveal)
                     }
                     if let problem = store.problem {
@@ -259,49 +259,78 @@ struct SettingsDrawerPane: View {
         }
     }
 
-    // MARK: - Real icons
+    // MARK: - Icon style
 
-    /// Screen Recording is optional: it only lets the Drawer show each icon exactly as the app draws it in the menu
-    /// bar. Without it the Drawer shows the app's icon, and everything else works the same. Once allowed, a quiet line.
-    private var iconAccessCard: some View {
+    /// Menu-bar style shows each icon as it looks in the menu bar, which needs Screen Recording (optional: until
+    /// it's allowed, and in app style, the Drawer shows each app's icon). Everything else works the same.
+    private var iconStyleCard: some View {
         SettingsCard {
-            if store.hasIconAccess {
-                HStack(alignment: .center, spacing: 8) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(SettingsTone.good.color)
-                        .accessibilityHidden(true)
-                    Text("Showing the real menu bar icons.")
-                        .settingsHint()
-                    Spacer(minLength: 0)
-                }
-                .accessibilityElement(children: .combine)
-                .transition(.opacity)
-            } else {
+            VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .center, spacing: 12) {
-                    optionTile(symbol: "menubar.rectangle", isLit: false)
+                    optionTile(symbol: store.iconStyle == .menuBar ? "menubar.rectangle" : "app.dashed",
+                               isLit: store.iconStyle == .menuBar && store.hasIconAccess)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
-                            Text("Show the real menu bar icons")
-                                .settingsRowTitle()
-                            SettingsBadge(text: String(localized: "Optional"))
-                        }
-                        Text("Allow Screen Recording and Altillo shows each icon exactly as it looks in your menu bar. Altillo only captures the menu bar. Without it, the Drawer shows each app's icon.")
+                        Text("Drawer icons")
+                            .settingsRowTitle()
+                        Text(iconStyleHint)
                             .settingsHint()
+                            .contentTransition(.opacity)
                     }
                     .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityElement(children: .combine)
 
                     Spacer(minLength: 12)
 
-                    Button("Allow Screen Recording…") { store.requestIconAccess() }
-                        .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 26))
-                        .fixedSize()
-                        .help("Opens Privacy & Security › Screen Recording in System Settings")
+                    Picker(selection: Binding(
+                        get: { store.iconStyle },
+                        set: { store.setIconStyle($0) }
+                    )) {
+                        Text("As in the menu bar").tag(DrawerIconStyle.menuBar)
+                        Text("App icons").tag(DrawerIconStyle.application)
+                    } label: {
+                        Text("Drawer icons")
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.segmented)
+                    .controlSize(.small)
+                    .fixedSize()
                 }
-                .transition(.opacity)
+
+                if store.iconStyle == .menuBar, !store.hasIconAccess {
+                    HStack(alignment: .center, spacing: 12) {
+                        Color.clear.frame(width: 30, height: 1)
+                            .accessibilityHidden(true)
+
+                        HStack(spacing: 6) {
+                            SettingsBadge(text: String(localized: "Optional"))
+                            Text("Allow Screen Recording to show menu bar icons. Altillo only captures the menu bar.")
+                                .settingsHint()
+                        }
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityElement(children: .combine)
+
+                        Spacer(minLength: 12)
+
+                        Button("Allow Screen Recording…") { store.requestIconAccess() }
+                            .buttonStyle(DesvanButtonStyle(kind: .ghost, height: 26))
+                            .fixedSize()
+                            .help("Opens Privacy & Security › Screen Recording in System Settings")
+                    }
+                    .transition(.opacity)
+                }
             }
+        }
+        .animation(revealAnimation, value: store.iconStyle)
+    }
+
+    private var iconStyleHint: String {
+        switch store.iconStyle {
+        case .menuBar where store.hasIconAccess:
+            String(localized: "Each icon looks exactly as it does in your menu bar.")
+        case .menuBar:
+            String(localized: "Until Screen Recording is allowed, the Drawer shows each app's icon.")
+        case .application:
+            String(localized: "Each app's own icon, in colour. macOS's items keep their menu bar look.")
         }
     }
 
