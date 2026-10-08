@@ -625,9 +625,8 @@
 .dm-open .an-tile { padding-bottom: 0; }
 .dm-open .an-tile.dm-lifting .an-thumb { opacity: 0.35; }
 .dm-open .an-tile:focus-visible { outline-offset: -2px; }
-.dm-ring-tick .an-ring__figure, .dm-tick { animation: dm-tick 0.5s ease-out; }
+.dm-tick { animation: dm-tick 0.5s ease-out; }
 @keyframes dm-tick { 30% { transform: translateY(-2px); color: var(--an-mustard); } }
-.dm-open .dm-arc { transition: stroke-dasharray 0.9s cubic-bezier(0.25, 0.8, 0.3, 1); }
 .dm-open .dm-bar { transition: --v 0.9s cubic-bezier(0.25, 0.8, 0.3, 1) 0.1s; }
 .dm-open .dm-groove::before { transition: width 0.25s linear; }
 .an-drawer.dm-flash { animation: dm-flash 0.9s ease-out; }
@@ -704,12 +703,6 @@
 
 /* Kit modules at phone width */
 .dm--compact .an-band { padding: 0 8px; }
-.dm--compact .an-usage { grid-template-columns: 1fr; gap: 8px; }
-.dm--compact .an-usage-card { padding: 10px 12px; gap: 8px; }
-.dm--compact .an-usage-card .an-ring { --an-ring: 64px; }
-.dm--compact .an-usage-card .an-ring__figure { font-size: 19px; padding-top: 32%; }
-.dm--compact .an-usage-card .an-ring__figure small { font-size: 11.5px; }
-.dm--compact .an-usage-card__refill { font-size: 12.5px; }
 .dm--compact .an-bar { min-width: 60px; }
 .dm--compact .dm-hide-compact { display: none; }
 .dm--compact .an-agent-card { padding: 10px 11px; }
@@ -750,7 +743,7 @@
    ========================================================================== */
 .dm--reduce *, .dm--reduce *::before, .dm--reduce *::after { animation-duration: 1ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; }
 .dm--reduce .dm-notch, .dm--reduce .dm-notch[data-state="open"], .dm--reduce .dm-notch.dm-opening { transition-duration: 1ms !important; transition-delay: 0ms !important; }
-.dm--reduce .dm-notch.dm-ears-spring, .dm--reduce .dm-ears, .dm--reduce .dm-open .dm-arc, .dm--reduce .dm-open .dm-bar, .dm--reduce .dm-tray__items, .dm--reduce .dm-tray__items > * { transition-duration: 1ms !important; }
+.dm--reduce .dm-notch.dm-ears-spring, .dm--reduce .dm-ears, .dm--reduce .dm-open .dm-bar, .dm--reduce .dm-tray__items, .dm--reduce .dm-tray__items > * { transition-duration: 1ms !important; }
 .dm--reduce .dm-open.dm-focus-in, .dm--reduce .dm-open.dm-focus-out { animation: none; }
 .dm-lower { display: contents; }
 

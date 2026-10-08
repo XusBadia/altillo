@@ -170,6 +170,9 @@
   letter-spacing: -0.04em;
   transform: translateY(-2%);
 }
+/* Monogram tiles (AgentGlyph .monogram): Grok's "G" on near-black. */
+.an-glyph--grok { background: #0b0b0c; color: #f6efe3; }
+.an-glyph--grok::after { content: "G"; font: 700 calc(var(--s) * 0.55) / 1 var(--an-rounded); }
 
 /* ==========================================================================
    Wood: card, plaque, plank
@@ -515,7 +518,7 @@
   z-index: 2;
 }
 .an-body--shelf { --an-body-h: 150px; }
-.an-body--usage { --an-body-h: 160px; }
+.an-body--usage { --an-body-h: 280px; }
 .an-body--agents { --an-body-h: 220px; }
 .an-body--module { --an-body-h: 180px; }
 
@@ -908,41 +911,83 @@
 .an-shelf-empty p { margin-top: 4px; font-size: 13px; color: var(--an-paper-2); }
 
 /* ==========================================================================
-   USAGE (DesvanUsageView)
+   USAGE (DesvanUsageView): full-width provider rows on one walnut panel.
+   Wide (≥ 470 pt of row): identity · measurements · details. Narrow: the
+   details column moves under the bar.
    ========================================================================== */
-.an-usage { position: absolute; inset: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.an-usage-card {
+.an-body--usage { container-type: inline-size; }
+.an-usage {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-  padding: 14px;
+  padding: 3px 16px;
+  overflow: hidden;
 }
-.an-usage-card__top { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.an-usage-card__text { display: flex; flex-direction: column; gap: 4px; min-width: 0; flex: 1; }
-.an-usage-card__title { display: flex; align-items: center; gap: 6px; min-width: 0; }
-.an-usage-card__name { font-size: 14px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.an-chip {
-  display: inline-flex;
+.an-urow {
+  display: grid;
+  grid-template-columns: min(180px, 28%) minmax(0, 1fr) min(220px, 32%);
+  grid-template-areas: "id meas det";
   align-items: center;
-  height: 19px;
-  padding: 0 7px;
-  border-radius: 999px;
+  column-gap: 18px;
+  padding: 13px 0;
+  min-width: 0;
+}
+.an-urow + .an-urow { border-top: 0.5px solid var(--an-hairline-strong); }
+.an-urow__id { grid-area: id; display: flex; align-items: flex-start; gap: 10px; min-width: 0; }
+.an-urow__id .an-glyph { --s: 30px; }
+.an-urow__id > div { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
+.an-urow__name { font-size: 14px; font-weight: 600; line-height: 1.15; color: var(--an-paper); }
+.an-urow__plan {
+  padding: 3px 7px;
+  border-radius: 8px;
   background: var(--an-wood-raised);
   box-shadow: inset 0 0 0 0.5px var(--an-hairline-strong);
-  font: 600 11.5px / 1 var(--an-rounded);
+  font: 500 11px / 1.15 var(--an-rounded);
   color: var(--an-paper-2);
   white-space: nowrap;
-  flex: none;
 }
-.an-usage-card__length { margin-left: 4px; font: 600 12px / 1 var(--an-rounded); color: var(--an-paper-3); flex: none; }
-.an-usage-card__refill { font: 500 13.5px / 1.2 var(--an-rounded); color: rgb(246 239 227 / 0.85); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.an-pace { font: italic 500 12.5px / 1.2 var(--an-rounded); color: var(--an-paper-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
-.an-pace--warning { color: var(--an-mustard); }
+.an-urow__meas { grid-area: meas; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.an-urow__head { display: flex; align-items: baseline; gap: 8px; }
+.an-urow__label, .an-urow__sub { font: 500 11.5px / 1.2 var(--an-rounded); color: var(--an-paper-2); font-variant-numeric: tabular-nums; text-wrap: pretty; }
+.an-urow__label { flex: 1; min-width: 0; }
+.an-urow__pct { font: 600 19px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; color: var(--an-paper); white-space: nowrap; }
+.an-urow__pct.is-warning { color: var(--an-mustard); }
+.an-urow__pct.is-critical { color: var(--an-tomato); }
+.an-urow__det { grid-area: det; display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; }
+.an-urow__refill { display: flex; align-items: center; gap: 6px; font: 500 12px / 1.2 var(--an-rounded); color: var(--an-paper); font-variant-numeric: tabular-nums; }
+.an-urow__refill .an-i { font-size: 12.5px; flex: none; }
+/* Status in a few words (UsageText.pace): colour always with a word. */
+.an-pace { font: 500 12px / 1.2 var(--an-rounded); color: var(--an-paper-2); font-variant-numeric: tabular-nums; }
 .an-pace--good { color: var(--an-sage); }
+.an-pace--warning { color: var(--an-mustard); }
 .an-pace--critical { color: var(--an-tomato); }
+/* The 30-day trend: a quiet 54 × 13 line. */
+.an-spark { display: block; width: 54px; height: 13px; margin-top: 3px; overflow: visible; }
+.an-spark polyline { fill: none; stroke: var(--an-paper-2); stroke-opacity: 0.75; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 
-/* Ring (DesvanRing): SVG, pathLength 100, value in stroke-dasharray. */
+@container (max-width: 500px) {
+  .an-usage { padding: 0 12px; }
+  .an-urow {
+    grid-template-columns: min(118px, 36%) minmax(0, 1fr);
+    grid-template-areas: "id meas" "id det";
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 7px;
+    padding: 11px 0;
+  }
+  .an-urow__id { gap: 8px; }
+  .an-urow__id .an-glyph { --s: 26px; }
+  .an-urow__name { font-size: 13.5px; }
+  .an-urow__meas { gap: 7px; }
+  .an-urow__sub { text-wrap: balance; }
+  .an-urow__det { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px; row-gap: 3px; }
+  .an-urow__refill { grid-column: 1 / -1; }
+  .an-spark { margin-top: 0; width: 44px; }
+}
+
+/* Ring (DesvanRing): SVG, pathLength 100, value in stroke-dasharray. The
+   resting ear's usage gauge. */
 .an-ring {
   position: relative;
   flex: none;
@@ -953,36 +998,13 @@
 .an-ring svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .an-ring__track { fill: none; stroke: rgb(246 239 227 / 0.12); }
 .an-ring__arc { fill: none; stroke: currentColor; stroke-linecap: round; }
-.an-ring__pace { stroke: var(--an-paper); stroke-linecap: round; filter: drop-shadow(0 0 0.6px rgb(0 0 0 / 0.9)); }
 .an-ring.is-warning { color: var(--an-mustard); }
 .an-ring.is-critical { color: var(--an-tomato); }
-.an-ring.is-warning .an-ring__arc, .an-ring.is-critical .an-ring__arc { filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 35%, transparent)); }
-.an-ring__figure {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 1px;
-  padding-top: 34%;
-  padding-left: 2px;
-  font: 700 28px / 1 var(--an-rounded);
-  font-variant-numeric: tabular-nums;
-  color: var(--an-paper);
-}
-.an-ring__figure small { font: 500 14px / 1 var(--an-rounded); color: var(--an-paper-2); }
 
-/* Week bar (DesvanBar) with its even-pace notch. */
-.an-bar-row { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
-.an-bar-row__label { font: 600 12.5px / 1 var(--an-rounded); color: var(--an-paper-3); }
-.an-bar-row__value { font: 500 14px / 1 var(--an-rounded); font-variant-numeric: tabular-nums; color: var(--an-paper); }
-.an-bar-row__value.is-warning { color: var(--an-mustard); }
-.an-bar-row__value.is-critical { color: var(--an-tomato); }
-.an-bar-row__left { font: 500 12.5px / 1 var(--an-rounded); color: var(--an-paper-3); font-variant-numeric: tabular-nums; }
+/* A limit's bar (DesvanBar) on a plank track, with the even-pace notch. */
 .an-bar {
   position: relative;
-  flex: 1;
-  min-width: 96px;
+  display: block;
   height: 8px;
   border-radius: 999px;
   background:
@@ -995,7 +1017,8 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: max(8px, calc(var(--v) * 1%));
+  /* nothing at 0, never thinner than a pill once there's something */
+  width: max(min(8px, calc(var(--v) * 8px)), calc(var(--v) * 1%));
   border-radius: inherit;
   background: linear-gradient(var(--an-bar-tint, var(--an-paper)), color-mix(in srgb, var(--an-bar-tint, var(--an-paper)) 80%, transparent));
 }
@@ -1011,9 +1034,10 @@
   height: 13px;
   background:
     linear-gradient(var(--an-paper), var(--an-paper)) 50% 4px / 1.5px 9px no-repeat,
-    conic-gradient(from 150deg at 50% 100%, var(--an-paper) 0 60deg, transparent 60deg) 0 0 / 7px 4px no-repeat;
+    conic-gradient(from -30deg at 50% 100%, var(--an-paper) 0 60deg, transparent 60deg) 0 0 / 7px 4px no-repeat;
   filter: drop-shadow(0 0 0.75px rgb(0 0 0 / 0.7));
 }
+.an-bar--nopace::after { content: none; }
 
 /* ==========================================================================
    AGENTS (DesvanAgentsView)

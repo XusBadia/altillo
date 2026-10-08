@@ -276,7 +276,7 @@
 
     <!-- AI usage (full width: the stage) -->
     <article class="cell cell--full" data-rise>
-      <div class="cell__vis cell__vis--top" role="img" aria-label="Panel de Uso de Altillo: Claude al 85 por ciento de su límite de cinco horas, Codex al 34 por ciento">
+      <div class="cell__vis cell__vis--top" role="img" aria-label="Panel de Uso de Altillo: Claude al 85 por ciento de su sesión, se acaba a las 16:40; Codex al 34 por ciento de su semana y Grok al 6 por ciento de la suya, ambos con margen de sobra">
         <div class="an an-notch an-notch--open cell__notch cell__notch--stage kit-narrow" aria-hidden="true" data-fill>
         <header class="an-band">
           <nav class="an-tabs an-tabs--dense">
@@ -289,69 +289,51 @@
             <span class="an-tab"><i class="an-i an-i--music"></i></span>
           </nav>
           <div class="an-accessory">
-            <span class="an-dot hide-narrow"></span><span class="hide-narrow">Al día · hace 2 min</span>
+            <span class="an-dot hide-narrow"></span><span class="hide-narrow">Al día · ahora</span>
             <span class="an-accessory__refresh"><i class="an-i an-i--refresh"></i></span>
             <span class="an-accessory__gear"><i class="an-i an-i--gear"></i></span>
           </div>
         </header>
         <div class="an-body an-body--usage">
-          <div class="an-usage">
-            <article class="an-card an-usage-card">
-              <div class="an-usage-card__top">
-                <div class="an-ring is-warning">
-                  <svg viewBox="0 0 100 100" aria-hidden="true">
-                    <circle class="an-ring__track" cx="50" cy="50" r="47" stroke-width="6"/>
-                    <circle class="an-ring__arc" cx="50" cy="50" r="47" stroke-width="6" pathLength="100" stroke-dasharray="85 100" data-to="85" transform="rotate(-90 50 50)"/>
-                    <line class="an-ring__pace" x1="50" y1="-1.5" x2="50" y2="7.5" stroke-width="1.5" transform="rotate(273.6 50 50)"/>
-                  </svg>
-                  <span class="an-ring__figure"><span data-count="85">85</span><small>%</small></span>
-                </div>
-                <div class="an-usage-card__text">
-                  <div class="an-usage-card__title">
-                    <i class="an-glyph an-glyph--claude"></i>
-                    <span class="an-usage-card__name">Claude</span>
-                    <span class="an-chip">Max 20×</span>
-                    <span class="an-usage-card__length">5 h</span>
-                  </div>
-                  <div class="an-usage-card__refill">se repone en 1 h 11 min</div>
-                  <div class="an-pace an-pace--warning">vas 9 puntos por delante del ritmo</div>
-                </div>
+          <div class="an-card an-usage">
+            <div class="an-urow">
+              <div class="an-urow__id"><i class="an-glyph an-glyph--claude"></i><div><span class="an-urow__name">Claude</span><span class="an-urow__plan">Max 20×</span></div></div>
+              <div class="an-urow__meas">
+                <div class="an-urow__head"><span class="an-urow__label">Sesión</span><span class="an-urow__pct is-warning"><span data-count="85">85</span> %</span></div>
+                <span class="an-bar is-warning" style="--v:85; --pace:0.76" data-v="85"></span>
+                <div class="an-urow__sub">Semana · 41 % · se repone en 3 d 3 h</div>
               </div>
-              <div class="an-bar-row">
-                <span class="an-bar-row__label">Semana</span>
-                <span class="an-bar" style="--v:41; --pace:.55" data-v="41"></span>
-                <span class="an-bar-row__value">41 %</span>
-                <span class="an-bar-row__left">3 d 3 h</span>
+              <div class="an-urow__det">
+                <span class="an-urow__refill"><i class="an-i an-i--clock"></i>se repone en 1 h 11 min</span>
+                <span class="an-pace an-pace--warning">Hasta las 16:40</span>
+                <svg class="an-spark" viewBox="0 0 54 13" preserveAspectRatio="none"><polyline points="0,10 8,10.5 16,9 22,9.5 30,7 38,7.5 46,4 54,2"/></svg>
               </div>
-            </article>
-            <article class="an-card an-usage-card">
-              <div class="an-usage-card__top">
-                <div class="an-ring">
-                  <svg viewBox="0 0 100 100" aria-hidden="true">
-                    <circle class="an-ring__track" cx="50" cy="50" r="47" stroke-width="6"/>
-                    <circle class="an-ring__arc" cx="50" cy="50" r="47" stroke-width="6" pathLength="100" stroke-dasharray="34 100" data-to="34" transform="rotate(-90 50 50)"/>
-                    <line class="an-ring__pace" x1="50" y1="-1.5" x2="50" y2="7.5" stroke-width="1.5" transform="rotate(129.6 50 50)"/>
-                  </svg>
-                  <span class="an-ring__figure"><span data-count="34">34</span><small>%</small></span>
-                </div>
-                <div class="an-usage-card__text">
-                  <div class="an-usage-card__title">
-                    <i class="an-glyph an-glyph--codex"></i>
-                    <span class="an-usage-card__name">Codex</span>
-                    <span class="an-chip">Pro</span>
-                    <span class="an-usage-card__length">5 h</span>
-                  </div>
-                  <div class="an-usage-card__refill">se repone en 3 h 4 min</div>
-                  <div class="an-pace">a buen ritmo</div>
-                </div>
+            </div>
+            <div class="an-urow">
+              <div class="an-urow__id"><i class="an-glyph an-glyph--codex"></i><div><span class="an-urow__name">Codex</span><span class="an-urow__plan">Pro</span></div></div>
+              <div class="an-urow__meas">
+                <div class="an-urow__head"><span class="an-urow__label">Semana</span><span class="an-urow__pct">34 %</span></div>
+                <span class="an-bar" style="--v:34; --pace:0.48" data-v="34"></span>
+                <div class="an-urow__sub">Reinicios de límite · quedan 2</div>
               </div>
-              <div class="an-bar-row">
-                <span class="an-bar-row__label">Semana</span>
-                <span class="an-bar" style="--v:58; --pace:.8" data-v="58"></span>
-                <span class="an-bar-row__value">58 %</span>
-                <span class="an-bar-row__left">1 d 8 h</span>
+              <div class="an-urow__det">
+                <span class="an-urow__refill"><i class="an-i an-i--clock"></i>se repone en 3 d 14 h</span>
+                <span class="an-pace an-pace--good">Queda de sobra</span>
+                <svg class="an-spark" viewBox="0 0 54 13" preserveAspectRatio="none"><polyline points="0,6 7,8 13,4 20,5 27,9 34,6 41,7 48,10 54,9"/></svg>
               </div>
-            </article>
+            </div>
+            <div class="an-urow">
+              <div class="an-urow__id"><i class="an-glyph an-glyph--grok"></i><div><span class="an-urow__name">Grok</span><span class="an-urow__plan">SuperGrok</span></div></div>
+              <div class="an-urow__meas">
+                <div class="an-urow__head"><span class="an-urow__label">Semana</span><span class="an-urow__pct">6 %</span></div>
+                <span class="an-bar" style="--v:6; --pace:0.1" data-v="6"></span>
+              </div>
+              <div class="an-urow__det">
+                <span class="an-urow__refill"><i class="an-i an-i--clock"></i>se repone en 6 d 19 h</span>
+                <span class="an-pace an-pace--good">Queda de sobra</span>
+                <svg class="an-spark" viewBox="0 0 54 13" preserveAspectRatio="none"><polyline points="0,4 8,11 18,10 28,9 36,6 44,8 54,11"/></svg>
+              </div>
+            </div>
           </div>
         </div>
       </div>

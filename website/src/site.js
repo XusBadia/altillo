@@ -181,13 +181,11 @@ bentoCols();
 const fills = $$("[data-fill]");
 if (!reduce) {
   for (const f of fills) {
-    $$(".an-ring__arc[data-to]", f).forEach((a) => a.setAttribute("stroke-dasharray", "0 100"));
     $$(".an-bar[data-v]", f).forEach((b) => b.style.setProperty("--v", 0));
     $$("[data-count]", f).forEach((n) => (n.textContent = "0"));
   }
 }
 function fill(f) {
-  $$(".an-ring__arc[data-to]", f).forEach((a) => a.setAttribute("stroke-dasharray", `${a.dataset.to} 100`));
   $$(".an-bar[data-v]", f).forEach((b) => b.style.setProperty("--v", b.dataset.v));
   $$("[data-count]", f).forEach((n) => {
     const to = +n.dataset.count;
@@ -201,10 +199,9 @@ function fill(f) {
   });
 }
 
-// Printing: every ring and number at its final value, no animation.
+// Printing: every bar and number at its final value, no animation.
 addEventListener("beforeprint", () => {
   for (const f of fills) {
-    $$(".an-ring__arc[data-to]", f).forEach((a) => a.setAttribute("stroke-dasharray", `${a.dataset.to} 100`));
     $$(".an-bar[data-v]", f).forEach((b) => b.style.setProperty("--v", b.dataset.v));
     $$("[data-count]", f).forEach((n) => (n.textContent = n.dataset.count));
   }

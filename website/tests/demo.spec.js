@@ -20,6 +20,40 @@ for (const L of LOCALES) {
       await expect(page.locator("#demo .an-tab.is-active")).toContainText(L.tab.usage);
     });
 
+    test("the usage panel shows a row per provider with its percent and bar", async ({ page }) => {
+      await gotoPage(page, L.path);
+      const checkRows = async (rows) => {
+        await expect(rows).toHaveCount(3);
+        for (let i = 0; i < 3; i++) {
+          const row = rows.nth(i);
+          await expect(row.locator(".an-urow__name")).toHaveText(["Claude", "Codex", "Grok"][i]);
+          await expect(row.locator(".an-urow__pct")).toHaveText(/^\d+\s?%$/);
+          await expect(row.locator(".an-bar")).toBeVisible();
+          await expect(row.locator(".an-urow__refill")).toBeVisible();
+        }
+        // Claude runs high: the warning colour on its figure and bar, with a status in words.
+        await expect(rows.first().locator(".an-urow__pct")).toHaveClass(/is-warning/);
+        await expect(rows.first().locator(".an-bar")).toHaveClass(/is-warning/);
+        await expect(rows.first().locator(".an-pace--warning")).not.toBeEmpty();
+      };
+      // The bento's static panel.
+      const cell = page.locator(".bento .cell--full").filter({ has: page.locator(".an-usage") });
+      await cell.scrollIntoViewIfNeeded();
+      await checkRows(cell.locator(".an-urow"));
+      // The demo's Usage tab, which must agree with the resting ear's Claude figure.
+      await waitForDemo(page);
+      await page.evaluate(() => window.altilloDemo.show("usage"));
+      const rows = page.locator("#demo .an-usage .an-urow");
+      await checkRows(rows);
+      await expect.poll(() => page.evaluate(() => {
+        const shown = parseInt(document.querySelector("#demo .an-urow .an-urow__pct").textContent, 10);
+        return shown === window.altilloDemo.state.usage;
+      })).toBe(true);
+      // Nothing scrolls sideways, even on a phone.
+      const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+      expect(overflow).toBeLessThanOrEqual(0);
+    });
+
     test("the resting ears fit what they say and lean around the camera", async ({ page }) => {
       await gotoPage(page, L.path);
       await waitForDemo(page);
