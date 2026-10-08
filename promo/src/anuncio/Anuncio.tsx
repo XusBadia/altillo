@@ -222,9 +222,11 @@ const shotAt = (frame: number): Framing => {
 };
 
 // ─── Notch: transición entre estados reales ──────────────────────────────────
+// Cuerpo de la forma (sin las curvas exteriores de 18 pt). `x` es su borde izquierdo: las orejas en reposo
+// no son simétricas respecto al notch, así que la transición interpola bordes, no solo anchos.
 const boxSize = (s: Scenario, lang: Lang) => {
   const [x0, , x1, y1] = UI_BOXES[s][lang];
-  return {w: Math.max(1, x1 - x0 - 36), h: Math.max(1, y1 - 18)};
+  return {x: x0 + 18, w: Math.max(1, x1 - x0 - 36), h: Math.max(1, y1 - 18)};
 };
 const isOpen = (s: Scenario) => s.startsWith('open');
 
@@ -258,7 +260,9 @@ const NotchPanel = ({lang}: {lang: Lang}) => {
       : opening ? {damping: 17, mass: 0.45, stiffness: 430} : {damping: 30, mass: 0.4, stiffness: 520},
   });
   const fadeIn = Math.min(1, p * (tabSwitch ? 1.6 : 3));
-  const layer = (s: Scenario, sx: number, sy: number, opacity: number, blur: number) => (
+  // El borde izquierdo del cuerpo va de a.x a b.x; con formas centradas equivale a escalar desde el centro.
+  const left = lerp(a.x, b.x, p);
+  const layer = (s: Scenario, sx: number, sy: number, opacity: number, blur: number, x0?: number) => (
     <Img
       key={s}
       // Después de pasar sobre la caja, la zona de soltar sigue con las solapas abiertas hasta desaparecer.
@@ -269,8 +273,8 @@ const NotchPanel = ({lang}: {lang: Lang}) => {
         top: 0,
         width: PANEL.width,
         height: PANEL.height,
-        transform: `scale(${sx}, ${sy})`,
-        transformOrigin: '390px 0px',
+        transform: `translateX(${x0 === undefined ? 0 : left - x0 * sx}px) scale(${sx}, ${sy})`,
+        transformOrigin: '0px 0px',
         opacity,
         filter: blur > 0.05 ? `blur(${blur}px)` : undefined,
       }}
@@ -304,11 +308,11 @@ const NotchPanel = ({lang}: {lang: Lang}) => {
         </>
       ) : null}
       {p < 1 && previous !== current
-        ? layer(previous, lerp(1, b.w / a.w, p), lerp(1, b.h / a.h, p), 1 - fadeIn, 0)
+        ? layer(previous, lerp(1, b.w / a.w, p), lerp(1, b.h / a.h, p), 1 - fadeIn, 0, a.x)
         : null}
       {/* Al cerrar solo encoge lo que se va; el estado pequeño aparece a su tamaño. */}
       {opening || tabSwitch
-        ? layer(current, lerp(a.w / b.w, 1, p), lerp(a.h / b.h, 1, p), fadeIn, tabSwitch ? 0 : (1 - Math.min(1, p)) * 3)
+        ? layer(current, lerp(a.w / b.w, 1, p), lerp(a.h / b.h, 1, p), fadeIn, tabSwitch ? 0 : (1 - Math.min(1, p)) * 3, b.x)
         : layer(current, 1, 1, Math.min(1, p * 1.4), 0)}
     </div>
   );

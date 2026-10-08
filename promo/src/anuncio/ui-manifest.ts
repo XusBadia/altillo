@@ -72,29 +72,29 @@ export const UI_BOXES: Record<string, Record<string, [number, number, number, nu
  },
  "idleWithAgentWaiting": {
   "en": [
-   224.7,
+   213.7,
    0.0,
-   556.3,
+   591.3,
    32.0
   ],
   "es": [
-   224.7,
+   213.7,
    0.0,
-   556.3,
+   632.3,
    32.0
   ]
  },
  "idleWithEars": {
   "en": [
-   224.7,
+   194.7,
    0.0,
-   556.3,
+   535.3,
    32.0
   ],
   "es": [
-   224.7,
+   194.7,
    0.0,
-   556.3,
+   535.3,
    32.0
   ]
  },

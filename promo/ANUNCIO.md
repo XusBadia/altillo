@@ -46,6 +46,9 @@ No es una réplica: son los **estados de diseño reales de la app** (`DesignScen
    ```
    Repite con `en`.
 3. Copia el resultado a `public/anuncio/ui/{es,en}/` y ejecuta `python3 scripts/anuncio-manifest.py`, que mide el contorno de cada estado.
+4. Desde 0.10.4 el panel mide 780×480 pt: recorta cada PNG a 2340×1320 px (los 440 pt de arriba; debajo no hay nada) antes de copiarlo. Copia solo los estados que hayan cambiado; el 08/10 se reexportaron `idleWithEars` e `idleWithAgentWaiting` (orejas a la medida de su contenido) y `openUsage` se dejó como estaba.
+
+Las orejas en reposo ya no son simétricas respecto al notch. Por eso la transición entre estados (`NotchPanel`) interpola el borde izquierdo del cuerpo de la forma además del ancho; con formas centradas el resultado es el mismo de antes.
 
 El test usa un `NSHostingView` en una ventana fuera de pantalla y `cacheDisplay` sobre un bitmap a 3×. Con `ImageRenderer`, las vistas de AppKit (estante, agentes, campo de Pregunta) salían vacías.
 
@@ -81,6 +84,8 @@ Música: `public/anuncio/audio/teaser-misterio.wav`, generada con `python3 scrip
 ## Product Hunt
 
 Kit completo en `producthunt/` (miniatura, galería 1270×760, vídeo y textos): ver `producthunt/README.md`.
+
+`producthunt/altillo-producthunt.mp4` es una copia de `videos/altillo-anuncio-en.mp4`. Las capturas 01 y 03 de la galería salen del anuncio EN: `npx remotion still src/index.ts AltilloAnuncioEN f.png --frame=284` (01) o `--frame=681` (03), escaladas a 1352×760 con Lanczos y recortadas en x = 41, ancho 1270.
 
 ## Render
 
