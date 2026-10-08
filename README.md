@@ -1,80 +1,88 @@
-# Altillo
+<p align="center">
+  <a href="https://altillo.app/">
+    <img src="website/public/og.png" alt="Altillo — Your notch, put to work. A shelf for files, your next meeting, what's playing and your AI limits." width="1200">
+  </a>
+</p>
 
-**Website: [altillo.app](https://altillo.app/)**
+<h1 align="center">Altillo</h1>
 
-> 🇪🇸 Este README está en inglés para llegar a más gente, pero el plan de
-> desarrollo completo está en español: **[PLAN.md](PLAN.md)**.
+<p align="center">
+  A native Mac app that turns your notch into a useful place at the top of your screen.
+</p>
 
-**Status: actively developed, current version 0.10.0.** Public, notarized
-builds are available from [altillo.app](https://altillo.app/) and
-[GitHub Releases](https://github.com/XusBadia/altillo/releases/latest)
-with Sparkle auto-update. It's a working app used daily, but still pre-1.0 —
-expect some rough edges and occasional breaking changes.
+<p align="center">
+  <a href="https://github.com/XusBadia/altillo/releases/latest"><strong>Download for macOS</strong></a> ·
+  <a href="https://altillo.app/">Website</a> ·
+  <a href="https://github.com/XusBadia/altillo/releases">Release notes</a> ·
+  <a href="CONTRIBUTING.md">Contribute</a>
+</p>
 
-Altillo turns your Mac's notch into a small, useful place at the top of your
-screen:
+<p align="center">
+  <a href="https://github.com/XusBadia/altillo/releases/latest"><img src="https://img.shields.io/github/v/release/XusBadia/altillo?color=c28b42" alt="Latest release"></a>
+  <img src="https://img.shields.io/badge/macOS-26%2B-333333" alt="Requires macOS 26 or later">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-333333" alt="MIT license"></a>
+</p>
 
-- **Shelf** — drop files there for a moment, then drag them out, share them or
-  send the current selection by AirDrop (reference, not a permanent home — like Yoink).
-- **Ask** — an assistant that runs entirely on your Mac with Apple
-  Intelligence and can read what Altillo knows: the files on your shelf, your
-  calendar, what's playing and what you copied. Summon it from any app with
-  ⌃⌥A; put an answer on the shelf and drag it wherever you need it.
-- **Glances** — the notch grows for a few seconds when something matters (a
-  meeting in five minutes, a new song if you want it) and goes back on its own.
-- **Now Playing** — control the active system media session, including its
-  artwork and progress; load synced lyrics on demand; Apple's Music app and Spotify have a compatibility fallback.
-- **AI usage** — how much of your Claude / Codex / … quota you have left, at a
-  glance, with a private 30-day trend kept on your Mac.
-- **Live agents** — see your AI coding agents (Claude Code, Codex, …) working,
-  waiting for a permission, or done, and approve or deny requests right from
-  the notch.
-- **Keep Awake** — explicitly keep the Mac awake for 30 minutes, one hour, two
-  hours or until you stop it; the display may still turn off and nothing is
-  restored after relaunch.
-- **Focus and reminders** — run a persistent Pomodoro cycle from the timer and
-  see, complete or open today's and upcoming reminders without leaving the notch.
-- **Drawer** — keep the menu bar icons you rarely need in a compact shelf above Altillo's navigation and open their menus from there. Drag apps between the Altillo and Menu Bar zones; on macOS 27 their icons leave the menu bar entirely (no divider, no gap). Needs Accessibility access; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md).
-- **iPhone/iPad groundwork** — app and widget targets compile, but the mobile
-  companion and Live Activities are placeholders, not shipped features yet.
+<p align="center">
+  <a href="#what-it-does">Features</a> ·
+  <a href="#screenshots">Screenshots</a> ·
+  <a href="#installing">Install</a> ·
+  <a href="#support-us-by-trying-aurio">Aurio</a> ·
+  <a href="#building">Build from source</a> ·
+  <a href="#privacy">Privacy</a>
+</p>
 
-Altillo is a native macOS 26 app (Swift 6), with iOS/iPadOS and widget
-scaffolds plus a small CLI used by AI agent hooks. See [PLAN.md](PLAN.md) for
-the full plan: principles, module design, phases, and open decisions.
+> 🇪🇸 Este README está en inglés para llegar a más gente. El [plan de desarrollo](PLAN.md)
+> y la [guía de desarrollo](docs/desarrollo.md) están en español.
+
+Actively developed and used daily, with signed, notarized releases and automatic
+updates. Altillo is still pre-1.0, so expect some rough edges and occasional
+breaking changes.
+
+## What it does
+
+| Feature | In your notch |
+| --- | --- |
+| **Shelf** | Drop files for a moment, then drag them out, share them or AirDrop the current selection. A temporary shelf of references, not a permanent home. |
+| **Ask** | An on-device assistant powered by Apple Intelligence, with context from your shelf, calendar, music and clipboard. Summon it from any app with ⌃⌥A; put an answer on the shelf and drag it wherever you need it. |
+| **Glances** | A brief heads-up for a meeting in five minutes or a new song, then the notch closes on its own. |
+| **Now Playing** | Control the active media session, with artwork and progress. Load synced lyrics on demand; Apple Music and Spotify have a compatibility fallback. |
+| **AI usage** | Check your remaining Claude, Codex and other provider quotas, with a private 30-day trend kept on your Mac. |
+| **Live agents** | See coding agents working, waiting for permission or done. Approve or deny requests directly from the notch. |
+| **Calendar** | See today's events and the month at a glance. |
+| **Mirror** | Check your camera preview without opening another app. |
+| **Focus & reminders** | Run a persistent Pomodoro cycle and see, complete or open today's and upcoming reminders. |
+| **Keep Awake** | Keep your Mac awake for 30 minutes, one hour, two hours or until you stop it. The display may still turn off; the setting resets on relaunch. |
+| **Drawer** | Keep rarely used menu bar icons above Altillo's navigation and open their menus there. On macOS 27, their icons leave the menu bar entirely. Requires Accessibility; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md). |
+
+Built with Swift 6 for macOS 26+. iPhone, iPad, widget and Live Activity targets
+are groundwork only; the mobile companion is not shipped yet. See [PLAN.md](PLAN.md)
+for the module design, roadmap and open decisions.
 
 ## Screenshots
 
-**At rest** — the closed notch, with small ears for AI usage and the shelf.
+<p align="center">
+  <img src="docs/assets/readme/idle.png" alt="The closed notch at rest, with usage and shelf ears" width="161">
+  <br>
+  <sub>At rest — small ears for AI usage and the shelf.</sub>
+</p>
 
-![The closed notch at rest, with usage and shelf ears](docs/assets/readme/idle.png)
+| Shelf · drop files, drag them out | Ask · answers from your Mac |
+| :---: | :---: |
+| ![The shelf with files](docs/assets/readme/shelf.png) | ![Ask, the on-device assistant](docs/assets/readme/ask.png) |
 
-**Shelf** — files dropped on the notch, ready to drag out.
+| AI usage · quotas, pace and refill | Live agents · permission requests |
+| :---: | :---: |
+| ![AI usage for Claude and Codex](docs/assets/readme/usage.png) | ![Live agents with a pending permission request](docs/assets/readme/agents.png) |
 
-![The shelf with files](docs/assets/readme/shelf.png)
-
-**Ask** — the on-device assistant answering from your calendar and clipboard.
-
-![Ask, the on-device assistant](docs/assets/readme/ask.png)
-
-**AI usage** — Claude and Codex quotas, with pace and time to refill.
-
-![AI usage for Claude and Codex](docs/assets/readme/usage.png)
-
-**Live agents** — a Claude Code permission request, answered from the notch.
-
-![Live agents with a pending permission request](docs/assets/readme/agents.png)
-
-**Calendar** — today's events and the month at a glance.
-
-![Calendar](docs/assets/readme/calendar.png)
-
-**Drawer** — your chosen menu bar icons in a strip above the navigation.
-
-![The Drawer with menu bar icons](docs/assets/readme/drawer.png)
+| Calendar · events and month view | Drawer · your menu bar icons |
+| :---: | :---: |
+| ![Calendar](docs/assets/readme/calendar.png) | ![The Drawer with menu bar icons](docs/assets/readme/drawer.png) |
 
 ## Installing
 
-Altillo isn't on the App Store — download the notarized `.dmg` from the
+Requires **macOS 26 or later**. Altillo isn't on the App Store — download the
+notarized `.dmg` from the
 [latest release](https://github.com/XusBadia/altillo/releases/latest), open
 it, and drag Altillo to Applications. The app is signed with a Developer ID
 certificate and notarized by Apple, so Gatekeeper opens it with no extra
@@ -83,13 +91,26 @@ steps. Once installed, Altillo checks for new versions on its own (or via
 [Sparkle](https://sparkle-project.org/) — see
 [docs/release.md](docs/release.md) for how releases are built and signed.
 
-## Requirements
+## Support us by trying Aurio
 
-- macOS 26 or later (development machine; the app targets macOS 26+)
-- [Xcode 26](https://developer.apple.com/xcode/) or later
-- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
+<p align="center">
+  <a href="https://www.aurioapp.com">
+    <img src="website/public/media/aurio-mascot.webp" alt="Aurio's smiling orange mascot" width="240">
+  </a>
+</p>
+
+Help us keep building Altillo by trying our other app. Use **Aurio** to track
+expenses, manage shared accounts and follow your net worth.
+
+**[Meet Aurio →](https://www.aurioapp.com)**
 
 ## Building
+
+To build from source, you need:
+
+- macOS 26 or later
+- [Xcode 26](https://developer.apple.com/xcode/) or later
+- [XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`)
 
 Altillo's Xcode project is generated, not committed — `Altillo.xcodeproj` is
 in `.gitignore`.
@@ -137,7 +158,7 @@ development — only for publishing an actual build.
 
 ```sh
 # AltilloKit package tests
-cd Packages/AltilloKit && swift test
+(cd Packages/AltilloKit && swift test)
 
 # macOS app: build + test (derived data in /tmp: on macOS 27 a test host under
 # ~/Documents can hang before it connects, see docs/desarrollo.md)
