@@ -87,11 +87,23 @@ for (const L of LOCALES) {
       // Wait for the anchor to arrive below the fixed nav. Merely entering
       // the viewport can still mean the smooth scroll is halfway through;
       // starting a second one there races WebKit's first navigation.
-      const atAnchor = (sel) => page.locator(sel).evaluate((el) => {
-        const top = el.getBoundingClientRect().top;
-        const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
-        return Math.abs(top - padding) <= 2;
-      });
+      const waitAtAnchor = async (sel) => {
+        let previousY = null;
+        let stableSince = Date.now();
+        await expect.poll(async () => {
+          const { top, padding, y } = await page.locator(sel).evaluate((el) => ({
+            top: el.getBoundingClientRect().top,
+            padding: parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop),
+            y: window.scrollY,
+          }));
+          // Entering the 2 px tolerance isn't enough: WebKit can still have
+          // a smooth scroll in flight. Require it to stay put before clicking
+          // the next anchor, while preserving the same alignment assertion.
+          if (previousY === null || Math.abs(y - previousY) > 0.1) stableSince = Date.now();
+          previousY = y;
+          return { aligned: Math.abs(top - padding) <= 2, settled: Date.now() - stableSince >= 200 };
+        }, { intervals: [100] }).toEqual({ aligned: true, settled: true });
+      };
       // Phones keep only Download in the bar.
       if (page.viewportSize().width <= 760) {
         await expect(links.nth(3)).toBeVisible();
@@ -104,10 +116,10 @@ for (const L of LOCALES) {
       await expect(links.nth(0)).toBeVisible();
       await links.nth(0).click();
       await expect(page).toHaveURL(/#features$/);
-      await expect.poll(() => atAnchor("#features")).toBe(true);
+      await waitAtAnchor("#features");
       await links.nth(2).click();
       await expect(page).toHaveURL(/#aurio$/);
-      await expect.poll(() => atAnchor("#aurio")).toBe(true);
+      await waitAtAnchor("#aurio");
     });
 
     test("the language switch leads to the other page", async ({ page }) => {
