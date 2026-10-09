@@ -61,6 +61,33 @@ struct EarsArrangement: Equatable, Sendable {
 // MARK: - Logic (pure, testable)
 
 enum EarsArrangementLogic {
+    /// Generic opens follow real content; an explicit indicator or shortcut always wins.
+    /// Quiet glyphs aren't information. When both ears have content, use the existing activity priority;
+    /// without a clear priority, keep the user's last section.
+    static func openingModule(
+        current: NotchModule,
+        preferred: NotchModule? = nil,
+        hasRecentShelfAddition: Bool,
+        hasShelfItems: Bool,
+        enabled: Set<NotchModule>,
+        ears: EarsArrangement,
+        activities: [NotchActivity]
+    ) -> NotchModule {
+        if let preferred, enabled.contains(preferred) { return preferred }
+        if hasRecentShelfAddition, hasShelfItems, enabled.contains(.shelf) { return .shelf }
+        guard !hasShelfItems else { return current }
+        let candidates = Set([ears.left, ears.right].compactMap { item -> NotchModule? in
+            guard let item else { return nil }
+            if case .quiet = item { return nil }
+            guard let module = item.module, enabled.contains(module) else { return nil }
+            if case .shelf(let count) = item, count == 0 { return nil }
+            return module
+        })
+        if candidates.count == 1, let module = candidates.first { return module }
+        if let module = activities.compactMap(\.module).first(where: candidates.contains) { return module }
+        return current
+    }
+
     /// Decides what each ear shows.
     ///
     /// - A fixed ear (Shelf, Next event…) shows its own thing while it has something to say; while ears always show,

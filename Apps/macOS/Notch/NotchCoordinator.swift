@@ -37,8 +37,10 @@ final class NotchCoordinator {
     private var observers: [NSObjectProtocol] = []
     private var pendingTimers: [TimerKind: Task<Void, Never>] = [:]
     private var droppedDuringCurrentDrag = false
+    /// A successful addition takes the next generic opening to the shelf, even if another section was last used.
+    private var hasRecentShelfAddition = false
     /// The section the contextual ear stood for when the user reached for it (the hover's dwell or a click on it),
-    /// honoured only by the open that same gesture causes. Nothing else ever switches the section on its own.
+    /// honoured only by the open that same gesture causes.
     private var indicatorTarget: NotchModule?
     private var isHovering = false
     private var isStarted = false
@@ -168,6 +170,7 @@ final class NotchCoordinator {
         if let name = UserDefaults.standard.string(forKey: "openModule"), let module = NotchModule(rawValue: name),
            model.settings.modules.contains(module) {
             model.jump(to: module)
+            if UserDefaults.standard.bool(forKey: "openAltillo") { indicatorTarget = module }
         }
 
         let center = NotificationCenter.default
@@ -466,7 +469,7 @@ final class NotchCoordinator {
         if machine.handle(event) { apply() }
     }
 
-    private func apply() {
+    private func apply(preferredModule: NotchModule? = nil) {
         machine.opensOnHover = model.settings.opensOnHover
         // A module that was turned off in Settings must not stay open.
         if !model.settings.modules.contains(model.module) { model.module = .shelf }
@@ -476,14 +479,20 @@ final class NotchCoordinator {
         let indicator = indicatorTarget
         if state != .idle, state != .peek { indicatorTarget = nil }
         withAnimation(state == .idle ? .closeNotch : .openNotch) {
-            // Reaching for an alert opens the section it's about.
-            if state == .open, previous == .peek, let alert = model.alert, model.scenario == nil {
-                if let module = alert.module, model.settings.modules.contains(module) { model.jump(to: module) }
-                model.alert = nil
-            } else if state == .open, previous == .idle || previous == .peek, let indicator, model.scenario == nil,
-                      model.settings.modules.contains(indicator) {
-                // Reaching for the contextual ear opens what it's about (music playing: Now playing).
-                model.jump(to: indicator)
+            if state == .open, previous == .idle || previous == .peek, model.scenario == nil, !model.isEditing {
+                let alertModule = previous == .peek ? model.alert?.module : nil
+                let target = EarsArrangementLogic.openingModule(
+                    current: model.module,
+                    preferred: preferredModule ?? alertModule ?? indicator,
+                    hasRecentShelfAddition: hasRecentShelfAddition,
+                    hasShelfItems: !model.shelf.isEmpty,
+                    enabled: Set(model.settings.modules),
+                    ears: model.earsArrangement,
+                    activities: model.contextualActivities
+                )
+                model.jump(to: target)
+                if target == .shelf || model.shelf.isEmpty { hasRecentShelfAddition = false }
+                if previous == .peek { model.alert = nil }
             }
             if state == .idle || state == .dragArmed || state == .dropTarget {
                 model.alert = nil
@@ -905,7 +914,7 @@ final class NotchCoordinator {
         cancel(.alert)
         model.jump(to: .assistant)
         machine = NotchStateMachine(state: .open, opensOnHover: model.settings.opensOnHover)
-        apply()
+        apply(preferredModule: .assistant)
         window?.panel.makeKey()
         model.assistant.requestFocus()
     }
@@ -931,7 +940,7 @@ final class NotchCoordinator {
         cancel(.alert)
         model.jump(to: .clipboard)
         machine = NotchStateMachine(state: .open, opensOnHover: model.settings.opensOnHover)
-        apply()
+        apply(preferredModule: .clipboard)
         window?.panel.makeKey()
         model.clipboard.pastesNextCopy = model.settings.clipboardPastesDirectly && pasteTarget != nil
         model.clipboard.requestSearchFocus()
@@ -1025,12 +1034,14 @@ final class NotchCoordinator {
         guard !items.isEmpty else { return }
         if model.scenario != nil, stashedShelf != nil {
             stashedShelf?.items.append(contentsOf: items)
+            hasRecentShelfAddition = true
             persistShelf()
             return
         }
         withAnimation(.openNotch) {
             model.shelf.append(contentsOf: items)
         }
+        hasRecentShelfAddition = true
         persistShelf()
         scheduleShelfExpiry()
         Haptics.perform(.land)
@@ -1048,6 +1059,7 @@ final class NotchCoordinator {
             }
             stashedShelf?.problem = nil
             stashedShelf?.items.append(contentsOf: items)
+            hasRecentShelfAddition = true
             persistShelf()
             return
         }
@@ -1059,7 +1071,9 @@ final class NotchCoordinator {
         model.shelfProblem = nil
         withAnimation(.openNotch) {
             model.shelf.append(contentsOf: items)
+            model.jump(to: .shelf)
         }
+        hasRecentShelfAddition = true
         persistShelf()
         scheduleShelfExpiry()
         if model.state != .open, model.state != .dropTarget {

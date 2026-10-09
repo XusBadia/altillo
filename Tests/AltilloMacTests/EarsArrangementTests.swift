@@ -2,6 +2,72 @@ import Foundation
 import Testing
 @testable import Altillo
 
+struct OpeningModuleTests {
+    private let song = PlaybackSignal(title: "Teardrop", artist: "Massive Attack", appName: "Spotify")
+    private let request = AgentRequestSignal(agentName: "Claude", project: "altillo")
+
+    private func opening(
+        current: NotchModule = .note,
+        preferred: NotchModule? = nil,
+        recent: Bool = false,
+        hasFiles: Bool = false,
+        enabled: Set<NotchModule> = Set(NotchModule.allCases),
+        left: EarItem? = nil,
+        right: EarItem? = nil,
+        activities: [NotchActivity] = []
+    ) -> NotchModule {
+        EarsArrangementLogic.openingModule(
+            current: current, preferred: preferred, hasRecentShelfAddition: recent,
+            hasShelfItems: hasFiles, enabled: enabled,
+            ears: EarsArrangement(left: left, right: right), activities: activities
+        )
+    }
+
+    @Test func aNewFileOpensTheShelfOverOtherActivity() {
+        #expect(opening(recent: true, hasFiles: true, left: .agentRequest(request),
+                        activities: [.agentRequest(request)]) == .shelf)
+    }
+
+    @Test func explicitIndicatorsAlertsAndShortcutsWinOverNewFiles() {
+        for module in [NotchModule.agents, .calendar, .assistant, .clipboard] {
+            #expect(opening(preferred: module, recent: true, hasFiles: true) == module)
+        }
+    }
+
+    @Test func eitherSideWithContentOpensItsSection() {
+        #expect(opening(left: .playback(song)) == .nowPlaying)
+        #expect(opening(right: .playback(song)) == .nowPlaying)
+        #expect(opening(left: .quiet(.shelf), right: .playback(song)) == .nowPlaying)
+    }
+
+    @Test func twoSidesFollowActivityPriorityRegardlessOfSide() {
+        let activities: [NotchActivity] = [.agentRequest(request), .playback(song)]
+        #expect(opening(left: .playback(song), right: .agentRequest(request), activities: activities) == .agents)
+        #expect(opening(left: .agentRequest(request), right: .playback(song), activities: activities) == .agents)
+    }
+
+    @Test func ambiguityAndEmptyIndicatorsKeepTheLastSection() {
+        #expect(opening() == .note)
+        #expect(opening(left: .quiet(.agents), right: .quiet(.shelf)) == .note)
+        #expect(opening(left: .playback(song), right: .usage(.init(providerName: "Claude", fraction: 0.4),
+                                                         isStale: false)) == .note)
+        #expect(opening(left: .playback(song), right: .playback(song)) == .nowPlaying)
+    }
+
+    @Test func oldFilesKeepTheLastSectionAndRemovedFilesLoseTheirPriority() {
+        #expect(opening(hasFiles: true, left: .playback(song)) == .note)
+        #expect(opening(recent: true, left: .playback(song)) == .nowPlaying)
+        #expect(opening(recent: true, right: .shelf(count: 0)) == .note)
+    }
+
+    @Test func disabledSectionsAndInvisibleActivitiesCannotTakeOver() {
+        #expect(opening(preferred: .agents, recent: true, hasFiles: true, enabled: [.shelf, .note]) == .shelf)
+        #expect(opening(enabled: [.nowPlaying, .note], left: .agentRequest(request), right: .playback(song)) == .nowPlaying)
+        #expect(opening(activities: [.agentRequest(request)]) == .note)
+        #expect(opening(recent: true, hasFiles: true, enabled: [.note]) == .note)
+    }
+}
+
 /// What each resting ear shows and how wide it grows: no ear padded with black, nothing said twice, the next most
 /// important thing filling an ear that would otherwise be empty.
 struct EarsArrangementTests {
