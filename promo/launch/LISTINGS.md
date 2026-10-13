@@ -168,10 +168,10 @@ Suggested alternatives: Yoink, Dropover for the temporary shelf. Suggest after c
 ## MacUpdate
 
 - Name: Altillo
-- Version: 0.10.0, verify at submission.
+- Version: 0.10.6, verify at submission.
 - Price: **blank**, as their rule for free apps.
 - Product page: https://altillo.app/
-- Download: https://github.com/XusBadia/altillo/releases/download/v0.10.0/Altillo-0.10.0.dmg (replace if release changes).
+- Download: https://github.com/XusBadia/altillo/releases/download/v0.10.6/Altillo-0.10.6.dmg (replace if release changes).
 - System: macOS 26+. Universal release: Intel x86_64 and Apple Silicon arm64. Ask requires Apple Intelligence availability. Drawer hiding requires macOS 27.
 
 Short, without the app name:

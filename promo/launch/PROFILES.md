@@ -4,14 +4,15 @@ Decisión del usuario: usar los mismos perfiles que Aurio. Son **cuentas de Xus*
 
 | Plataforma | Identidad / evidencia local | Acción Altillo |
 |---|---|---|
-| Peerlist | https://peerlist.io/xusbadia; verificado por Xus 27/09; sesión y escrituras documentadas hasta 03/10 por la tarde | Crear proyecto Altillo nuevo; comprobar verificación actual; semana 19. No reutilizar `/project/aurio` |
+| Peerlist | https://peerlist.io/xusbadia; verificado por Xus 27/09; sesión y escrituras documentadas hasta 03/10 por la tarde | Ficha Altillo independiente; Week 43 programada y confirmada el 13/10, para el 19/10. Aurio intacto |
 | PH | https://www.producthunt.com/@xusbadia; sesión personal autenticada en Chrome el 03/10 | Maker/hunter Xus confirmado; Altillo programado el 20/10 a las 09:01 Madrid; Aurio 14/10 intacto |
-| Indie Hackers | Perfil xusbadia; ficha Aurio creada el 26/09; “You can't create posts yet” observado | Revisar permiso actual; crear Altillo por separado si está habilitado; no prometer post el 23 |
+| Indie Hackers | Perfil xusbadia; ficha Aurio creada el 26/09; “You can't create posts yet” observado | Sesión activa el 13/10; sigue bloqueada la creación de posts. No prometer post el 23 |
 | X | @XusBadia, personal | Anuncios Altillo ES/EN según audiencia; no usar @aurio_app |
 | LinkedIn | https://www.linkedin.com/in/xusbadia/; sesión personal nativa de Chrome confirmada 03/10, sin canal LinkedIn en Buffer personal | Programación nativa en su perfil personal; ver estados confirmados en EXECUTION.md |
 | AlternativeTo / SaaSHub / TinyLaunch | Accesos usados con Google xus@badia.me en el trabajo de Aurio | Reutilizar sesión si disponible; fichas y logo Altillo nuevos |
 | TinyLaunch | Perfil @xusbadia; cola octubre llena al 03/10; Altillo reservado 2/11 pendiente revisión; Aurio 26/10 intacto | Confirmación nativa y coste 0 registrados en EXECUTION; comprobar revisión antes del 2/11 |
-| Reddit / HN | Handle y elegibilidad no confirmados en los archivos consultados | Leer perfil autenticado y gates antes de publicar; no inventar identidad |
+| Reddit | u/flix_md autenticado el 13/10; 0 karma local en r/macapps | Sin promoción en r/macapps hasta alcanzar sus 10 mínimos; r/MacOS exige publicación manual y repositorio elegible |
+| HN | Sesión cerrada el 13/10; Aurio no documenta handle | Xus inicia sesión y escribe título/presentación/comentarios personalmente, sin IA ni envío automatizado |
 
 Procedencia: repo hermano `aurio/marketing/lanzamientos/directorios-2026/`, archivos `tracker.csv`, `directorios.md` y `peerlist-log.md`, revisados el 03/10. Son evidencia de trabajo anterior, no una comprobación en vivo para Altillo. Estas referencias externas no se incluyen en el ZIP; los hechos necesarios están resumidos aquí.
 

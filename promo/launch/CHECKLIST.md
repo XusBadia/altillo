@@ -12,14 +12,17 @@
 
 ## Antes de crear o programar fichas
 
-- [ ] Leer reglas el 12/10 y registrar cuenta autenticada; verificar Peerlist Xus y su ventana real de programación.
+- [x] Peerlist: sesión xusbadia verificada y Week 43 programada el 13/10; PH conserva el 20/10.
+- [ ] Revalidar reglas y gates restantes el 18/10, especialmente HN/Reddit.
 - [x] Peerlist/PH/X revisados sin duplicados; consultar EXECUTION antes de continuar en otros canales.
 - [x] PH confirma 20/10, 00:01 PDT, 09:01 Madrid, 07:01 UTC; descripción de 447 aceptada.
 - [x] X y LinkedIn personales: tres posts ES con vídeo programados y verificados; Aurio intacto.
 - [x] Textos, fechas y acciones del calendario aprobados por Xus el 03/10. Consultar [EXECUTION.md](EXECUTION.md) para conocer qué está realmente programado; no repetir esta aprobación.
-- [ ] HN: autor redacta personalmente y comprueba elegibilidad. No usar texto generado por IA.
-- [ ] Reddit: identidad, karma local, 30 días desde promoción anterior, reglas leídas, vía de confianza o App Pile; editar antes de enviar.
-- [x] DMG 0.10.0, enlaces y firma verificados; binario universal Intel x86_64 + Apple Silicon arm64. Releer el 18/10.
+- [ ] HN: sesión cerrada el 13/10. Xus inicia sesión, redacta personalmente y comprueba elegibilidad. No usar texto generado ni editado por IA.
+- [x] Reddit: identidad u/flix_md comprobada el 13/10; r/macapps bloqueado por 0 karma local (mínimo 10). No hay promo previa visible; los borrados no son reconstruibles.
+- [ ] r/MacOS: confirmar elegibilidad bajo regla actual App Store/GitHub establecido; publicación humana/manual el sábado UTC.
+- [x] Indie Hackers: sesión @xusbadia comprobada el 13/10; la cuenta aún no puede crear posts.
+- [x] DMG 0.10.6, enlaces y firma verificados; binario universal Intel x86_64 + Apple Silicon arm64. Releer el 18/10.
 - [x] Galería 07/08 corregida y guardada en PH: Drawer y privacidad exactos.
 - [ ] Pitches: destinatario oficial y aprobación de envío; sin contactos inventados ni gastos.
 - [ ] Colas y badges: usar gratis; aprobar cualquier backlink público; si no hay opción gratuita, omitir.
@@ -29,10 +32,10 @@
 Guardar recuento inicial el 18/10 y final el 25/10:
 
 ```sh
-gh api repos/XusBadia/altillo/releases/tags/v0.10.0 --jq '.assets[] | select(.name | endswith(".dmg")) | {name, download_count}'
+gh api --paginate repos/XusBadia/altillo/releases --jq '.[] | .assets[] | select(.name | endswith(".dmg")) | {id, name, browser_download_url, download_count}'
 ```
 
-Registrar fecha/hora UTC, versión y contador. La diferencia cuenta descargas del artefacto entre capturas, sin identificar instalaciones, usuarios únicos o canal. Si cambia el release, seguir ambos activos por separado. No añadir telemetría para el lanzamiento.
+Registrar fecha/hora UTC, versión y contador. La diferencia cuenta descargas del artefacto entre capturas, sin identificar instalaciones, usuarios únicos o canal. La consulta incluye todos los DMG públicos para conservar el seguimiento si sale otra versión. Comparar por ID de activo; un activo nuevo se registra por separado. No añadir telemetría para el lanzamiento.
 
 ## Día de ejecución
 

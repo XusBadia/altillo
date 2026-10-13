@@ -8,7 +8,7 @@ Todo esto solo hace falta si vas a publicar una release real. Para compilar
 y desarrollar Altillo no necesitas nada de esto — ver
 [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-Altillo **0.10.0 ya está distribuida públicamente**, firmada y notarizada por
+Altillo **0.10.6 ya está distribuida públicamente**, firmada y notarizada por
 Apple, con actualizaciones Sparkle. El anuncio de la semana del 19 de octubre
 no requiere volver a publicar esa versión. Los comandos siguientes describen
 el procedimiento para futuras releases.
