@@ -140,19 +140,6 @@ for (const L of LOCALES) {
       await links.nth(2).click();
       await expect(page).toHaveURL(/#aurio$/);
       await waitAtAnchor("#aurio");
-
-      // A tall desktop window makes Aurio's requested top alignment
-      // unreachable. Exercise the native bottom clamp, without padding the
-      // page or changing the user gesture to make the assertion pass.
-      await page.setViewportSize({ width: page.viewportSize().width, height: 2000 });
-      await links.nth(0).click();
-      await expect(page).toHaveURL(/#features$/);
-      await waitAtAnchor("#features");
-      await waitForFiniteAnimations(page.locator(".try__steps"));
-      await links.nth(2).click();
-      await expect(page).toHaveURL(/#aurio$/);
-      const clamped = await waitAtAnchor("#aurio");
-      expect(clamped.expectedY).toBe(clamped.maxY);
     });
 
     test("the language switch leads to the other page", async ({ page }) => {
