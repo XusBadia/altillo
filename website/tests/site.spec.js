@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { LOCALES, watch, gotoPage, waitForDemo, waitForEggs, scrollThrough } from "./helpers.js";
+import { LOCALES, watch, gotoPage, waitForDemo, waitForEggs, scrollThrough, waitForFiniteAnimations } from "./helpers.js";
 
 for (const L of LOCALES) {
   test.describe(`${L.code} page`, () => {
@@ -83,26 +83,42 @@ for (const L of LOCALES) {
       await expect(page.locator(`.footer a[href="${L.privacy}"]`)).toHaveCount(1);
       await expect(page.locator(`.footer a[href="${L.other}"]`)).toHaveCount(1);
 
-      // In-page anchors land on their sections.
-      // Wait for the anchor to arrive below the fixed nav. Merely entering
-      // the viewport can still mean the smooth scroll is halfway through;
-      // starting a second one there races WebKit's first navigation.
+      // Native anchors align below the nav when possible, and stop at the
+      // document boundary when there isn't enough content below the target.
       const waitAtAnchor = async (sel) => {
         let previousY = null;
         let stableSince = Date.now();
-        await expect.poll(async () => {
-          const { top, padding, y } = await page.locator(sel).evaluate((el) => ({
-            top: el.getBoundingClientRect().top,
-            padding: parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop),
-            y: window.scrollY,
-          }));
-          // Entering the 2 px tolerance isn't enough: WebKit can still have
-          // a smooth scroll in flight. Require it to stay put before clicking
-          // the next anchor, while preserving the same alignment assertion.
-          if (previousY === null || Math.abs(y - previousY) > 0.1) stableSince = Date.now();
-          previousY = y;
-          return { aligned: Math.abs(top - padding) <= 2, settled: Date.now() - stableSince >= 200 };
-        }, { intervals: [100] }).toEqual({ aligned: true, settled: true });
+        let lastSample;
+        try {
+          await expect.poll(async () => {
+            lastSample = await page.locator(sel).evaluate((el) => {
+              const top = el.getBoundingClientRect().top;
+              const y = window.scrollY;
+              const padding = parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop);
+              const scrolling = document.scrollingElement;
+              const maxY = Math.max(0, scrolling.scrollHeight - scrolling.clientHeight);
+              const targetY = y + top;
+              return { top, padding, y, maxY, targetY,
+                expectedY: Math.min(maxY, Math.max(0, targetY - padding)),
+                viewportHeight: innerHeight, scrollHeight: scrolling.scrollHeight, clientHeight: scrolling.clientHeight };
+            });
+            const { y, expectedY } = lastSample;
+            // WebKit 26 settled 2.5 CSS px short of the fractional target in
+            // CI (6578 vs 6580.5). Allow 3 px of native scroll precision,
+            // while still requiring the same 200 ms settled position.
+            if (previousY === null || Math.abs(y - previousY) > 0.1) stableSince = Date.now();
+            previousY = y;
+            return { aligned: Math.abs(y - expectedY) <= 3, settled: Date.now() - stableSince >= 200 };
+          }, { intervals: [100] }).toEqual({ aligned: true, settled: true });
+          return lastSample;
+        } catch (error) {
+          console.log("ANCHOR_POSITION", sel, JSON.stringify(lastSample));
+          await test.info().attach("anchor-position", {
+            body: JSON.stringify({ selector: sel, ...lastSample }, null, 2), contentType: "application/json",
+          });
+          await test.info().attach("anchor-viewport", { body: await page.screenshot(), contentType: "image/png" });
+          throw error;
+        }
       };
       // Phones keep only Download in the bar.
       if (page.viewportSize().width <= 760) {
@@ -114,9 +130,13 @@ for (const L of LOCALES) {
       await page.evaluate(() => window.scrollTo({ top: 400, behavior: "instant" }));
       await expect(page.locator("#nav")).toHaveClass(/is-visible|is-scrolled/);
       await expect(links.nth(0)).toBeVisible();
+      await waitForDemo(page);
+      await waitForFiniteAnimations(page.locator("#nav"));
       await links.nth(0).click();
       await expect(page).toHaveURL(/#features$/);
-      await waitAtAnchor("#features");
+      const normal = await waitAtAnchor("#features");
+      expect(normal.expectedY).toBe(normal.targetY - normal.padding);
+      await waitForFiniteAnimations(page.locator(".try__steps"));
       await links.nth(2).click();
       await expect(page).toHaveURL(/#aurio$/);
       await waitAtAnchor("#aurio");

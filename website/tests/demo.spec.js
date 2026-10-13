@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { LOCALES, gotoPage, waitForDemo, demoState, centre, isWide } from "./helpers.js";
+import { LOCALES, gotoPage, waitForDemo, demoState, centre, isWide, waitForFiniteAnimations } from "./helpers.js";
 
 for (const L of LOCALES) {
   test.describe(`${L.code} demo`, () => {
@@ -68,12 +68,13 @@ for (const L of LOCALES) {
         return { left: notch.left, right: notch.right, camL: cam.left, camR: cam.right, sL: screen.left, sR: screen.right, ears };
       });
       const settled = async () => {
+        // A pointer left on the open panel can hover the ears as it closes.
+        await page.mouse.move(0, 0);
         await page.evaluate(() => window.altilloDemo.close());
         await expect.poll(async () => (await demoState(page)).open).toBe(false);
-        // Wait for the spring to land.
-        let last = null;
-        await expect.poll(async () => { const g = await geometry(); const same = last && Math.abs(g.left - last.left) < 0.5 && Math.abs(g.right - last.right) < 0.5; last = g; return same; }, { intervals: [150] }).toBe(true);
-        return last;
+        await expect(page.locator("#demo .dm-open")).toBeHidden();
+        await waitForFiniteAnimations(page.locator("#demo .dm-notch"));
+        return geometry();
       };
       // At rest: the next event on the left (words, not just a number), the shelf on the right.
       let g = await settled();
@@ -92,7 +93,11 @@ for (const L of LOCALES) {
       // An empty shelf ear borrows the next activity (Empty lives in the wide layout).
       if ((await demoState(page)).compact) return;
       await page.evaluate(() => { window.altilloDemo.reset(); window.altilloDemo.show("shelf"); });
+      // Reset/reopen restarts the panel's focus animation. Finish it before
+      // a mouse click, then verify the mutation before closing the panel.
+      await waitForFiniteAnimations(page.locator("#demo .dm-notch"));
       await page.locator('#demo [data-act="empty"]').click();
+      await expect.poll(async () => (await demoState(page)).shelf).toEqual([]);
       g = await settled();
       expect(g.ears[0].text).toContain("12 min");
       expect(g.ears[1].text).toContain("Claude");
