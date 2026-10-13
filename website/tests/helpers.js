@@ -100,3 +100,14 @@ export async function scrollThrough(page) {
     window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "instant" });
   });
 }
+
+// A short run of equal bounding boxes can land in an animation's delay or
+// overshoot. Wait for the browser's actual finite animations instead; loops
+// such as the playing indicator are deliberately excluded.
+export async function waitForFiniteAnimations(locator) {
+  await expect.poll(() => locator.evaluate((el) =>
+    el.getAnimations({ subtree: true })
+      .filter((animation) => Number.isFinite(animation.effect.getComputedTiming().iterations))
+      .every((animation) => animation.playState === "finished")
+  )).toBe(true);
+}
