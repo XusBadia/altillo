@@ -160,6 +160,14 @@ las reservas. Se recomienda usarlo como primer anuncio y conservar 19–20.
   Destinatarios y textos restantes intactos. Recomendación: envío editorial
   14/10, como contempla el calendario, con demo, descarga y código públicos;
   sin correo masivo ni solicitudes de votos. No se presume lista de usuarios.
+- Comunidad, solo lectura: Reddit autenticado como `u/flix_md`, con 0 karma
+  local en r/macapps (mínimo 10). App Pile no exime ese gate y cuenta para
+  los 30 días. No hay promo Aurio/Altillo visible; no se pueden reconstruir
+  posts borrados. r/MacOS exige publicación humana/manual en sábado UTC y
+  App Store o GitHub reputado/establecido: no se afirma elegibilidad de Altillo.
+  HN sin sesión; Aurio no documenta handle. Xus debe escribir desde cero,
+  sin texto generado ni editado por IA ni envío automatizado. Indie Hackers
+  @xusbadia sigue mostrando You can't create posts yet. No se publicó nada.
 - Kit: referencias activas de versión, DMG y notas actualizadas a 0.10.6;
   la medición recoge todos los DMG públicos y compara IDs de activos para
   conservar el seguimiento si cambia el release.

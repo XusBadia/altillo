@@ -18,8 +18,10 @@
 - [x] PH confirma 20/10, 00:01 PDT, 09:01 Madrid, 07:01 UTC; descripción de 447 aceptada.
 - [x] X y LinkedIn personales: tres posts ES con vídeo programados y verificados; Aurio intacto.
 - [x] Textos, fechas y acciones del calendario aprobados por Xus el 03/10. Consultar [EXECUTION.md](EXECUTION.md) para conocer qué está realmente programado; no repetir esta aprobación.
-- [ ] HN: autor redacta personalmente y comprueba elegibilidad. No usar texto generado por IA.
-- [ ] Reddit: identidad, karma local, 30 días desde promoción anterior, reglas leídas, vía de confianza o App Pile; editar antes de enviar.
+- [ ] HN: sesión cerrada el 13/10. Xus inicia sesión, redacta personalmente y comprueba elegibilidad. No usar texto generado ni editado por IA.
+- [x] Reddit: identidad u/flix_md comprobada el 13/10; r/macapps bloqueado por 0 karma local (mínimo 10). No hay promo previa visible; los borrados no son reconstruibles.
+- [ ] r/MacOS: confirmar elegibilidad bajo regla actual App Store/GitHub establecido; publicación humana/manual el sábado UTC.
+- [x] Indie Hackers: sesión @xusbadia comprobada el 13/10; la cuenta aún no puede crear posts.
 - [x] DMG 0.10.6, enlaces y firma verificados; binario universal Intel x86_64 + Apple Silicon arm64. Releer el 18/10.
 - [x] Galería 07/08 corregida y guardada en PH: Drawer y privacidad exactos.
 - [ ] Pitches: destinatario oficial y aprobación de envío; sin contactos inventados ni gastos.
