@@ -1,11 +1,11 @@
-# Fuentes y límites de investigación · 03/10/2026
+# Fuentes y límites de investigación · 03/10/2026, actualización 13/10
 
-Fuentes primarias verificadas por lectura o búsqueda pública. Revalidar reglas el 12 y el 18 de octubre. No se han inspeccionado sesiones autenticadas ni editores privados para Altillo.
+Fuentes primarias verificadas por lectura o búsqueda pública. Las reglas de esta tabla se investigaron el 03/10; revalidar las que sigan pendientes el 18/10. Las sesiones y editores autenticados inspeccionados, junto con los estados reales del 13/10, constan en [EXECUTION.md](EXECUTION.md).
 
 | Fuente oficial | Hecho utilizado |
 |---|---|
 | [Peerlist ventana](https://peerlist.io/launchpad/2026/week/44), [ayuda de lanzamiento](https://peerlist.neetokb.com/articles/how-to-launch-your-project-on-peerlist-project-spotlight) | Lunes 00:00–23:59 UTC |
-| [Peerlist actual](https://peerlist.io/launchpad) | Plazas limitadas; ninguna reserva confirmada |
+| [Peerlist actual](https://peerlist.io/launchpad), [ficha Altillo](https://peerlist.io/xusbadia/project/altillo) | Plazas limitadas; Week 43 reservada y Launch Scheduled confirmado el 13/10 |
 | [Verificación](https://peerlist.io/scroll/post/ACTHOK8Q9KRBE8GML2AMLAPBBR9689) | Desde Week 37/2025, solo usuarios verificados |
 | [Antispam](https://peerlist.io/scroll/post/ACTHJKRA7GAA6AD8A3RGJEDNDAM8AP), [campos de proyecto](https://blog.peerlist.io/p/streamlining-your-peerlist-profile-tips-for-efficiently-adding-new-projects) | Creador real, identidad, sin spam; nombre, tagline, cubierta, enlace, tags y descripción |
 | [PH guía](https://www.producthunt.com/launch), [preparación](https://www.producthunt.com/launch/preparing-for-launch) | Gratis, cuenta personal, sin pedir votos; 00:01 Pacific; programación hasta un mes; tagline 60, descripción 500, tres tags; miniatura 240×240 <3 MB; dos imágenes de galería 1270×760; YouTube con URL completa y sin visibilidad privada. Fallback de 260 por divergencias en documentación previa |

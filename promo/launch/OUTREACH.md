@@ -1,6 +1,6 @@
 # Pitches editoriales · no enviados
 
-Calendario y textos aprobados el 03/10. Dos borradores sin enviar guardados en Gmail de Xus con contactos editoriales oficiales comprobados; IDs en EXECUTION. Demo actualizada el 13/10 sin enviar. Releer destinatario y enlaces antes del envío previsto el 14/10. No hay compromiso de cobertura. No se ha reservado publicidad ni se pagará colocación. Adjuntar enlaces; evitar enviar vídeos pesados por email. El ZIP local se puede compartir después de elegir dónde alojarlo, sin inventar una URL pública.
+Calendario y textos aprobados el 03/10. Dos borradores sin enviar guardados en Gmail de Xus con contactos editoriales oficiales comprobados; IDs en EXECUTION. Demo actualizada el 13/10 sin enviar; páginas oficiales de ambos medios releídas ese día, newsroom de 9to5Mac reconfirmada. Releer destinatario y enlaces antes del envío previsto el 14/10. No hay compromiso de cobertura. No se ha reservado publicidad ni se pagará colocación. Adjuntar enlaces; evitar enviar vídeos pesados por email. El ZIP local se puede compartir después de elegir dónde alojarlo, sin inventar una URL pública.
 
 ## MacStories · producto Mac
 

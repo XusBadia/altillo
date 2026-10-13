@@ -154,8 +154,8 @@ DTSTAMP:20261003T000000Z
 DTSTART;TZID=Europe/Madrid:20261019T090000
 DTEND;TZID=Europe/Madrid:20261019T093000
 SUMMARY:Peerlist Altillo: programado Week 43
-DESCRIPTION:Comprobar si ficha programada ya se activó. Lanzar solo tras a
- probación. Maker comment corto. Reservar respuestas hasta 12:00.
+DESCRIPTION:Week 43 reservada. Comprobar activación sin volver a lanzar. M
+ aker comment corto. Reservar respuestas hasta 12:00.
 STATUS:CONFIRMED
 TRANSP:TRANSPARENT
 BEGIN:VALARM
