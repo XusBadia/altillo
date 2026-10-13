@@ -116,14 +116,10 @@ for (const L of LOCALES) {
       await expect(links.nth(0)).toBeVisible();
       await waitForDemo(page);
       await waitForFiniteAnimations(page.locator("#nav"));
-      // Pre-focus without scrolling: WebKit's native mouse focus can queue
-      // a competing scroll after the anchor's default action has started.
-      await links.nth(0).evaluate((el) => el.focus({ preventScroll: true }));
       await links.nth(0).click();
       await expect(page).toHaveURL(/#features$/);
       await waitAtAnchor("#features");
       await waitForFiniteAnimations(page.locator(".try__steps"));
-      await links.nth(2).evaluate((el) => el.focus({ preventScroll: true }));
       await links.nth(2).click();
       await expect(page).toHaveURL(/#aurio$/);
       await waitAtAnchor("#aurio");
