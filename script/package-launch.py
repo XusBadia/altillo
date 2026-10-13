@@ -40,7 +40,7 @@ REFERENCES = [
     "README.md", "brand-context.md", "docs/cajon.md",
     "docs/release.md", "docs/desinstalacion-segura.md",
     "docs/launch-qa-2026-09-26.md", "docs/launch-qa-2026-10-03.md",
-    "docs/releases/0.10.0.md",
+    "docs/releases/0.10.6.md",
     "plans/002-prove-release-differentiators.md",
     "plans/009-close-physical-launch-matrix.md",
 ]

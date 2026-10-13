@@ -4,7 +4,7 @@ Prioridad: P1 encaje directo; P2 distribución adicional; P3 condicionado. Coste
 
 | Canal | Prioridad / coste | Acceso y requisitos | Activos / texto | Estado y siguiente acción |
 |---|---|---|---|---|
-| [Peerlist](https://peerlist.io/launchpad) | P1 / sin gasto previsto; verificar formulario | Xusbadia verificado en trabajo Aurio; lunes UTC, plazas limitadas; creador real, sin spam | 01, 04, 06 + vídeo; LISTINGS | Ficha Altillo guardada, 100 %, xusbadia verificado; reservar semana 43 durante 12–18/10 (ahora solo Week 41) |
+| [Peerlist](https://peerlist.io/launchpad) | P1 / sin gasto previsto; verificar formulario | Xusbadia verificado en trabajo Aurio; lunes UTC, plazas limitadas; creador real, sin spam | 01, 04, 06 + vídeo; LISTINGS | Launch Scheduled, Week 43 confirmado el 13/10; xusbadia verificado y demo actual. Comprobar activación el 19/10 |
 | [Product Hunt](https://www.producthunt.com/launch) | P1 / gratis | Cuenta personal Xus; maker; hasta 1 mes de antelación; no pedir votos | Kit PH completo | Scheduled confirmado: 20/10 09:01 Madrid, maker @xusbadia, ocho imágenes + vídeo; URL en EXECUTION |
 | [Show HN](https://news.ycombinator.com/showhn.html) | P1 / gratis | Autor presente, producto descargable; restricción temporal cuentas nuevas; no pedir votos/comentarios a amigos | GitHub+LISTINGS HN | Preparado; verificar cuenta y Show HN permitido |
 | [r/macapps](https://www.reddit.com/r/macapps/) | P1 / gratis | 10 karma local, 1 promo / 30 días incluso borrada, reglas leídas, [OS], precio; trust tier o App Pile | 02 + 06; LISTINGS Reddit | Condicional; notarización sola no da tier 1. Comprobar historial/identidad/términos y perfil |

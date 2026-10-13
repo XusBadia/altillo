@@ -37,5 +37,5 @@ Cálida, doméstica y directa. Verbos propios: subir, bajar, dejar arriba, guard
 - Ask funciona en el dispositivo por defecto; la búsqueda web autorizada y la carga opt-in de letras contactan los servicios descritos en privacidad.
 - La captura opcional de iconos del Cajón necesita permiso de captura de pantalla; las imágenes se quedan en el Mac.
 - Altillo nunca aprueba acciones automáticamente.
-- Altillo 0.10.0 ya se distribuye públicamente, firmada y notarizada, con actualizaciones Sparkle. Sigue siendo pre-1.0; iOS/iPadOS/widgets son scaffolds y no funciones distribuidas.
+- Altillo 0.10.6 ya se distribuye públicamente, firmada y notarizada, con actualizaciones Sparkle. Sigue siendo pre-1.0; iOS/iPadOS/widgets son scaffolds y no funciones distribuidas.
 - Lanzamiento amplio previsto para la semana del 19–25 de octubre de 2026; QA aceptada por confirmación del usuario el 3 de octubre.

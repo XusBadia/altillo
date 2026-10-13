@@ -4,7 +4,7 @@ Decisión del usuario: usar los mismos perfiles que Aurio. Son **cuentas de Xus*
 
 | Plataforma | Identidad / evidencia local | Acción Altillo |
 |---|---|---|
-| Peerlist | https://peerlist.io/xusbadia; verificado por Xus 27/09; sesión y escrituras documentadas hasta 03/10 por la tarde | Crear proyecto Altillo nuevo; comprobar verificación actual; semana 19. No reutilizar `/project/aurio` |
+| Peerlist | https://peerlist.io/xusbadia; verificado por Xus 27/09; sesión y escrituras documentadas hasta 03/10 por la tarde | Ficha Altillo independiente; Week 43 programada y confirmada el 13/10, para el 19/10. Aurio intacto |
 | PH | https://www.producthunt.com/@xusbadia; sesión personal autenticada en Chrome el 03/10 | Maker/hunter Xus confirmado; Altillo programado el 20/10 a las 09:01 Madrid; Aurio 14/10 intacto |
 | Indie Hackers | Perfil xusbadia; ficha Aurio creada el 26/09; “You can't create posts yet” observado | Revisar permiso actual; crear Altillo por separado si está habilitado; no prometer post el 23 |
 | X | @XusBadia, personal | Anuncios Altillo ES/EN según audiencia; no usar @aurio_app |

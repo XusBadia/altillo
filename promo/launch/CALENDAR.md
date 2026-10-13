@@ -20,7 +20,7 @@ Xus aprobó este calendario el 03/10; la ejecución real se registra en [EXECUTI
 | Fecha | Madrid | UTC | Plataforma / acción | Qué publicar o revisar |
 |---|---|---|---|---|
 | Lun 19 | 02:00 | 00:00 | **Abre Peerlist** | Ventana oficial hasta 19/10 23:59 UTC, 20/10 01:59 Madrid; plazas limitadas, mejor resolver perfil antes |
-| Lun 19 | 09:00 | 07:00 | Peerlist, ejecución propuesta | LISTINGS Peerlist; vídeo EN+galería; lanzar solo si perfil verificado y acción aprobada |
+| Lun 19 | 09:00 | 07:00 | Peerlist, reserva confirmada el 13/10 | LISTINGS Peerlist; vídeo EN+galería; Week 43 programada; comprobar activación sin volver a Launch |
 | Lun 19 | 09:30 | 07:30 | X y LinkedIn | SOCIAL día de lanzamiento EN o ES según cuenta; vídeo nativo; enlace web |
 | Lun 19 | 09:00–12:00 | 07:00–10:00 | Peerlist respuestas | Respuestas humanas usando FAQ como referencia; registrar bugs y preguntas |
 | Lun 19 | 18:00 | 16:00 | Revisión Peerlist | Corregir solo errores concretos; no repostear enlace en feeds ajenos |
