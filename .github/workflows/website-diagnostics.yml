@@ -26,7 +26,18 @@ jobs:
       - run: npm ci
       - run: npx playwright install webkit
       - run: npm run build
-      - name: Native anchor clicks, EN and ES
+      - name: Reproduce the original unclamped assertion
+        run: |
+          python3 - <<'PYTHON'
+          from pathlib import Path
+          test_file = Path("tests/site.spec.js")
+          source = test_file.read_text()
+          source = source.replace("Math.abs(y - expectedY) <= 2", "Math.abs(lastSample.top - lastSample.padding) <= 2")
+          start = source.index("      // A tall desktop window")
+          end = source.index("    });", start)
+          test_file.write_text(source[:start] + source[end:])
+          PYTHON
+      - name: Original native anchor clicks, EN and ES
         env:
           ALTILLO_ANCHOR_DIAGNOSTICS: '1'
         run: npm test -- --project=safari --grep='navigation links go where they say' --workers=1 --retries=0 --repeat-each=2 --trace=retain-on-failure --fail-on-flaky-tests --forbid-only
