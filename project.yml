@@ -48,6 +48,8 @@ targets:
         product: AltilloUsage
       - package: AltilloKit
         product: AltilloAgents
+      - package: AltilloKit
+        product: AltilloHome
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook

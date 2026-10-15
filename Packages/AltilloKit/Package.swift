@@ -10,6 +10,7 @@ let package = Package(
         .library(name: "AltilloDesign", targets: ["AltilloDesign"]),
         .library(name: "AltilloUsage", targets: ["AltilloUsage"]),
         .library(name: "AltilloAgents", targets: ["AltilloAgents"]),
+        .library(name: "AltilloHome", targets: ["AltilloHome"]),
     ],
     targets: [
         .target(name: "AltilloCore"),
@@ -18,9 +19,12 @@ let package = Package(
         // Live agents (PLAN §5.3): hook payload parsers, the state machine, the danger classifier, session-file
         // readers and the hook <-> app wire protocol. Pure Foundation so `altillo-hook` can link it and stay fast.
         .target(name: "AltilloAgents", dependencies: ["AltilloCore"]),
+        // Home section (docs/casa.md): the shared vocabulary and the Home Assistant WebSocket client.
+        .target(name: "AltilloHome"),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),
         .testTarget(name: "AltilloUsageTests", dependencies: ["AltilloUsage"]),
         .testTarget(name: "AltilloDesignTests", dependencies: ["AltilloDesign"]),
+        .testTarget(name: "AltilloHomeTests", dependencies: ["AltilloHome"]),
         .testTarget(name: "AltilloAgentsTests", dependencies: ["AltilloAgents"], resources: [.copy("Fixtures")]),
     ]
 )
