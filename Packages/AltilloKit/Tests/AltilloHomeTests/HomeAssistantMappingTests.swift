@@ -220,3 +220,14 @@ import Testing
         #expect(HomeTrustDelegate(pinnedSHA256: "AB").pinnedSHA256 == "ab")
     }
 }
+
+@Suite struct HomeInsecureRemoteTests {
+    @Test func atsRefusalIsRecognisedAndNotRetried() {
+        let ats = NSError(domain: NSURLErrorDomain, code: NSURLErrorAppTransportSecurityRequiresSecureConnection)
+        let wrapped = NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotConnectToHost, userInfo: [NSUnderlyingErrorKey: ats])
+        #expect(HAMapping.isInsecureRemote(ats))
+        #expect(HAMapping.isInsecureRemote(wrapped))
+        #expect(!HAMapping.isInsecureRemote(NSError(domain: NSURLErrorDomain, code: NSURLErrorCannotFindHost)))
+        #expect(!HAFailure.insecureRemote.isRetryable)
+    }
+}

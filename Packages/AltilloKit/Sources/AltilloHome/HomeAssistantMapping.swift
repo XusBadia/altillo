@@ -404,4 +404,18 @@ enum HAMapping {
         }
         return false
     }
+
+    /// App Transport Security refused a plain http:// address (only local hosts are allowed over http).
+    static func isInsecureRemote(_ error: any Error) -> Bool {
+        var pending: [NSError] = [error as NSError]
+        var seen = 0
+        while let current = pending.popLast(), seen < 16 {
+            seen += 1
+            if current.domain == NSURLErrorDomain, current.code == NSURLErrorAppTransportSecurityRequiresSecureConnection {
+                return true
+            }
+            if let underlying = current.userInfo[NSUnderlyingErrorKey] as? NSError { pending.append(underlying) }
+        }
+        return false
+    }
 }

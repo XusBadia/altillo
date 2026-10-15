@@ -269,6 +269,7 @@ public final class HomeAssistantClient: HomeService {
         if let failure = error as? HAFailure { return failure }
         if live.handshakeTimedOut { return .timedOut }
         if HAMapping.isLocalNetworkDenied(error) { return .localNetworkDenied }
+        if HAMapping.isInsecureRemote(error) { return .insecureRemote }
         return .notFound
     }
 
@@ -541,6 +542,8 @@ struct HomeTiming: Sendable {
 enum HAFailure: Error, Equatable {
     case unauthorized, needsTrust(String), localNetworkDenied, notFound, timedOut, connectionLost, unexpected
     case server(String), keychain, notConnected, cancelled
+    /// A plain http:// address outside the local network: App Transport Security refuses it every time.
+    case insecureRemote
 
     var message: String {
         switch self {
@@ -554,6 +557,7 @@ enum HAFailure: Error, Equatable {
         case .server(let message): message.isEmpty ? HomeStrings.unexpected : HomeStrings.haSaid(message)
         case .keychain: HomeStrings.keychain
         case .notConnected: HomeStrings.notConnected
+        case .insecureRemote: HomeStrings.insecureRemote
         }
     }
 
@@ -569,7 +573,7 @@ enum HAFailure: Error, Equatable {
     /// Bad tokens and unknown certificates need the user; everything else is retried with backoff.
     var isRetryable: Bool {
         switch self {
-        case .unauthorized, .needsTrust, .cancelled: false
+        case .unauthorized, .needsTrust, .cancelled, .insecureRemote: false
         default: true
         }
     }

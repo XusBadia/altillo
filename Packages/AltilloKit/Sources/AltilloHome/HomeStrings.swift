@@ -20,6 +20,9 @@ enum HomeStrings {
     }
     static var timedOut: String { String(localized: "Home Assistant is taking too long to answer.", bundle: .module) }
     static var connectionLost: String { String(localized: "Lost the connection to Home Assistant.", bundle: .module) }
+    static var insecureRemote: String {
+        String(localized: "Outside your local network, Altillo needs an https:// address for Home Assistant.", bundle: .module)
+    }
     static var notConnected: String { String(localized: "Not connected to Home Assistant.", bundle: .module) }
     static var otherServer: String { String(localized: "That belongs to another Home Assistant.", bundle: .module) }
     static var unsupported: String { String(localized: "That device can't do this.", bundle: .module) }

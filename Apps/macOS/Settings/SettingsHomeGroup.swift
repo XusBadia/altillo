@@ -192,7 +192,7 @@ private struct SettingsHomeServer: View {
                     .disabled(store.isConnecting || address.trimmingCharacters(in: .whitespaces).isEmpty || token.isEmpty)
             }
             if let error = store.connectError {
-                SettingsNotice(symbol: "exclamationmark.triangle.fill", message: LocalizedStringKey(error), tone: .warning)
+                SettingsNotice(symbol: "exclamationmark.triangle.fill", verbatim: error, tone: .warning)
                     .transition(.settingsReveal)
             }
             Text("In Home Assistant, open your profile › Security › Long-lived access tokens, create one for Altillo and paste it here.")

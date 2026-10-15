@@ -171,6 +171,23 @@
         }
       }
     },
+    "Outside your local network, Altillo needs an https:// address for Home Assistant.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outside your local network, Altillo needs an https:// address for Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fuera de tu red local, Altillo necesita una dirección https:// para Home Assistant."
+          }
+        }
+      }
+    },
     "That belongs to another Home Assistant.": {
       "extractionState": "manual",
       "localizations": {
