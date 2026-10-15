@@ -1,4 +1,5 @@
 import AltilloCore
+import AltilloHome
 import CoreGraphics
 import Foundation
 import Observation
@@ -200,6 +201,39 @@ final class AltilloSettings {
         didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
     }
 
+    // MARK: Home (docs/casa.md)
+
+    /// The Home Assistant server, nil until the user connects one. Its token lives in the Keychain, never here.
+    var homeServer: HomeServerConfig? {
+        didSet {
+            if let homeServer, let data = try? JSONEncoder().encode(homeServer) {
+                defaults.set(data, forKey: Key.homeServer)
+            } else {
+                defaults.removeObject(forKey: Key.homeServer)
+            }
+        }
+    }
+
+    /// The Home section's tiles, in the user's order (`HomeEntityID.rawValue`).
+    var homeFavourites: [String] {
+        didSet { defaults.set(homeFavourites, forKey: Key.homeFavourites) }
+    }
+
+    /// What rings: an `event.*` doorbell or a binary sensor (`HomeEntityID.rawValue`).
+    var homeDoorbellTrigger: String? {
+        didSet { defaults.set(homeDoorbellTrigger, forKey: Key.homeDoorbellTrigger) }
+    }
+
+    /// The camera whose picture comes with the ring.
+    var homeDoorbellCamera: String? {
+        didSet { defaults.set(homeDoorbellCamera, forKey: Key.homeDoorbellCamera) }
+    }
+
+    /// Peek when someone rings (only with the Home section on and a doorbell chosen). On by default.
+    var alertsForHome: Bool {
+        didSet { defaults.set(alertsForHome, forKey: Key.alertsForHome) }
+    }
+
     // MARK: Live agents (PLAN §5.3)
 
     /// How long a coding agent's permission request waits for your answer in the notch before the agent asks in
@@ -289,6 +323,11 @@ final class AltilloSettings {
         static let usageAlertsWhenRefilled = "usageAlertsWhenRefilled"
         static let agentPermissionWait = "agentPermissionWait"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let homeServer = "homeServer"
+        static let homeFavourites = "homeFavourites"
+        static let homeDoorbellTrigger = "homeDoorbellTrigger"
+        static let homeDoorbellCamera = "homeDoorbellCamera"
+        static let alertsForHome = "alertsForHome"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -353,6 +392,11 @@ final class AltilloSettings {
         agentPermissionWait = (defaults.object(forKey: Key.agentPermissionWait) as? Int)
             .flatMap { AgentHookCommand.waitChoices.contains($0) ? $0 : nil } ?? AgentHookCommand.defaultWait
         hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
+        homeServer = defaults.data(forKey: Key.homeServer).flatMap { try? JSONDecoder().decode(HomeServerConfig.self, from: $0) }
+        homeFavourites = defaults.stringArray(forKey: Key.homeFavourites) ?? []
+        homeDoorbellTrigger = defaults.string(forKey: Key.homeDoorbellTrigger)
+        homeDoorbellCamera = defaults.string(forKey: Key.homeDoorbellCamera)
+        alertsForHome = defaults.object(forKey: Key.alertsForHome) as? Bool ?? true
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything

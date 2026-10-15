@@ -1,0 +1,295 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "Altillo needs Local Network access. Turn it on in System Settings → Privacy & Security → Local Network.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo needs Local Network access. Turn it on in System Settings → Privacy & Security → Local Network."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo necesita acceso a la red local. Actívalo en Ajustes del Sistema → Privacidad y seguridad → Red local."
+          }
+        }
+      }
+    },
+    "Can't find your Home Assistant at that address.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Can't find your Home Assistant at that address."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No encuentro tu Home Assistant en esa dirección."
+          }
+        }
+      }
+    },
+    "Couldn't get the camera image.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't get the camera image."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No he podido traer la imagen de la cámara."
+          }
+        }
+      }
+    },
+    "Couldn't save the token in the Keychain.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't save the token in the Keychain."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No he podido guardar el token en el Llavero."
+          }
+        }
+      }
+    },
+    "Home Assistant answered something unexpected.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant answered something unexpected."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant ha respondido algo inesperado."
+          }
+        }
+      }
+    },
+    "Home Assistant didn't accept that token. Create a new one and paste it again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant didn't accept that token. Create a new one and paste it again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant no ha aceptado ese token. Crea uno nuevo y vuelve a pegarlo."
+          }
+        }
+      }
+    },
+    "Home Assistant is taking too long to answer.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant is taking too long to answer."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant tarda demasiado en responder."
+          }
+        }
+      }
+    },
+    "Home Assistant says: %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant says: %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant dice: %@"
+          }
+        }
+      }
+    },
+    "Lost the connection to Home Assistant.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lost the connection to Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se ha perdido la conexión con Home Assistant."
+          }
+        }
+      }
+    },
+    "Not connected to Home Assistant.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not connected to Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay conexión con Home Assistant."
+          }
+        }
+      }
+    },
+    "That belongs to another Home Assistant.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That belongs to another Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eso es de otro Home Assistant."
+          }
+        }
+      }
+    },
+    "That device can't do this.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That device can't do this."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ese dispositivo no puede hacer eso."
+          }
+        }
+      }
+    },
+    "That doesn't look like an address. Try something like homeassistant.local:8123.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That doesn't look like an address. Try something like homeassistant.local:8123."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eso no parece una dirección. Prueba con algo como homeassistant.local:8123."
+          }
+        }
+      }
+    },
+    "There's no token saved for this server.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There's no token saved for this server."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay ningún token guardado para este servidor."
+          }
+        }
+      }
+    },
+    "This server uses its own certificate. Check it and trust it to continue.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server uses its own certificate. Check it and trust it to continue."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este servidor usa su propio certificado. Revísalo y confía en él para seguir."
+          }
+        }
+      }
+    },
+    "Type your Home Assistant address.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type your Home Assistant address."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escribe la dirección de tu Home Assistant."
+          }
+        }
+      }
+    },
+    "Use an address that starts with http:// or https://.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an address that starts with http:// or https://."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa una dirección que empiece por http:// o https://."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

@@ -1,8 +1,19 @@
-# Casa / Home: domótica en el notch (propuesta)
+# Casa / Home: domótica en el notch
 
-> Estado: propuesta del 15-10-2026, sin implementar. Origen: [House Control](https://github.com/0xProbabillity/house-control) (MIT, 5,6k likes y 257k vistas en X el 13-10-2026), que pone un modelo 3D del piso en el notch y controla Smart Life, Home Assistant, Hue y Apple Home. Lo usamos solo como referencia: todo se implementa de forma nativa y con atribución en ThirdPartyNotices si portamos lógica.
+> Estado: H1 (beta de Home Assistant) implementada el 15-10-2026 en la rama `feat/home-h1`; H2-H4 pendientes. Origen: [House Control](https://github.com/0xProbabillity/house-control) (MIT, 5,6k likes y 257k vistas en X el 13-10-2026), que pone un modelo 3D del piso en el notch y controla Smart Life, Home Assistant, Hue y Apple Home. Lo usamos solo como referencia: todo se implementa de forma nativa y con atribución en ThirdPartyNotices si portamos lógica.
 
 La interfaz está en inglés (**Home**); en español la llamamos **Casa**. Es una sección más del notch, opt-in como las utilidades.
+
+## Uso (H1)
+
+1. Ajustes → Sections → activa **Home** (opt-in, como las utilidades).
+2. En la tarjeta **Home**: escribe la dirección (`homeassistant.local:8123`, una IP o tu URL remota), pulsa **Create a token…** para abrir la página de tokens de tu HA, pega el token y **Connect**. El token va al Llavero.
+3. **Suggest favourites** o elige a mano; arrastra para ordenar.
+4. Opcional: elige el timbre (`event.*` o `binary_sensor`) y su cámara, y activa **Peek when someone rings**.
+
+En el notch: clic alterna, arrastrar en horizontal atenúa una luz o mueve una persiana. Con el notch cerrado, la oreja avisa de una puerta abierta más de 10 min o de luces encendidas sin nadie en casa (`zone.home`).
+
+**Desarrollo sin casa real:** `script/home-lab.sh up` levanta un HA de demostración en `http://localhost:8124` (usuario `altillo`, token en `~/Library/Caches/altillo-home-lab/token`); `down` lo para y `reset` lo borra. La prueba contra él: `ALTILLO_HOME_LAB_TOKEN=$(cat ~/Library/Caches/altillo-home-lab/token) swift test --filter HomeAssistantLabTests` en `Packages/AltilloKit`. Escenarios de diseño: `-designScenario openHome` y `-designScenario peekDoorbell`.
 
 ## Por qué
 

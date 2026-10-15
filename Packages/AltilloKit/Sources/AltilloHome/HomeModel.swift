@@ -209,8 +209,9 @@ public protocol HomeService: AnyObject {
     func connect(_ config: HomeServerConfig, token: String) async throws
     /// Connects with the token already in the Keychain for this server, if any.
     func resume(_ config: HomeServerConfig)
-    /// Pins the certificate shown in `.needsTrust` and connects again. Returns the updated config to persist.
-    func trustCertificate(_ fingerprintSHA256: String) -> HomeServerConfig?
+    /// Pins the certificate shown in `.needsTrust` and connects again, saving the token once that succeeds.
+    /// Returns the updated config to persist; throws a `HomeServiceError` like `connect`.
+    func trustCertificate(_ fingerprintSHA256: String) async throws -> HomeServerConfig
     /// Closes the connection. With `forget`, also deletes the token from the Keychain.
     func disconnect(forget: Bool)
     /// Only these entities are subscribed to (`subscribe_entities` with `entity_ids`): favourites + alert entities.

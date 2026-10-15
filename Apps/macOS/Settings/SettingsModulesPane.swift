@@ -10,6 +10,10 @@ struct SettingsModulesPane: View {
     let hasHardwareNotch: Bool
     /// The clipboard section's own options live on its store (nil in previews).
     var clipboard: ClipboardStore?
+    /// The Home section's store (nil in previews).
+    var home: HomeStore?
+    /// Which card to scroll to and unfold (`-settingsSection home`, or the notch's "Connect Home Assistant").
+    var navigation: SettingsNavigation?
     /// Keeps what a preset replaced, for its Undo.
     @State private var session = NotchEditSession()
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -100,6 +104,20 @@ struct SettingsModulesPane: View {
                         .transition(.settingsReveal)
                     }
 
+                    if settings.isEnabled(.home), let home {
+                        SettingsOptionsCard(
+                            title: "Home",
+                            detail: "Home Assistant, favourites and the doorbell.",
+                            symbol: NotchModule.home.symbol,
+                            anchor: Self.homeAnchor,
+                            navigation: navigation
+                        ) {
+                            SettingsHomeGroup(settings: settings, store: home)
+                        }
+                        .id(Self.homeAnchor)
+                        .transition(.settingsReveal)
+                    }
+
                     // Always here, even with the agents section put away: hooks Altillo installed must stay one
                     // click from removal.
                     SettingsOptionsCard(
@@ -150,12 +168,13 @@ struct SettingsModulesPane: View {
                            value: settings.modules)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .task {
-                // `-settingsSection calendar|usage|clipboard|agents` (with `-settingsTab modules`) opens scrolled to
-                // that group.
+            .task(id: navigation?.sectionRequest ?? 0) {
+                // `-settingsSection calendar|usage|clipboard|home|agents` (with `-settingsTab modules`), or the notch
+                // asking for a card, opens scrolled to that group.
                 // Once more after the rows above have measured themselves, or it stops short.
-                if let anchor = UserDefaults.standard.string(forKey: "settingsSection"),
-                   [Self.calendarAnchor, Self.usageAnchor, Self.clipboardAnchor, Self.agentsAnchor].contains(anchor) {
+                let anchor = navigation?.section ?? UserDefaults.standard.string(forKey: "settingsSection")
+                if let anchor, [Self.calendarAnchor, Self.usageAnchor, Self.clipboardAnchor, Self.homeAnchor,
+                                Self.agentsAnchor].contains(anchor) {
                     proxy.scrollTo(anchor, anchor: .top)
                     try? await Task.sleep(for: .milliseconds(400))
                     proxy.scrollTo(anchor, anchor: .top)
@@ -183,6 +202,7 @@ struct SettingsModulesPane: View {
     private static let usageAnchor = "usage"
     private static let clipboardAnchor = "clipboard"
     private static let agentsAnchor = "agents"
+    private static let homeAnchor = SettingsNavigation.homeSection
 }
 
 /// One section's own options, folded until asked for.
@@ -192,6 +212,8 @@ private struct SettingsOptionsCard<Content: View>: View {
     let symbol: String
     /// `-settingsSection <anchor>` opens scrolled to this card, and unfolded.
     var anchor: String?
+    /// Asked for from elsewhere (the notch): unfolds whenever its section is requested.
+    var navigation: SettingsNavigation?
     @ViewBuilder var content: Content
     @State private var isExpanded = false
 
@@ -201,6 +223,9 @@ private struct SettingsOptionsCard<Content: View>: View {
         }
         .onAppear {
             if let anchor, UserDefaults.standard.string(forKey: "settingsSection") == anchor { isExpanded = true }
+        }
+        .onChange(of: navigation?.sectionRequest, initial: true) {
+            if let anchor, navigation?.section == anchor { isExpanded = true }
         }
     }
 }

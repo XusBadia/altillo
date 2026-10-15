@@ -5,6 +5,12 @@ import Observation
 @MainActor @Observable
 final class SettingsNavigation {
     var tab: SettingsTab = SettingsTab.launchOverride ?? .modules
+    /// A card to scroll to and unfold (`-settingsSection home` at launch, or the notch asking for it), and a counter
+    /// bumped on every request so asking twice scrolls again.
+    var section: String? = UserDefaults.standard.string(forKey: "settingsSection")
+    var sectionRequest = 0
+
+    static let homeSection = "home"
 }
 
 /// The Settings window. Altillo is an `LSUIElement` app, so it owns its window instead of using the
@@ -27,10 +33,14 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     private var menuBarRefocusTask: Task<Void, Never>?
 
     /// Opens the window, activating Altillo first so it really takes focus from a menu bar app.
-    func show(tab: SettingsTab? = nil) {
+    func show(tab: SettingsTab? = nil, section: String? = nil) {
         menuBarRefocusTask?.cancel()
         menuBarRefocusTask = nil
         if let tab { navigation.tab = tab }
+        if let section {
+            navigation.section = section
+            navigation.sectionRequest += 1
+        }
         AltilloSettings.shared.refreshLaunchAtLogin()
         let window = window ?? makeWindow()
         self.window = window

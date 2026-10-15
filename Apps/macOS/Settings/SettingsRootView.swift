@@ -98,7 +98,8 @@ struct SettingsRootView: View {
     @ViewBuilder
     private var paneContent: some View {
         switch navigation.tab {
-        case .modules: SettingsModulesPane(settings: settings, hasHardwareNotch: hasHardwareNotch, clipboard: model?.clipboard)
+        case .modules: SettingsModulesPane(settings: settings, hasHardwareNotch: hasHardwareNotch, clipboard: model?.clipboard,
+                                           home: model?.home, navigation: navigation)
         case .drawer: SettingsDrawerPane()
         case .size: SettingsSizePane(settings: settings, hasHardwareNotch: hasHardwareNotch,
                                      displayID: liveDisplayID)

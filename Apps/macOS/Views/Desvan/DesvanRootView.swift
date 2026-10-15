@@ -694,7 +694,8 @@ private struct DesvanPeekFace: View {
                 if alert.agent != nil {
                     DesvanAgentAlertLine(alert: alert, showsAgent: !chrome.hasNotch)
                 } else {
-                    DesvanAlertLine(alert: alert, showsTrailing: !chrome.hasNotch)
+                    DesvanAlertLine(alert: alert, showsTrailing: !chrome.hasNotch,
+                                    thumbnail: alert.source == .home ? model.shownHome.ring?.snapshot : nil)
                 }
             }
         }

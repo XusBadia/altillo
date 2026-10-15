@@ -20,7 +20,7 @@ let package = Package(
         // readers and the hook <-> app wire protocol. Pure Foundation so `altillo-hook` can link it and stay fast.
         .target(name: "AltilloAgents", dependencies: ["AltilloCore"]),
         // Home section (docs/casa.md): the shared vocabulary and the Home Assistant WebSocket client.
-        .target(name: "AltilloHome"),
+        .target(name: "AltilloHome", resources: [.process("Resources")]),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),
         .testTarget(name: "AltilloUsageTests", dependencies: ["AltilloUsage"]),
         .testTarget(name: "AltilloDesignTests", dependencies: ["AltilloDesign"]),

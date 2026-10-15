@@ -23,6 +23,10 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     case openMirror
     case openNowPlaying
     case openDrawer
+    /// The Home section with the demo home (`HomeDemoService`): tiles lit with each bulb's colour.
+    case openHome
+    /// Someone rang the demo doorbell: the peek with the camera's picture.
+    case peekDoorbell
     #if DEBUG
     /// A drag over the notch while it's on Ask: the "Ask about it" zone beside the box and the plane.
     case dropTargetAsk
@@ -54,6 +58,8 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openMirror: String(localized: "Open: mirror")
         case .openNowPlaying: String(localized: "Open: now playing")
         case .openDrawer: String(localized: "Open: Drawer")
+        case .openHome: String(localized: "Open: Home")
+        case .peekDoorbell: String(localized: "Peek: doorbell")
         #if DEBUG
         case .dropTargetAsk: "Drop target on Ask"
         case .idleWithAgentWaiting: "Idle: agent waiting"
@@ -64,11 +70,11 @@ enum DesignScenario: String, CaseIterable, Identifiable {
     var state: NotchState {
         switch self {
         case .idle, .idleWithEars: .idle
-        case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting, .peekAlert: .peek
+        case .peekHint, .peekShelf, .peekUsageAlert, .peekAgentWaiting, .peekAlert, .peekDoorbell: .peek
         case .dragArmed: .dragArmed
         case .dropTarget: .dropTarget
         case .openShelfEmpty, .openShelfLoading, .openShelfError, .openShelf, .openAssistant, .openUsage, .openAgents,
-             .openCalendar, .openMirror, .openNowPlaying, .openDrawer: .open
+             .openCalendar, .openMirror, .openNowPlaying, .openDrawer, .openHome: .open
         #if DEBUG
         case .dropTargetAsk: .dropTarget
         case .idleWithAgentWaiting: .idle
@@ -87,6 +93,12 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Scenarios that show the demo home instead of the user's.
+    var showsDemoHome: Bool { self == .openHome || self == .peekDoorbell }
+
+    /// Scenarios that show a live alert peek (`NotchModel.alert`) instead of sample content.
+    var showsAlert: Bool { self == .peekAlert || self == .peekDoorbell }
+
     var module: NotchModule {
         switch self {
         case .openAssistant: .assistant
@@ -97,6 +109,7 @@ enum DesignScenario: String, CaseIterable, Identifiable {
         case .openMirror: .mirror
         case .openNowPlaying: .nowPlaying
         case .openDrawer: .shelf
+        case .openHome, .peekDoorbell: .home
         #if DEBUG
         case .dropTargetAsk: .assistant
         case .idleWithAgentWaiting: .agents

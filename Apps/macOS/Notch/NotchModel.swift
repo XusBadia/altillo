@@ -1,4 +1,5 @@
 import AltilloCore
+import AltilloHome
 import CoreGraphics
 import Foundation
 import Observation
@@ -55,6 +56,8 @@ final class NotchModel {
     let reminders = RemindersStore()
     let keepAwake = KeepAwakeStore()
     let drawer = MenuBarDrawerStore.shared
+    /// Home (docs/casa.md): connected only while its section is on, with the notch closed too.
+    let home: HomeStore
     /// AI usage: the numbers behind the usage section, its ear and alerts, and Ask's `usage` tool.
     let usage: UsageStore
 
@@ -102,6 +105,7 @@ final class NotchModel {
     init(settings: AltilloSettings = .shared) {
         self.settings = settings
         usage = UsageStore(settings: settings)
+        home = HomeStore(service: HomeAssistantClient(), settings: settings)
         // Ask's `agents` tool reads the live sessions from here.
         AssistantAgents.live = self
         // The clipboard watches the pasteboard only while its section is on.
@@ -156,7 +160,8 @@ final class NotchModel {
             nextEvent: ears.nextEvent,
             playback: nowPlaying.playbackSignal,
             usage: usage.contextualSignal,
-            timer: timers.contextualSignal
+            timer: timers.contextualSignal,
+            home: home.contextualSignal
         )
         return NotchActivityLogic.resolveAll(inputs, enabled: Set(settings.modules), now: ears.clock)
     }
@@ -212,6 +217,17 @@ final class NotchModel {
         }
     }
 
+    /// The Home the views show: the demo home in its design scenarios, the user's otherwise.
+    var shownHome: HomeStore {
+        guard scenario?.showsDemoHome == true else { return home }
+        if let demoHome { return demoHome }
+        let store = HomeStore.demo()
+        demoHome = store
+        return store
+    }
+
+    @ObservationIgnored private var demoHome: HomeStore?
+
     /// The neighbouring section in the tab strip (`offset` +1 right, -1 left), or nil at either end.
     func neighbour(_ offset: Int) -> NotchModule? {
         let modules = settings.modules
@@ -251,4 +267,6 @@ struct NotchActions {
     var endEditing: () -> Void = {}
     /// A light tap on Force Touch trackpads, if the user hasn't turned haptics off.
     var haptic: (Haptics.Pattern) -> Void = { _ in }
+    /// Opens Settings › Sections, scrolled to the Home card and unfolded.
+    var openHomeSettings: () -> Void = {}
 }

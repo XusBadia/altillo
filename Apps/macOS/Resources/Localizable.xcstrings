@@ -21275,6 +21275,678 @@
     "Your reminders are clear. Ask Altillo whenever you want to add one." : {
       "extractionState" : "manual",
       "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your reminders are clear. Ask Altillo whenever you want to add one." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No tienes recordatorios pendientes. Pide a Altillo que añada uno cuando quieras." } } }
+    },
+    "%@ Altillo keeps trying on its own." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ Altillo keeps trying on its own." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@ Altillo lo sigue intentando solo." } }
+      }
+    },
+    "%@ min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@ min" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%@ min" } }
+      }
+    },
+    "%@ open · %lld min" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ open · %2$lld min" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%1$@ · %2$lld min sin cerrar" } }
+      }
+    },
+    "%lld lights on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld lights on" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "%lld luces encendidas" } }
+      }
+    },
+    "1 light on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "1 light on" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "1 luz encendida" } }
+      }
+    },
+    "A certificate to check" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "A certificate to check" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Un certificado por revisar" } }
+      }
+    },
+    "Activates the scene." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Activates the scene." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Activa la escena." } }
+      }
+    },
+    "Address" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Address" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Dirección" } }
+      }
+    },
+    "Adds lights, plugs, blinds and scenes from your rooms, up to eight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Adds lights, plugs, blinds and scenes from your rooms, up to eight" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añade luces, enchufes, persianas y escenas de tus estancias, hasta ocho" } }
+      }
+    },
+    "Allow Altillo in Privacy & Security › Local Network to reach Home Assistant." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Allow Altillo in Privacy & Security › Local Network to reach Home Assistant." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Permite Altillo en Privacidad y seguridad › Red local para llegar a Home Assistant." } }
+      }
+    },
+    "Altillo can't see your local network" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo can't see your local network" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo no ve tu red local" } }
+      }
+    },
+    "Altillo forgets the token, your favourites and the doorbell. Nothing changes in Home Assistant." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo forgets the token, your favourites and the doorbell. Nothing changes in Home Assistant." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo olvida el token, tus favoritos y el timbre. En Home Assistant no cambia nada." } }
+      }
+    },
+    "Altillo isn't allowed on your local network, so it can't reach Home Assistant." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo isn't allowed on your local network, so it can't reach Home Assistant." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo no tiene permiso en tu red local, así que no llega a Home Assistant." } }
+      }
+    },
+    "Altillo peeks with the camera's picture, and the Home section shows it for two minutes. The picture is only fetched when someone rings." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo peeks with the camera's picture, and the Home section shows it for two minutes. The picture is only fetched when someone rings." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo asoma con la foto de la cámara y la sección Casa la enseña dos minutos. La foto solo se pide cuando llaman." } }
+      }
+    },
+    "Altillo talks to your Home Assistant directly. The token stays in your Keychain and nothing passes through any other server." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo talks to your Home Assistant directly. The token stays in your Keychain and nothing passes through any other server." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo habla directamente con tu Home Assistant. El token se queda en tu Llavero y nada pasa por ningún otro servidor." } }
+      }
+    },
+    "Blind" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Blind" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Persiana" } }
+      }
+    },
+    "Can't reach your home right now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Can't reach your home right now" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ahora mismo no llego a tu casa" } }
+      }
+    },
+    "Can't reach your home right now: %@ Altillo keeps trying on its own." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Can't reach your home right now: %@ Altillo keeps trying on its own." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ahora mismo no llego a tu casa: %@ Altillo lo sigue intentando solo." } }
+      }
+    },
+    "Check in Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Check in Settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Revisar en Ajustes" } }
+      }
+    },
+    "Choose Favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose Favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elegir favoritos" } }
+      }
+    },
+    "Choose your favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose your favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige tus favoritos" } }
+      }
+    },
+    "Clear search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Clear search" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Borrar búsqueda" } }
+      }
+    },
+    "Climate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Climate" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Clima" } }
+      }
+    },
+    "Connect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectar" } }
+      }
+    },
+    "Connect Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectar Home Assistant" } }
+      }
+    },
+    "Connect Home Assistant to switch lights, blinds and scenes from the notch." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect Home Assistant to switch lights, blinds and scenes from the notch." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conecta Home Assistant para manejar luces, persianas y escenas desde el notch." } }
+      }
+    },
+    "Connecting to your home…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connecting to your home…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectando con tu casa…" } }
+      }
+    },
+    "Connecting…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connecting…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectando…" } }
+      }
+    },
+    "Create a token…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Create a token…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Crear un token…" } }
+      }
+    },
+    "Detected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Detected" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Detectado" } }
+      }
+    },
+    "Disconnect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Disconnect" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desconectar" } }
+      }
+    },
+    "Disconnect from Home Assistant?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Disconnect from Home Assistant?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Desconectar de Home Assistant?" } }
+      }
+    },
+    "Disconnect…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Disconnect…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desconectar…" } }
+      }
+    },
+    "Doorbell" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Doorbell" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Timbre" } }
+      }
+    },
+    "Fan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Fan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ventilador" } }
+      }
+    },
+    "Favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Favoritos" } }
+      }
+    },
+    "Forget this server and its token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Forget this server and its token" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Olvida este servidor y su token" } }
+      }
+    },
+    "Front door" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Front door" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Puerta de entrada" } }
+      }
+    },
+    "Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant" } }
+      }
+    },
+    "Home Assistant didn't accept the token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant didn't accept the token" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant no ha aceptado el token" } }
+      }
+    },
+    "Home Assistant didn't accept the token. Paste a new one below." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant didn't accept the token. Paste a new one below." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant no ha aceptado el token. Pega uno nuevo aquí abajo." } }
+      }
+    },
+    "Home Assistant hasn't shared any lights, plugs or blinds yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant hasn't shared any lights, plugs or blinds yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant aún no ha compartido luces, enchufes ni persianas." } }
+      }
+    },
+    "Home Assistant, favourites and the doorbell." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant, favourites and the doorbell." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant, favoritos y el timbre." } }
+      }
+    },
+    "In Home Assistant, open your profile › Security › Long-lived access tokens, create one for Altillo and paste it here." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "In Home Assistant, open your profile › Security › Long-lived access tokens, create one for Altillo and paste it here." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En Home Assistant, abre tu perfil › Seguridad › Tokens de acceso de larga duración, crea uno para Altillo y pégalo aquí." } }
+      }
+    },
+    "It may have been deleted or mistyped." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "It may have been deleted or mistyped." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Puede que se haya borrado o esté mal escrito." } }
+      }
+    },
+    "Its picture comes with the ring" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Its picture comes with the ring" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Su foto llega con el timbrazo" } }
+      }
+    },
+    "Light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Light" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Luz" } }
+      }
+    },
+    "Lock" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Lock" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerradura" } }
+      }
+    },
+    "Long-lived access token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Long-lived access token" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Token de acceso de larga duración" } }
+      }
+    },
+    "No favourites yet. Tick them below, or let Altillo suggest some." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No favourites yet. Tick them below, or let Altillo suggest some." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay favoritos. Márcalos aquí abajo o deja que Altillo te proponga algunos." } }
+      }
+    },
+    "No room" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No room" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin estancia" } }
+      }
+    },
+    "Nothing called “%@”." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing called “%@”." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nada se llama «%@»." } }
+      }
+    },
+    "Open Privacy Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Privacy Settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir Privacidad" } }
+      }
+    },
+    "Open: Home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open: Home" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abierto: Casa" } }
+      }
+    },
+    "Opens your Home Assistant profile, where long-lived tokens are made" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens your Home Assistant profile, where long-lived tokens are made" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre tu perfil de Home Assistant, donde se crean los tokens de larga duración" } }
+      }
+    },
+    "Other" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Other" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Otro" } }
+      }
+    },
+    "Paste a New Token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste a New Token" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pegar un token nuevo" } }
+      }
+    },
+    "Paste a long-lived access token from your Home Assistant profile." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Paste a long-lived access token from your Home Assistant profile." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pega un token de acceso de larga duración de tu perfil de Home Assistant." } }
+      }
+    },
+    "Peek when someone rings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Peek when someone rings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Asomar cuando llamen" } }
+      }
+    },
+    "Peek: doorbell" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Peek: doorbell" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Peek: timbre" } }
+      }
+    },
+    "Pick the lights, plugs, blinds and scenes you want one click away." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pick the lights, plugs, blinds and scenes you want one click away." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige las luces, enchufes, persianas y escenas que quieres a un clic." } }
+      }
+    },
+    "Plug" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Plug" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Enchufe" } }
+      }
+    },
+    "Remove from the favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove from the favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Quitar de favoritos" } }
+      }
+    },
+    "Rings with" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rings with" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Suena con" } }
+      }
+    },
+    "Running" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En marcha" } }
+      }
+    },
+    "Runs the script." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Runs the script." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecuta el script." } }
+      }
+    },
+    "SHA-256 fingerprint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "SHA-256 fingerprint" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Huella SHA-256" } }
+      }
+    },
+    "Scene" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scene" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escena" } }
+      }
+    },
+    "Script" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Script" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Script" } }
+      }
+    },
+    "Search" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar" } }
+      }
+    },
+    "Search lights, plugs, blinds…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search lights, plugs, blinds…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Busca luces, enchufes, persianas…" } }
+      }
+    },
+    "Sensor" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sensor" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sensor" } }
+      }
+    },
+    "Someone rang" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Someone rang" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Han llamado" } }
+      }
+    },
+    "Someone's at the door" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Someone's at the door" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Llaman a la puerta" } }
+      }
+    },
+    "Suggest Favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Suggest Favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Proponer favoritos" } }
+      }
+    },
+    "Switch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Switch" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Interruptor" } }
+      }
+    },
+    "The door camera's picture" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The door camera's picture" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La foto de la cámara de la puerta" } }
+      }
+    },
+    "The doorbell's event (or a button sensor) in Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "The doorbell's event (or a button sensor) in Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "El evento del timbre (o un sensor de botón) en Home Assistant" } }
+      }
+    },
+    "This server uses its own certificate. Check that its fingerprint matches the one in Home Assistant before trusting it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This server uses its own certificate. Check that its fingerprint matches the one in Home Assistant before trusting it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Este servidor usa su propio certificado. Comprueba que la huella coincide con la de Home Assistant antes de confiar en él." } }
+      }
+    },
+    "Tiles show in this order in Altillo. Drag a favourite to move it. Locks, alarms and garage doors can't be favourites yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tiles show in this order in Altillo. Drag a favourite to move it. Locks, alarms and garage doors can't be favourites yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Las baldosas salen en este orden en Altillo. Arrastra un favorito para moverlo. Cerraduras, alarmas y garajes aún no pueden ser favoritos." } }
+      }
+    },
+    "Token" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Token" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Token" } }
+      }
+    },
+    "Trust This Certificate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trust This Certificate" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Confiar en este certificado" } }
+      }
+    },
+    "Try Now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Try Now" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Probar ahora" } }
+      }
+    },
+    "Type your server's address to make a token there." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Type your server's address to make a token there." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escribe la dirección de tu servidor para crear allí un token." } }
+      }
+    },
+    "Unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unavailable" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No disponible" } }
+      }
+    },
+    "Your Home Assistant lights, blinds and scenes, one click away." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Home Assistant lights, blinds and scenes, one click away." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Las luces, persianas y escenas de tu Home Assistant, a un clic." } }
+      }
+    },
+    "Your home, up here" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your home, up here" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tu casa, aquí arriba" } }
+      }
+    },
+    "Your server uses its own certificate. Check it once in Settings and Altillo remembers it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your server uses its own certificate. Check it once in Settings and Altillo remembers it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Tu servidor usa su propio certificado. Revísalo una vez en Ajustes y Altillo lo recuerda." } }
+      }
+    },
+    "home.state.closed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Closed" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerrado" } }
+      }
+    },
+    "home.state.closing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Closing…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerrando…" } }
+      }
+    },
+    "home.state.off" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Off" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apagado" } }
+      }
+    },
+    "home.state.on" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Encendido" } }
+      }
+    },
+    "home.state.onPercent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On · %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Encendido · %@" } }
+      }
+    },
+    "home.state.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abierto" } }
+      }
+    },
+    "home.state.openPercent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abierto %@" } }
+      }
+    },
+    "home.state.opening" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opening…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abriendo…" } }
+      }
     }
   },
   "version" : "1.0"

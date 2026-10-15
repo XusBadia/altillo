@@ -73,6 +73,9 @@ targets:
         SUPublicEDKey: $(ALTILLO_SPARKLE_PUBLIC_KEY)
         SUEnableAutomaticChecks: YES
         SUScheduledCheckInterval: 86400
+        # Home (docs/casa.md): plain http to a Home Assistant on the local network (homeassistant.local:8123).
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: YES
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX)
@@ -88,6 +91,7 @@ targets:
         INFOPLIST_KEY_NSRemindersFullAccessUsageDescription: Altillo shows and completes your reminders, and Ask can add the ones you request. Your reminders never leave your Mac.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Ask listens only while you dictate a question, and only on this Mac. Nothing is recorded.
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Ask turns what you dictate into text on this Mac. Your voice never leaves it.
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: Altillo talks to your Home Assistant on your local network. Nothing passes through any other server.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual
