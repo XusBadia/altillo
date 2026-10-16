@@ -191,7 +191,30 @@ struct AltilloSettingsTests {
     }
 
     @Test func settingsTabsAreAllNamed() {
-        #expect(SettingsTab.allCases.count == 5)
+        #expect(Set(SettingsTab.global + SettingsTab.sections + [.about]) == Set(SettingsTab.allCases))
         #expect(SettingsTab.allCases.allSatisfy { !$0.title.isEmpty && !$0.symbol.isEmpty })
     }
+
+    @Test func sectionLinksOpenTheirDedicatedDestinationEvenWhenRequestedAgain() {
+        let navigation = SettingsNavigation()
+        for tab in SettingsTab.sections {
+            let previousRequest = navigation.sectionRequest
+            navigation.open(tab: .modules, section: tab.rawValue)
+            #expect(navigation.tab == tab)
+            #expect(navigation.section == tab.rawValue)
+            #expect(navigation.sectionRequest == previousRequest + 1)
+            navigation.open(tab: .modules, section: tab.rawValue)
+            #expect(navigation.tab == tab)
+            #expect(navigation.sectionRequest == previousRequest + 2)
+        }
+    }
+
+    @Test func unknownSectionDoesNotReplaceTheRequestedGlobalPage() {
+        let navigation = SettingsNavigation()
+        navigation.open(tab: .size, section: "unknown-section")
+        #expect(navigation.tab == .size)
+        navigation.open(tab: .drawer)
+        #expect(navigation.tab == .drawer)
+    }
+
 }

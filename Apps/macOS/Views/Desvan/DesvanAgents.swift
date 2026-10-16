@@ -30,7 +30,7 @@ struct DesvanAgentsView: View {
                     title: "Nobody's working upstairs",
                     message: "Altillo follows Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor and OpenCode: when one works, asks for your OK or finishes, it shows up here.",
                     actionTitle: "Agents Settings…",
-                    action: { SettingsWindowController.shared.show(tab: .modules) }
+                    action: { SettingsWindowController.shared.show(tab: .agents) }
                 )
             } else {
                 list(sessions)
@@ -83,7 +83,7 @@ struct DesvanAgentsView: View {
             letStop: { hub.letStop($0) },
             focus: { hub.focus($0) },
             dismiss: { hub.dismiss($0) },
-            installHooks: { SettingsWindowController.shared.show(tab: .modules) }
+            installHooks: { SettingsWindowController.shared.show(tab: .agents) }
         )
     }
 }
@@ -379,7 +379,7 @@ private struct DesvanAgentCard: View {
                     .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
             }
             .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
-            .help("Opens Settings › Sections, where Altillo can add its hooks to your agents")
+            .help("Opens Settings › Agents, where Altillo can add its hooks to your agents")
         } else if expired {
             Text("It's asking in the terminal now")
                 .font(.system(size: 12))
@@ -884,7 +884,7 @@ private struct DesvanHooksHint: View {
             .font(Desvan.Typeface.rounded(11.5, weight: .semibold))
         }
         .buttonStyle(DesvanButtonStyle(kind: .quiet, height: 28))
-        .help("Sessions marked with a magnifying glass are only read from their files. Settings › Sections can add Altillo's hooks to your agents.")
+        .help("Sessions marked with a magnifying glass are only read from their files. Settings › Agents can add Altillo's hooks to your agents.")
         .frame(maxWidth: .infinity, alignment: .center)
     }
 }

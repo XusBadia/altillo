@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// How Altillo behaves: how it opens, whether it starts with you, and what the shelf does with what you leave in it.
+/// App-wide behaviour: opening, displays, haptics and automatic glances.
 struct SettingsBehaviourPane: View {
     @Bindable var settings: AltilloSettings
     let hasHardwareNotch: Bool
@@ -11,16 +11,14 @@ struct SettingsBehaviourPane: View {
 
     var body: some View {
         SettingsPane(
-            title: "Behaviour",
-            subtitle: "How Altillo opens, what it tells you on its own, and what the shelf does while you're not looking."
+            title: "General",
+            subtitle: "Opening, screens and automatic glances."
         ) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
                     openingCard
                     screensCard
-                    askCard
                     glancesCard
-                    shelfCard
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 18)
@@ -113,51 +111,6 @@ struct SettingsBehaviourPane: View {
         }
     }
 
-    private var askCard: some View {
-        let askIsOn = settings.isEnabled(.assistant)
-        return SettingsCard {
-            VStack(alignment: .leading, spacing: 0) {
-                SettingsGroupHeading(title: "Ask")
-                SettingsCardDivider()
-
-                VStack(alignment: .leading, spacing: 8) {
-                    BehaviourMenuRow(
-                        title: "Shortcut to ask",
-                        hint: askIsOn
-                            ? "Opens Altillo on Ask from any app, ready to type. Press it again to close."
-                            : "Turn on Ask in Sections to use a shortcut.",
-                        selection: $settings.assistantHotKey
-                    ) {
-                        ForEach(AssistantHotKey.allCases) { key in
-                            Text(key.title).tag(key)
-                        }
-                    }
-                    .disabled(!askIsOn)
-                    .help(askIsOn
-                        ? "Choose the global keyboard shortcut that opens Ask"
-                        : "Turn on Ask in Sections to use a shortcut")
-
-                    if let problem = settings.assistantHotKeyProblem {
-                        SettingsNotice(symbol: "exclamationmark.triangle.fill",
-                                       message: LocalizedStringKey(problem),
-                                       tone: .warning)
-                            .transition(.settingsReveal)
-                    }
-                }
-                .animation(reveal, value: settings.assistantHotKeyProblem)
-
-                SettingsCardDivider()
-
-                SettingsToggleRow("Let Ask search the web", detail: webSearchHint, isOn: $settings.assistantWebSearch)
-                    .disabled(!askIsOn)
-                    .opacity(askIsOn ? 1 : 0.55)
-                    .help(webSearchHint)
-            }
-            .animation(reveal, value: askIsOn)
-            .animation(reveal, value: settings.assistantWebSearch)
-        }
-    }
-
     private var glancesCard: some View {
         SettingsCard {
             VStack(alignment: .leading, spacing: 0) {
@@ -186,38 +139,6 @@ struct SettingsBehaviourPane: View {
         }
     }
 
-    private var shelfCard: some View {
-        SettingsCard {
-            VStack(alignment: .leading, spacing: 0) {
-                SettingsGroupHeading(title: "Shelf")
-                SettingsCardDivider()
-
-                BehaviourMenuRow(
-                    title: "Clear the shelf on its own",
-                    hint: """
-                          Altillo takes off the shelf anything that's been there longer than you choose. \
-                          Your original files are never touched.
-                          """,
-                    selection: $settings.shelfExpiry
-                ) {
-                    ForEach(ShelfExpiry.allCases) { expiry in
-                        Text(expiry.title).tag(expiry)
-                    }
-                }
-                .help("Choose when Altillo removes old shelf references; original files are never deleted")
-
-                SettingsCardDivider()
-
-                SettingsToggleRow(
-                    "Show the hint when the shelf is empty",
-                    detail: "It's the line that reminds you that you can drop files up here.",
-                    isOn: $settings.showHintOnEmptyShelf
-                )
-                .help("Show the drop-files reminder when the shelf is empty")
-            }
-        }
-    }
-
     // MARK: - Hints
 
     private var displayModeHint: LocalizedStringKey {
@@ -229,23 +150,6 @@ struct SettingsBehaviourPane: View {
         case .main: "Uses the display with the menu bar."
         case .all: "Altillo appears on every screen. It opens on the one you're using."
         case .cursor: "Altillo moves to whichever screen the pointer is on."
-        }
-    }
-
-    /// Honest about what leaves the Mac, in both states.
-    private var webSearchHint: LocalizedStringKey {
-        if settings.assistantWebSearch {
-            """
-            For live things like scores, news or prices, Ask writes a short search from your question and sends it \
-            to DuckDuckGo (Bing if DuckDuckGo is busy), then reads the top pages it finds; for the weather, only the \
-            place goes to Open-Meteo. No cookies, no account. Answers that used the web show a globe with their \
-            sources.
-            """
-        } else {
-            """
-            Nothing leaves this Mac. When a question needs something live, Ask offers to search the web for that \
-            question only, and you decide.
-            """
         }
     }
 
@@ -282,6 +186,113 @@ private struct BehaviourMenuRow<Selection: Hashable, Options: View>: View {
             }
             Text(hint)
                 .settingsHint()
+        }
+    }
+}
+
+/// Mounted independently so section options inherit accessibility preferences from the window.
+struct SettingsSectionBehaviourOptions: View {
+    @Bindable var settings: AltilloSettings
+    let tab: SettingsTab
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var reveal: Animation { SettingsMotion.pick(SettingsMotion.reveal, reduceMotion: reduceMotion) }
+
+    var body: some View {
+        if tab == .assistant { askCard } else { shelfCard }
+    }
+
+    var askCard: some View {
+        let askIsOn = settings.isEnabled(.assistant)
+        return SettingsCard {
+            VStack(alignment: .leading, spacing: 0) {
+                SettingsGroupHeading(title: "Ask")
+                SettingsCardDivider()
+
+                VStack(alignment: .leading, spacing: 8) {
+                    BehaviourMenuRow(
+                        title: "Shortcut to ask",
+                        hint: askIsOn
+                            ? "Opens Altillo on Ask from any app, ready to type. Press it again to close."
+                            : "Turn on Show in Altillo above to use a shortcut.",
+                        selection: $settings.assistantHotKey
+                    ) {
+                        ForEach(AssistantHotKey.allCases) { key in
+                            Text(key.title).tag(key)
+                        }
+                    }
+                    .disabled(!askIsOn)
+                    .help(askIsOn
+                        ? "Choose the global keyboard shortcut that opens Ask"
+                        : "Turn on Show in Altillo above to use a shortcut")
+
+                    if let problem = settings.assistantHotKeyProblem {
+                        SettingsNotice(symbol: "exclamationmark.triangle.fill",
+                                       message: LocalizedStringKey(problem),
+                                       tone: .warning)
+                            .transition(.settingsReveal)
+                    }
+                }
+                .animation(reveal, value: settings.assistantHotKeyProblem)
+
+                SettingsCardDivider()
+
+                SettingsToggleRow("Let Ask search the web", detail: webSearchHint, isOn: $settings.assistantWebSearch)
+                    .disabled(!askIsOn)
+                    .opacity(askIsOn ? 1 : 0.55)
+                    .help(webSearchHint)
+            }
+            .animation(reveal, value: askIsOn)
+            .animation(reveal, value: settings.assistantWebSearch)
+        }
+    }
+
+    var shelfCard: some View {
+        SettingsCard {
+            VStack(alignment: .leading, spacing: 0) {
+                SettingsGroupHeading(title: "Shelf")
+                SettingsCardDivider()
+
+                BehaviourMenuRow(
+                    title: "Clear the shelf on its own",
+                    hint: """
+                          Altillo takes off the shelf anything that's been there longer than you choose. \
+                          Your original files are never touched.
+                          """,
+                    selection: $settings.shelfExpiry
+                ) {
+                    ForEach(ShelfExpiry.allCases) { expiry in
+                        Text(expiry.title).tag(expiry)
+                    }
+                }
+                .help("Choose when Altillo removes old shelf references; original files are never deleted")
+
+                SettingsCardDivider()
+
+                SettingsToggleRow(
+                    "Show the hint when the shelf is empty",
+                    detail: "It's the line that reminds you that you can drop files up here.",
+                    isOn: $settings.showHintOnEmptyShelf
+                )
+                .help("Show the drop-files reminder when the shelf is empty")
+            }
+        }
+    }
+
+    /// Honest about what leaves the Mac, in both states.
+    private var webSearchHint: LocalizedStringKey {
+        if settings.assistantWebSearch {
+            """
+            For live things like scores, news or prices, Ask writes a short search from your question and sends it \
+            to DuckDuckGo (Bing if DuckDuckGo is busy), then reads the top pages it finds; for the weather, only the \
+            place goes to Open-Meteo. No cookies, no account. Answers that used the web show a globe with their \
+            sources.
+            """
+        } else {
+            """
+            Nothing leaves this Mac. When a question needs something live, Ask offers to search the web for that \
+            question only, and you decide.
+            """
         }
     }
 }
