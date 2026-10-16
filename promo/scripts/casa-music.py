@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
-"""Banda sonora de «Casa» (promo/CASA.md): la música B del anuncio, recortada a 14 compases (28,000 s), con timbre.
+"""Banda sonora de «Casa» (promo/CASA.md): la música B del anuncio, recortada a 12 compases (24,000 s), con timbre.
 
 La B (scripts/anuncio-music-variants.py, Apple Loops) tiene 16 compases: intro 1, drop 2, sección 2–10, BREAK 11,
-grande 12–14 y golpe final 15. Aquí se quitan los compases 8–9 (14–18 s de la B) para que todo llegue antes:
+grande 12–14 y golpe final 15. Aquí se quitan los compases 8–9 (14–18 s de la B) y 12–13 (22–26 s), sin Ajustes:
 
   salida  1–7   = B 1–7     (0–14 s)   hook, drop a los 2 s, relleno al final del 7
   salida  8     = B 10      (14–16 s)  variación antes del break
   salida  9     = B 11      (16–18 s)  BREAK: golpe en el 1, silencio → «ding-dong» del timbre (sintetizado)
-  salida 10–12  = B 12–14   (18–24 s)  vuelve todo, subida en el 12
-  salida 13–14  = B 15–16   (24–28 s)  GOLPE FINAL a los 24,000 s y cola
+  salida 10     = B 14      (18–20 s)  vuelve todo (la tarjeta de la cámara), con la subida hacia el golpe
+  salida 11–12  = B 15–16   (20–24 s)  GOLPE FINAL a los 20,000 s (corte a la firma) y cola hasta el silencio
 
-El empalme es en un límite de compás (fundido de 6 ms). El timbre son dos campanas (Mi5 → Do5, «ding… dong»)
+Los empalmes son en límites de compás (fundido de 6 ms). El timbre son dos campanas (Mi5 → Do5, «ding… dong»)
 hechas con parciales inarmónicos, en 16,5 s y 17,0 s (tiempos 2 y 3 del break).
 
 Uso: python3 scripts/casa-music.py  →  public/casa/audio/casa.wav (48 kHz, estéreo, 24 bits) y loudnorm −14 LUFS.
@@ -22,6 +22,8 @@ import numpy as np
 
 SR = 48000
 BAR = 2.0
+LENGTH = 24.0
+FADE = 0.006
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / 'public/anuncio/audio/score-b.wav'
 OUT = ROOT / 'public/casa/audio/casa.wav'
@@ -33,11 +35,12 @@ def read(path: pathlib.Path) -> np.ndarray:
     return np.frombuffer(raw, dtype=np.float32).reshape(-1, 2).copy()
 
 
-def bars(x: np.ndarray, first: int, last: int) -> np.ndarray:
-    return x[int((first - 1) * BAR * SR):int(last * BAR * SR)]
+def bars(x: np.ndarray, first: int, last: int, tail: float = 0.0) -> np.ndarray:
+    """Compases first…last; `tail` segundos de más para el fundido, así el empalme no adelanta lo que sigue."""
+    return x[int((first - 1) * BAR * SR):int(last * BAR * SR) + int(tail * SR)]
 
 
-def splice(a: np.ndarray, b: np.ndarray, fade: float = 0.006) -> np.ndarray:
+def splice(a: np.ndarray, b: np.ndarray, fade: float = FADE) -> np.ndarray:
     n = int(fade * SR)
     ramp = np.linspace(0, 1, n, dtype=np.float32)[:, None]
     mid = a[-n:] * (1 - ramp) + b[:n] * ramp
@@ -57,9 +60,9 @@ def bell(freq: float, dur: float) -> np.ndarray:
 
 def main() -> None:
     b = read(SRC)
-    out = splice(bars(b, 1, 7), bars(b, 10, 16))
-    out = out[:int(28 * SR)]
-    out = np.vstack([out, np.zeros((int(28 * SR) - len(out), 2), np.float32)])
+    out = splice(splice(bars(b, 1, 7, FADE), bars(b, 10, 11, FADE)), bars(b, 14, 16))
+    out = out[:int(LENGTH * SR)]
+    out = np.vstack([out, np.zeros((int(LENGTH * SR) - len(out), 2), np.float32)])
     # Timbre en el silencio del break, un poco abierto en estéreo, con un eco corto de sala.
     for at, freq, gain in [(16.5, 659.25, 0.30), (17.0, 523.25, 0.30)]:
         tone = bell(freq, 2.4) * gain

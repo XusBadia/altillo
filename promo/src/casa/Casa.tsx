@@ -1,16 +1,18 @@
 import type {CSSProperties, ReactNode} from 'react';
 import {AbsoluteFill, Audio, Img, interpolate, Sequence, spring, staticFile, useCurrentFrame, useVideoConfig} from 'remotion';
-import {clamp, Cursor, easeInOut, easeOut, Kinetic, MenuBar, palette, SCREEN, system} from '../anuncio/parts';
+import {clamp, Cursor, easeOut, Kinetic, MenuBar, palette, SCREEN, system} from '../anuncio/parts';
 import {CASA_BOXES, CASA_THUMB} from './manifest';
 import {Porch} from './Porch';
 
-// «Casa / Home»: Home Assistant in the notch (promo/CASA.md). 28 s at 60 fps on the 120 BPM grid of music B
+// «Casa / Home»: Home Assistant in the notch (promo/CASA.md). 24 s at 60 fps on the 120 BPM grid of music B
 // (scripts/casa-music.py): 1 beat = 30 frames, 1 bar = 120 frames. Every notch frame is the real app rendered by
 // HomeExportTests.swift (public/casa/ui); motion between them is the app's own: the opening spring, the light-up
 // stagger (one plate per 1/16), 1:1 drags through stills taken every 2 %, and crossfades for state changes.
-// The camera never cuts: fixed framings joined by quintic moves. Only the hook→screen fade and the end card change scene.
+// The camera never cuts: it punches in on each action and pulls back to the grid with quintic moves (zoom in log
+// scale), each channel on its own keys, plus a small eased push on some beats. A depth-of-field pass keeps the subject
+// sharp and blurs and dims the rest, and racks between subjects. Only the hook→screen fade and the end card change scene.
 export const CASA_FPS = 60;
-export const CASA_FRAMES = 28 * CASA_FPS;
+export const CASA_FRAMES = 24 * CASA_FPS;
 
 export type Lang = 'es' | 'en';
 type Format = 'wide' | 'vertical';
@@ -30,13 +32,8 @@ const COPY = {
     tour: ['Lights.', 'Plugs.', 'Blinds.', 'Scenes.'],
     tourSub: 'Anything in Home Assistant.',
     door: ['Ding-dong.', 'See who it is.'],
-    found: ['Finds your', 'Home Assistant.'],
-    foundSub: 'On your network. No addresses to type.',
-    signIn: ['Sign in.', 'No tokens.'],
-    signInSub: 'Everything stays between your Mac and your home.',
     line: 'Home Assistant, in your notch.',
     meta: 'Free · Open source · altillo.app',
-    window: 'Altillo Settings',
   },
   es: {
     hook: ['Tu casa,', 'ahora', 'en el notch.'],
@@ -49,13 +46,8 @@ const COPY = {
     tour: ['Luces.', 'Enchufes.', 'Persianas.', 'Escenas.'],
     tourSub: 'Todo lo que tengas en Home Assistant.',
     door: ['Ding-dong.', 'Mira quién es.'],
-    found: ['Encuentra', 'tu Home Assistant.'],
-    foundSub: 'En tu red. Sin escribir direcciones.',
-    signIn: ['Inicia sesión.', 'Sin tokens.'],
-    signInSub: 'Todo queda entre tu Mac y tu casa.',
     line: 'Tu casa, en el notch.',
     meta: 'Gratis · Código abierto · altillo.app',
-    window: 'Ajustes de Altillo',
   },
 };
 
@@ -83,10 +75,9 @@ const TOUR = BACK2 + 10; // words every beat from 13.8 s
 const CLOSE = bar(9); // 16.0 s: the break, the notch closes on the hit
 const PEEK = bar(9, 2); // 16.5 s: «ding»
 const RING_OPEN = bar(9, 4) - 15; // 17.25 s: a click on the peek opens Home, the camera card on top
-const SETTINGS_IN = bar(10) + 54; // 18.9 s
-const RING_CLOSE = SETTINGS_IN - 12;
-const SIGN_IN = bar(11, 3); // 21.0 s
-const END = bar(13); // 24.0 s: the final hit
+const RETURN = bar(10); // 18.0 s: the music comes back
+export const CASA_END = bar(11); // 20.0 s: the final hit cuts to the end card
+const END = CASA_END;
 
 // ─── Geometry (points on a 14" MacBook Pro screen) ───────────────────────────
 const PANEL = {width: 780, height: 480, left: (SCREEN.width - 780) / 2};
@@ -106,59 +97,158 @@ const HALLWAY_TILE = at(583, 198);
 const BACK = at(178.7, 53.3);
 const PULL = {x: 236.7, yClosed: 242, yOpen: 173.3}; // the blind's brass pull: 4 % … 60 %
 const LEVER = at(245, 212);
-const SETTINGS_WIN = {x: C - 330, y: 96, width: 660, title: 28};
-const SIGN_IN_BUTTON = {x: SETTINGS_WIN.x + 10 + 507, y: SETTINGS_WIN.y + SETTINGS_WIN.title + 251};
-const SETTINGS_CROP = 300; // points of the card shown
 // The camera card's picture in ring-grid (DesvanHomeCameraCard: 136×76 pt, radius 9), in panel points.
 const SNAPSHOT = {x: 145, y: 80, w: 136, h: 76};
 const PEEK_CLICK = {x: C + 40, y: 40};
 
-// ─── Camera: [frame, framing]; equal neighbours hold, others move with a quintic ease ───
-type Framing = {scale: number; top: number; fx: number};
+// ─── Camera ──────────────────────────────────────────────────────────────────
+// A framing is the zoom `s` and the screen point (x, y) held at the frame's anchor (the centre in the wide cut, the
+// stage in the vertical one). Each channel has its own keys, so a pan can run through a zoom without stopping; between
+// keys it moves with a quintic (zoom in log scale) and holds otherwise. Effective zoom stays ≤ 3.4 on the raster UI
+// (exported at 3×); only the peek (as before) and the vector porch go further.
+type Framing = {s: number; x: number; y: number};
+type Rect = [number, number, number, number];
 const smoother = (t: number) => t * t * t * (t * (6 * t - 15) + 10);
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-const shots = (f: Format) => {
+const ANCHOR = {wide: 540, vertical: 860};
+const shots = (f: Format): Record<string, Framing> => {
   const v = f === 'vertical';
   return {
-    WIDE: v ? {scale: 0.72, top: 520, fx: C} : {scale: 1.27, top: 0, fx: C},
-    CLOSE: v ? {scale: 2.0, top: 560, fx: C} : {scale: 2.7, top: 34, fx: C},
-    CLOSE_B: v ? {scale: 2.08, top: 556, fx: C} : {scale: 2.76, top: 30, fx: C},
+    WIDE: v ? {s: 0.72, x: C, y: 472} : {s: 1.27, x: C, y: 425},
+    GRID0: v ? {s: 1.92, x: C, y: 150} : {s: 2.6, x: C, y: 186},
+    GRID: v ? {s: 2.0, x: C, y: 150} : {s: 2.72, x: C, y: 186},
+    // Tight on the floor lamp and its level bar.
+    DIM: v ? {s: 2.6, x: 640, y: 138} : {s: 3.3, x: 668, y: 150},
+    // Back to the whole grid, tilted down to the «Peli» tag: the scene lands on every plate.
+    MOVIE: v ? {s: 2.1, x: 730, y: 190} : {s: 2.85, x: 720, y: 205},
+    BLIND_TILE: v ? {s: 2.3, x: 800, y: 190} : {s: 3.0, x: 800, y: 190},
+    // The blind's window and its readout; a slow creep while the pull goes up.
+    BLIND: v ? {s: 2.55, x: 696, y: 178} : {s: 3.25, x: 745, y: 186},
+    BLIND_IN: v ? {s: 2.62, x: 700, y: 176} : {s: 3.4, x: 740, y: 184},
+    HALL_TILE: v ? {s: 2.3, x: 860, y: 190} : {s: 2.95, x: 840, y: 192},
+    // The bakelite plate and «Off / On».
+    LAMP: v ? {s: 2.6, x: 735, y: 176} : {s: 3.4, x: 692, y: 178},
+    // The pull-back for the tour: the whole panel.
+    TOUR: v ? {s: 1.86, x: C, y: 160} : {s: 2.45, x: C, y: 172},
     // The peek centred and close; the black above the screen reads as the bezel the notch hangs from.
-    PEEK: v ? {scale: 2.3, top: 760, fx: C} : {scale: 4.0, top: 300, fx: C},
-    // The camera card filling the frame: the porch picture and «Someone rang».
-    CARD: v ? {scale: 2.05, top: 518, fx: C} : {scale: 3.6, top: -25, fx: C},
-    SETTINGS: v ? {scale: 1.55, top: 490, fx: C} : {scale: 2.3, top: -177, fx: C},
+    PEEK: v ? {s: 2.3, x: C, y: 43.5} : {s: 4.0, x: C, y: 60},
+    // The camera card filling the frame, then a slow push onto the porch picture.
+    CARD: v ? {s: 2.05, x: C, y: 167} : {s: 3.4, x: C, y: 160},
+    PORCH: v ? {s: 2.6, x: 650, y: 132} : {s: 3.85, x: 645, y: 136},
   };
 };
-const cameraKeys = (f: Format): Array<[number, Framing]> => {
+type Move = [number, number, Partial<Framing>];
+const cameraMoves = (f: Format): Move[] => {
   const s = shots(f);
   return [
-    [SCREEN_IN, s.WIDE],
-    [SCREEN_IN + 6, s.WIDE],
-    [OPEN + 20, s.CLOSE],
-    [CLOSE - 30, s.CLOSE_B],
-    [PEEK + 24, s.PEEK],
-    [RING_OPEN - 4, s.PEEK],
-    [RING_OPEN + 46, s.CARD],
-    [RING_CLOSE - 8, s.CARD],
-    [SETTINGS_IN + 70, s.SETTINGS],
-    [END, s.SETTINGS],
+    [SCREEN_IN + 6, OPEN + 25, s.GRID0],
+    [OPEN + 25, REVEAL + 52, s.GRID], // a slow push while the plates light up
+    [REVEAL + 58, DIM_PRESS + 20, s.DIM], // punch in on the lamp as the pointer reaches it
+    [DIM_TO - 14, MOVIE - 4, s.MOVIE], // pull back to the grid, down to «Peli»
+    [MOVIE + 32, BLIND_PRESS + 16, s.BLIND_TILE], // lean into the blind while it is held
+    [BLIND_OPEN - 4, PULL_FROM - 2, s.BLIND], // punch in on the window as the detail opens
+    [PULL_FROM, PULL_TO, s.BLIND_IN],
+    [PULL_TO + 2, BACK1 + 24, s.GRID], // back to Favourites
+    [BACK1 + 24, LAMP_PRESS + 4, s.HALL_TILE],
+    [LAMP_OPEN - 6, FLIP - 10, s.LAMP], // punch in on the switch
+    [FLIP + 8, TOUR + 16, s.TOUR], // the whole panel for the tour
+    [CLOSE - 30, PEEK + 24, s.PEEK],
+    [RING_OPEN + 2, RING_OPEN + 52, s.CARD],
+    [RING_OPEN + 54, END, s.PORCH], // still pushing in when the hit cuts to the end card
   ];
 };
-const shotAt = (frame: number, keys: Array<[number, Framing]>): Framing => {
+// An eased push on the beat: a quick quintic rise (8 frames) and a slower settle (34), in log zoom.
+const PULSES: Array<[number, number]> = [[MOVIE, 0.022], [FLIP, 0.022], [TOUR, 0.014], [TOUR + B, 0.014], [TOUR + 2 * B, 0.014],
+  [TOUR + 3 * B, 0.014], [RETURN, 0.018]];
+const pulse = (frame: number) => PULSES.reduce((sum, [at, amp]) => {
+  const u = frame - at;
+  if (u <= 0 || u >= 42) return sum;
+  return sum + amp * (u < 8 ? smoother(u / 8) : 1 - smoother((u - 8) / 34));
+}, 0);
+type Track = Array<[number, number]>;
+const channel = (moves: Move[], k: keyof Framing, initial: number): Track => {
+  const keys: Track = [[0, initial]];
+  for (const [f0, f1, shot] of moves) {
+    const value = shot[k];
+    if (value === undefined) continue;
+    const last = keys[keys.length - 1];
+    if (f0 < last[0]) throw new Error(`camera ${k}: move at ${f0} overlaps the one ending at ${last[0]}`);
+    keys.push([f0, last[1]], [f1, value]);
+  }
+  return keys;
+};
+const along = (keys: Track, frame: number, log = false) => {
   if (frame <= keys[0][0]) return keys[0][1];
   for (let i = 0; i < keys.length - 1; i++) {
     const [f0, a] = keys[i];
     const [f1, b] = keys[i + 1];
     if (frame > f1) continue;
-    if (a === b) return a;
+    if (a === b || f1 === f0) return b;
     const t = smoother(Math.min(1, Math.max(0, (frame - f0) / (f1 - f0))));
-    const scale = Math.exp(lerp(Math.log(a.scale), Math.log(b.scale), t));
-    const k = a.scale === b.scale ? t : (scale - a.scale) / (b.scale - a.scale);
-    return {scale, top: lerp(a.top, b.top, k), fx: lerp(a.fx, b.fx, k)};
+    return log ? Math.exp(lerp(Math.log(a), Math.log(b), t)) : lerp(a, b, t);
   }
   return keys[keys.length - 1][1];
 };
+const cameraTracks = (f: Format) => {
+  const moves = cameraMoves(f);
+  const wide = shots(f).WIDE;
+  return {s: channel(moves, 's', wide.s), x: channel(moves, 'x', wide.x), y: channel(moves, 'y', wide.y)};
+};
+const TRACKS = {wide: cameraTracks('wide'), vertical: cameraTracks('vertical')};
+const shotAt = (frame: number, f: Format): Framing => {
+  const t = TRACKS[f];
+  return {s: along(t.s, frame, true) * Math.exp(pulse(frame)), x: along(t.x, frame), y: along(t.y, frame)};
+};
+
+// ─── Focus: the sharp rectangle (screen points) and how strong the rest is blurred/dimmed (0…1) ───
+const R = {
+  LAMP: [500, 70, 624, 152] as Rect,
+  PELI: [500, 240, 586, 282] as Rect,
+  GRID: [496, 62, 1016, 284] as Rect,
+  BLIND_TILE: [758, 157, 882, 239] as Rect,
+  BLIND: [505, 84, 1005, 268] as Rect,
+  HALL_TILE: [887, 157, 1011, 239] as Rect,
+  LAMP_DETAIL: [548, 88, 935, 262] as Rect,
+  PEEK: [530, 0, 982, 62] as Rect,
+  CARD: [500, 70, 1012, 166] as Rect,
+  PORCH: [507, 76, 651, 160] as Rect,
+};
+type FocusMove = [number, number, {r?: Rect; a?: number}];
+const FOCUS: FocusMove[] = [
+  [DIM_PRESS - 6, DIM_PRESS + 14, {r: R.LAMP, a: 1}],
+  [DIM_TO + 4, MOVIE - 8, {r: R.PELI}], // rack to the tag
+  [MOVIE + 4, MOVIE + 30, {r: R.GRID, a: 0}], // the scene lands everywhere: all sharp
+  [BLIND_PRESS - 6, BLIND_PRESS + 18, {r: R.BLIND_TILE, a: 1}],
+  [BLIND_OPEN - 2, BLIND_OPEN + 26, {r: R.BLIND}],
+  [PULL_TO + 6, BACK1 - 4, {a: 0}],
+  [LAMP_PRESS - 10, LAMP_PRESS + 14, {r: R.HALL_TILE, a: 1}],
+  [LAMP_OPEN - 2, LAMP_OPEN + 26, {r: R.LAMP_DETAIL}],
+  [BACK2 - 22, BACK2 - 2, {a: 0}],
+  [PEEK + 2, PEEK + 30, {r: R.PEEK, a: 1}],
+  [RING_OPEN + 4, RING_OPEN + 40, {r: R.CARD}],
+  [RETURN + 45, RETURN + 85, {r: R.PORCH}], // «See who it is»: rack focus to the porch picture
+];
+const focusTracks = () => {
+  const r = [0, 1, 2, 3].map((i) => {
+    const keys: Track = [[0, R.LAMP[i]]];
+    for (const [f0, f1, m] of FOCUS) {
+      if (!m.r) continue;
+      keys.push([f0, keys[keys.length - 1][1]], [f1, m.r[i]]);
+    }
+    return keys;
+  });
+  const a: Track = [[0, 0]];
+  for (const [f0, f1, m] of FOCUS) {
+    if (m.a === undefined) continue;
+    a.push([f0, a[a.length - 1][1]], [f1, m.a]);
+  }
+  return {r, a};
+};
+const FOCUS_TRACKS = focusTracks();
+const focusAt = (frame: number) => ({
+  rect: FOCUS_TRACKS.r.map((k) => along(k, frame)) as Rect,
+  amount: along(FOCUS_TRACKS.a, frame),
+});
 
 // ─── Cursor: [frame, x, y, pressed] in screen points ─────────────────────────
 const lampX = (level: number) => PANEL.left + LAMP_BAR.x0 + LAMP_BAR.full * level;
@@ -184,7 +274,7 @@ const CURSOR: Array<[number, number, number, number]> = [
   [PULL_FROM, PANEL.left + PULL.x, PULL.yClosed, 1],
   [PULL_TO, PANEL.left + PULL.x, PULL.yOpen, 1],
   [PULL_TO + 5, PANEL.left + PULL.x, PULL.yOpen, 0],
-  [BACK1 - 5, BACK.x, BACK.y, 0],
+  [BACK1 - 3, BACK.x, BACK.y, 0],
   [BACK1, BACK.x, BACK.y, 1],
   [BACK1 + 6, BACK.x, BACK.y, 0],
   [LAMP_PRESS - 4, HALLWAY_TILE.x, HALLWAY_TILE.y, 0],
@@ -193,8 +283,8 @@ const CURSOR: Array<[number, number, number, number]> = [
   [LAMP_OPEN + 8, HALLWAY_TILE.x, HALLWAY_TILE.y, 0],
   [FLIP - 6, LEVER.x, LEVER.y, 0],
   [FLIP, LEVER.x, LEVER.y, 1],
-  [FLIP + 6, LEVER.x, LEVER.y - 4, 0],
-  [BACK2 - 6, BACK.x, BACK.y, 0],
+  [FLIP + 4, LEVER.x, LEVER.y - 4, 0],
+  [BACK2 - 3, BACK.x, BACK.y, 0],
   [BACK2, BACK.x, BACK.y, 1],
   [BACK2 + 6, BACK.x, BACK.y, 0],
   [TOUR + 14, LAMP_TILE.x, LAMP_TILE.y, 0],
@@ -208,10 +298,6 @@ const CURSOR: Array<[number, number, number, number]> = [
   [RING_OPEN, PEEK_CLICK.x, PEEK_CLICK.y, 1],
   [RING_OPEN + 6, PEEK_CLICK.x, PEEK_CLICK.y, 0],
   [RING_OPEN + 80, PANEL.left + 560, 330, 0], // off the card, out of the way of the picture
-  [SIGN_IN - 8, SIGN_IN_BUTTON.x, SIGN_IN_BUTTON.y, 0],
-  [SIGN_IN, SIGN_IN_BUTTON.x, SIGN_IN_BUTTON.y, 1],
-  [SIGN_IN + 6, SIGN_IN_BUTTON.x, SIGN_IN_BUTTON.y, 0],
-  [SIGN_IN + 50, SIGN_IN_BUTTON.x + 90, SIGN_IN_BUTTON.y + 120, 0],
 ];
 const track = (frame: number, i: number) =>
   interpolate(frame, CURSOR.map((k) => k[0]), CURSOR.map((k) => k[i]), {...clamp, easing: smoother});
@@ -242,7 +328,6 @@ const STATES: Array<[number, Face]> = [
   [CLOSE, 'idle'],
   [PEEK, 'peek'],
   [RING_OPEN + 2, 'ring'],
-  [RING_CLOSE, 'idle'],
 ];
 const shapeOf: Record<Face, string> = {
   idle: 'idle', reveal: 'grid', dim: 'grid', movie: 'grid', afterBlind: 'grid', afterLamp: 'grid',
@@ -399,48 +484,6 @@ const NotchPanel = ({lang}: {lang: Lang}) => {
   );
 };
 
-// ─── Settings window (the real card, exported) ───────────────────────────────
-const SettingsWindow = ({lang}: {lang: Lang}) => {
-  const frame = useCurrentFrame();
-  const t = interpolate(frame, [SETTINGS_IN, SETTINGS_IN + 20], [0, 1], {...clamp, easing: easeOut});
-  const done = interpolate(frame, [SIGN_IN + 6, SIGN_IN + 26], [0, 1], {...clamp, easing: easeInOut});
-  if (t <= 0) return null;
-  const card = (name: string, opacity: number) => (
-    <div style={{position: 'absolute', left: 10, top: SETTINGS_WIN.title, width: 640, height: SETTINGS_CROP, overflow: 'hidden', opacity}}>
-      <Img src={ui(lang, name)} style={{width: 640, height: 640}} />
-    </div>
-  );
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        left: SETTINGS_WIN.x,
-        top: SETTINGS_WIN.y,
-        width: SETTINGS_WIN.width,
-        height: SETTINGS_WIN.title + SETTINGS_CROP + 8,
-        borderRadius: 16,
-        overflow: 'hidden',
-        background: '#2A211B',
-        boxShadow: '0 24px 70px rgba(0,0,0,.55), 0 0 0 .5px rgba(255,255,255,.14)',
-        opacity: t,
-        transform: `translateY(${(1 - t) * 14}px) scale(${0.96 + 0.04 * t})`,
-        transformOrigin: '50% 30%',
-      }}
-    >
-      <div style={{position: 'absolute', left: 0, top: 0, right: 0, height: SETTINGS_WIN.title, display: 'flex', alignItems: 'center', gap: 8, padding: '0 12px'}}>
-        {['#FF5F57', '#FEBC2E', '#28C840'].map((c) => (
-          <div key={c} style={{width: 12, height: 12, borderRadius: 6, background: c}} />
-        ))}
-        <div style={{position: 'absolute', left: 0, right: 0, textAlign: 'center', fontFamily: system, fontSize: 13, fontWeight: 600, color: 'rgba(246,239,227,.82)'}}>
-          {COPY[lang].window}
-        </div>
-      </div>
-      {card('settings', 1 - done)}
-      {done > 0 ? card('settings-connected', done) : null}
-    </div>
-  );
-};
-
 // ─── Desktop and camera ──────────────────────────────────────────────────────
 const Pointer = () => {
   const frame = useCurrentFrame();
@@ -465,28 +508,52 @@ const Pointer = () => {
   );
 };
 
+// The desktop (wallpaper, menu bar, notch) and the pointer are separate layers: the pointer stays sharp over the
+// depth-of-field pass.
 const Desktop = ({lang}: {lang: Lang}) => (
   <div style={{position: 'absolute', left: 0, top: 0, width: SCREEN.width, height: SCREEN.height, overflow: 'hidden'}}>
     <Img src={staticFile('anuncio/product/wallpaper.png')} style={{position: 'absolute', left: -40, top: -20, width: SCREEN.width + 80, height: SCREEN.height + 60, objectFit: 'cover'}} />
     <MenuBar lang={lang} />
-    <SettingsWindow lang={lang} />
     <NotchPanel lang={lang} />
+  </div>
+);
+const PointerLayer = () => (
+  <div style={{position: 'absolute', left: 0, top: 0, width: SCREEN.width, height: SCREEN.height, overflow: 'hidden'}}>
     <Pointer />
   </div>
 );
+const FEATHER = 30; // points of soft edge around the sharp rectangle
 
 const Screen = ({lang, format}: {lang: Lang; format: Format}) => {
   const frame = useCurrentFrame();
   const {width} = useVideoConfig();
-  const keys = cameraKeys(format);
-  const shot = shotAt(frame, keys);
+  const shot = shotAt(frame, format);
   const appear = interpolate(frame, [SCREEN_IN - 2, SCREEN_IN + 12], [0, 1], {...clamp, easing: easeOut});
   const v = format === 'vertical';
+  const left = width / 2 - shot.x * shot.s;
+  const top = ANCHOR[format] - shot.y * shot.s;
+  const stage = (node: ReactNode) => (
+    <div style={{position: 'absolute', left, top, transform: `scale(${shot.s})`, transformOrigin: '0 0'}}>{node}</div>
+  );
+  // Depth of field: a blurred, dimmed copy underneath and the sharp one masked to the focus rectangle (feathered),
+  // all in frame pixels so the blur is the same at any zoom.
+  const {rect, amount} = focusAt(frame);
+  const [x0, y0, x1, y1] = rect.map((c, i) => (i % 2 === 0 ? left + c * shot.s : top + c * shot.s));
+  const e = FEATHER * shot.s;
+  const mask = `linear-gradient(90deg, transparent ${x0 - e}px, #000 ${x0}px, #000 ${x1}px, transparent ${x1 + e}px), `
+    + `linear-gradient(180deg, transparent ${y0 - e}px, #000 ${y0}px, #000 ${y1}px, transparent ${y1 + e}px)`;
+  const dof = amount > 0.002;
   return (
     <AbsoluteFill style={{backgroundColor: '#050404', overflow: 'hidden', opacity: appear, filter: appear < 0.99 ? `blur(${(1 - appear) * 14}px)` : undefined}}>
-      <div style={{position: 'absolute', left: width / 2 - shot.fx * shot.scale, top: shot.top, transform: `scale(${shot.scale})`, transformOrigin: '0 0'}}>
-        <Desktop lang={lang} />
-      </div>
+      {dof ? (
+        <AbsoluteFill style={{filter: `blur(${amount * (v ? 7 : 9)}px) brightness(${1 - amount * 0.4}) saturate(${1 - amount * 0.2})`}}>
+          {stage(<Desktop lang={lang} />)}
+        </AbsoluteFill>
+      ) : null}
+      <AbsoluteFill style={dof ? {maskImage: mask, WebkitMaskImage: mask, maskComposite: 'intersect', WebkitMaskComposite: 'source-in'} : undefined}>
+        {stage(<Desktop lang={lang} />)}
+      </AbsoluteFill>
+      {stage(<PointerLayer />)}
       {/* Veil for the type: under the stage in the vertical cut, along the bottom in the wide one. */}
       <AbsoluteFill
         style={{
@@ -548,9 +615,7 @@ export const AltilloCasa = ({lang = 'es', format = 'wide'}: {lang?: Lang; format
       {line(BLIND_PRESS + 14, BACK1 - 2, 'Blind', (d) => <Kinetic parts={beats(c.blind, 18)} sub={c.blindSub} subAt={30} duration={d} size={size} style={typeStyle} />)}
       {line(LAMP_PRESS + 10, BACK2 - 4, 'Switch', (d) => <Kinetic parts={beats(c.lamp, 18)} duration={d} size={size} style={typeStyle} />)}
       {line(TOUR, CLOSE - 6, 'Tour', (d) => <Kinetic parts={beats(c.tour, 30)} sub={c.tourSub} subAt={100} duration={d} size={v ? 64 : 84} style={typeStyle} />)}
-      {line(PEEK, RING_CLOSE - 4, 'Door', (d) => <Kinetic parts={beats(c.door, 30)} duration={d} size={v ? 96 : 104} style={typeStyle} />)}
-      {line(SETTINGS_IN + 20, SIGN_IN - 4, 'Found', (d) => <Kinetic parts={beats(c.found, 24)} sub={c.foundSub} subAt={60} duration={d} size={size} style={typeStyle} />)}
-      {line(SIGN_IN + 4, END, 'Sign in', (d) => <Kinetic parts={beats(c.signIn, 30)} sub={c.signInSub} subAt={60} duration={d} size={size} style={typeStyle} />)}
+      {line(PEEK, END, 'Door', (d) => <Kinetic parts={beats(c.door, 30)} duration={d} size={v ? 96 : 104} style={typeStyle} />)}
       <Sequence from={END} name="End card">
         <Signature lang={lang} format={format} />
       </Sequence>
@@ -560,5 +625,9 @@ export const AltilloCasa = ({lang = 'es', format = 'wide'}: {lang?: Lang; format
 };
 
 /** For scripts/casa-camera-check.mjs: the camera and the pointer at a frame (no rendering). */
-export const casaCamera = (frame: number, format: Format = 'wide') => shotAt(frame, cameraKeys(format));
+export const casaCamera = (frame: number, format: Format = 'wide') => {
+  const c = shotAt(frame, format);
+  return {scale: c.s, fx: c.x, top: ANCHOR[format] - c.y * c.s};
+};
+export const casaFocus = focusAt;
 export const casaPointer = (frame: number) => ({x: track(frame, 1), y: track(frame, 2)});
