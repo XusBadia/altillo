@@ -122,7 +122,7 @@ struct OnboardingAIToolsPage: View {
         return VStack(alignment: .leading, spacing: 10) {
             cardTitle("Answer your agents from the notch", symbol: "hand.raised")
             if reports.isEmpty {
-                Text("No Claude Code or Codex on this Mac yet. Once you have one, Settings › Sections › Agents sets it up.")
+                Text("No Claude Code or Codex on this Mac yet. Once you have one, Settings › Agents sets it up.")
                     .font(.system(size: 12.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .fixedSize(horizontal: false, vertical: true)
