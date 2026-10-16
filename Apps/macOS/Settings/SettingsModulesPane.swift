@@ -3,19 +3,10 @@ import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
-/// Which sections the open notch shows, in what order, and what sits in the ears beside it. Everything here changes
-/// the notch live; the same things (and more directly) can be done in the notch itself, in edit mode.
+/// Visibility and ordering, with a direct route to each section's configuration.
 struct SettingsModulesPane: View {
     @Bindable var settings: AltilloSettings
-    let hasHardwareNotch: Bool
-    /// The clipboard section's own options live on its store (nil in previews).
-    var clipboard: ClipboardStore?
-    /// The Home section's store (nil in previews).
-    var home: HomeStore?
-    /// Which card to scroll to and unfold (`-settingsSection home`, or the notch's "Connect Home Assistant").
-    var navigation: SettingsNavigation?
-    /// Keeps what a preset replaced, for its Undo.
-    @State private var session = NotchEditSession()
+    @Bindable var navigation: SettingsNavigation
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var disabled: [NotchModule] {
@@ -23,165 +14,62 @@ struct SettingsModulesPane: View {
     }
 
     var body: some View {
-        SettingsPane(
-            title: "Sections",
-            subtitle: "Choose what Altillo shows while it's closed and when you open it."
-        ) {
-            ScrollViewReader { proxy in
+        SettingsPane(title: "Order & visibility", subtitle: "Choose your sections and arrange them in the order you use them.") {
             ScrollView {
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: 16) {
                     SettingsCard {
                         VStack(alignment: .leading, spacing: 0) {
-                            SettingsGroupHeading(
-                                title: "While Altillo is closed",
-                                detail: hasHardwareNotch
-                                    ? "On this display, the indicators sit beside the hardware notch."
-                                    : "On this display, the indicators sit inside Altillo's small island."
-                            )
+                            SettingsGroupHeading(title: "Sections in Altillo",
+                                detail: "Drag a row or open its menu to move it. Shelf always stays first.")
                             SettingsCardDivider()
-                            SettingsEarsRow(settings: settings, session: session,
-                                            hasHardwareNotch: hasHardwareNotch)
-                        }
-                    }
-
-                    SettingsCard {
-                        VStack(alignment: .leading, spacing: 0) {
-                            SettingsGroupHeading(
-                                title: "Sections in Altillo",
-                                detail: "Drag a row or open its menu to move it. Shelf always stays first."
-                            )
-                            SettingsCardDivider()
-                            VStack(spacing: 0) {
-                                ForEach(settings.modules) { module in
-                                    SettingsModuleRow(module: module, settings: settings)
-                                        .settingsHoverHighlight()
-                                        .draggable(module.rawValue)
-                                        .dropDestination(for: String.self) { identifiers, _ in
-                                            _ = reorder(identifiers.first, before: module)
-                                        }
-                                    if module != settings.modules.last { SettingsRowDivider() }
-                                }
+                            ForEach(settings.modules) { module in
+                                moduleRow(module)
+                                    .draggable(module.rawValue)
+                                    .dropDestination(for: String.self) { identifiers, _ in
+                                        _ = reorder(identifiers.first, before: module)
+                                    }
+                                if module != settings.modules.last { SettingsRowDivider() }
                             }
                         }
                     }
-
-                    if settings.isEnabled(.calendar) {
-                        SettingsOptionsCard(
-                            title: "Calendar",
-                            detail: "Layout, all-day events and visible calendars.",
-                            symbol: NotchModule.calendar.symbol,
-                            anchor: Self.calendarAnchor
-                        ) {
-                            SettingsCalendarGroup(settings: settings)
-                        }
-                        .id(Self.calendarAnchor)
-                        .transition(.settingsReveal)
-                    }
-
-                    if settings.isEnabled(.usage) {
-                        SettingsOptionsCard(
-                            title: "Usage",
-                            detail: "Providers, limits and alerts.",
-                            symbol: NotchModule.usage.symbol,
-                            anchor: Self.usageAnchor
-                        ) {
-                            SettingsUsageGroup(settings: settings, store: UsageStore.live)
-                        }
-                        .id(Self.usageAnchor)
-                        .transition(.settingsReveal)
-                    }
-
-                    if settings.isEnabled(.clipboard), let clipboard {
-                        SettingsOptionsCard(
-                            title: "Clipboard",
-                            detail: "Shortcut, pasting, what's kept and apps left out.",
-                            symbol: NotchModule.clipboard.symbol,
-                            anchor: Self.clipboardAnchor
-                        ) {
-                            SettingsClipboardGroup(settings: settings, store: clipboard)
-                        }
-                        .id(Self.clipboardAnchor)
-                        .transition(.settingsReveal)
-                    }
-
-                    if settings.isEnabled(.home), let home {
-                        SettingsOptionsCard(
-                            title: "Home",
-                            detail: "Home Assistant, favourites and the doorbell.",
-                            symbol: NotchModule.home.symbol,
-                            anchor: Self.homeAnchor,
-                            navigation: navigation
-                        ) {
-                            SettingsHomeGroup(settings: settings, store: home)
-                        }
-                        .id(Self.homeAnchor)
-                        .transition(.settingsReveal)
-                    }
-
-                    // Always here, even with the agents section put away: hooks Altillo installed must stay one
-                    // click from removal.
-                    SettingsOptionsCard(
-                        title: "Agents",
-                        detail: "Connections, replies and permission timing.",
-                        symbol: NotchModule.agents.symbol,
-                        anchor: Self.agentsAnchor
-                    ) {
-                        SettingsAgentsGroup(settings: settings)
-                    }
-                    .id(Self.agentsAnchor)
-
                     if !disabled.isEmpty {
                         SettingsCard {
                             VStack(alignment: .leading, spacing: 0) {
-                                SettingsGroupHeading(
-                                    title: "More sections",
-                                    detail: "Turn one on to add it to the end of Altillo."
-                                )
+                                SettingsGroupHeading(title: "More sections", detail: "Turn one on to add it to the end of Altillo.")
                                 SettingsCardDivider()
-                                VStack(spacing: 0) {
-                                    ForEach(disabled) { module in
-                                        SettingsModuleRow(module: module, settings: settings)
-                                            .settingsHoverHighlight()
-                                        if module != disabled.last { SettingsRowDivider() }
-                                    }
+                                ForEach(disabled) { module in
+                                    moduleRow(module)
+                                    if module != disabled.last { SettingsRowDivider() }
                                 }
                             }
-                        }
-                        .transition(.settingsReveal)
-                    }
-
-                    SettingsCard {
-                        VStack(alignment: .leading, spacing: 0) {
-                            SettingsGroupHeading(
-                                title: "Start with a layout",
-                                detail: "Reset to a simple starting point, then make it yours. You can undo it right away."
-                            )
-                            SettingsCardDivider()
-                            SettingsPresetsRow(settings: settings, session: session)
                         }
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 18)
-                // A section switched on or off, or moved, slides to its new place and its options card follows.
-                .animation(SettingsMotion.pick(SettingsMotion.reorder, reduceMotion: reduceMotion),
-                           value: settings.modules)
+                .padding(.bottom, 20)
+                .animation(SettingsMotion.pick(SettingsMotion.reorder, reduceMotion: reduceMotion), value: settings.modules)
             }
             .scrollBounceBehavior(.basedOnSize)
-            .task(id: navigation?.sectionRequest ?? 0) {
-                // `-settingsSection calendar|usage|clipboard|home|agents` (with `-settingsTab modules`), or the notch
-                // asking for a card, opens scrolled to that group.
-                // Once more after the rows above have measured themselves, or it stops short.
-                let anchor = navigation?.section ?? UserDefaults.standard.string(forKey: "settingsSection")
-                if let anchor, [Self.calendarAnchor, Self.usageAnchor, Self.clipboardAnchor, Self.homeAnchor,
-                                Self.agentsAnchor].contains(anchor) {
-                    proxy.scrollTo(anchor, anchor: .top)
-                    try? await Task.sleep(for: .milliseconds(400))
-                    proxy.scrollTo(anchor, anchor: .top)
+        }
+    }
+
+    private func moduleRow(_ module: NotchModule) -> some View {
+        HStack(spacing: 10) {
+            SettingsModuleRow(module: module, settings: settings)
+            if let tab = SettingsTab.sections.first(where: { $0.module == module }) {
+                Button { navigation.tab = tab } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paperSecondary)
+                        .frame(width: 24, height: 34)
+                        .contentShape(Rectangle())
                 }
-            }
+                .buttonStyle(.plain)
+                .help(String(localized: "Configure \(module.title)"))
+                .accessibilityLabel(String(localized: "Configure \(module.title)"))
             }
         }
+        .settingsHoverHighlight()
     }
 
     private func reorder(_ rawValue: String?, before target: NotchModule) -> Bool {
@@ -198,34 +86,81 @@ struct SettingsModulesPane: View {
         return true
     }
 
-    private static let calendarAnchor = "calendar"
-    private static let usageAnchor = "usage"
-    private static let clipboardAnchor = "clipboard"
-    private static let agentsAnchor = "agents"
-    private static let homeAnchor = SettingsNavigation.homeSection
 }
 
-/// One section's own options, folded until asked for.
-private struct SettingsOptionsCard<Content: View>: View {
-    let title: LocalizedStringKey
-    let detail: LocalizedStringKey
-    let symbol: String
-    /// `-settingsSection <anchor>` opens scrolled to this card, and unfolded.
-    var anchor: String?
-    /// Asked for from elsewhere (the notch): unfolds whenever its section is requested.
-    var navigation: SettingsNavigation?
-    @ViewBuilder var content: Content
-    @State private var isExpanded = false
+/// Each integration owns a destination; opening one never expands unrelated options.
+struct SettingsSectionPane: View {
+    let tab: SettingsTab
+    @Bindable var settings: AltilloSettings
+    var clipboard: ClipboardStore?
+    var home: HomeStore?
 
     var body: some View {
-        SettingsDisclosureCard(title: title, detail: detail, symbol: symbol, isExpanded: $isExpanded) {
-            content
+        SettingsPane(title: LocalizedStringKey(tab.title), subtitle: detail) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 16) {
+                    if let module = tab.module, !module.isAlwaysOn {
+                        SettingsCard {
+                            SettingsToggleRow("Show in Altillo", isOn: Binding(
+                                get: { settings.isEnabled(module) },
+                                set: { settings.setEnabled(module, $0) }
+                            ))
+                        }
+                    }
+                    // Configuration remains reachable while disabled, including removing installed hooks.
+                    switch tab {
+                    case .calendar: SettingsCard { SettingsCalendarGroup(settings: settings) }
+                    case .usage: SettingsCard { SettingsUsageGroup(settings: settings, store: UsageStore.live) }
+                    case .clipboard:
+                        if let clipboard { SettingsCard { SettingsClipboardGroup(settings: settings, store: clipboard) } }
+                    case .home:
+                        if let home { SettingsCard { SettingsHomeGroup(settings: settings, store: home) } }
+                    case .agents: SettingsCard { SettingsAgentsGroup(settings: settings) }
+                    case .assistant, .shelf: SettingsSectionBehaviourOptions(settings: settings, tab: tab)
+                    default: EmptyView()
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 20)
+            }
+            .scrollBounceBehavior(.basedOnSize)
         }
-        .onAppear {
-            if let anchor, UserDefaults.standard.string(forKey: "settingsSection") == anchor { isExpanded = true }
+    }
+
+    private var detail: LocalizedStringKey {
+        switch tab {
+        case .calendar: "Layout, all-day events and visible calendars."
+        case .usage: "Providers, limits and alerts."
+        case .clipboard: "Shortcut, pasting, what's kept and apps left out."
+        case .home: "Home Assistant, favourites and the doorbell."
+        case .agents: "Connections, replies and permission timing."
+        case .assistant: "Keyboard shortcut and web search."
+        case .shelf: "Choose what stays on the shelf and for how long."
+        default: ""
         }
-        .onChange(of: navigation?.sectionRequest, initial: true) {
-            if let anchor, navigation?.section == anchor { isExpanded = true }
+    }
+}
+
+struct SettingsAppearanceOptions: View {
+    @Bindable var settings: AltilloSettings
+    let hasHardwareNotch: Bool
+    @State private var session = NotchEditSession()
+    @State private var showsLayouts = false
+
+    var body: some View {
+        SettingsCard {
+            VStack(alignment: .leading, spacing: 0) {
+                SettingsGroupHeading(title: "While Altillo is closed", detail: hasHardwareNotch
+                    ? "On this display, the indicators sit beside the hardware notch."
+                    : "On this display, the indicators sit inside Altillo's small island.")
+                SettingsCardDivider()
+                SettingsEarsRow(settings: settings, session: session, hasHardwareNotch: hasHardwareNotch)
+            }
+        }
+        SettingsDisclosureCard(title: "Start with a layout",
+            detail: "Reset to a simple starting point, then make it yours. You can undo it right away.",
+            symbol: "rectangle.3.group", isExpanded: $showsLayouts) {
+            SettingsPresetsRow(settings: settings, session: session)
         }
     }
 }

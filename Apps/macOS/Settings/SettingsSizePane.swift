@@ -19,8 +19,8 @@ struct SettingsSizePane: View {
 
     var body: some View {
         SettingsPane(
-            title: "Size",
-            subtitle: "How wide the shelf opens. The narrower it is, the less of the screen it covers."
+            title: "Appearance",
+            subtitle: "Size, side indicators and starting layouts."
         ) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -84,16 +84,10 @@ struct SettingsSizePane: View {
                             SettingsCardDivider()
                             VStack(alignment: .leading, spacing: 10) {
                                 SettingsNotchPreview(width: width.wrappedValue, modules: settings.modules)
-                                SettingsEarsPreview(leftEar: settings.leftEar, rightEar: settings.rightEar,
-                                                    visibility: settings.earsVisibility,
-                                                    hasHardwareNotch: hasHardwareNotch)
-                                Text(hasHardwareNotch
-                                     ? "Altillo open above the menu bar, and closed around the hardware notch."
-                                     : "Altillo open above the menu bar, and closed as a small island.")
-                                    .settingsHint()
                             }
                         }
                     }
+                    SettingsAppearanceOptions(settings: settings, hasHardwareNotch: hasHardwareNotch)
                 }
                 .padding(.horizontal, 20)
                 .padding(.bottom, 18)

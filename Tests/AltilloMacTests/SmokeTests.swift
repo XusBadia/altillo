@@ -69,6 +69,6 @@ struct SmokeTests {
     /// bar) without clipping.
     @Test func settingsWindowFitsASmallScreen() {
         #expect(SettingsWindowController.contentSize.height <= 620)
-        #expect(SettingsWindowController.contentSize.width <= 600)
+        #expect(SettingsWindowController.contentSize.width <= 960)
     }
 }

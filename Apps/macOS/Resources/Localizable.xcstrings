@@ -1,6 +1,278 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Turn on Show in Altillo above to use a shortcut.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Turn on Show in Altillo above to use a shortcut."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activa «Mostrar en Altillo» arriba para usar un atajo."
+        }
+      }
+    }
+  },
+  "Turn on Show in Altillo above to use a shortcut": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Turn on Show in Altillo above to use a shortcut"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Activa «Mostrar en Altillo» arriba para usar un atajo"
+        }
+      }
+    }
+  },
+  "Opens Settings › Agents, where Altillo can add its hooks to your agents": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Opens Settings › Agents, where Altillo can add its hooks to your agents"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Abre Ajustes › Agentes, donde Altillo puede añadir sus hooks a tus agentes"
+        }
+      }
+    }
+  },
+  "Sessions marked with a magnifying glass are only read from their files. Settings › Agents can add Altillo's hooks to your agents.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Sessions marked with a magnifying glass are only read from their files. Settings › Agents can add Altillo's hooks to your agents."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Las sesiones con una lupa solo se leen de sus ficheros. En Ajustes › Agentes puedes añadir los hooks de Altillo a tus agentes."
+        }
+      }
+    }
+  },
+  "Appearance": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Appearance"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apariencia"
+        }
+      }
+    }
+  },
+  "General": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "General"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "General"
+        }
+      }
+    }
+  },
+  "Configure sections": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configure sections"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configurar secciones"
+        }
+      }
+    }
+  },
+  "Order & visibility": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Order & visibility"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Orden y visibilidad"
+        }
+      }
+    }
+  },
+  "Choose your sections and arrange them in the order you use them.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose your sections and arrange them in the order you use them."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Elige tus secciones y ordénalas como las usas."
+        }
+      }
+    }
+  },
+  "Show in Altillo": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Show in Altillo"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Mostrar en Altillo"
+        }
+      }
+    }
+  },
+  "Keyboard shortcut and web search.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Keyboard shortcut and web search."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Atajo de teclado y búsqueda web."
+        }
+      }
+    }
+  },
+  "Choose what stays on the shelf and for how long.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Choose what stays on the shelf and for how long."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Elige qué se queda en el altillo y durante cuánto tiempo."
+        }
+      }
+    }
+  },
+  "Opening, screens and automatic glances.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Opening, screens and automatic glances."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Apertura, pantallas y avisos automáticos."
+        }
+      }
+    }
+  },
+  "Size, side indicators and starting layouts.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Size, side indicators and starting layouts."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Tamaño, indicadores laterales y diseños iniciales."
+        }
+      }
+    }
+  },
+  "Configure %@": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configure %@"
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Configurar %@"
+        }
+      }
+    }
+  },
+  "No Claude Code or Codex on this Mac yet. Once you have one, Settings › Agents sets it up.": {
+    "extractionState": "manual",
+    "localizations": {
+      "en": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "No Claude Code or Codex on this Mac yet. Once you have one, Settings › Agents sets it up."
+        }
+      },
+      "es": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "Todavía no hay Claude Code ni Codex en este Mac. En cuanto tengas uno, Ajustes › Agentes lo configura."
+        }
+      }
+    }
+  },
     "This app didn't open its menu from Altillo. Try it from the menu bar." : {
       "extractionState" : "manual",
       "localizations" : {

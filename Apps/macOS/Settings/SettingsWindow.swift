@@ -4,13 +4,27 @@ import Observation
 
 @MainActor @Observable
 final class SettingsNavigation {
-    var tab: SettingsTab = SettingsTab.launchOverride ?? .modules
-    /// A card to scroll to and unfold (`-settingsSection home` at launch, or the notch asking for it), and a counter
-    /// bumped on every request so asking twice scrolls again.
+    var tab: SettingsTab = SettingsTab.launchOverride ?? .behaviour
+    /// Retains incoming section requests for launch arguments and links from the notch.
     var section: String? = UserDefaults.standard.string(forKey: "settingsSection")
     var sectionRequest = 0
 
     static let homeSection = "home"
+
+    func open(tab: SettingsTab? = nil, section: String? = nil) {
+        if let tab { self.tab = tab }
+        if let section {
+            self.section = section
+            sectionRequest += 1
+            if let destination = SettingsTab(rawValue: section), destination.module != nil {
+                self.tab = destination
+            }
+        }
+    }
+
+    init() {
+        open(section: section)
+    }
 }
 
 /// The Settings window. Altillo is an `LSUIElement` app, so it owns its window instead of using the
@@ -23,10 +37,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     /// XCTest host: it can wire the live model without constructing any AppKit settings state before test injection.
     static weak var model: NotchModel?
 
-    /// Small and legible at a glance (PLAN §4). The height is the whole window, title bar included (the tab bar
-    /// lives in it), and fits the tallest pane that doesn't scroll (Size) with room to spare. It stays well under
-    /// the ~630 pt a 13-inch MacBook Air leaves below the menu bar at its "Larger Text" resolution.
-    static let contentSize = CGSize(width: 600, height: 580)
+    /// Leaves a full-width detail beside the navigation, within the height of a small MacBook display.
+    static let contentSize = CGSize(width: 780, height: 600)
 
     private var window: NSWindow?
     private let navigation = SettingsNavigation()
@@ -36,11 +48,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
     func show(tab: SettingsTab? = nil, section: String? = nil) {
         menuBarRefocusTask?.cancel()
         menuBarRefocusTask = nil
-        if let tab { navigation.tab = tab }
-        if let section {
-            navigation.section = section
-            navigation.sectionRequest += 1
-        }
+        navigation.open(tab: tab, section: section)
         AltilloSettings.shared.refreshLaunchAtLogin()
         let window = window ?? makeWindow()
         self.window = window
@@ -80,14 +88,8 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         hosting.sizingOptions = []
         let window = NSWindow(contentViewController: hosting)
         window.title = String(localized: "Altillo Settings")
-        window.styleMask = [.titled, .closable, .miniaturizable, .fullSizeContentView]
-        // The section tabs are the title bar: an empty unified toolbar gives it a toolbar's height (so the traffic
-        // lights sit centred beside the tabs) and the title stays for the Window menu, Mission Control and VoiceOver
-        // without being drawn under the tabs.
-        let toolbar = NSToolbar(identifier: "AltilloSettings")
-        toolbar.showsBaselineSeparator = false
-        window.toolbar = toolbar
-        window.toolbarStyle = .unified
+        window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+        // The sidebar replaces the toolbar; use the compact native title bar for window controls.
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.titlebarSeparatorStyle = .none
@@ -97,6 +99,7 @@ final class SettingsWindowController: NSObject, NSWindowDelegate {
         window.backgroundColor = NSColor(Desvan.Palette.wood)
         window.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary]
         window.setContentSize(Self.contentSize)
+        window.minSize = Self.contentSize
         window.center()
         window.delegate = self
         return window

@@ -157,7 +157,7 @@ struct DesvanCalendarOptions: View {
         .pickerStyle(.inline)
         Divider()
         Toggle("Show All-Day Events", isOn: $settings.calendarShowsAllDay)
-        Button("Choose Calendars…") { SettingsWindowController.shared.show(tab: .modules) }
+        Button("Choose Calendars…") { SettingsWindowController.shared.show(tab: .calendar) }
         Divider()
         Button("Open Calendar") { CalendarAppLink.openApp() }
     }
