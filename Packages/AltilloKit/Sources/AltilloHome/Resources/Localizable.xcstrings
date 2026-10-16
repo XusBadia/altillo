@@ -52,6 +52,23 @@
         }
       }
     },
+    "Couldn't open the browser to sign in.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't open the browser to sign in."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No he podido abrir el navegador para iniciar sesión."
+          }
+        }
+      }
+    },
     "Couldn't save the token in the Keychain.": {
       "extractionState": "manual",
       "localizations": {
@@ -65,6 +82,57 @@
           "stringUnit": {
             "state": "translated",
             "value": "No he podido guardar el token en el Llavero."
+          }
+        }
+      }
+    },
+    "Couldn't start the sign-in. Try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't start the sign-in. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No he podido empezar el inicio de sesión. Inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "Done. You can go back to Altillo.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done. You can go back to Altillo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listo. Ya puedes volver a Altillo."
+          }
+        }
+      }
+    },
+    "Home Assistant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant"
           }
         }
       }
@@ -99,6 +167,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Home Assistant no ha aceptado ese token. Crea uno nuevo y vuelve a pegarlo."
+          }
+        }
+      }
+    },
+    "Home Assistant didn't finish the sign-in. Try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant didn't finish the sign-in. Try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant no ha terminado el inicio de sesión. Inténtalo de nuevo."
           }
         }
       }
@@ -188,6 +273,23 @@
         }
       }
     },
+    "Something answers at that address, but it isn't Home Assistant.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something answers at that address, but it isn't Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Algo responde en esa dirección, pero no es Home Assistant."
+          }
+        }
+      }
+    },
     "That belongs to another Home Assistant.": {
       "extractionState": "manual",
       "localizations": {
@@ -239,6 +341,57 @@
         }
       }
     },
+    "The sign-in didn't finish. Go back to Altillo and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sign-in didn't finish. Go back to Altillo and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El inicio de sesión no ha terminado. Vuelve a Altillo e inténtalo de nuevo."
+          }
+        }
+      }
+    },
+    "The sign-in took too long. Try again when you're ready.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sign-in took too long. Try again when you're ready."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El inicio de sesión ha tardado demasiado. Inténtalo de nuevo cuando quieras."
+          }
+        }
+      }
+    },
+    "The sign-in was cancelled in Home Assistant.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The sign-in was cancelled in Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se ha cancelado el inicio de sesión en Home Assistant."
+          }
+        }
+      }
+    },
     "There's no token saved for this server.": {
       "extractionState": "manual",
       "localizations": {
@@ -252,6 +405,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "No hay ningún token guardado para este servidor."
+          }
+        }
+      }
+    },
+    "This Home Assistant isn't set up yet. Finish its setup in the browser first.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This Home Assistant isn't set up yet. Finish its setup in the browser first."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este Home Assistant aún no está configurado. Termina primero su configuración en el navegador."
           }
         }
       }
@@ -303,6 +473,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Usa una dirección que empiece por http:// o https://."
+          }
+        }
+      }
+    },
+    "You can close this tab.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can close this tab."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puedes cerrar esta pestaña."
           }
         }
       }

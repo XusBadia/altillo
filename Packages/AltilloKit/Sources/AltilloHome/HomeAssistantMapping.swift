@@ -310,6 +310,15 @@ enum HAMapping {
             let percent = Int((min(max(value, 0), 1) * 100).rounded())
             if value <= 0 { return ServiceCall(domain: "light", service: "turn_off") }
             return ServiceCall(domain: "light", service: "turn_on", data: ["brightness_pct": .number(Double(max(1, percent)))])
+        case .setColor(_, let rgb):
+            guard entityDomain == "light" else { return nil }
+            let channel = { (value: Double) in JSONValue.number(Double(Int((min(max(value, 0), 1) * 255).rounded()))) }
+            return ServiceCall(domain: "light", service: "turn_on",
+                               data: ["rgb_color": .array([channel(rgb.red), channel(rgb.green), channel(rgb.blue)])])
+        case .setColorTemperature(_, let kelvin):
+            guard entityDomain == "light" else { return nil }
+            let clamped = Int(min(max(kelvin, 1000), 10000).rounded())
+            return ServiceCall(domain: "light", service: "turn_on", data: ["color_temp_kelvin": .number(Double(clamped))])
         case .setPosition(_, let value):
             guard entityDomain == "cover" else { return nil }
             let position = Int((min(max(value, 0), 1) * 100).rounded())

@@ -96,6 +96,79 @@ enum HomeText {
         }
     }
 
+    /// The notch tile's second line (docs/casa-v2.md §1): a value when there is one to say ("70 %", "Open 65 %",
+    /// "Opening…", "Unavailable"), the room's name otherwise (`room`, nil when browsing that room). Never "Off": the
+    /// lamp on the tile says that. VoiceOver reads the full state (`stateLine`) instead.
+    static func tileLine(for entity: HomeEntity, state: HomeEntityState, room: String?) -> String? {
+        guard state.isAvailable else { return String(localized: "Unavailable") }
+        switch entity.kind {
+        case .light:
+            if state.isOn == true, let brightness = state.brightness, entity.capabilities.contains(.brightness) {
+                return percent(brightness)
+            }
+            return room
+        case .cover:
+            switch state.raw {
+            case "opening": return String(localized: "home.state.opening", defaultValue: "Opening…")
+            case "closing": return String(localized: "home.state.closing", defaultValue: "Closing…")
+            default: break
+            }
+            if let position = state.position, position > 0.005, position < 0.995 {
+                return String(localized: "home.state.openPercent", defaultValue: "Open \(percent(position))")
+            }
+            return room
+        case .script:
+            return state.isOn == true ? String(localized: "Running") : room
+        case .sensor, .binarySensor:
+            return stateLine(for: entity, state: state)
+        default:
+            return room
+        }
+    }
+
+    /// The tile's glyph when the user picked none and it isn't drawn (a light's bulb, a blind's slats): filled SF
+    /// Symbols, brass when on.
+    static func filledSymbol(for entity: HomeEntity, state: HomeEntityState) -> String {
+        let on = state.isOn == true
+        switch entity.kind {
+        case .switchable:
+            if entity.deviceClass == "outlet" { return "powerplug.fill" }
+            return on ? "lightswitch.on.fill" : "lightswitch.off.fill"
+        case .fan: return "fan.fill"
+        case .scene: return "sparkles"
+        case .script: return "play.fill"
+        default: return symbol(for: entity, state: state)
+        }
+    }
+
+    /// The icons offered in a tile's Icon menu (about sixteen per kind; filled where SF Symbols has a fill).
+    static func curatedSymbols(for kind: HomeEntityKind) -> [String] {
+        switch kind {
+        case .light:
+            ["lightbulb.fill", "lamp.floor.fill", "lamp.table.fill", "lamp.desk.fill", "lamp.ceiling.fill",
+             "chandelier.fill", "light.recessed.fill", "light.panel.fill", "light.strip.2.fill", "lightbulb.led.fill",
+             "light.cylindrical.ceiling.fill", "lightspectrum.horizontal", "sun.max.fill", "moon.fill", "sparkles",
+             "star.fill"]
+        case .cover:
+            ["blinds.vertical.closed", "blinds.horizontal.closed", "roller.shade.closed", "curtains.closed",
+             "window.vertical.closed", "window.horizontal.closed", "window.shade.closed", "window.awning.closed",
+             "door.sliding.left.hand.closed", "sun.max.fill", "sun.haze.fill", "moon.fill", "house.fill",
+             "bed.double.fill", "sofa.fill", "tree.fill"]
+        case .switchable, .fan:
+            ["powerplug.fill", "lightswitch.on.fill", "power", "fan.fill", "fan.ceiling.fill", "air.purifier.fill",
+             "heater.vertical.fill", "cup.and.saucer.fill", "tv.fill", "hifispeaker.fill", "washer.fill",
+             "dryer.fill", "dishwasher.fill", "refrigerator.fill", "spigot.fill", "bolt.fill"]
+        case .scene, .script:
+            ["sparkles", "play.fill", "moon.fill", "sun.max.fill", "sunrise.fill", "sunset.fill", "film.fill",
+             "book.fill", "fork.knife", "bed.double.fill", "house.fill", "figure.walk", "party.popper.fill",
+             "music.note", "power", "star.fill"]
+        default:
+            ["circle.fill", "star.fill", "house.fill", "bolt.fill", "sparkles", "sensor.fill", "thermometer.medium",
+             "humidity.fill", "leaf.fill", "drop.fill", "flame.fill", "snowflake", "wind", "sun.max.fill",
+             "moon.fill", "bell.fill"]
+        }
+    }
+
     /// What kind of thing it is, for Settings' list ("Light", "Plug", "Blind").
     static func kindName(_ entity: HomeEntity) -> String {
         switch entity.kind {

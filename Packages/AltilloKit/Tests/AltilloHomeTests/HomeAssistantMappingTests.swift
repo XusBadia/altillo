@@ -192,6 +192,16 @@ import Testing
         #expect(HAMapping.serviceCall(for: .activate(scene)) == Call(domain: "scene", service: "turn_on"))
         #expect(HAMapping.serviceCall(for: .activate(light)) == nil)
         #expect(HAMapping.serviceCall(for: .setPosition(light, 1)) == nil)
+        #expect(HAMapping.serviceCall(for: .setColor(light, HomeRGB(red: 1, green: 0.5, blue: 0)))
+            == Call(domain: "light", service: "turn_on", data: ["rgb_color": [255, 128, 0]]))
+        #expect(HAMapping.serviceCall(for: .setColor(light, HomeRGB(red: 1.4, green: -1, blue: 0.2)))
+            == Call(domain: "light", service: "turn_on", data: ["rgb_color": [255, 0, 51]]))
+        #expect(HAMapping.serviceCall(for: .setColorTemperature(light, kelvin: 2700))
+            == Call(domain: "light", service: "turn_on", data: ["color_temp_kelvin": 2700]))
+        #expect(HAMapping.serviceCall(for: .setColorTemperature(light, kelvin: 90000))
+            == Call(domain: "light", service: "turn_on", data: ["color_temp_kelvin": 10000]))
+        #expect(HAMapping.serviceCall(for: .setColor(cover, HomeRGB(red: 1, green: 1, blue: 1))) == nil)
+        #expect(HAMapping.serviceCall(for: .setColorTemperature(cover, kelvin: 3000)) == nil)
     }
 
     @Test func detectsLocalNetworkDenial() {

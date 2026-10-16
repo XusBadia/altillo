@@ -99,6 +99,12 @@ public final class HomeDemoService: HomeService {
             let value = min(max(value, 0), 1)
             Self.set(&state, on: value > 0, kind: entity.kind, id: id)
             state.brightness = value > 0 ? value : nil
+        case let .setColor(_, rgb):
+            Self.set(&state, on: true, kind: entity.kind, id: id)
+            state.color = rgb
+        case let .setColorTemperature(_, kelvin):
+            Self.set(&state, on: true, kind: entity.kind, id: id)
+            state.color = HAMapping.colorTemperatureRGB(kelvin: kelvin)
         case let .setPosition(_, value):
             state.position = min(max(value, 0), 1)
             state.raw = state.position == 0 ? "closed" : "open"
@@ -148,6 +154,36 @@ public final class HomeDemoService: HomeService {
         change(&entity.state)
         entities[id] = entity
         emit(.statesChanged([id]))
+    }
+
+    /// A fuller house for design reviews of a long favourites list: more lights (one unavailable), a second blind,
+    /// a fan and a plug. Not part of the default demo.
+    nonisolated public static let moreFavourites: [HomeEntityID] = [
+        "light.reading", "cover.bedroom_blind", "light.terrace", "fan.office", "light.bathroom", "switch.tv",
+    ].map(id)
+
+    public func addMoreDemoEntities() {
+        let now = Date.now
+        let more = [
+            HomeEntity(id: Self.id("light.reading"), name: "Reading lamp", kind: .light, areaID: "living_room",
+                       capabilities: [.toggle, .brightness, .color, .colorTemperature],
+                       state: HomeEntityState(raw: "on", isOn: true, brightness: 0.55,
+                                              color: HomeRGB(red: 0.36, green: 0.86, blue: 0.62), lastChanged: now)),
+            HomeEntity(id: Self.id("light.bathroom"), name: "Bathroom", kind: .light, areaID: "bedroom",
+                       capabilities: [.toggle, .brightness], state: HomeEntityState(raw: "off", isOn: false, lastChanged: now)),
+            HomeEntity(id: Self.id("cover.bedroom_blind"), name: "Bedroom blind", kind: .cover, deviceClass: "shade",
+                       areaID: "bedroom", capabilities: [.openClose, .position],
+                       state: HomeEntityState(raw: "closed", position: 0, lastChanged: now)),
+            HomeEntity(id: Self.id("fan.office"), name: "Desk fan", kind: .fan, areaID: "office", capabilities: [.toggle],
+                       state: HomeEntityState(raw: "on", isOn: true, lastChanged: now)),
+            HomeEntity(id: Self.id("light.terrace"), name: "Terrace", kind: .light, areaID: "entrance",
+                       capabilities: [.toggle, .brightness],
+                       state: HomeEntityState(raw: "unavailable", isAvailable: false, lastChanged: now)),
+            HomeEntity(id: Self.id("switch.tv"), name: "TV", kind: .switchable, deviceClass: "outlet", areaID: "living_room",
+                       capabilities: [.toggle], state: HomeEntityState(raw: "off", isOn: false, lastChanged: now)),
+        ]
+        for entity in more { entities[entity.id] = entity }
+        emit(.catalogChanged)
     }
 
     /// Replaces the connection state (reviews of every state of the section).

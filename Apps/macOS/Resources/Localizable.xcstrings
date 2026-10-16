@@ -1,6 +1,153 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Add them to Home Assistant and they show up in Altillo with everything else." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add them to Home Assistant and they show up in Altillo with everything else." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añádelos a Home Assistant y aparecen en Altillo con todo lo demás." } }
+      }
+    },
+    "Altillo looks for it on this network. The first time, macOS asks to allow Local Network access." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo looks for it on this network. The first time, macOS asks to allow Local Network access." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo lo busca en esta red. La primera vez, macOS pide permiso de acceso a la red local." } }
+      }
+    },
+    "Apple Home" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple Home" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Casa de Apple" } }
+      }
+    },
+    "Connected to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connected to %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conectado a %@" } }
+      }
+    },
+    "Find Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Find Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar Home Assistant" } }
+      }
+    },
+    "Home is on in the notch. Pick your favourites any time in Settings › Sections › Home." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home is on in the notch. Pick your favourites any time in Settings › Sections › Home." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Casa ya está en el notch. Elige tus favoritos cuando quieras en Ajustes › Secciones › Casa." } }
+      }
+    },
+    "Hue, Google Home, Alexa, Matter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hue, Google Home, Alexa, Matter" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hue, Google Home, Alexa, Matter" } }
+      }
+    },
+    "Lights, blinds and scenes one click away. Altillo talks to your home on your own network, nothing in between. Not for you? Skip it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Lights, blinds and scenes one click away. Altillo talks to your home on your own network, nothing in between. Not for you? Skip it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Luces, persianas y escenas a un clic. Altillo habla con tu casa en tu propia red, sin nada en medio. ¿No es para ti? Sáltatelo." } }
+      }
+    },
+    "Look Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Look Again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Volver a buscar" } }
+      }
+    },
+    "Looking on your network…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Looking on your network…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscando en tu red…" } }
+      }
+    },
+    "No Home Assistant answered on this network. Type its address, or look again." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Home Assistant answered on this network. Type its address, or look again." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ningún Home Assistant ha respondido en esta red. Escribe su dirección o vuelve a buscar." } }
+      }
+    },
+    "On the Mac, Apple only lets apps run Home through Shortcuts, so Altillo can start your scenes but can't read their state." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "On the Mac, Apple only lets apps run Home through Shortcuts, so Altillo can start your scenes but can't read their state." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En el Mac, Apple solo deja usar Casa a través de Atajos: Altillo puede lanzar tus escenas, pero no leer su estado." } }
+      }
+    },
+    "Open Local Network Settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open Local Network Settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir ajustes de red local" } }
+      }
+    },
+    "Scenes through Shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Scenes through Shortcuts" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escenas mediante Atajos" } }
+      }
+    },
+    "Sign In…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign In…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar sesión…" } }
+      }
+    },
+    "Sign in on the Home Assistant page that opened in your browser…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in on the Home Assistant page that opened in your browser…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Inicia sesión en la página de Home Assistant que se ha abierto en tu navegador…" } }
+      }
+    },
+    "Sign in to %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in to %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar sesión en %@" } }
+      }
+    },
+    "Through Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Through Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "A través de Home Assistant" } }
+      }
+    },
+    "Type an Address" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Type an Address" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Escribir una dirección" } }
+      }
+    },
+    "Your home in the notch?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your home in the notch?" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Tu casa en el notch?" } }
+      }
+    },
+    "macOS isn't letting Altillo look on your network. Allow it in System Settings › Privacy & Security › Local Network, or type the address." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "macOS isn't letting Altillo look on your network. Allow it in System Settings › Privacy & Security › Local Network, or type the address." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "macOS no deja a Altillo buscar en tu red. Permítelo en Ajustes del Sistema › Privacidad y seguridad › Red local, o escribe la dirección." } }
+      }
+    },
     "This app didn't open its menu from Altillo. Try it from the menu bar." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21946,6 +22093,469 @@
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Opening…" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Abriendo…" } }
+      }
+    },
+    "Add %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir %@" } }
+      }
+    },
+    "Add from a room" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add from a room" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir desde una estancia" } }
+      }
+    },
+    "Add to your favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add to your favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir a tus favoritos" } }
+      }
+    },
+    "Adding a Home shortcut as a tile comes in a later version. Meanwhile, the Shortcuts section runs it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Adding a Home shortcut as a tile comes in a later version. Meanwhile, the Shortcuts section runs it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir un atajo de Casa como baldosa llegará en una versión posterior. Mientras tanto, la sección Atajos lo ejecuta." } }
+      }
+    },
+    "Altillo isn't allowed on your local network, so it can't look for Home Assistant." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo isn't allowed on your local network, so it can't look for Home Assistant." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo no tiene permiso en tu red local, así que no puede buscar Home Assistant." } }
+      }
+    },
+    "Altillo reads and controls your home through Home Assistant. Whatever Home Assistant has, Altillo can show." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo reads and controls your home through Home Assistant. Whatever Home Assistant has, Altillo can show." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo lee y controla tu casa a través de Home Assistant. Lo que tenga Home Assistant, Altillo lo puede mostrar." } }
+      }
+    },
+    "Click to edit, drag to move" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Click to edit, drag to move" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Haz clic para editar, arrastra para mover" } }
+      }
+    },
+    "Connections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connections" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Conexiones" } }
+      }
+    },
+    "Guide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Guide" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Guía" } }
+      }
+    },
+    "Hidden" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hidden" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Oculta" } }
+      }
+    },
+    "Home Assistant %@ is there." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant %@ is there." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant %@ está ahí." } }
+      }
+    },
+    "Home Assistant didn't accept the token. Sign in again, or paste a new token." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant didn't accept the token. Sign in again, or paste a new token." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant no ha aceptado el token. Vuelve a iniciar sesión o pega un token nuevo." } }
+      }
+    },
+    "Home Assistant is there." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant is there." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Home Assistant está ahí." } }
+      }
+    },
+    "Icon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Icon" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Icono" } }
+      }
+    },
+    "In this order in Altillo. Drag a tile onto another to move it, click it to rename it, change its icon or size, or hide it." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "In this order in Altillo. Drag a tile onto another to move it, click it to rename it, change its icon or size, or hide it." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En este orden en Altillo. Arrastra una baldosa sobre otra para moverla; haz clic para renombrarla, cambiar su icono o tamaño, u ocultarla." } }
+      }
+    },
+    "In your favourites. Click to take it off." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "In your favourites. Click to take it off." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Está en tus favoritos. Haz clic para quitarla." } }
+      }
+    },
+    "Its own icon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Its own icon" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Su propio icono" } }
+      }
+    },
+    "Lights, plugs, blinds, scenes and sensors, live." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Lights, plugs, blinds, scenes and sensors, live." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Luces, enchufes, persianas, escenas y sensores, en directo." } }
+      }
+    },
+    "Locks, alarms and garage doors can't be favourites yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Locks, alarms and garage doors can't be favourites yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Las cerraduras, alarmas y puertas de garaje aún no pueden ser favoritos." } }
+      }
+    },
+    "Looking…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Looking…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscando…" } }
+      }
+    },
+    "Looks for Home Assistant on your network again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Looks for Home Assistant on your network again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Vuelve a buscar Home Assistant en tu red" } }
+      }
+    },
+    "Name" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Name" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Nombre" } }
+      }
+    },
+    "No Home Assistant answered on this network. Type its address below." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Home Assistant answered on this network. Type its address below." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ningún Home Assistant ha respondido en esta red. Escribe su dirección abajo." } }
+      }
+    },
+    "No favourites yet. Add them from a room below, or let Altillo suggest some." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No favourites yet. Add them from a room below, or let Altillo suggest some." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay favoritos. Añádelos desde una estancia aquí abajo o deja que Altillo te sugiera algunos." } }
+      }
+    },
+    "Not connected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not connected" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Sin conexión" } }
+      }
+    },
+    "Not in Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not in Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "No está en Home Assistant" } }
+      }
+    },
+    "Not set up yet." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not set up yet." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún sin configurar." } }
+      }
+    },
+    "Opens Home Assistant's own sign-in page. No token to copy." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens Home Assistant's own sign-in page. No token to copy." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre la página de inicio de sesión de Home Assistant. Sin tokens que copiar." } }
+      }
+    },
+    "Opens its settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens its settings" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre sus ajustes" } }
+      }
+    },
+    "Opens this Home Assistant's sign-in page in your browser" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opens this Home Assistant's sign-in page in your browser" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abre la página de inicio de sesión de este Home Assistant en tu navegador" } }
+      }
+    },
+    "Runs scenes through Shortcuts. The Mac can't read Home's state." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Runs scenes through Shortcuts. The Mac can't read Home's state." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ejecuta escenas con Atajos. El Mac no puede leer el estado de Casa." } }
+      }
+    },
+    "Search Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Search Again" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Buscar de nuevo" } }
+      }
+    },
+    "Show in Altillo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show in Altillo" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar en Altillo" } }
+      }
+    },
+    "Sign in with Home Assistant" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in with Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Iniciar sesión con Home Assistant" } }
+      }
+    },
+    "Small" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Small" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pequeña" } }
+      }
+    },
+    "Takes it off your favourites" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Takes it off your favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "La quita de tus favoritos" } }
+      }
+    },
+    "Through Home Assistant today; direct pairing later." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Through Home Assistant today; direct pairing later." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Hoy a través de Home Assistant; emparejado directo más adelante." } }
+      }
+    },
+    "Through Home Assistant." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Through Home Assistant." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "A través de Home Assistant." } }
+      }
+    },
+    "Trust and Sign In" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Trust and Sign In" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Confiar e iniciar sesión" } }
+      }
+    },
+    "Use a token instead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Use a token instead" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Usar un token" } }
+      }
+    },
+    "Waiting for you in the browser…" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Waiting for you in the browser…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Esperándote en el navegador…" } }
+      }
+    },
+    "Add to Favourites" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Add to Favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Añadir a favoritos" } }
+      }
+    },
+    "Altillo picked %lld to start" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Altillo picked %lld to start" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Altillo ha elegido %lld para empezar" } }
+      }
+    },
+    "Back (Esc)" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Back (Esc)" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Atrás (Esc)" } }
+      }
+    },
+    "Blue" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Blue" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Azul" } }
+      }
+    },
+    "Brightness" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Brightness" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Brillo" } }
+      }
+    },
+    "Change" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Change" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cambiar" } }
+      }
+    },
+    "Colour" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Colour" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Color" } }
+      }
+    },
+    "Cyan" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cyan" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cian" } }
+      }
+    },
+    "Default" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Default" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Predeterminado" } }
+      }
+    },
+    "Green" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Green" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Verde" } }
+      }
+    },
+    "No favourites yet" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "No favourites yet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aún no hay favoritos" } }
+      }
+    },
+    "Nothing to switch here" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Nothing to switch here" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Aquí no hay nada que encender" } }
+      }
+    },
+    "Open in Home Assistant" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Open in Home Assistant" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abrir en Home Assistant" } }
+      }
+    },
+    "Orange" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Orange" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Naranja" } }
+      }
+    },
+    "Pick a room above and right-click a tile to add it, or choose them in Settings." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pick a room above and right-click a tile to add it, or choose them in Settings." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Elige una estancia arriba y haz clic derecho en una baldosa para añadirla, o elígelas en Ajustes." } }
+      }
+    },
+    "Pink" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Pink" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Rosa" } }
+      }
+    },
+    "Position" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Position" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Posición" } }
+      }
+    },
+    "Red" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Red" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Rojo" } }
+      }
+    },
+    "Remove from Favourites" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Remove from Favourites" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Quitar de favoritos" } }
+      }
+    },
+    "Rename…" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rename…" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Renombrar…" } }
+      }
+    },
+    "Show Controls" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Show Controls" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Mostrar controles" } }
+      }
+    },
+    "This room only has scenes and sensors." : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This room only has scenes and sensors." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "En esta estancia solo hay escenas y sensores." } }
+      }
+    },
+    "Turn Off" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Turn Off" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apagar" } }
+      }
+    },
+    "Turn On" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Turn On" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Encender" } }
+      }
+    },
+    "Violet" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Violet" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Violeta" } }
+      }
+    },
+    "Warmth" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Warmth" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Calidez" } }
+      }
+    },
+    "Yellow" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Yellow" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Amarillo" } }
+      }
+    },
+    "home.tileSize.small" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Small" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Pequeña" } }
+      }
+    },
+    "home.tileSize.wide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Wide" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Ancha" } }
       }
     }
   },

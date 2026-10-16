@@ -130,6 +130,10 @@ public enum HomeCommand: Hashable, Sendable {
     case turnOff(HomeEntityID)
     /// 0…1. 0 turns the light off.
     case setBrightness(HomeEntityID, Double)
+    /// Lights that support colour: the RGB the bulb should show (turns it on).
+    case setColor(HomeEntityID, HomeRGB)
+    /// Lights with a colour temperature: the white's warmth in kelvin (turns it on).
+    case setColorTemperature(HomeEntityID, kelvin: Double)
     /// 0…1, 0 = closed.
     case setPosition(HomeEntityID, Double)
     case open(HomeEntityID)
@@ -141,7 +145,7 @@ public enum HomeCommand: Hashable, Sendable {
     public var entityID: HomeEntityID {
         switch self {
         case .toggle(let id), .turnOn(let id), .turnOff(let id), .setBrightness(let id, _), .setPosition(let id, _),
-             .open(let id), .close(let id), .stop(let id), .activate(let id): id
+             .setColor(let id, _), .setColorTemperature(let id, _), .open(let id), .close(let id), .stop(let id), .activate(let id): id
         }
     }
 }

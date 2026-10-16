@@ -36,6 +36,11 @@ final class HomeStore {
     private(set) var connectError: String?
     /// A server waiting for "Trust this certificate": kept in memory only, never saved until the connection works.
     private(set) var untrustedServer: HomeServerConfig?
+    /// The area chip being explored in the notch (`watchArea`), nil on a page. Its entities are watched meanwhile.
+    var selectedArea: String?
+    /// How many favourites the first-connect suggestions picked, while the one-time "Altillo picked N to start ·
+    /// Change" hint should show; 0 once dismissed or when the user edits Favourites (`HomeStore+Layout.swift`).
+    var autoSuggestedCount = 0
 
     /// Injected so tests control time, throttling and how the address is read.
     @ObservationIgnored var now: () -> Date = { .now }
@@ -47,6 +52,8 @@ final class HomeStore {
     static let ringFreshness: TimeInterval = 120
     /// "Suggest favourites" picks at most this many.
     static let suggestionLimit = 8
+    /// The most entities an explored area adds to the watch set.
+    static let areaWatchLimit = 40
 
     /// The colour each light last showed, so one turning on glows with it before the server confirms.
     @ObservationIgnored private var lastColors: [HomeEntityID: HomeRGB] = [:]
@@ -88,6 +95,8 @@ final class HomeStore {
             drags.values.forEach { $0.task?.cancel() }
             drags.removeAll()
             pending.removeAll()
+            selectedArea = nil
+            autoSuggestedCount = 0
             hasWatched = false
             watched = []
             service.disconnect(forget: false)
@@ -114,10 +123,12 @@ final class HomeStore {
                 server.name = serverName
                 settings.homeServer = server
             }
+            autoSuggestIfNeeded()
             refreshWatch()
             scheduleEar()
         case .catalogChanged:
             for entity in service.entities.values where entity.kind == .light { remember(entity.state, for: entity.id) }
+            autoSuggestIfNeeded()
             refreshWatch()
             scheduleEar()
         case let .statesChanged(ids):
@@ -203,6 +214,7 @@ final class HomeStore {
         settings.homeServer = config
         untrustedServer = nil
         if isModuleEnabled { listen() }
+        autoSuggestIfNeeded()
         refreshWatch()
         scheduleEar()
     }
@@ -213,12 +225,16 @@ final class HomeStore {
         service.resume(server)
     }
 
-    /// Disconnect: closes the connection, deletes the token and forgets this server's favourites and doorbell.
+    /// Disconnect: closes the connection, deletes the token and forgets this server's layout and doorbell. The next
+    /// server gets its own first-connect suggestions.
     func forget() {
         service.disconnect(forget: true)
         settings.homeServer = nil
         untrustedServer = nil
-        settings.homeFavourites = []
+        settings.homeLayout = HomeLayout()
+        settings.homeDidAutoSuggest = false
+        autoSuggestedCount = 0
+        selectedArea = nil
         settings.homeDoorbellTrigger = nil
         settings.homeDoorbellCamera = nil
         pending.removeAll()
@@ -257,17 +273,13 @@ final class HomeStore {
 
     static let warmWhite = HomeRGB(red: 1, green: 0.78, blue: 0.5)
 
-    // MARK: - Favourites
+    // MARK: - Favourites (H1 API, kept for existing callers; the layout API is in HomeStore+Layout.swift)
 
-    var favouriteIDs: [HomeEntityID] {
-        settings.homeFavourites.compactMap(HomeEntityID.init(rawValue:))
-    }
+    /// Favourites' entities in order, hidden tiles included.
+    var favouriteIDs: [HomeEntityID] { settings.homeLayout.favouriteEntities }
 
-    /// The favourites the server knows about, in the user's order.
-    var favourites: [HomeEntity] {
-        let entities = service.entities
-        return favouriteIDs.compactMap { entities[$0] }.filter(Self.canFavourite)
-    }
+    /// The favourites the notch shows: known to the server, favouritable, not hidden, in the user's order.
+    var favourites: [HomeEntity] { tiles(onPage: nil).map(\.entity) }
 
     /// Areas holding at least one favourite, in the server's order: the chips above the tiles.
     var favouriteAreas: [HomeArea] {
@@ -275,75 +287,17 @@ final class HomeStore {
         return service.areas.filter { used.contains($0.id) }
     }
 
-    func isFavourite(_ id: HomeEntityID) -> Bool { settings.homeFavourites.contains(id.rawValue) }
-
     func setFavourite(_ id: HomeEntityID, _ isFavourite: Bool) {
-        if isFavourite {
-            guard !settings.homeFavourites.contains(id.rawValue) else { return }
-            settings.homeFavourites.append(id.rawValue)
-        } else {
-            settings.homeFavourites.removeAll { $0 == id.rawValue }
-        }
-        refreshWatch()
+        if isFavourite { addFavourite(id) } else { removeFavourite(id) }
     }
 
     /// Settings › Home: a favourite dragged onto another lands just before it (or after it, coming from above).
     func moveFavourite(_ id: HomeEntityID, onto target: HomeEntityID) {
-        var list = settings.homeFavourites
-        guard id != target, let source = list.firstIndex(of: id.rawValue),
-              let destination = list.firstIndex(of: target.rawValue) else { return }
-        let item = list.remove(at: source)
-        list.insert(item, at: destination)
-        settings.homeFavourites = list
+        moveTile(from: id, to: target)
     }
 
     func moveFavourites(fromOffsets source: IndexSet, toOffset destination: Int) {
-        var list = settings.homeFavourites
-        list.move(fromOffsets: source, toOffset: destination)
-        settings.homeFavourites = list
-    }
-
-    /// A first selection: real lights, plugs, blinds and scenes that live in an area (no helpers, no diagnostics,
-    /// nothing dangerous), area by area, lights first. At most `suggestionLimit`.
-    func suggestedFavourites() -> [HomeEntityID] {
-        let order: [HomeEntityKind] = [.light, .cover, .switchable, .scene]
-        let areaOrder = Dictionary(uniqueKeysWithValues: service.areas.enumerated().map { ($1.id, $0) })
-        let candidates = service.entities.values.filter { entity in
-            order.contains(entity.kind) && !entity.isTechnical && !entity.isDangerous
-                && entity.areaID.map { areaOrder[$0] != nil } == true
-        }
-        let sorted = candidates.sorted { a, b in
-            let areaA = areaOrder[a.areaID ?? ""] ?? .max, areaB = areaOrder[b.areaID ?? ""] ?? .max
-            if areaA != areaB { return areaA < areaB }
-            let kindA = order.firstIndex(of: a.kind) ?? 0, kindB = order.firstIndex(of: b.kind) ?? 0
-            if kindA != kindB { return kindA < kindB }
-            return a.name.localizedStandardCompare(b.name) == .orderedAscending
-        }
-        // One from each area before a second from any, so a big living room doesn't take every slot.
-        var byArea: [[HomeEntity]] = []
-        for entity in sorted {
-            if let index = byArea.firstIndex(where: { $0.first?.areaID == entity.areaID }) {
-                byArea[index].append(entity)
-            } else {
-                byArea.append([entity])
-            }
-        }
-        var picked: [HomeEntityID] = []
-        var round = 0
-        while picked.count < Self.suggestionLimit, byArea.contains(where: { $0.count > round }) {
-            for group in byArea where group.count > round && picked.count < Self.suggestionLimit {
-                picked.append(group[round].id)
-            }
-            round += 1
-        }
-        return picked
-    }
-
-    /// Adds the suggestions that aren't favourites yet, after the ones the user already has.
-    func applySuggestions() {
-        let existing = Set(settings.homeFavourites)
-        settings.homeFavourites += suggestedFavourites().map(\.rawValue).filter { !existing.contains($0) }
-        refreshWatch()
+        moveTiles(fromOffsets: source, toOffset: destination)
     }
 
     // MARK: - Doorbell
@@ -631,10 +585,12 @@ final class HomeStore {
         settings.homeServer.map { HomeEntityID(provider: "ha", serverID: $0.serverID, localID: "zone.home") }
     }
 
-    /// What the service keeps live: favourites, the doorbell, `zone.home`, the doors the ear watches and, while
+    /// What the service keeps live: shown tiles, the explored area, the doorbell, `zone.home`, the doors the ear watches and, while
     /// nobody's home, every light (to count the ones left on).
+    /// Plus the shown tiles of every page and, while one is explored, the area's entities (`watchArea`).
     func watchSet() -> Set<HomeEntityID> {
-        var ids = Set(favouriteIDs)
+        var ids = Set(settings.homeLayout.pages.flatMap { $0.visibleTiles.map(\.entity) })
+        ids.formUnion(areaWatchSet())
         if let doorbellTrigger { ids.insert(doorbellTrigger) }
         if let zoneID { ids.insert(zoneID) }
         let entities = service.entities

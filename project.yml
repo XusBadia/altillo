@@ -76,6 +76,10 @@ targets:
         # Home (docs/casa.md): plain http to a Home Assistant on the local network (homeassistant.local:8123).
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: YES
+        # Home discovery (docs/casa-v2.md §4): NWBrowser for Home Assistant's Bonjour service. macOS refuses to browse
+        # a service type that isn't listed here.
+        NSBonjourServices:
+          - _home-assistant._tcp
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX)

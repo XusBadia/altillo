@@ -175,6 +175,228 @@ struct HomeTests {
         #expect(service.entities[suggested[0]]?.areaID != service.entities[suggested[1]]?.areaID)
     }
 
+    // MARK: Layout (docs/casa-v2.md)
+
+    static func entity(_ local: String, _ kind: HomeEntityKind, area: String? = "living", name: String? = nil,
+                       technical: Bool = false, dangerous: Bool = false) -> HomeEntity {
+        HomeEntity(id: id(local), name: name ?? local, kind: kind, areaID: area, isDangerous: dangerous,
+                   isTechnical: technical, state: HomeEntityState(raw: "off", isOn: false))
+    }
+
+    @Test func h1FavouritesMigrateIntoTheLayoutOnce() throws {
+        TestDefaultsJanitor.purgeStale()
+        let name = "me.badia.altillo.tests.home-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: name)!
+        defaults.removePersistentDomain(forName: name)
+        let a = Self.id("light.a"), b = Self.id("light.b")
+        defaults.set([a.rawValue, "garbage", b.rawValue], forKey: "homeFavourites")
+        let settings = AltilloSettings(defaults: defaults)
+        #expect(settings.homeLayout.favouriteEntities == [a, b])
+        #expect(settings.homeFavourites == [a.rawValue, b.rawValue])
+        #expect(defaults.object(forKey: "homeFavourites") == nil, "the H1 key is gone after migrating")
+        #expect(defaults.data(forKey: "homeLayout") != nil)
+        #expect(!settings.homeDidAutoSuggest)
+
+        // A later launch reads the layout, even if an old build wrote the H1 key again.
+        settings.homeLayout.update(a) { $0.name = "Lamp" }
+        defaults.set([b.rawValue], forKey: "homeFavourites")
+        let reloaded = AltilloSettings(defaults: defaults)
+        #expect(reloaded.homeLayout.favouriteEntities == [a, b])
+        #expect(reloaded.homeLayout.tile(for: a)?.name == "Lamp")
+    }
+
+    @Test func theFavouritesShimKeepsOverrides() {
+        let (settings, defaults) = makeSettings()
+        let a = Self.id("light.a"), b = Self.id("light.b"), c = Self.id("light.c")
+        settings.homeFavourites = [a.rawValue, b.rawValue]
+        settings.homeLayout.update(b) { $0.symbol = "lamp.desk.fill"; $0.size = .wide; $0.isHidden = true }
+        settings.homeFavourites = [c.rawValue, b.rawValue, "nope"]
+        #expect(settings.homeFavourites == [c.rawValue, b.rawValue])
+        let tile = settings.homeLayout.tile(for: b)
+        #expect(tile?.symbol == "lamp.desk.fill")
+        #expect(tile?.size == .wide)
+        #expect(tile?.isHidden == true)
+        #expect(AltilloSettings(defaults: defaults).homeLayout == settings.homeLayout)
+    }
+
+    @Test func tileOverridesPersistAndResolve() {
+        let (settings, defaults) = makeSettings()
+        let service = FakeHomeService()
+        let store = HomeStore(service: service, settings: settings)
+        let lamp = Self.light("light.lamp"), desk = Self.light("light.desk")
+        let lock = Self.entity("lock.door", .lock, dangerous: true)
+        [lamp, desk, lock].forEach(service.add)
+        store.addFavourite(lamp.id)
+        store.addFavourite(desk.id)
+        store.addFavourite(lock.id)
+        store.addFavourite(Self.id("light.gone"))
+        store.rename(lamp.id, to: "  Reading lamp ")
+        store.setSymbol(lamp.id, "lamp.floor.fill")
+        store.setSize(lamp.id, .wide)
+        store.setHidden(desk.id, true)
+        let tiles = store.tiles(onPage: nil)
+        #expect(tiles.map(\.id) == [lamp.id], "hidden, dangerous and unknown entities are skipped")
+        #expect(tiles.first?.name == "Reading lamp")
+        #expect(tiles.first?.symbol == "lamp.floor.fill")
+        #expect(tiles.first?.size == .wide)
+        #expect(store.favourites.map(\.id) == [lamp.id])
+        #expect(store.favouriteIDs.count == 4, "hidden tiles stay in Favourites")
+        store.rename(lamp.id, to: "light.lamp")
+        #expect(store.tile(for: lamp.id)?.name == nil, "the entity's own name clears the override")
+        store.rename(lamp.id, to: "Lamp")
+
+        let reloaded = AltilloSettings(defaults: defaults).homeLayout
+        #expect(reloaded.tile(for: lamp.id)?.name == "Lamp")
+        #expect(reloaded.tile(for: lamp.id)?.size == .wide)
+        #expect(reloaded.tile(for: desk.id)?.isHidden == true)
+
+        store.moveTile(from: desk.id, to: lamp.id)
+        #expect(store.favouriteIDs.prefix(2) == [desk.id, lamp.id])
+        store.removeFavourite(lamp.id)
+        #expect(!store.isFavourite(lamp.id))
+        store.addFavourite(lamp.id)
+        #expect(store.tile(for: lamp.id)?.name == nil, "removing drops the overrides")
+    }
+
+    @Test func areasListWhatsWorthATileFavouritesFirst() {
+        let (store, service, _) = makeStore()
+        service.add(Self.entity("light.b", .light, name: "B lamp"))
+        service.add(Self.entity("light.a", .light, name: "A lamp"))
+        service.add(Self.entity("cover.blind", .cover))
+        service.add(Self.entity("switch.plug", .switchable))
+        service.add(Self.entity("fan.fan", .fan))
+        service.add(Self.entity("scene.movie", .scene))
+        service.add(Self.entity("script.night", .script))
+        service.add(Self.entity("sensor.temp", .sensor))
+        service.add(Self.entity("light.helper", .light, technical: true))
+        service.add(Self.entity("cover.garage", .cover, dangerous: true))
+        service.add(Self.entity("light.hall", .light, area: "hall"))
+        store.addFavourite(Self.id("scene.movie"))
+        store.addFavourite(Self.id("sensor.temp"))
+        #expect(store.entities(inArea: "living").map(\.id.localID) == [
+            "scene.movie", "sensor.temp", "light.a", "light.b", "cover.blind", "switch.plug", "fan.fan", "script.night",
+        ])
+        #expect(store.tiles(inArea: "hall").map(\.id) == [Self.id("light.hall")])
+    }
+
+    @Test func exploringAnAreaWatchesItsEntitiesCappedAndOnlyWhenChanged() {
+        final class CountingService: HomeService {
+            let base = FakeHomeService()
+            var watchCalls = 0
+            var connection: HomeConnectionState { base.connection }
+            var areas: [HomeArea] { base.areas }
+            var entities: [HomeEntityID: HomeEntity] { base.entities }
+            func events() -> AsyncStream<HomeServiceEvent> { base.events() }
+            func connect(_ config: HomeServerConfig, token: String) async throws {}
+            func resume(_ config: HomeServerConfig) {}
+            func trustCertificate(_ fingerprintSHA256: String) async throws -> HomeServerConfig { throw HomeServiceError("") }
+            func disconnect(forget: Bool) {}
+            func watch(_ ids: Set<HomeEntityID>) { watchCalls += 1; base.watched = ids }
+            func perform(_ command: HomeCommand) async throws {}
+            func snapshot(camera: HomeEntityID) async throws -> Data { Data() }
+        }
+        let (settings, _) = makeSettings()
+        settings.homeDidAutoSuggest = true
+        let service = CountingService()
+        for index in 0..<50 { service.base.add(Self.light("light.l\(String(format: "%02d", index))")) }
+        service.base.add(Self.light("light.hall", area: "hall"))
+        let store = HomeStore(service: service, settings: settings)
+        store.addFavourite(Self.id("light.hall"))
+        store.setModuleEnabled(true)
+        let calls = service.watchCalls
+        #expect(service.base.watched.contains(Self.id("light.hall")))
+
+        store.watchArea("living")
+        #expect(store.selectedArea == "living")
+        let living = service.base.watched.filter { $0.localID.hasPrefix("light.l") }
+        #expect(living.count == HomeStore.areaWatchLimit)
+        #expect(service.watchCalls == calls + 1)
+
+        store.watchArea("living")
+        store.handle(.catalogChanged)
+        #expect(service.watchCalls == calls + 1, "same set: no resubscription")
+
+        store.watchArea("hall")
+        #expect(service.watchCalls == calls + 2)
+        #expect(!service.base.watched.contains(Self.id("light.l00")))
+        #expect(service.watchCalls == calls + 2)
+        store.watchArea(nil)
+        #expect(service.watchCalls == calls + 2, "the hall's light is a favourite: nothing changed")
+        #expect(service.base.watched.contains(Self.id("light.hall")))
+
+        store.watchArea("living")
+        store.setModuleEnabled(false)
+        #expect(store.selectedArea == nil, "closing the section stops exploring")
+    }
+
+    @Test func suggestionsPutLightsFirstOnePerAreaThenBlindsAndSwitches() {
+        let (store, service, _) = makeStore()
+        service.areas = [HomeArea(id: "living", name: "Living"), HomeArea(id: "hall", name: "Hall"),
+                         HomeArea(id: "office", name: "Office")]
+        for index in 0..<3 { service.add(Self.light("light.living\(index)", area: "living")) }
+        service.add(Self.light("light.hall", area: "hall"))
+        service.add(Self.entity("cover.office", .cover, area: "office"))
+        service.add(Self.entity("switch.office", .switchable, area: "office"))
+        service.add(Self.entity("cover.garage", .cover, area: "hall", dangerous: true))
+        service.add(Self.entity("scene.living", .scene, area: "living"))
+        service.add(Self.entity("script.living", .script, area: "living"))
+        let picked = store.suggestedFavourites().map(\.localID)
+        #expect(picked == ["light.living0", "light.hall", "light.living1", "light.living2",
+                           "cover.office", "switch.office", "scene.living"])
+    }
+
+    @Test func suggestionsRunOnTheirOwnOnceOnFirstConnect() {
+        let (store, service, settings) = makeStore()
+        service.add(Self.light("light.a"))
+        service.add(Self.light("light.b", area: "hall"))
+        store.setModuleEnabled(true)
+        store.handle(.connectionChanged)
+        #expect(settings.homeDidAutoSuggest)
+        #expect(store.favouriteIDs == [Self.id("light.a"), Self.id("light.b")])
+        #expect(store.didAutoSuggest)
+        #expect(store.autoSuggestedCount == 2)
+        #expect(service.watched.isSuperset(of: [Self.id("light.a"), Self.id("light.b")]))
+        store.dismissAutoSuggestHint()
+        #expect(!store.didAutoSuggest)
+
+        // Emptied by the user: never refilled on its own.
+        store.removeFavourite(Self.id("light.a"))
+        store.removeFavourite(Self.id("light.b"))
+        store.handle(.connectionChanged)
+        store.handle(.catalogChanged)
+        #expect(store.favouriteIDs.isEmpty)
+    }
+
+    @Test func suggestionsDontRunForExistingFavouritesOrWithoutACatalogue() {
+        let (store, service, settings) = makeStore()
+        store.setModuleEnabled(true)
+        store.handle(.connectionChanged)
+        #expect(!settings.homeDidAutoSuggest, "nothing loaded yet: wait for the catalogue")
+
+        service.connection = .unreachable(reason: "Away.")
+        service.add(Self.light("light.a"))
+        store.handle(.catalogChanged)
+        #expect(!settings.homeDidAutoSuggest, "not connected")
+
+        service.connection = .connected(serverName: "Casa", version: "2026.10")
+        settings.homeFavourites = [Self.id("light.z").rawValue]
+        store.handle(.connectionChanged)
+        #expect(settings.homeDidAutoSuggest)
+        #expect(store.favouriteIDs == [Self.id("light.z")], "an H1 user's favourites are left alone")
+        #expect(!store.didAutoSuggest)
+    }
+
+    @Test func layoutMetricsFollowTheSpec() {
+        let seven = HomeStore.layoutMetrics(count: 7, availableHeight: 168)
+        #expect((seven.columns, seven.rows, seven.tileHeight, seven.scrolls) == (4, 2, 84, false))
+        let three = HomeStore.layoutMetrics(count: 3, availableHeight: 300)
+        #expect((three.columns, three.rows, three.tileHeight) == (3, 1, 88))
+        let nine = HomeStore.layoutMetrics(count: 9, availableHeight: 168)
+        #expect((nine.columns, nine.rows, nine.tileHeight, nine.scrolls) == (4, 3, 64, true))
+        let wide = HomeStore.layoutMetrics(sizes: [.wide, .wide, .small], availableHeight: 168)
+        #expect((wide.columns, wide.rows) == (3, 2), "two wides don't fit in three columns")
+    }
+
     // MARK: Watching
 
     @Test func watchesFavouritesDoorbellZoneAndDoors() {
@@ -381,6 +603,9 @@ struct HomeTests {
         #expect(service.disconnects == [true])
         #expect(settings.homeServer == nil)
         #expect(settings.homeFavourites.isEmpty)
+        #expect(settings.homeLayout == HomeLayout(pages: settings.homeLayout.pages))
+        #expect(settings.homeLayout.pages.count == 1)
+        #expect(!settings.homeDidAutoSuggest, "the next server gets its own suggestions")
         #expect(settings.homeDoorbellTrigger == nil)
     }
 

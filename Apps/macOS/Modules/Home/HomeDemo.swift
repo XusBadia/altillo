@@ -20,6 +20,27 @@ extension HomeStore {
         return store
     }
 
+    /// The `-demoHome` design reviews: two favourites with the "picked for you" hint, or twelve (a fuller demo
+    /// house). Does nothing on a real home.
+    func applyDesignDemo(_ demo: DesvanHomeDemo) {
+        guard let service = service as? HomeDemoService else { return }
+        switch demo {
+        case .few:
+            settings.homeLayout = HomeLayout(favourites: [
+                HomeDemoService.id("light.living_room_lamp"), HomeDemoService.id("cover.living_room_blind"),
+                HomeDemoService.id("scene.movie"), HomeDemoService.id("sensor.living_room_temperature"),
+            ])
+            autoSuggestedCount = 2
+        case .many:
+            service.addMoreDemoEntities()
+            let tiles = HomeDemoService.suggestedFavourites.filter { !$0.localID.hasPrefix("binary_sensor") }
+            settings.homeLayout = HomeLayout(favourites: tiles + HomeDemoService.moreFavourites.prefix(4))
+        case .area, .detail, .blind:
+            break
+        }
+        refreshWatch()
+    }
+
     /// The demo doorbell rings (design scenario "Peek: doorbell"). Does nothing on a real home.
     func ringDemoDoorbell() {
         guard let demo = service as? HomeDemoService else { return }

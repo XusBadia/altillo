@@ -11,6 +11,8 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Sendable {
     case preset
     /// AI providers and coding agents found on this Mac, and the offer to install the hooks.
     case aiTools
+    /// "Your home in the notch?": Home Assistant found and signed in to right there; skippable (docs/casa-v2.md §4).
+    case home
     /// The system permissions the chosen sections need, one at a time.
     case permissions
     /// Shortcuts and gestures, and "Open at login".
@@ -26,6 +28,7 @@ enum OnboardingStep: Int, CaseIterable, Identifiable, Sendable {
         case .hello: String(localized: "Hello")
         case .preset: String(localized: "Starting point")
         case .aiTools: String(localized: "AI tools")
+        case .home: String(localized: "Home")
         case .permissions: String(localized: "Permissions")
         case .tricks: String(localized: "Tricks")
         case .done: String(localized: "Ready")
@@ -130,7 +133,7 @@ enum OnboardingLogic {
 
     static func applies(_ step: OnboardingStep, to context: OnboardingContext) -> Bool {
         switch step {
-        case .hello, .preset, .tricks, .done:
+        case .hello, .preset, .home, .tricks, .done:
             true
         case .aiTools:
             wantsAITools(context.modules) && !context.detection.foundNothing

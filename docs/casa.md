@@ -13,6 +13,13 @@ La interfaz está en inglés (**Home**); en español la llamamos **Casa**. Es un
 
 En el notch: clic alterna, arrastrar en horizontal atenúa una luz o mueve una persiana. Con el notch cerrado, la oreja avisa de una puerta abierta más de 10 min o de luces encendidas sin nadie en casa (`zone.home`).
 
+## Conectar (H2)
+
+- **Descubrir** (`HomeDiscovery`, en `AltilloHome`): `discover()` busca 2 s a la vez por Bonjour (`_home-assistant._tcp`, declarado en `NSBonjourServices`; TXT `uuid`, `location_name`, `version`, `internal_url`/`base_url`/`external_url`) y en `http://homeassistant.local:8123`; deduplica por `uuid` y luego por dirección. Arranca solo con un clic, porque es lo que hace saltar el aviso de red local de macOS. `validate(url)` comprueba sin token (`/api/onboarding` y `/manifest.json`, versión por el saludo del WebSocket) y distingue «no es HA», «no responde», http remoto bloqueado por ATS, red local denegada y certificado propio.
+- **Iniciar sesión** (`HomeAuthFlow.signIn(to:)`): OAuth con PKCE (S256) y redirección a un puerto efímero de `127.0.0.1` que hace de `client_id` y de `redirect_uri` (mismo origen, así HA no descarga nada y no hace falta web). El navegador muestra el login de HA; vuelve con el código, se cambia en `/auth/token` y, con ese token de 30 min, se pide por WebSocket uno de larga duración («Altillo (nombre del Mac)», 3650 días; si el nombre ya existe se añade la fecha). Ese token va al Llavero como el pegado; la sesión corta se revoca. 5 min de plazo, cancelable. HA 2026.10 valida PKCE de verdad (`code_verifier` en `/auth/token`).
+- **Bienvenida:** página «¿Tu casa en el notch?» después de la de herramientas de IA (se puede saltar): busca, inicia sesión, enciende la sección Home y conecta. Apple Home (escenas con Atajos) y «Hue, Google Home, Alexa, Matter: a través de Home Assistant» son filas informativas.
+- **Laboratorio:** `HomeAuthFlowLabTests` recorre el inicio de sesión entero contra el HA de `script/home-lab.sh` sustituyendo el navegador por la API de login de HA (`/auth/login_flow`).
+
 **Desarrollo sin casa real:** `script/home-lab.sh up` levanta un HA de demostración en `http://localhost:8124` (usuario `altillo`, token en `~/Library/Caches/altillo-home-lab/token`); `down` lo para y `reset` lo borra. La prueba contra él: `ALTILLO_HOME_LAB_TOKEN=$(cat ~/Library/Caches/altillo-home-lab/token) swift test --filter HomeAssistantLabTests` en `Packages/AltilloKit`. Escenarios de diseño: `-designScenario openHome` y `-designScenario peekDoorbell`.
 
 ## Por qué

@@ -284,6 +284,12 @@ import Testing
                               "service_data": ["brightness_pct": 46], "target": ["entity_id": "light.salon"]])
         try await expectCall(.setBrightness(harness.id("light.salon"), 0),
                              ["type": "call_service", "domain": "light", "service": "turn_off", "target": ["entity_id": "light.salon"]])
+        try await expectCall(.setColor(harness.id("light.salon"), HomeRGB(red: 1, green: 0, blue: 0.5)),
+                             ["type": "call_service", "domain": "light", "service": "turn_on",
+                              "service_data": ["rgb_color": [255, 0, 128]], "target": ["entity_id": "light.salon"]])
+        try await expectCall(.setColorTemperature(harness.id("light.salon"), kelvin: 4000),
+                             ["type": "call_service", "domain": "light", "service": "turn_on",
+                              "service_data": ["color_temp_kelvin": 4000], "target": ["entity_id": "light.salon"]])
         try await expectCall(.setPosition(harness.id("cover.garaje"), 0.5),
                              ["type": "call_service", "domain": "cover", "service": "set_cover_position",
                               "service_data": ["position": 50], "target": ["entity_id": "cover.garaje"]])
