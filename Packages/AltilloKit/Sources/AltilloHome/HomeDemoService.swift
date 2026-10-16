@@ -186,6 +186,21 @@ public final class HomeDemoService: HomeService {
         emit(.catalogChanged)
     }
 
+    #if DEBUG
+    /// Promo video only (promo/CASA.md): renames demo devices and rooms (by local id / area id), e.g. into Spanish.
+    public func rename(entities names: [String: String], areas areaNames: [String: String]) {
+        for (id, var entity) in entities {
+            if let name = names[id.localID] { entity.name = name; entities[id] = entity }
+        }
+        areas = areas.map { area in
+            var area = area
+            if let name = areaNames[area.id] { area.name = name }
+            return area
+        }
+        emit(.catalogChanged)
+    }
+    #endif
+
     /// Replaces the connection state (reviews of every state of the section).
     public func setConnection(_ state: HomeConnectionState) {
         connection = state

@@ -22085,7 +22085,7 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Open %@" } },
-        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abierto %@" } }
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Apertura %@" } }
       }
     },
     "home.state.opening" : {
