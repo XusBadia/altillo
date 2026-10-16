@@ -67,7 +67,8 @@ extension HomeStore {
     /// An area's entities as tiles, carrying Favourites' overrides (name, symbol, size) where there are some.
     func tiles(inArea areaID: String) -> [HomeResolvedTile] {
         let layout = settings.homeLayout
-        return entities(inArea: areaID).map { entity in
+        // Only as many as are watched (`areaWatchLimit`), so every tile shown stays live.
+        return entities(inArea: areaID).prefix(Self.areaWatchLimit).map { entity in
             HomeResolvedTile(tile: layout.tile(for: entity.id) ?? HomeTile(entity: entity.id), entity: entity)
         }
     }

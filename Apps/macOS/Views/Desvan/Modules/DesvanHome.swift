@@ -138,8 +138,10 @@ struct DesvanHomeView: View {
         let tiles = all.filter { !$0.entity.kind.isAction && $0.entity.kind != .sensor && $0.entity.kind != .binarySensor }
         let spacing: CGFloat = 8
         let metrics = HomeGridMetrics(sizes: tiles.map(\.size), availableHeight: gridSize.height, spacing: spacing)
-        // One row only: the plates take the whole height rather than leave the notch's black showing below them.
-        let height = metrics.rows == 1 ? max(gridSize.height - 4, HomeGridMetrics.minTileHeight) : metrics.tileHeight
+        // One row only: taller plates (up to 110 pt), centred in the space, rather than stretched bare wood.
+        let singleRow = metrics.rows == 1
+        let height = singleRow ? min(max(gridSize.height - 4, HomeGridMetrics.minTileHeight), 110) : metrics.tileHeight
+        let rowInset = singleRow && store.ring == nil ? max(0, (gridSize.height - 4 - height) / 2) : 0
         let columnWidth = metrics.columns > 0
             ? (gridSize.width - spacing * CGFloat(metrics.columns - 1)) / CGFloat(metrics.columns) : gridSize.width
         return VStack(alignment: .leading, spacing: 6) {
@@ -177,6 +179,7 @@ struct DesvanHomeView: View {
                         }
                         .padding(.horizontal, 2)
                         .padding(.vertical, 2)
+                        .padding(.top, rowInset)
                     }
                     .scrollIndicators(.never)
                     .scrollBounceBehavior(.basedOnSize)
@@ -289,6 +292,8 @@ struct DesvanHomeView: View {
     /// focus); Space or Return toggles the focused tile; Esc closes the notch. (⌘1…9 already pick the section.)
     private func handleKey(_ press: KeyPress, tiles: [HomeResolvedTile], metrics: HomeGridMetrics) -> KeyPress.Result {
         guard detail == nil, !tiles.isEmpty else { return .ignored }
+        // Typing a tile's new name: the keys belong to the field, not to the grid.
+        if NSApp.keyWindow?.firstResponder is NSTextView { return .ignored }
         let modifiers = press.modifiers.subtracting([.numericPad, .function, .capsLock])
         if press.key == .escape {
             model.actions.send(.escape)
