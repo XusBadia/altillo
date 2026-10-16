@@ -44,13 +44,19 @@ enum HAMapping {
         return result
     }
 
+    /// Present and not `null`. Spelled out because `JSONValue` is `ExpressibleByNilLiteral`: in `value != nil` the
+    /// literal can become JSON `null` instead of `Optional.none`, which made every entity look hidden.
+    static func isSet(_ value: JSONValue?) -> Bool {
+        guard let value else { return false }
+        return !value.isNull
+    }
+
     static func metas(_ entityRegistry: JSONValue, deviceAreas: [String: String]) -> [String: HAEntityMeta] {
         var result: [String: HAEntityMeta] = [:]
         for item in entityRegistry.array ?? [] {
             guard let entityID = item["entity_id"]?.string else { continue }
             let deviceArea = item["device_id"]?.string.flatMap { deviceAreas[$0] }
-            let technical = item["hidden_by"]?.nonNull != nil || item["disabled_by"]?.nonNull != nil
-                || item["entity_category"]?.nonNull != nil
+            let technical = isSet(item["hidden_by"]) || isSet(item["disabled_by"]) || isSet(item["entity_category"])
             result[entityID] = HAEntityMeta(
                 entityID: entityID,
                 registryName: item["name"]?.string,

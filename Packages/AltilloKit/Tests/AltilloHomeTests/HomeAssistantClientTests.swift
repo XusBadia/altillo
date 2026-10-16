@@ -156,6 +156,8 @@ import Testing
         #expect(despacho.areaID == "despacho")            // entity area beats device area
         #expect(despacho.capabilities == [.toggle])
         #expect(despacho.state.isOn == false && despacho.state.color == nil)
+        // Registry rows whose hidden_by / disabled_by / entity_category are JSON null are ordinary entities.
+        #expect(!salon.isTechnical && !despacho.isTechnical)
 
         let vieja = try entity("light.vieja")
         #expect(vieja.isTechnical && !vieja.state.isAvailable && vieja.name == "Vieja")

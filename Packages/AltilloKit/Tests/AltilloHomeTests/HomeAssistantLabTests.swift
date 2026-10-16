@@ -14,6 +14,8 @@ struct HomeAssistantLabTests {
         try await client.connect(config, token: token)
         guard case .connected = client.connection else { Issue.record("not connected: \(client.connection)"); return }
         #expect(client.entities.count > 50)
+        // The demo's lights must be offered as favourites (registry nulls are not "hidden").
+        #expect(client.entities.values.contains { $0.kind == .light && !$0.isTechnical })
 
         let light = try #require(client.entities.values.first { $0.kind == .light && $0.state.isAvailable })
         client.watch([light.id])

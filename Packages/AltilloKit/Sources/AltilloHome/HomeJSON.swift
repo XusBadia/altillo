@@ -26,8 +26,6 @@ enum JSONValue: Hashable, Sendable {
     var object: [String: JSONValue]? { if case .object(let value) = self { return value }; return nil }
     var isNull: Bool { self == .null }
 
-    /// A non-null value: `hidden_by: null` and a missing key both mean "not set".
-    var nonNull: JSONValue? { isNull ? nil : self }
 }
 
 extension JSONValue: Codable {
