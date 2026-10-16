@@ -578,6 +578,17 @@ final class HomeStore {
         (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
     }
 
+    /// Design reviews (`-demoHome moving`): a blind on its way to `target`, the way a real one looks between the
+    /// command and the push that says it arrived. The demo server moves instantly, so the trip is staged here.
+    func stageCoverTrip(_ entity: HomeEntity, to target: Double) {
+        guard entity.kind == .cover else { return }
+        var predicted = entity.state
+        predicted.position = target
+        predicted.raw = target > 0 ? "open" : "closed"
+        markPending(entity.id, predicted)
+        settleTargets[entity.id] = target
+    }
+
     // MARK: - Watching
 
     /// `zone.home` of the connected server: how many people are home.

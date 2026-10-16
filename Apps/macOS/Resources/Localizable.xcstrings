@@ -22557,6 +22557,81 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Wide" } },
         "es" : { "stringUnit" : { "state" : "translated", "value" : "Ancha" } }
       }
+    },
+    "home.cover.closingTo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Closing to %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Cerrando hasta %@" } }
+      }
+    },
+    "home.cover.openingTo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Opening to %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Abriendo hasta %@" } }
+      }
+    },
+    "home.since.now" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Since just now" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desde hace un momento" } }
+      }
+    },
+    "home.since.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Since %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desde %@" } }
+      }
+    },
+    "home.since.yesterday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Since yesterday at %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desde ayer a %@" } }
+      }
+    },
+    "home.since.weekday" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Since %1$@ at %2$@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desde el %1$@ a %2$@" } }
+      }
+    },
+    "home.since.date" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Since %@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Desde el %@" } }
+      }
+    },
+    "home.at.time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "las %@" } }
+      }
+    },
+    "home.at.timeOne" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%@" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "la %@" } }
+      }
+    },
+    "Click the switch or flip its lever" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Click the switch or flip its lever" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "Haz clic en el interruptor o mueve la palanca" } }
+      }
+    },
+    "Half open" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Half open" } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "A media altura" } }
+      }
     }
   },
   "version" : "1.0"

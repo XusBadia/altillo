@@ -35,7 +35,18 @@ extension HomeStore {
             service.addMoreDemoEntities()
             let tiles = HomeDemoService.suggestedFavourites.filter { !$0.localID.hasPrefix("binary_sensor") }
             settings.homeLayout = HomeLayout(favourites: tiles + HomeDemoService.moreFavourites.prefix(4))
-        case .area, .detail, .blind:
+        case .moving:
+            // Sent to 15 % and on its way down: Home Assistant reports it closing, at 62 %.
+            let blind = HomeDemoService.id("cover.living_room_blind")
+            service.update(blind) { state in
+                state.raw = "closing"
+                state.position = 0.62
+            }
+            if let entity = service.entities[blind] { stageCoverTrip(entity, to: 0.15) }
+        case .lamp:
+            // A light that only switches, off: the face of a plain LED strip.
+            service.update(HomeDemoService.id("light.entrance")) { $0.lastChanged = Date.now.addingTimeInterval(-5_400) }
+        case .area, .detail, .blind, .switch:
             break
         }
         refreshWatch()

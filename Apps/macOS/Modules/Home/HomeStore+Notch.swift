@@ -33,6 +33,12 @@ extension HomeStore {
         send(.stop(entity.id))
     }
 
+    /// A blind's trip for the detail face: where Home Assistant says it is and, if this Mac sent it, where it's going.
+    func coverTravel(_ entity: HomeEntity) -> HomeCoverTravel {
+        let server = service.entities[entity.id]?.state ?? entity.state
+        return HomeDetailLogic.coverTravel(server: server, pending: pending[entity.id])
+    }
+
     private func send(_ command: HomeCommand) {
         Task { [weak self] in
             do {

@@ -367,7 +367,8 @@ struct DesvanHomeView: View {
 
     // MARK: - Design reviews
 
-    /// `-demoHome area|detail|blind|few|many` in the openHome scenario: a room browsed, a light's controls, a blind's,
+    /// `-demoHome area|detail|blind|moving|switch|lamp|few|many` in the openHome scenario: a room browsed, a light's
+    /// controls, a blind's (standing or travelling), a plug's and a plain light's switch,
     /// two favourites (with the "picked for you" hint) or twelve.
     private func applyDemo() {
         guard model.scenario == .openHome, let demo = DesvanHomeDemo.current else { return }
@@ -376,8 +377,13 @@ struct DesvanHomeView: View {
         case .area:
             selection = .area("living_room")
             store.watchArea("living_room")
-        case .detail, .blind:
-            let local = demo == .detail ? "light.living_room_lamp" : "cover.living_room_blind"
+        case .detail, .blind, .moving, .switch, .lamp:
+            let local = switch demo {
+            case .detail: "light.living_room_lamp"
+            case .switch: "switch.coffee_machine"
+            case .lamp: "light.entrance"
+            default: "cover.living_room_blind"
+            }
             if let tile = store.tiles(onPage: nil).first(where: { $0.entity.id.localID == local }) { detail = tile }
         case .few, .many:
             break
@@ -400,7 +406,7 @@ struct HomeChip: Hashable {
 
 /// `-demoHome <state>` for design reviews (only in the openHome scenario).
 enum DesvanHomeDemo: String {
-    case area, detail, blind, few, many
+    case area, detail, blind, moving, `switch`, lamp, few, many
 
     static let current: DesvanHomeDemo? = UserDefaults.standard.string(forKey: "demoHome").flatMap(Self.init(rawValue:))
 }

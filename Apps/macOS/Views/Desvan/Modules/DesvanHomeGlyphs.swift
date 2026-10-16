@@ -50,69 +50,277 @@ struct DesvanBakeliteDisc<Content: View>: View {
 
 // MARK: - Blind
 
-/// A window with a blind: slats come down from the top and cover `1 − position` of it (the glyph *is* the
-/// position), daylight shows below them, a bottom rail ends the blind. Animates between positions.
+/// A slatted *persiana* or a fabric roller shade.
+enum DesvanBlindStyle: Equatable {
+    case slats, fabric
+}
+
+/// The window's parts, shared by the drawing and the gesture: the oak frame, the roller box over it, the glass, the
+/// bottom rail and how far its edge travels (`travelTop` is the edge fully open, `travelTop + travel` closed).
+struct DesvanBlindMetrics {
+    let size: CGSize
+    let detail: Bool
+
+    var sill: CGFloat { detail ? 8 : 0 }
+    var sillOverhang: CGFloat { detail ? 6 : 0 }
+    var frameWidth: CGFloat { detail ? 9 : max(1.4, size.width * 0.09) }
+    var boxHeight: CGFloat { detail ? 17 : size.height * 0.15 }
+    var frame: CGRect {
+        CGRect(x: sillOverhang, y: 0, width: size.width - 2 * sillOverhang, height: size.height - sill + (detail ? 2 : 0))
+    }
+    var box: CGRect { CGRect(x: frame.minX, y: frame.minY, width: frame.width, height: frameWidth + boxHeight) }
+    var glass: CGRect {
+        CGRect(x: frame.minX + frameWidth, y: box.maxY, width: frame.width - 2 * frameWidth,
+               height: frame.maxY - frameWidth - box.maxY)
+    }
+    var rail: CGFloat { detail ? 8 : max(1.4, glass.height * 0.1) }
+    var travelTop: CGFloat { glass.minY + rail }
+    var travel: CGFloat { glass.height - rail }
+}
+
+/// A window in an oak frame with a cream roller box over it and a warm late-afternoon view through the glass (sky,
+/// sun, two hills); the blind comes down from the box and covers `1 − position` of the glass. A *persiana* is
+/// slats with lit tops and slits of light between them, a shade is linen; both end in a bronze rail with a brass
+/// pull and cast a soft shadow on the glass. `detail` draws the big window (sill, mullion, guides, screws).
+struct DesvanBlindArt: View, Animatable {
+    var position: Double
+    var style: DesvanBlindStyle = .slats
+    var detail = false
+    var isActive = true
+
+    nonisolated var animatableData: Double {
+        get { position }
+        set { position = newValue }
+    }
+
+    var body: some View {
+        Canvas { context, size in
+            Self.draw(in: &context, metrics: DesvanBlindMetrics(size: size, detail: detail),
+                      position: min(max(position, 0), 1), style: style, isActive: isActive)
+        }
+        .accessibilityHidden(true)
+    }
+
+    private static func linear(_ hexes: [UInt32], _ from: CGPoint, _ to: CGPoint, opacity: Double = 1) -> GraphicsContext.Shading {
+        .linearGradient(Gradient(colors: hexes.map { Color(hex: $0, opacity: opacity) }), startPoint: from, endPoint: to)
+    }
+
+    static func draw(in context: inout GraphicsContext, metrics m: DesvanBlindMetrics, position: Double,
+                     style: DesvanBlindStyle, isActive: Bool) {
+        let detail = m.detail
+        let frame = m.frame, glass = m.glass, box = m.box
+        let radius = detail ? 5 : max(1.5, m.size.width * 0.1)
+
+        // Sill: the ledge the window stands on.
+        if detail {
+            let sill = CGRect(x: 0, y: m.size.height - m.sill, width: m.size.width, height: m.sill)
+            context.fill(Path(roundedRect: sill, cornerRadius: 2),
+                         with: linear([0xA87C55, 0x6E4A2D, 0x4A3020], CGPoint(x: 0, y: sill.minY), CGPoint(x: 0, y: sill.maxY)))
+            context.fill(Path(CGRect(x: sill.minX + 1, y: sill.minY, width: sill.width - 2, height: 0.8)),
+                         with: .color(Color(hex: 0xF0D3A8).opacity(0.55)))
+        }
+
+        // The oak frame.
+        let framePath = Path(roundedRect: frame, cornerRadius: radius, style: .continuous)
+        context.fill(framePath, with: linear(detail ? [0xA9784C, 0x7D5432, 0x5C3B22] : [0xD3A56B, 0x9A6B40, 0x6E4A2B],
+                                              CGPoint(x: frame.minX, y: frame.minY), CGPoint(x: frame.maxX, y: frame.maxY)))
+        if detail {
+            // Grain along the stiles.
+            for index in 0..<6 {
+                let x = frame.minX + 1.5 + CGFloat(index) * 1.3
+                context.fill(Path(CGRect(x: x, y: box.maxY, width: 0.5, height: frame.maxY - box.maxY)),
+                             with: .color(.black.opacity(index.isMultiple(of: 2) ? 0.10 : 0.05)))
+                context.fill(Path(CGRect(x: frame.maxX - 2 - CGFloat(index) * 1.3, y: box.maxY, width: 0.5,
+                                         height: frame.maxY - box.maxY)),
+                             with: .color(.black.opacity(index.isMultiple(of: 2) ? 0.08 : 0.04)))
+            }
+        }
+        context.stroke(Path(roundedRect: frame.insetBy(dx: 0.5, dy: 0.5), cornerRadius: radius, style: .continuous),
+                       with: linear([0xFFE6BE, 0x3A2414], CGPoint(x: 0, y: frame.minY), CGPoint(x: 0, y: frame.maxY),
+                                    opacity: 0.55),
+                       lineWidth: detail ? 1 : 0.5)
+
+        // The view through the glass.
+        let dim: Double = isActive ? 1 : 0.55
+        var view = context
+        view.clip(to: Path(roundedRect: glass, cornerRadius: detail ? 2 : 0.6))
+        view.fill(Path(glass), with: linear([0x78A9D2, 0xA9CBE0, 0xE9DDBE, 0xF4C98F],
+                                            CGPoint(x: 0, y: glass.minY), CGPoint(x: 0, y: glass.maxY), opacity: dim))
+        let sun = CGPoint(x: glass.minX + glass.width * 0.7, y: glass.minY + glass.height * 0.6)
+        view.fill(Path(ellipseIn: CGRect(x: sun.x - glass.width * 0.5, y: sun.y - glass.width * 0.5,
+                                         width: glass.width, height: glass.width)),
+                  with: .radialGradient(Gradient(colors: [Color(hex: 0xFFF6DA).opacity(0.95 * dim),
+                                                          Color(hex: 0xFFE1A0).opacity(0.35 * dim), .clear]),
+                                        center: sun, startRadius: 0, endRadius: glass.width * 0.5))
+        if detail {
+            view.fill(Path(ellipseIn: CGRect(x: sun.x - 6, y: sun.y - 6, width: 12, height: 12)),
+                      with: .color(Color(hex: 0xFFF8E6).opacity(dim)))
+        }
+        func hill(_ base: CGFloat, _ peaks: [(CGFloat, CGFloat)]) -> Path {
+            var path = Path()
+            path.move(to: CGPoint(x: glass.minX - 2, y: glass.maxY + 2))
+            path.addLine(to: CGPoint(x: glass.minX - 2, y: glass.minY + glass.height * base))
+            var x = glass.minX - 2
+            for (width, rise) in peaks {
+                let next = x + glass.width * width
+                path.addQuadCurve(to: CGPoint(x: next, y: glass.minY + glass.height * base),
+                                  control: CGPoint(x: (x + next) / 2, y: glass.minY + glass.height * (base - rise)))
+                x = next
+            }
+            path.addLine(to: CGPoint(x: glass.maxX + 2, y: glass.maxY + 2))
+            path.closeSubpath()
+            return path
+        }
+        view.fill(hill(0.8, [(0.55, 0.16), (0.6, 0.1)]), with: .color(Color(hex: 0xA3AE8A).opacity(0.9 * dim)))
+        view.fill(hill(0.9, [(0.4, 0.08), (0.45, 0.14), (0.4, 0.05)]),
+                  with: linear([0x6F8A5A, 0x4F6640], CGPoint(x: 0, y: glass.minY + glass.height * 0.75),
+                               CGPoint(x: 0, y: glass.maxY), opacity: dim))
+        // A reflection across the pane.
+        var glare = Path()
+        glare.move(to: CGPoint(x: glass.minX + glass.width * 0.1, y: glass.maxY))
+        glare.addLine(to: CGPoint(x: glass.minX + glass.width * 0.32, y: glass.maxY))
+        glare.addLine(to: CGPoint(x: glass.minX + glass.width * 0.78, y: glass.minY))
+        glare.addLine(to: CGPoint(x: glass.minX + glass.width * 0.6, y: glass.minY))
+        glare.closeSubpath()
+        view.fill(glare, with: .color(.white.opacity(0.09)))
+
+        // The blind.
+        let edge = HomeDetailLogic.edgeY(position: position, top: m.travelTop, travel: m.travel)
+        let railTop = edge - m.rail
+        if railTop > glass.minY {
+            let cloth = CGRect(x: glass.minX, y: glass.minY, width: glass.width, height: railTop - glass.minY)
+            switch style {
+            case .slats:
+                let pitch: CGFloat = detail ? 8 : max(2.2, glass.height / 5)
+                let slit: CGFloat = detail ? 1.1 : 0.55
+                // Light through the slits, then the slats from the rail up (they ride with it into the box).
+                view.fill(Path(cloth), with: .color(Color(hex: 0xFFE3A6).opacity(0.75 * dim)))
+                var top = railTop - pitch
+                while top + pitch > glass.minY {
+                    let slat = CGRect(x: glass.minX, y: top + slit, width: glass.width, height: pitch - slit)
+                    view.fill(Path(slat), with: linear([0xF6EEDF, 0xE4D7BF, 0xC5B497],
+                                                       CGPoint(x: 0, y: slat.minY), CGPoint(x: 0, y: slat.maxY)))
+                    if detail {
+                        view.fill(Path(CGRect(x: slat.minX, y: slat.minY, width: slat.width, height: 0.7)),
+                                  with: .color(.white.opacity(0.75)))
+                        view.fill(Path(CGRect(x: slat.minX, y: slat.maxY - 0.6, width: slat.width, height: 0.6)),
+                                  with: .color(Color(hex: 0x6B5639).opacity(0.45)))
+                    }
+                    top -= pitch
+                }
+            case .fabric:
+                view.fill(Path(cloth), with: linear([0xD6C6A8, 0xF2E8D6, 0xF6EEDF, 0xF2E8D6, 0xD3C3A4],
+                                                    CGPoint(x: cloth.minX, y: 0), CGPoint(x: cloth.maxX, y: 0)))
+                if detail {
+                    var x = cloth.minX + 2
+                    while x < cloth.maxX {
+                        view.fill(Path(CGRect(x: x, y: cloth.minY, width: 0.5, height: cloth.height)),
+                                  with: .color(Color(hex: 0x8A7552).opacity(0.10)))
+                        x += 3
+                    }
+                }
+                // The sun glowing through the linen.
+                view.fill(Path(cloth), with: .radialGradient(
+                    Gradient(colors: [Color(hex: 0xFFD98F).opacity(0.25 * dim), .clear]),
+                    center: sun, startRadius: 0, endRadius: glass.width * 0.6))
+            }
+            // The blind's shadow on the glass below it.
+            let shadow = CGRect(x: glass.minX, y: edge, width: glass.width, height: detail ? 14 : 2.5)
+            view.fill(Path(shadow), with: .linearGradient(Gradient(colors: [.black.opacity(0.38), .clear]),
+                                                          startPoint: CGPoint(x: 0, y: shadow.minY),
+                                                          endPoint: CGPoint(x: 0, y: shadow.maxY)))
+        }
+        // The bottom rail.
+        let rail = CGRect(x: glass.minX, y: max(railTop, glass.minY - m.rail), width: glass.width, height: m.rail)
+        view.fill(Path(roundedRect: rail, cornerRadius: min(2, m.rail / 3)),
+                  with: linear(style == .fabric ? [0xB98F60, 0x7A5634] : [0xC29A68, 0x8C6942, 0x5E4428],
+                               CGPoint(x: 0, y: rail.minY), CGPoint(x: 0, y: rail.maxY)))
+        if detail {
+            view.fill(Path(CGRect(x: rail.minX, y: rail.minY, width: rail.width, height: 0.8)),
+                      with: .color(Color(hex: 0xFFE7BF).opacity(0.6)))
+        }
+
+        if detail {
+            // A centre mullion and the guides the blind runs in.
+            for x in [glass.minX, glass.maxX - 3] {
+                context.fill(Path(CGRect(x: x, y: glass.minY, width: 3, height: glass.height)),
+                             with: linear([0x2F2116, 0x5A3E28], CGPoint(x: x, y: 0), CGPoint(x: x + 3, y: 0), opacity: 0.85))
+            }
+            let mullion = CGRect(x: glass.midX - 2.5, y: max(edge, glass.minY), width: 5, height: glass.maxY - max(edge, glass.minY))
+            if mullion.height > 0 {
+                context.fill(Path(mullion), with: linear([0x6E4A2D, 0xB8875A, 0x6E4A2D],
+                                                         CGPoint(x: mullion.minX, y: 0), CGPoint(x: mullion.maxX, y: 0)))
+            }
+            // Inner shadow of the opening.
+            context.stroke(Path(glass.insetBy(dx: 0.75, dy: 0.75)),
+                           with: linear([0x000000, 0x000000], CGPoint(x: glass.minX, y: glass.minY),
+                                        CGPoint(x: glass.maxX, y: glass.maxY), opacity: 0.35),
+                           lineWidth: 1.5)
+        }
+
+        // The pull: a brass handle hanging from the rail's middle.
+        let pullY = rail.maxY
+        if detail {
+            let handle = CGRect(x: glass.midX - 11, y: pullY - 2, width: 22, height: 7)
+            context.drawLayer { layer in
+                layer.addFilter(.shadow(color: .black.opacity(0.5), radius: 1.5, x: 0, y: 1))
+                layer.fill(Path(roundedRect: handle, cornerRadius: 3.5),
+                           with: linear([0xFBE7B5, 0xD6AE68, 0x8E6B37], CGPoint(x: 0, y: handle.minY),
+                                        CGPoint(x: 0, y: handle.maxY)))
+            }
+            context.fill(Path(roundedRect: handle.insetBy(dx: 6, dy: 2.4), cornerRadius: 1.2),
+                         with: .color(Color(hex: 0x4A3518).opacity(0.75)))
+        } else if m.size.width >= 14 {
+            let nub = CGRect(x: glass.midX - glass.width * 0.13, y: pullY - 0.3, width: glass.width * 0.26,
+                             height: max(1, m.rail * 0.6))
+            context.fill(Path(roundedRect: nub, cornerRadius: nub.height / 2), with: .color(Color(hex: 0xF0CF8A)))
+        }
+
+        // The roller box over the window.
+        let boxPath = UnevenRoundedRectangle(topLeadingRadius: radius, bottomLeadingRadius: detail ? 1.5 : 0.5,
+                                             bottomTrailingRadius: detail ? 1.5 : 0.5, topTrailingRadius: radius,
+                                             style: .continuous).path(in: box)
+        context.drawLayer { layer in
+            layer.addFilter(.shadow(color: .black.opacity(0.45), radius: detail ? 3 : 0.8, x: 0, y: detail ? 2 : 0.6))
+            layer.fill(boxPath, with: linear([0xF4ECDC, 0xE2D5BC, 0xC2B08E], CGPoint(x: 0, y: box.minY),
+                                             CGPoint(x: 0, y: box.maxY)))
+        }
+        context.stroke(Path(CGRect(x: box.minX, y: box.minY + 0.4, width: box.width, height: 0.1)),
+                       with: .color(.white.opacity(0.7)), lineWidth: detail ? 0.8 : 0.4)
+        // The slot the blind rolls into.
+        let slot = CGRect(x: glass.minX - 1, y: box.maxY - (detail ? 3 : 0.8), width: glass.width + 2, height: detail ? 2 : 0.6)
+        context.fill(Path(roundedRect: slot, cornerRadius: slot.height / 2), with: .color(Color(hex: 0x3A2A1A).opacity(0.7)))
+        if detail {
+            for x in [box.minX + 8, box.maxX - 8] {
+                let screw = CGRect(x: x - 2.5, y: box.minY + box.height * 0.42 - 2.5, width: 5, height: 5)
+                context.fill(Path(ellipseIn: screw),
+                             with: .radialGradient(Gradient(colors: [Color(hex: 0xF4E3B8), Color(hex: 0x9C7A43)]),
+                                                   center: CGPoint(x: screw.minX + 1.8, y: screw.minY + 1.6),
+                                                   startRadius: 0, endRadius: 3.5))
+                context.fill(Path(CGRect(x: screw.minX + 1, y: screw.midY - 0.35, width: 3, height: 0.7)),
+                             with: .color(Color(hex: 0x4A3518).opacity(0.8)))
+            }
+        }
+    }
+}
+
+/// A tile's blind: the big window's drawing at glyph size (frame, roller box, slats, rail and pull), so the glyph
+/// *is* the position. Animates between positions.
 struct DesvanBlindGlyph: View {
     /// 0 closed … 1 open.
     var position: Double
     var size: CGFloat = 20
-    /// On a lit plate (open, or a daylight scene) the window glows a little.
+    /// On a lit plate (open, or a daylight scene) the view through the window is bright.
     var isActive: Bool = true
     /// Dims the drawing for unavailable blinds.
     var isDimmed: Bool = false
+    var style: DesvanBlindStyle = .slats
 
     var body: some View {
-        let frame = RoundedRectangle(cornerRadius: size * 0.12, style: .continuous)
-        let inset = size * 0.1
-        ZStack {
-            // Daylight: the sky at the top, a warm sill at the bottom.
-            frame.fill(LinearGradient(
-                colors: [Desvan.Palette.sky.opacity(isActive ? 0.95 : 0.55),
-                         Color(hex: 0xF2D9A8).opacity(isActive ? 0.9 : 0.45)],
-                startPoint: .top, endPoint: .bottom
-            ))
-            .padding(inset)
-            BlindSlats(covered: 1 - min(max(position, 0), 1), slats: size >= 30 ? 9 : 5)
-                .fill(LinearGradient(colors: [Color(hex: 0xEDE3D1), Color(hex: 0xB9A88E)],
-                                     startPoint: .top, endPoint: .bottom))
-                .padding(inset)
-            frame.strokeBorder(
-                LinearGradient(colors: [Color(hex: 0xE9CD92), Color(hex: 0x8A6A3A)], startPoint: .top, endPoint: .bottom),
-                lineWidth: min(max(1, size * 0.08), 3.5)
-            )
-        }
-        .frame(width: size, height: size * 1.05)
-        .opacity(isDimmed ? 0.55 : 1)
-        .accessibilityHidden(true)
-    }
-
-    /// Slats from the top down to `covered` of the height, each a thin bar with a gap, and a heavier rail at the end.
-    private struct BlindSlats: Shape {
-        var covered: Double
-        var slats: Int
-
-        var animatableData: Double {
-            get { covered }
-            set { covered = newValue }
-        }
-
-        func path(in rect: CGRect) -> Path {
-            var path = Path()
-            let bottom = rect.minY + rect.height * covered
-            let pitch = rect.height / CGFloat(slats)
-            var y = rect.minY
-            while y < bottom - 0.5 {
-                let height = min(pitch * 0.68, bottom - y)
-                path.addRect(CGRect(x: rect.minX, y: y, width: rect.width, height: height))
-                y += pitch
-            }
-            // The bottom rail, always visible (a fully open blind keeps it at the top).
-            let rail = max(1.2, pitch * 0.5)
-            path.addRoundedRect(in: CGRect(x: rect.minX - 0.5, y: min(max(bottom - rail, rect.minY), rect.maxY - rail),
-                                           width: rect.width + 1, height: rail),
-                                cornerSize: CGSize(width: rail / 2, height: rail / 2))
-            return path
-        }
+        DesvanBlindArt(position: position, style: style, detail: false, isActive: isActive)
+            .frame(width: size, height: size * 1.05)
+            .opacity(isDimmed ? 0.55 : 1)
+            .accessibilityHidden(true)
     }
 }
 
