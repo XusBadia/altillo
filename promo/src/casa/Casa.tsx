@@ -203,7 +203,7 @@ const shotAt = (frame: number, f: Format): Framing => {
 // ─── Focus: the sharp rectangle (screen points) and how strong the rest is blurred/dimmed (0…1) ───
 const R = {
   LAMP: [500, 70, 624, 152] as Rect,
-  PELI: [500, 240, 586, 282] as Rect,
+  PELI: [500, 243, 590, 281] as Rect,
   GRID: [496, 62, 1016, 284] as Rect,
   BLIND_TILE: [758, 157, 882, 239] as Rect,
   BLIND: [505, 84, 1005, 268] as Rect,
@@ -213,11 +213,13 @@ const R = {
   CARD: [500, 70, 1012, 166] as Rect,
   PORCH: [507, 76, 651, 160] as Rect,
 };
-type FocusMove = [number, number, {r?: Rect; a?: number}];
+const FEATHER = 30; // points of soft edge around the sharp rectangle (by default)
+type FocusMove = [number, number, {r?: Rect; a?: number; e?: number}];
 const FOCUS: FocusMove[] = [
   [DIM_PRESS - 6, DIM_PRESS + 14, {r: R.LAMP, a: 1}],
-  [DIM_TO + 4, MOVIE - 8, {r: R.PELI}], // rack to the tag
-  [MOVIE + 4, MOVIE + 30, {r: R.GRID, a: 0}], // the scene lands everywhere: all sharp
+  // Rack to the tag, with a short soft edge so the bedside label just above (which changes) stays out of focus.
+  [DIM_TO + 4, MOVIE - 8, {r: R.PELI, e: 8}],
+  [MOVIE + 20, MOVIE + 44, {r: R.GRID, a: 0, e: FEATHER}], // the scene has landed everywhere: all sharp
   [BLIND_PRESS - 6, BLIND_PRESS + 18, {r: R.BLIND_TILE, a: 1}],
   [BLIND_OPEN - 2, BLIND_OPEN + 26, {r: R.BLIND}],
   [PULL_TO + 6, BACK1 - 4, {a: 0}],
@@ -237,17 +239,22 @@ const focusTracks = () => {
     }
     return keys;
   });
-  const a: Track = [[0, 0]];
-  for (const [f0, f1, m] of FOCUS) {
-    if (m.a === undefined) continue;
-    a.push([f0, a[a.length - 1][1]], [f1, m.a]);
-  }
-  return {r, a};
+  const scalar = (k: 'a' | 'e', initial: number) => {
+    const keys: Track = [[0, initial]];
+    for (const [f0, f1, m] of FOCUS) {
+      const value = m[k];
+      if (value === undefined) continue;
+      keys.push([f0, keys[keys.length - 1][1]], [f1, value]);
+    }
+    return keys;
+  };
+  return {r, a: scalar('a', 0), e: scalar('e', FEATHER)};
 };
 const FOCUS_TRACKS = focusTracks();
 const focusAt = (frame: number) => ({
   rect: FOCUS_TRACKS.r.map((k) => along(k, frame)) as Rect,
   amount: along(FOCUS_TRACKS.a, frame),
+  feather: along(FOCUS_TRACKS.e, frame),
 });
 
 // ─── Cursor: [frame, x, y, pressed] in screen points ─────────────────────────
@@ -341,18 +348,28 @@ const box = (f: Face, lang: Lang) => {
 const ui = (lang: Lang, name: string) => staticFile(`casa/ui/${lang}/${name}.webp`);
 const full: CSSProperties = {position: 'absolute', left: 0, top: 0, width: PANEL.width, height: PANEL.height};
 
-/** Two stills of a 1:1 drag, crossfaded at the fractional step. */
-const Steps = ({lang, prefix, index}: {lang: Lang; prefix: string; index: number}) => {
-  const i = Math.floor(index);
-  const f = index - i;
-  const name = (n: number) => `${prefix}-${String(n).padStart(2, '0')}`;
-  return (
-    <>
-      <Img src={ui(lang, name(i))} style={full} />
-      {f > 0.01 ? <Img src={ui(lang, name(i + 1))} style={{...full, opacity: f}} /> : null}
-    </>
-  );
-};
+/** A 1:1 drag: the nearest real still (every 2 %), never a blend, so the readout digits stay crisp under the zoom. */
+const Steps = ({lang, prefix, index}: {lang: Lang; prefix: string; index: number}) => (
+  <Img src={ui(lang, `${prefix}-${String(Math.round(index)).padStart(2, '0')}`)} style={full} />
+);
+
+/**
+ * A state change between two real stills: the lights, the lever and the colours crossfade, but inside `hard` (panel
+ * points, where the text changes) the still switches at the half-way point, so no text is ever a blend of two.
+ */
+const Swap = ({lang, from, to, t, hard}: {lang: Lang; from: string; to: string; t: number; hard: Rect[]}) => (
+  <>
+    <Img src={ui(lang, from)} style={full} />
+    {t > 0 ? <Img src={ui(lang, to)} style={{...full, opacity: t}} /> : null}
+    {t > 0 && t < 1 ? hard.map(([x0, y0, x1, y1]) => (
+      <Img key={`${x0},${y0}`} src={ui(lang, t < 0.5 ? from : to)}
+        style={{...full, clipPath: `inset(${y0}px ${PANEL.width - x1}px ${PANEL.height - y1}px ${x0}px)`}} />
+    )) : null}
+  </>
+);
+// Where the text changes, in panel points: the scene tag (its tick) and the switch's status block.
+const MOVIE_TEXT: Rect[] = [[130, 240, 280, 284]];
+const SWITCH_TEXT: Rect[] = [[325, 98, 636, 166]];
 
 /** The cell of plate `i` (row-major), split at the gaps so the cells tile the grid area with no seams. */
 const cell = (i: number) => {
@@ -385,14 +402,10 @@ const FaceView = ({face, lang, frame}: {face: Face; lang: Lang; frame: number}) 
     case 'dim':
       return <Steps lang={lang} prefix="dim" index={Math.min(27, (LEVEL_FROM - dimLevel(frame)) / 0.02)} />;
     case 'movie': {
-      // The scene lands: the lights take the movie mood with the plates' 0.3 s easeOut.
+      // The scene lands: the lights take the movie mood with the plates' 0.3 s easeOut. The plates change while they
+      // are still out of focus (FOCUS opens to the grid only after), so their changing labels never read as a blend.
       const t = interpolate(frame, [MOVIE + 2, MOVIE + 22], [0, 1], {...clamp, easing: easeOut});
-      return (
-        <>
-          <Img src={ui(lang, 'dim-27')} style={full} />
-          <Img src={ui(lang, 'movie-final')} style={{...full, opacity: t}} />
-        </>
-      );
+      return <Swap lang={lang} from="dim-27" to="movie-final" t={t} hard={MOVIE_TEXT} />;
     }
     case 'blind':
       return <Steps lang={lang} prefix="blind" index={Math.min(28, (0.6 - blindPosition(frame)) / 0.02)} />;
@@ -401,12 +414,7 @@ const FaceView = ({face, lang, frame}: {face: Face; lang: Lang; frame: number}) 
     case 'lamp': {
       // The bat lever throws in ~0.1 s; the plate's pilot light warms over 0.3 s.
       const t = interpolate(frame, [FLIP + 1, FLIP + 8], [0, 1], {...clamp, easing: easeOut});
-      return (
-        <>
-          <Img src={ui(lang, 'lamp-off')} style={full} />
-          <Img src={ui(lang, 'lamp-on')} style={{...full, opacity: t}} />
-        </>
-      );
+      return <Swap lang={lang} from="lamp-off" to="lamp-on" t={t} hard={SWITCH_TEXT} />;
     }
     case 'afterLamp':
       return <Img src={ui(lang, 'after-lamp')} style={full} />;
@@ -522,7 +530,6 @@ const PointerLayer = () => (
     <Pointer />
   </div>
 );
-const FEATHER = 30; // points of soft edge around the sharp rectangle
 
 const Screen = ({lang, format}: {lang: Lang; format: Format}) => {
   const frame = useCurrentFrame();
@@ -537,9 +544,9 @@ const Screen = ({lang, format}: {lang: Lang; format: Format}) => {
   );
   // Depth of field: a blurred, dimmed copy underneath and the sharp one masked to the focus rectangle (feathered),
   // all in frame pixels so the blur is the same at any zoom.
-  const {rect, amount} = focusAt(frame);
+  const {rect, amount, feather} = focusAt(frame);
   const [x0, y0, x1, y1] = rect.map((c, i) => (i % 2 === 0 ? left + c * shot.s : top + c * shot.s));
-  const e = FEATHER * shot.s;
+  const e = feather * shot.s;
   const mask = `linear-gradient(90deg, transparent ${x0 - e}px, #000 ${x0}px, #000 ${x1}px, transparent ${x1 + e}px), `
     + `linear-gradient(180deg, transparent ${y0 - e}px, #000 ${y0}px, #000 ${y1}px, transparent ${y1 + e}px)`;
   const dof = amount > 0.002;
