@@ -71,6 +71,10 @@ struct DesvanEarItemView: View {
             }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(NotchActivityLogic.accessibilityLabel(for: .timer(timer), now: .now))
+        case let .home(home):
+            DesvanHomeEar(signal: home, now: model.home.clock, showsName: true)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(HomeEarLogic.sentence(home, now: model.home.clock))
         case let .shelf(count):
             DesvanShelfCount(count: count)
         case let .quiet(content):
@@ -110,7 +114,7 @@ struct DesvanEarItemView: View {
 
     /// Which view is showing: a new song or a minute ticking by updates in place, a new kind of thing swaps.
     enum Kind: Hashable {
-        case agentRequest, agents, event, playback, usage, timer, shelf, quiet
+        case agentRequest, agents, event, playback, usage, timer, home, shelf, quiet
 
         init(_ item: EarItem) {
             switch item {
@@ -120,6 +124,7 @@ struct DesvanEarItemView: View {
             case .playback: self = .playback
             case .usage: self = .usage
             case .timer: self = .timer
+            case .home: self = .home
             case .shelf: self = .shelf
             case .quiet: self = .quiet
             }

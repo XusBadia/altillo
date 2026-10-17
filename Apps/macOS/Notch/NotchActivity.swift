@@ -4,8 +4,8 @@ import Foundation
 /// What the contextual left ear (`EarContent.automatic`) is about right now: the one thing most worth a glance.
 ///
 /// One place decides the order (PLAN §4, "Orejas"): an agent asking for something beats an event about to start,
-/// which beats a timer about to ring, then music playing, a running timer and AI usage; with none of them the ear
-/// rests. Only sections the user has on and real data take part: design scenarios and sample content never reach
+/// which beats the house (a door left open, lights on while nobody's home), a timer about to ring, then music
+/// playing, a running timer and AI usage; with none of them the ear rests. Only sections the user has on and real data take part: design scenarios and sample content never reach
 /// here, and the mirror never does (the camera only ever runs while its section is on screen).
 enum NotchActivity: Equatable, Sendable {
     /// An agent is waiting for the user: a permission or an answer (`AgentsLogic.requestSignal`).
@@ -19,6 +19,8 @@ enum NotchActivity: Equatable, Sendable {
     /// A kitchen timer: ringing or in its last minute (above the music), or just running (below it)
     /// (`TimerStore.contextualSignal`, phase 12).
     case timer(TimerSignal)
+    /// The house has something to say: a door left open, lights on while nobody's home (`HomeStore`, docs/casa.md).
+    case home(HomeSignal)
     case rest
 
     /// The section tapping the indicator opens.
@@ -29,6 +31,7 @@ enum NotchActivity: Equatable, Sendable {
         case .playback: .nowPlaying
         case .usage: .usage
         case .timer: .timer
+        case .home: .home
         case .rest: nil
         }
     }
@@ -60,6 +63,7 @@ struct NotchActivityInputs: Equatable, Sendable {
     var playback: PlaybackSignal?
     var usage: UsageSignal?
     var timer: TimerSignal?
+    var home: HomeSignal?
 }
 
 // MARK: - Logic (pure, testable)
@@ -82,6 +86,9 @@ enum NotchActivityLogic {
         }
         if modules.contains(.calendar), let event = inputs.nextEvent, isImminent(event, now: now) {
             activities.append(.imminentEvent(event))
+        }
+        if modules.contains(.home), let home = inputs.home {
+            activities.append(.home(home))
         }
         // A timer about to ring (or ringing) outranks the music; one that's just running comes after it.
         let timer = modules.contains(.timer) ? inputs.timer : nil
@@ -132,6 +139,8 @@ enum NotchActivityLogic {
             let name = timer.label.isEmpty ? String(localized: "Timer") : timer.label
             if timer.isRinging { return String(localized: "\(name): time's up") }
             return String(localized: "\(name) rings at \(timer.endsAt.formatted(date: .omitted, time: .shortened))")
+        case let .home(home):
+            return HomeEarLogic.sentence(home, now: now)
         case .rest:
             return String(localized: "Nothing going on")
         }
@@ -156,6 +165,7 @@ enum NotchActivityLogic {
         case let .playback(playback): accessibilityLabel(for: .playback(playback), now: now)
         case let .usage(usage, _): accessibilityLabel(for: .usage(usage), now: now)
         case let .timer(timer): accessibilityLabel(for: .timer(timer), now: now)
+        case let .home(home): HomeEarLogic.sentence(home, now: now)
         case let .shelf(count): String(localized: "\(count) items on the shelf")
         case let .quiet(content): content.title
         }

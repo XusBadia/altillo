@@ -17,6 +17,8 @@ enum EarItem: Equatable, Sendable {
     case usage(UsageSignal, isStale: Bool)
     /// A kitchen timer: the countdown and its name.
     case timer(TimerSignal)
+    /// The house: a door left open ("12 min" and its name) or lights on while away ("3 lights on").
+    case home(HomeSignal)
     /// How many things wait on the shelf.
     case shelf(count: Int)
     /// A chosen ear with nothing to say while ears always show: its glyph, unlit.
@@ -30,6 +32,7 @@ enum EarItem: Equatable, Sendable {
         case .playback: .nowPlaying
         case .usage: .usage
         case .timer: .timer
+        case .home: .home
         case .shelf: .shelf
         case let .quiet(content): content.module
         }
@@ -43,6 +46,7 @@ enum EarItem: Equatable, Sendable {
         case let .playback(playback): self = .playback(playback)
         case let .usage(usage): self = .usage(usage, isStale: false)
         case let .timer(timer): self = .timer(timer)
+        case let .home(home): self = .home(home)
         case .rest: return nil
         }
     }
@@ -160,6 +164,7 @@ enum EarMetrics {
         static let ring: CGFloat = 14
         static let house: CGFloat = 14
         static let timer: CGFloat = 14
+        static let home: CGFloat = 14
         static let dots: CGFloat = 16
         static let quiet: CGFloat = 16
     }
@@ -203,6 +208,17 @@ enum EarMetrics {
             }
             if !timer.label.isEmpty { width += spacing + measuredNameWidth(timer.label) }
             return width
+        case let .home(home):
+            switch home {
+            case let .leftOpen(name, _, since):
+                // Like the timer: the width only changes with the number of digits.
+                let minutes = HomeEarLogic.minutes(since: since, now: .now)
+                var width = Glyph.home + spacing + figure(homeMinutesText(String(minutes).map { _ in "0" }.joined()))
+                if !name.isEmpty { width += spacing + measuredTitleWidth(name) }
+                return width
+            case let .lightsOnWhileAway(count):
+                return Glyph.home + spacing + text(HomeEarLogic.lightsOnText(count), size: TextSize.title, weight: .medium) + 1
+            }
         case let .shelf(count):
             return Glyph.house + spacing + figure("\(count)")
         case .quiet:
@@ -220,6 +236,11 @@ enum EarMetrics {
         if counts.waiting > 0 { return String(localized: "\(counts.waiting) knocking") }
         if counts.working > 0 { return String(localized: "\(counts.working) working") }
         return "\(counts.active)"
+    }
+
+    /// "12 min", the time a door has been open.
+    static func homeMinutesText(_ minutes: String) -> String {
+        String(localized: "\(minutes) min")
     }
 
     static func percentText(_ fraction: Double) -> String {

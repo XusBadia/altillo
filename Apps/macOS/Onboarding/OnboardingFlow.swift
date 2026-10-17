@@ -22,6 +22,9 @@ final class OnboardingFlow {
     let hooks = AgentHooksModel()
     private(set) var hooksChecked = false
 
+    /// The Home page's search and sign-in, kept while the user goes Back and forth.
+    let homeSetup: OnboardingHomeSetup
+
     /// "Open Altillo at login" on the tricks page. Written only when the user leaves that page or finishes.
     var launchAtLogin: Bool
     private var sawTricks = false
@@ -49,6 +52,7 @@ final class OnboardingFlow {
         self.model = model
         self.drawerEnabled = drawerEnabled ?? { [drawer = model.drawer] in drawer.enabled }
         self.step = step
+        homeSetup = OnboardingHomeSetup(model: model)
         launchAtLogin = OnboardingLogic.initialLaunchAtLogin(
             current: model.settings.launchAtLogin, hasCompletedOnboarding: model.settings.hasCompletedOnboarding
         )
@@ -100,6 +104,7 @@ final class OnboardingFlow {
     /// The last page's "Start", Skip, Esc or the close button: whatever the user saw is kept, and the welcome
     /// doesn't come back on its own.
     func finish() {
+        homeSetup.cancel()
         leave(step)
         settings.hasCompletedOnboarding = true
         close()
@@ -107,6 +112,7 @@ final class OnboardingFlow {
 
     /// Called by the window when it closes by any route (the close button too).
     func windowClosed() {
+        homeSetup.cancel()
         if step == .tricks { writeLaunchAtLogin() }
         settings.hasCompletedOnboarding = true
     }

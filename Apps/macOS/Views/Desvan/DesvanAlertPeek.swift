@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 // The live alert peek (`NotchAlert`): one sentence under the notch, the source's symbol in the left ear and a figure
@@ -34,12 +35,27 @@ struct DesvanAlertFigure: View {
 }
 
 /// The sentence: the title in paper, the detail dimmer, and (on the island, which has no right ear) the figure.
+/// A doorbell's ring leads with the camera's picture once it has arrived.
 struct DesvanAlertLine: View {
     let alert: NotchAlert
     var showsTrailing: Bool
+    var thumbnail: NSImage?
 
     var body: some View {
         HStack(spacing: 6) {
+            if let thumbnail {
+                Image(nsImage: thumbnail)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .frame(width: 38, height: 22)
+                    .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 4, style: .continuous)
+                            .strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 0.5)
+                    }
+                    .transition(.opacity)
+                    .accessibilityHidden(true)
+            }
             Text(alert.title)
                 .font(.system(size: 12.5, weight: .semibold))
                 .foregroundStyle(Desvan.Palette.paper)
@@ -56,6 +72,7 @@ struct DesvanAlertLine: View {
         }
         .lineLimit(1)
         .truncationMode(.tail)
+        .animation(.easeOut(duration: 0.25), value: thumbnail != nil)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel([alert.title, alert.detail, alert.trailing].compactMap { $0 }.joined(separator: ", "))
         .accessibilityAddTraits(.updatesFrequently)

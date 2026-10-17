@@ -20,6 +20,8 @@ struct NotchAlert: Identifiable, Equatable, Sendable {
         case agents
         /// A kitchen timer ringing (phase 12).
         case timer
+        /// Someone rang the doorbell (docs/casa.md); the peek carries the camera's picture.
+        case home
     }
 
     let id = UUID()

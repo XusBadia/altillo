@@ -52,6 +52,7 @@ final class NotchCoordinator {
     private var pasteTarget: NSRunningApplication?
     private lazy var calendarAlerts = CalendarAlertSource { [weak self] in self?.post($0) }
     private lazy var nowPlayingAlerts = NowPlayingAlertSource { [weak self] in self?.post($0) }
+    private lazy var homeAlerts = HomeAlertSource(store: model.home) { [weak self] in self?.post($0) }
     /// The user's shelf, kept aside while a design scenario shows demo items.
     private var stashedShelf: (
         items: [ShelfItem], selection: Set<ShelfItem.ID>, isReceivingDrop: Bool, problem: String?
@@ -109,7 +110,8 @@ final class NotchCoordinator {
             openFromIndicator: { [weak self] module in self?.openFromIndicator(module) },
             beginEditing: { [weak self] in self?.beginEditing() },
             endEditing: { [weak self] in self?.endEditing() },
-            haptic: { Haptics.perform($0) }
+            haptic: { Haptics.perform($0) },
+            openHomeSettings: { SettingsWindowController.shared.show(tab: .home) }
         )
         model.assistant.context = AssistantContext(
             shelfItems: { [weak self] in self?.stashedShelf?.items ?? self?.model.shelf ?? [] },
@@ -227,6 +229,8 @@ final class NotchCoordinator {
         hotKey.unregister()
         calendarAlerts.update(enabled: false)
         nowPlayingAlerts.update(enabled: false)
+        homeAlerts.update(enabled: false)
+        model.home.setModuleEnabled(false)
         model.nowPlaying.watchInBackground(false)
         model.usage.stop()
         model.agentHub.stop()
@@ -256,7 +260,11 @@ final class NotchCoordinator {
             model.shelfProblem = scenario == .openShelfError
                 ? String(localized: "I couldn't put away what you dropped. You can try again.")
                 : nil
-            model.alert = scenario == .peekAlert ? .demoMeeting : nil
+            model.alert = switch scenario {
+            case .peekAlert: .demoMeeting
+            case .peekDoorbell: .demoDoorbell
+            default: nil
+            }
             machine = NotchStateMachine(state: scenario.state)
         } else {
             model.alert = nil
@@ -264,6 +272,7 @@ final class NotchCoordinator {
             machine = NotchStateMachine(opensOnHover: model.settings.opensOnHover)
         }
         model.scenario = scenario
+        if scenario == .peekDoorbell { model.shownHome.ringDemoDoorbell() }
         apply()
     }
 
@@ -471,8 +480,9 @@ final class NotchCoordinator {
 
     private func apply(preferredModule: NotchModule? = nil) {
         machine.opensOnHover = model.settings.opensOnHover
-        // A module that was turned off in Settings must not stay open.
-        if !model.settings.modules.contains(model.module) { model.module = .shelf }
+        // A module that was turned off in Settings must not stay open. A design scenario shows its own section even
+        // when it's off (Home is opt-in).
+        if !model.settings.modules.contains(model.module), model.scenario?.module != model.module { model.module = .shelf }
         let state = machine.state
         let previous = model.state
         if state != previous { DiagnosticLog.shared.record("notch", "\(previous) → \(state)") }
@@ -982,6 +992,7 @@ final class NotchCoordinator {
             _ = (settings.leftEar, settings.rightEar, settings.calendarHiddenIDs)
             _ = (settings.displayMode, settings.fullScreenBehaviour)
             _ = settings.usageDisabledProviders
+            _ = settings.alertsForHome
             _ = model.calendar.access
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
@@ -1020,6 +1031,11 @@ final class NotchCoordinator {
         model.usage.providersMayHaveChanged()
         // Putting the section away is an explicit stop and must immediately release the power assertion.
         model.keepAwake.setModuleEnabled(settings.modules.contains(.keepAwake))
+        // Home stays connected while its section is on, closed notch included: the ear and the doorbell need it.
+        model.home.setModuleEnabled(settings.modules.contains(.home))
+        // Which ears say "What matters now" decides whether the house's ear timer is worth running.
+        model.home.scheduleEar()
+        homeAlerts.update(enabled: settings.alertsForHome && settings.modules.contains(.home))
         if appliedScreenSettings?.mode != settings.displayMode
             || appliedScreenSettings?.fullScreen != settings.fullScreenBehaviour {
             appliedScreenSettings = (settings.displayMode, settings.fullScreenBehaviour)

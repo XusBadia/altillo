@@ -2,7 +2,7 @@ import Foundation
 
 /// A section of the open notch. The shelf is always present; the rest are opt-in and reorderable (PLAN §4).
 enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
-    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts, reminders, keepAwake
+    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts, reminders, keepAwake, home
 
     var id: Self { self }
 
@@ -22,6 +22,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .shortcuts: String(localized: "Shortcuts")
         case .reminders: String(localized: "Reminders")
         case .keepAwake: String(localized: "Keep Awake")
+        case .home: String(localized: "Home")
         }
     }
 
@@ -40,6 +41,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .shortcuts: "square.2.layers.3d"
         case .reminders: "checklist"
         case .keepAwake: "cup.and.heat.waves"
+        case .home: "lightswitch.on"
         }
     }
 
@@ -59,17 +61,18 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .shortcuts: String(localized: "Your favourite Shortcuts, one click away.")
         case .reminders: String(localized: "What's due today and next, with a quick way to mark it done.")
         case .keepAwake: String(localized: "Keep your Mac awake for a while, only when you ask.")
+        case .home: String(localized: "Your Home Assistant lights, blinds and scenes, one click away.")
         }
     }
 
     /// The shelf is the product: it can't be turned off or moved out of first place.
     var isAlwaysOn: Bool { self == .shelf }
 
-    /// Utilities (phase 12) are opt-in: they never arrive switched on, neither on a fresh install nor after an
+    /// Utilities (phase 12) and Home are opt-in: they never arrive switched on, neither on a fresh install nor after an
     /// update, so the tab strip stays calm. The user adds them from edit mode or Settings.
     var isOptIn: Bool {
         switch self {
-        case .timer, .note, .clipboard, .shortcuts, .reminders, .keepAwake: true
+        case .timer, .note, .clipboard, .shortcuts, .reminders, .keepAwake, .home: true
         default: false
         }
     }

@@ -1,4 +1,5 @@
 import AltilloCore
+import AltilloHome
 import CoreGraphics
 import Foundation
 import Observation
@@ -200,6 +201,71 @@ final class AltilloSettings {
         didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
     }
 
+    // MARK: Home (docs/casa.md)
+
+    /// The Home Assistant server, nil until the user connects one. Its token lives in the Keychain, never here.
+    var homeServer: HomeServerConfig? {
+        didSet {
+            if let homeServer, let data = try? JSONEncoder().encode(homeServer) {
+                defaults.set(data, forKey: Key.homeServer)
+            } else {
+                defaults.removeObject(forKey: Key.homeServer)
+            }
+        }
+    }
+
+    /// The Home section's pages and tiles (docs/casa-v2.md §2), saved as JSON. `pages[0]` is always Favourites.
+    var homeLayout: HomeLayout {
+        didSet {
+            guard homeLayout != oldValue else { return }
+            Self.save(homeLayout, to: defaults)
+        }
+    }
+
+    /// Whether the first-connect suggestions already ran once (they never run again on their own).
+    var homeDidAutoSuggest: Bool {
+        didSet { defaults.set(homeDidAutoSuggest, forKey: Key.homeDidAutoSuggest) }
+    }
+
+    /// H1 shim: Favourites' entities in order (`HomeEntityID.rawValue`), hidden tiles included. Setting it rebuilds
+    /// Favourites in that order, keeping each remaining tile's name, symbol, size and visibility.
+    var homeFavourites: [String] {
+        get { homeLayout.favouriteEntities.map(\.rawValue) }
+        set { homeLayout.setFavourites(newValue.compactMap(HomeEntityID.init(rawValue:))) }
+    }
+
+    /// Reads the saved layout; the first time, builds it from H1's `homeFavourites` list and drops that key.
+    private static func loadHomeLayout(from defaults: UserDefaults) -> HomeLayout {
+        if let data = defaults.data(forKey: Key.homeLayout),
+           let layout = try? JSONDecoder().decode(HomeLayout.self, from: data) {
+            return layout
+        }
+        let legacy = (defaults.stringArray(forKey: Key.homeFavourites) ?? []).compactMap(HomeEntityID.init(rawValue:))
+        let layout = HomeLayout(favourites: legacy)
+        save(layout, to: defaults)
+        defaults.removeObject(forKey: Key.homeFavourites)
+        return layout
+    }
+
+    private static func save(_ layout: HomeLayout, to defaults: UserDefaults) {
+        if let data = try? JSONEncoder().encode(layout) { defaults.set(data, forKey: Key.homeLayout) }
+    }
+
+    /// What rings: an `event.*` doorbell or a binary sensor (`HomeEntityID.rawValue`).
+    var homeDoorbellTrigger: String? {
+        didSet { defaults.set(homeDoorbellTrigger, forKey: Key.homeDoorbellTrigger) }
+    }
+
+    /// The camera whose picture comes with the ring.
+    var homeDoorbellCamera: String? {
+        didSet { defaults.set(homeDoorbellCamera, forKey: Key.homeDoorbellCamera) }
+    }
+
+    /// Peek when someone rings (only with the Home section on and a doorbell chosen). On by default.
+    var alertsForHome: Bool {
+        didSet { defaults.set(alertsForHome, forKey: Key.alertsForHome) }
+    }
+
     // MARK: Live agents (PLAN §5.3)
 
     /// How long a coding agent's permission request waits for your answer in the notch before the agent asks in
@@ -289,6 +355,13 @@ final class AltilloSettings {
         static let usageAlertsWhenRefilled = "usageAlertsWhenRefilled"
         static let agentPermissionWait = "agentPermissionWait"
         static let hasCompletedOnboarding = "hasCompletedOnboarding"
+        static let homeServer = "homeServer"
+        static let homeFavourites = "homeFavourites"
+        static let homeLayout = "homeLayout"
+        static let homeDidAutoSuggest = "homeDidAutoSuggest"
+        static let homeDoorbellTrigger = "homeDoorbellTrigger"
+        static let homeDoorbellCamera = "homeDoorbellCamera"
+        static let alertsForHome = "alertsForHome"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -353,6 +426,12 @@ final class AltilloSettings {
         agentPermissionWait = (defaults.object(forKey: Key.agentPermissionWait) as? Int)
             .flatMap { AgentHookCommand.waitChoices.contains($0) ? $0 : nil } ?? AgentHookCommand.defaultWait
         hasCompletedOnboarding = defaults.bool(forKey: Key.hasCompletedOnboarding)
+        homeServer = defaults.data(forKey: Key.homeServer).flatMap { try? JSONDecoder().decode(HomeServerConfig.self, from: $0) }
+        homeLayout = Self.loadHomeLayout(from: defaults)
+        homeDidAutoSuggest = defaults.bool(forKey: Key.homeDidAutoSuggest)
+        homeDoorbellTrigger = defaults.string(forKey: Key.homeDoorbellTrigger)
+        homeDoorbellCamera = defaults.string(forKey: Key.homeDoorbellCamera)
+        alertsForHome = defaults.object(forKey: Key.alertsForHome) as? Bool ?? true
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything

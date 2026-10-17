@@ -37,3 +37,4 @@ Config/Local.xcconfig
 .env
 .env.*
 secrets/
+script/__pycache__/

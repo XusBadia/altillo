@@ -245,9 +245,25 @@ struct SettingsBadge: View {
 /// missing and the button that fixes it, on a faint wash of its tone.
 struct SettingsNotice<Actions: View>: View {
     let symbol: String
-    let message: LocalizedStringKey
+    let message: Text
     var tone: SettingsTone = .accent
-    @ViewBuilder var actions: Actions
+    var actions: Actions
+
+    init(symbol: String, message: LocalizedStringKey, tone: SettingsTone = .accent, @ViewBuilder actions: () -> Actions) {
+        self.init(symbol: symbol, text: Text(message), tone: tone, actions: actions)
+    }
+
+    /// For text that comes from elsewhere (a server's error message): shown as is, never looked up or formatted.
+    init(symbol: String, verbatim message: String, tone: SettingsTone = .accent, @ViewBuilder actions: () -> Actions) {
+        self.init(symbol: symbol, text: Text(verbatim: message), tone: tone, actions: actions)
+    }
+
+    private init(symbol: String, text: Text, tone: SettingsTone, @ViewBuilder actions: () -> Actions) {
+        self.symbol = symbol
+        self.message = text
+        self.tone = tone
+        self.actions = actions()
+    }
 
     var body: some View {
         HStack(alignment: .center, spacing: 10) {
@@ -256,7 +272,7 @@ struct SettingsNotice<Actions: View>: View {
                 .symbolRenderingMode(.hierarchical)
                 .foregroundStyle(tone.color)
                 .accessibilityHidden(true)
-            Text(message).settingsHint()
+            message.settingsHint()
             Spacer(minLength: 8)
             actions
                 .controlSize(.small)
@@ -273,10 +289,11 @@ struct SettingsNotice<Actions: View>: View {
 
 extension SettingsNotice where Actions == EmptyView {
     init(symbol: String, message: LocalizedStringKey, tone: SettingsTone = .accent) {
-        self.symbol = symbol
-        self.message = message
-        self.tone = tone
-        self.actions = EmptyView()
+        self.init(symbol: symbol, message: message, tone: tone) { EmptyView() }
+    }
+
+    init(symbol: String, verbatim message: String, tone: SettingsTone = .accent) {
+        self.init(symbol: symbol, verbatim: message, tone: tone) { EmptyView() }
     }
 }
 
