@@ -55,7 +55,8 @@ En el vertical, los mismos movimientos con encuadres adaptados al ancho de 1080 
 | `lamp` | `lamp-off`, `lamp-on`: el interruptor del pasillo (sin brillo, porque es una luz que solo se enciende y se apaga) |
 | `peek` | `peekDoorbell` (el aviso del timbre) e `idle` |
 | `ring` | `ring-grid`: Casa justo después de un timbrazo (Peli, persiana al 60 % y pasillo encendido, como deja la casa el vídeo), con la tarjeta de la cámara arriba |
-| `settings` | `settings` (servidor encontrado) y `settings-connected`: la tarjeta Casa con un descubrimiento falso. El vídeo ya no los usa (se quitó el final de Ajustes), pero se conservan |
+| `settings` | `settings` (servidor encontrado) y `settings-connected`: la página Ajustes › Casa (sin barra lateral) con un descubrimiento falso. El vídeo ya no los usa (se quitó el final de Ajustes), pero se conservan |
+| `settings-page` | `settings-page`, `settings-page-full` (alto, toda la página) y `settings-sections`: la ventana de Ajustes real en su página Casa con la casa de demostración conectada (`-homeSettingsDemo`). Para revisar el diseño, no para el vídeo |
 | `demo` | cualquier `-demoHome` como imagen fija (`ALTILLO_HOME_DEMO=area`…), para revisar |
 
 Pasos:

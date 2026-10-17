@@ -38,7 +38,8 @@ struct SettingsHomeGroup: View {
     // Design reviews: `-homeSettingsDemo YES` shows the demo home (its own throwaway defaults) instead of the
     // user's, so screenshots of the tiles never need a real server. Debug builds only.
     #if DEBUG
-    private static let demo: HomeStore? = UserDefaults.standard.bool(forKey: "homeSettingsDemo") ? HomeStore.demo() : nil
+    /// Internal so the export tests (promo/scripts/HomeExportTests.swift) can translate the demo home.
+    static let demo: HomeStore? = UserDefaults.standard.bool(forKey: "homeSettingsDemo") ? HomeStore.demo() : nil
     private var shownStore: HomeStore { Self.demo ?? store }
     private var shownSettings: AltilloSettings { Self.demo?.settings ?? settings }
     #else

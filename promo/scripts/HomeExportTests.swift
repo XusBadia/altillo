@@ -6,7 +6,7 @@ import XCTest
 @testable import Altillo
 
 /// Exports the real Home section for the Home promo (promo/CASA.md). Only runs with ALTILLO_EXPORT_DIR.
-/// ALTILLO_HOME_EXPORT picks what: grid | blind | lamp | peek | settings. Each run is a separate process because
+/// ALTILLO_HOME_EXPORT picks what: grid | blind | lamp | peek | settings | settings-page. Each run is a separate process because
 /// `-demoHome` (read once, `DesvanHomeDemo.current`) decides which detail the openHome scenario shows.
 /// Stills are 3× NSHostingView captures in an offscreen window, like ScenarioExportTests. "Live" sequences record the
 /// app's own animations: frames grabbed as fast as possible with their timestamps (`<name>/times.json`).
@@ -43,6 +43,7 @@ final class HomeExportTests: XCTestCase {
         case "peek": try exportPeek()
         case "ring": try exportRing()
         case "settings": try exportSettings()
+        case "settings-page": try exportSettingsPage()
         case "demo": try exportDemo(env["ALTILLO_HOME_DEMO"] ?? "area")
         default: XCTFail("modo desconocido \(mode)")
         }
@@ -189,18 +190,23 @@ final class HomeExportTests: XCTestCase {
             signIn: { _, _ in throw CancellationError() },
             cancelSignIn: {}
         ))
-        let card = SettingsDisclosureCard(title: "Home", detail: "Home Assistant, favourites and the doorbell.",
-                                          symbol: NotchModule.home.symbol, isExpanded: .constant(true)) {
-            VStack(alignment: .leading, spacing: 0) {
-                SettingsHomeConnect(settings: settings, store: store, model: connect)
-                SettingsCardDivider()
-                SettingsHomeConnections(store: store) {}
+        // Settings › Home as SettingsSectionPane lays it out, with the fake discovery above (the sidebar is left out).
+        let page = SettingsPane(title: "Home", subtitle: "Home Assistant, favourites and the doorbell.") {
+            VStack(alignment: .leading, spacing: 16) {
+                SettingsCard { SettingsToggleRow("Show in Altillo", isOn: .constant(true)) }
+                SettingsCard {
+                    VStack(alignment: .leading, spacing: 0) {
+                        SettingsHomeConnect(settings: settings, store: store, model: connect)
+                        SettingsCardDivider()
+                        SettingsHomeConnections(store: store) {}
+                    }
+                    .padding(.vertical, 6)
+                }
             }
-            .padding(.vertical, 6)
+            .padding(.horizontal, 20)
         }
-        let size = CGSize(width: 640, height: 640)
-        let view = card.padding(20).frame(width: size.width, height: size.height, alignment: .top)
-            .background(Desvan.Palette.wood)
+        let size = CGSize(width: SettingsWindowController.contentSize.width - 185, height: 720)
+        let view = page.frame(width: size.width, height: size.height, alignment: .top).background(SettingsBackdrop())
         let window = try present(view, size: size, dark: true)
         try settle(2.0)
         try snap(window, "settings")
@@ -217,6 +223,39 @@ final class HomeExportTests: XCTestCase {
     }
 
     // MARK: - Helpers
+
+    // MARK: - Settings › Home: the real Settings window on its Home page, with the demo home connected
+
+    private func exportSettingsPage() throws {
+        // `-homeSettingsDemo`: SettingsHomeGroup shows the demo home (read once, so set before anything draws it).
+        UserDefaults.standard.set(true, forKey: "homeSettingsDemo")
+        defer { UserDefaults.standard.removeObject(forKey: "homeSettingsDemo") }
+        let demoStore = try XCTUnwrap(SettingsHomeGroup.demo)
+        if spanish, let demo = demoStore.service as? HomeDemoService {
+            demo.rename(entities: Self.esEntities, areas: Self.esAreas)
+        }
+        AltilloSettings.shared.setEnabled(.home, true)
+        let model = NotchModel.preview(.idle, hasNotch: true)
+        let navigation = SettingsNavigation()
+        navigation.tab = .home
+        let view = SettingsRootView(navigation: navigation, model: model)
+        // The window as it opens, then the same page tall enough to show everything on it.
+        let window = try present(view, size: SettingsWindowController.contentSize, dark: true)
+        try settle(2.0)
+        try snap(window, "settings-page")
+        window.orderOut(nil)
+        let tall = try present(view, size: CGSize(width: SettingsWindowController.contentSize.width, height: 1600),
+                               dark: true)
+        try settle(2.0)
+        try snap(tall, "settings-page-full")
+        tall.orderOut(nil)
+        // The sidebar's "Sections" page, where Home's row links to its page.
+        navigation.tab = .modules
+        let sections = try present(view, size: SettingsWindowController.contentSize, dark: true)
+        try settle(1.5)
+        try snap(sections, "settings-sections")
+        sections.orderOut(nil)
+    }
 
     private func homeModel(_ scenario: DesignScenario) -> (NotchModel, HomeStore, HomeDemoService) {
         let model = NotchModel.preview(scenario, hasNotch: true)
