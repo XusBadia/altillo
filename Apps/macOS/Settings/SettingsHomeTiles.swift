@@ -137,7 +137,7 @@ private struct SettingsHomeTileView: View {
 
     var body: some View {
         Button(action: open) {
-            HStack(spacing: 7) {
+            HStack(spacing: 6) {
                 Image(systemName: symbol)
                     .font(.system(size: tile.size == .wide ? 14 : 12, weight: .semibold))
                     .foregroundStyle(isOn ? Desvan.Palette.bulb : Desvan.Palette.paperSecondary)
@@ -147,11 +147,15 @@ private struct SettingsHomeTileView: View {
                             .overlay { Circle().strokeBorder(Desvan.Palette.hairlineStrong, lineWidth: 1) }
                     }
                 VStack(alignment: .leading, spacing: 1) {
+                    // Like the notch's compact tiles: a long name takes a second line rather than an ellipsis, the
+                    // room stays under it and the tile keeps its height, so the grid stays aligned.
                     Text(verbatim: tile.name)
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(Desvan.Palette.paper)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.85)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+                        .minimumScaleFactor(0.8)
+                        .fixedSize(horizontal: false, vertical: true)
                     Text(verbatim: secondLine)
                         .font(.system(size: 10.5))
                         .foregroundStyle(Desvan.Palette.paperTertiary)
