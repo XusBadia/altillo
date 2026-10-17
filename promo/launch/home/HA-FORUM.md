@@ -1,6 +1,6 @@
 # Foro de la comunidad de Home Assistant · post de lanzamiento
 
-Canal principal del lanzamiento de Casa. Publica **Xus con su cuenta personal**, a mano, el martes 27/10 a las 14:00 Madrid (13:00 UTC, 09:00 EDT). Borrador sin aprobar; nada publicado. Fuentes en [SOURCES.md](SOURCES.md) (acceso 17/10/2026).
+Canal principal del lanzamiento de Casa. Se publica con **la cuenta personal de Xus** (Claude desde su Chrome) el martes 27/10 a las 14:00 Madrid (13:00 UTC, 09:00 EDT). Contenido personal confirmado por Xus el 17/10; nada publicado. Fuentes en [SOURCES.md](SOURCES.md) (acceso 17/10/2026).
 
 ## Dónde
 
@@ -45,7 +45,7 @@ Por qué: plataforma, precio y licencia en el título. En MIDI-HA Bridge un lect
 
 ## Post (EN)
 
-Pegar en el editor Markdown del foro. `<YOUTUBE_EN_URL>` = URL completa del vídeo EN, sola en su línea para que Discourse la convierta en onebox. Las líneas entre `[[ ]]` son para que Xus las escriba o confirme con sus palabras; borrar los corchetes.
+Pegar en el editor Markdown del foro. `<YOUTUBE_EN_URL>` = URL completa del vídeo EN, sola en su línea para que Discourse la convierta en onebox. Líneas personales confirmadas por Xus el 17/10 (motivo: «sin abrir un dashboard»; sin mencionar su instalación; sin prometer próximos pasos). Publica Claude desde la sesión de Chrome de Xus el 27/10, tras su visto bueno ese día.
 
 ```markdown
 Hi everyone. I'm Xus, a developer in Spain. I make Altillo, a free, open-source (MIT) macOS app that lives in the MacBook notch, or in a small virtual island on displays without one. Version 0.11.0 adds a **Home** section, in beta, that talks directly to Home Assistant on your network.
@@ -81,9 +81,7 @@ The video uses Altillo's built-in demo home, not my house, and the doorbell pict
 - Apple Home. HomeKit isn't available to Mac apps distributed outside the Mac App Store, so the plan there is scenes through Shortcuts; it's marked "coming soon" in the app. Devices you already bring into Home Assistant (HomeKit Controller, Matter, Hue…) show up like any other entity.
 - An iPhone version.
 
-[[One or two sentences in your own words: why the notch, and what you use it for. E.g. what you do ten times a day without wanting to open a dashboard.]]
-
-[[Confirm or delete: I've been using it every day with my own Home Assistant (2026.9, around 250 entities).]]
+I wanted to switch the lights and check the blinds without leaving what I'm doing or opening a dashboard tab, and the notch is always there.
 
 The most useful feedback for me: entities that look wrong or are missing from a room, setups where discovery or sign-in fails (reverse proxies, custom ports, self-signed certificates), and things that shouldn't be a tile. Source code and issues: https://github.com/XusBadia/altillo
 
@@ -124,16 +122,16 @@ Una persona las adapta a la pregunta real. Sin respuestas automáticas.
 | **Remote access / Nabu Casa?** | Away from your network, Altillo needs an https URL for your instance; macOS blocks plain http outside the local network. Enter your remote https address in Settings → Home. I haven't tested Nabu Casa specifically yet, so a report would help. |
 | **Self-signed certificate / reverse proxy?** | Self-signed: Altillo asks you to trust it once and pins the fingerprint. If a reverse proxy or a custom port breaks discovery or sign-in, please open an issue with the setup (no tokens or URLs you'd rather keep private). |
 | **Which entities?** | Lights, switches, input_booleans, fans (on/off), covers, scenes, scripts, and sensors/binary sensors as readings. Not yet: climate, locks, alarm panels, garage door control, media players. |
-| **Climate / locks when?** | Climate is next on my list. [[confirm order]] Locks, alarms and garage doors need a hold-to-confirm first; I'd rather not put them one stray click away. No dates yet. |
+| **Climate / locks when?** | No promises or dates yet: I'd like to hear what you need most. Locks, alarms and garage doors would need a hold-to-confirm first; I'd rather not put them one stray click away. |
 | **Live camera?** | Not yet. The doorbell peek shows a still snapshot taken when it rings. |
 | **Apple Home / HomeKit?** | HomeKit isn't available to Mac apps outside the Mac App Store, so Altillo can't read Apple Home on the Mac. The plan is to run Home scenes through Shortcuts; it's marked "coming soon". Today, Altillo's Shortcuts section can already run any shortcut, including one that controls Home. If your accessories are in Home Assistant (HomeKit Controller or Matter), they work like any other entity. |
 | **iPhone / iPad?** | No. Altillo is macOS only for now. |
-| **Intel / older macOS?** | macOS 26 or later. [[Confirm for 0.11.0: the 0.10.6 DMG was universal, Apple Silicon + Intel.]] |
+| **Intel / older macOS?** | macOS 26 or later, on Apple Silicon and Intel (universal build). |
 | **Price / licence / catch?** | Free, MIT, no account, no paid tier. The code is on GitHub. |
 | **Why not open source as an integration / HACS?** | It isn't something that runs inside Home Assistant. It's a Mac app that uses Home Assistant's WebSocket API, so HACS doesn't apply. |
 | **How is it different from Itsyhome / HomeOtter / HomeGlance / ha-menu?** | Those are menu bar apps, and good ones if that's what you want. Altillo lives in the notch and has other optional sections (file shelf, calendar, music, AI usage…). Home is one section you can turn on. |
 | **Multiple instances?** | One server for now. |
-| **Minimum Home Assistant version?** | I haven't set one. [[Confirm: tested with 2026.9 and 2026.10.]] If an older version fails, please tell me which. |
+| **Minimum Home Assistant version?** | I haven't set one; I've tested it with 2026.9 and 2026.10. If an older version fails, please tell me which. |
 | **Is it AI-written?** | Answer honestly in your own words (the code was written with AI assistance; you designed, reviewed and tested it). Peek's author disclosed AI assistance in the same category without backlash. |
 | **Bug report** | Please open an issue at https://github.com/XusBadia/altillo/issues with the Altillo version, macOS version and steps. Settings → About → Report a Problem also helps. No tokens, URLs or camera images needed. |
 
