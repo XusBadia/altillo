@@ -31,7 +31,7 @@ Código: `src/casa/Casa.tsx` (composiciones `AltilloCasa`, `AltilloCasaEN`, `Alt
 | 7,5–10,3 s | Se abre su detalle y se sube el tirador de latón del 4 % al 60 % («Apertura 52 %»): la ventana se ilumina. Clic en «‹ Favoritos». «Sube la persiana.» | Acercamiento a la ventana y a la lectura (3,25 → 3,4 mientras sube); se aleja a la cuadrícula para el clic |
 | 10,7–12,2 s | Mantener pulsado «Pasillo» | Deriva a la derecha (2,95) y foco en la baldosa |
 | 12,0–13,6 s | Se abre el interruptor de baquelita y se acciona la palanca: el piloto se enciende. Vuelta a la cuadrícula. «Dale al interruptor.» | Acercamiento a la placa (3,4), foco en la placa y su estado; empujón en la palanca |
-| 13,3–16 s | Recorrido por Luces, Enchufes, Persianas y Escenas, una palabra por tiempo. «Todo lo que tengas en Home Assistant.» | Se aleja a todo el panel (2,45), todo nítido; un empujón por palabra |
+| 13,3–16 s | Recorrido por Luces, Enchufes, Persianas y Escenas, una palabra por tiempo. «Desde tu Home Assistant.» («Straight from your Home Assistant.») | Se aleja a todo el panel (2,45), todo nítido; un empujón por palabra |
 | 16 s | Break: el notch se cierra con el golpe y la música se para | Empieza a subir hacia el aviso |
 | 16,5–17,2 s | «Ding… dong»: el aviso del timbre, centrado y de cerca. «Ding-dong.» | Aviso a 4,0; la barra de menús y el fondo se desenfocan |
 | 17,25–18 s | Clic en el aviso: se abre Casa con la tarjeta de la cámara arriba (el estado real tras un timbrazo). «Ding-dong. Mira quién es.» («See who it is.») | Baja a la tarjeta (3,4); el foco se ensancha del aviso a la tarjeta |
