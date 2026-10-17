@@ -33,6 +33,7 @@ La frase de marca es **«Tu Mac ya tenía un altillo. Solo le faltaba una puerta
 | [SOURCES.md](SOURCES.md) | Fuentes primarias verificadas el 03/10/2026 |
 | [Product Hunt](../producthunt/README.md) | Ficha, primer comentario, vídeo y orden de galería |
 | [YouTube](../youtube/README.md) | Descripción corregida y publicación del vídeo el día del lanzamiento |
+| [Casa / Home](home/README.md) | Kit de lanzamiento de Casa (0.11.0): calendario, foro de Home Assistant, Reddit, redes, YouTube, web, notas de la release y revisión de afirmaciones |
 
 ## Activos que ya existen
 

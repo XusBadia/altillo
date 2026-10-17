@@ -57,7 +57,7 @@ breaking changes.
 | **Reminders** | See, complete or open today's and upcoming reminders. |
 | **Clipboard** | Search recently copied text, images and file references, then copy or paste them back. Image text recognition runs on your Mac; keeping history after quitting is optional. |
 | **Note & Shortcuts** | Write a quick note you can drag into another app, and run your favourite Apple Shortcuts from the notch. |
-| **Home** *(beta)* | Control your Home Assistant lights, switches, blinds and scenes from switch-plate tiles that glow in each bulb's colour; drag to dim, and see who's at the door when the doorbell rings. Altillo finds your server and signs in with Home Assistant's own login. |
+| **Home** *(beta)* | Control your Home Assistant lights, switches, blinds and scenes from switch-plate tiles that glow in each bulb's colour; drag to dim, and get a camera snapshot of who's at the door when the doorbell rings. Altillo finds your server and signs in with Home Assistant's own login. |
 | **Keep Awake** | Keep your Mac awake for 30 minutes, one hour, two hours or until you stop it. The display may still turn off; the setting resets on relaunch. |
 | **Drawer** | Keep rarely used menu bar icons above Altillo's navigation and open their menus there. On macOS 27, their icons leave the menu bar entirely. Requires Accessibility; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md). |
 
