@@ -57,6 +57,7 @@ breaking changes.
 | **Reminders** | See, complete or open today's and upcoming reminders. |
 | **Clipboard** | Search recently copied text, images and file references, then copy or paste them back. Image text recognition runs on your Mac; keeping history after quitting is optional. |
 | **Note & Shortcuts** | Write a quick note you can drag into another app, and run your favourite Apple Shortcuts from the notch. |
+| **Home** *(beta)* | Control your Home Assistant lights, switches, blinds and scenes from switch-plate tiles that glow in each bulb's colour; drag to dim, and see who's at the door when the doorbell rings. Altillo finds your server and signs in with Home Assistant's own login. |
 | **Keep Awake** | Keep your Mac awake for 30 minutes, one hour, two hours or until you stop it. The display may still turn off; the setting resets on relaunch. |
 | **Drawer** | Keep rarely used menu bar icons above Altillo's navigation and open their menus there. On macOS 27, their icons leave the menu bar entirely. Requires Accessibility; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md). |
 
@@ -258,6 +259,9 @@ See the [safe uninstall guide](docs/desinstalacion-segura.md).
   search, weather or reference service named in the privacy policy.
 - **Lyrics are opt-in per track.** Pressing “Load Lyrics” sends that track's
   title, artist, album and duration to LRCLIB; no audio or music library is uploaded.
+- **Home talks only to your Home Assistant.** Altillo connects directly to the
+  server you choose, on your network or at its https address; its access token
+  stays in your Keychain and nothing passes through any other server.
 - **Drawer icon capture is optional.** If enabled, macOS screen-capture permission
   lets Altillo capture menu bar icons for the Drawer. Images stay on your Mac.
 - **Altillo never auto-approves anything.** When an AI agent asks for
