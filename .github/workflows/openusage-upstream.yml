@@ -37,6 +37,9 @@ jobs:
               --description "openusage upstream changes affecting Altillo's usage collectors"
           fi
 
+      - name: Test the upstream tracker
+        run: bash script/openusage-upstream-test.sh
+
       - name: Run the upstream check
         id: check
         run: |

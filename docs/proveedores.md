@@ -25,7 +25,7 @@ código se adaptó de dónde; esta tabla es la vista operativa (qué endpoint, q
 | Rutas de openusage en que se basa | `Sources/OpenUsage/Providers/Claude/ClaudeUsageMapper.swift` (ventanas, `limits[]` con `weekly_scoped`, `extra_usage` en centavos, formato del plan), `Sources/OpenUsage/Providers/Claude/ClaudeAuthStore.swift` (orden de búsqueda, sufijo del servicio de llavero con `CLAUDE_CONFIG_DIR`, fallback hex) |
 | Credenciales | Llavero `Claude Code-credentials` primero (vía `/usr/bin/security find-generic-password -w`, sin prompt porque el ACL del item confía en ese binario), luego `${CLAUDE_CONFIG_DIR:-~/.claude}/.credentials.json`. Solo lectura: Altillo nunca refresca ni reescribe el token (el refresh token rota; refrescarlo aquí cerraría la sesión de Claude Code) |
 | Endpoint | `GET https://api.anthropic.com/api/oauth/usage`, cabeceras `Authorization: Bearer <token>`, `anthropic-beta: oauth-2025-04-20`, `User-Agent: claude-code/<versión instalada>` |
-| Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
+| Revisado contra upstream | `26132ff48dd78eb2c4a9498e40424e6365f99fec` (2026-10-19) |
 
 ## Codex
 
@@ -35,7 +35,7 @@ código se adaptó de dónde; esta tabla es la vista operativa (qué endpoint, q
 | Rutas de openusage en que se basa | `Sources/OpenUsage/Providers/Codex/CodexUsageMapper.swift` (clasificación de ventanas por duración, nombre del plan, mapeo de `wham/usage`) |
 | Credenciales | Primero `codex app-server --listen stdio://` (JSON-RPC, `account/rateLimits/read`), que usa el propio token de Codex CLI siempre fresco. Si no hay binario `codex`, fallback HTTP con el token de `$CODEX_HOME/auth.json` (o `~/.codex/auth.json`): `tokens.access_token` + `tokens.account_id`. Solo lectura en ambos casos |
 | Endpoint | Fallback: `GET https://chatgpt.com/backend-api/wham/usage`, cabeceras `Authorization: Bearer <token>`, `ChatGPT-Account-Id: <account_id>` |
-| Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
+| Revisado contra upstream | `26132ff48dd78eb2c4a9498e40424e6365f99fec` (2026-10-19) |
 
 ## Núcleo compartido: ritmo y alertas
 
@@ -46,14 +46,35 @@ sigue igual.
 |---|---|
 | Ficheros de Altillo | [`AltilloCore/Usage.swift`](../Packages/AltilloKit/Sources/AltilloCore/Usage.swift) (`UsagePace`), [`AltilloCore/UsageAlerts.swift`](../Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift) |
 | Rutas de openusage en que se basa | `Sources/OpenUsage/Support/Pace.swift` (proyección de ritmo de consumo), `Sources/OpenUsage/Support/PaceNotificationLogic.swift` (tolerancia de jitter en el reset, aviso de "se va a agotar"), `Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift` → `MobileQuotaNotificationEvaluator` (umbrales, límite alcanzado, una vez por ventana, solo el umbral más alto cruzado) |
-| Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
+| Revisado contra upstream | `26132ff48dd78eb2c4a9498e40424e6365f99fec` (2026-10-19) |
 
-## Proveedores pendientes
+## Otros proveedores implementados
 
-Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin y OpenCode se están escribiendo ahora mismo
-en `Packages/AltilloKit/Sources/AltilloUsage/` (otro trabajo en curso; no tocar esos ficheros desde aquí).
-Cuando un collector nuevo aterrice, añádele una entrada en `script/openusage-upstream.json` y una fila en este
-documento siguiendo el mismo formato — ver "Cómo actualizar un proveedor" más abajo, paso 0.
+Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin y OpenCode están implementados en
+`Packages/AltilloKit/Sources/AltilloUsage/`. Sus ficheros y rutas upstream se registran en
+[`script/openusage-upstream.json`](../script/openusage-upstream.json).
+
+## Revisión del 19 de octubre de 2026 (issue #3)
+
+Revisado el rango `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` →
+`26132ff48dd78eb2c4a9498e40424e6365f99fec` (HEAD remoto comprobado el 19 de octubre),
+incluidos los comentarios posteriores al cuerpo original de la issue.
+
+| Proveedor | Resultado |
+|---|---|
+| Claude | Ya conserva ventanas, balances y fecha del archivo restaurado ante el primer 429; prueba de regresión añadida. La rotación y escritura del llavero no aplican: Altillo solo lee credenciales. Los cambios de consulta/reclamación de reset grants no aplican a su collector de uso, que no consulta ni reclama esos grants. |
+| Codex | Nombres actualizados: `prolite` → Pro 100, `pro` → Pro 200, `promax` → Pro 500, `self_serve_business_prolite` → Business Premium. Las cabeceras de OpenUsage no se comparten con Altillo. |
+| Cursor | Los pools estructurados de Teams prevalecen sobre dólares antiguos; no se inventa un total ausente. Membresía Enterprise y Extra Usage se enriquecen sin sustituir los pools. CSV, caché de gasto diario y escritura/rotación de credenciales no aplican: Altillo no implementa esas rutas. |
+| OpenCode | Credencial Go desde `opencode*.db` en v2, lectura SQLite estrictamente de solo lectura. Tras la migración de credenciales no se recupera el auth.json antiguo al cerrar sesión. V1 sigue leyendo auth.json. El reset con porcentaje redondeado a cero ya se conservaba; prueba añadida. Los cambios de gasto local v2 no aplican: Altillo solo consulta cuotas Go. |
+| Grok | El cambio de gasto calculado desde logs locales no aplica: Altillo no lee esos logs. Ya conserva balances previos ante HTTP 412; prueba añadida. |
+| Gemini/Antigravity | Se prioriza Cloud Code de producción y se combinan resúmenes parciales de ambos hosts. Argon mantiene su cuota semanal separada y no contamina el pool legacy. La consulta de plan envía los metadatos del cliente y reconoce IDs de tiers pagados. |
+| Copilot | Solo cambió un comentario upstream; no requiere cambios. |
+| Ayudas compartidas | La nueva sobrecarga de parseo preserva documentos al rotar credenciales; no aplica a lectores de solo lectura. |
+| Core, OpenRouter, Z.ai, Devin | Sin cambios en las rutas seguidas. |
+
+El tracker usa rangos de commits por SHA y paginación, funciona con Bash 3.2 de macOS y falla explícitamente
+si GitHub no responde o el historial dejó de contener el commit revisado. No interpreta un error como ausencia
+de cambios. Pruebas sin red: `/bin/bash script/openusage-upstream-test.sh`.
 
 ## Cómo actualizar un proveedor
 

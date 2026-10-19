@@ -317,13 +317,14 @@ enum CodexUsageMapper {
                      limit: nil, unit: "resets")
     }
 
-    /// "prolite" → "Pro 5x", "pro" → "Pro 20x" (the multipliers ChatGPT shows, consistent with Claude's
-    /// "Max 5x"/"Max 20x"), anything else title-cased ("plus" → "Plus", "team" → "Team").
+    /// Provider plan identifiers use the current ChatGPT plan labels; unknown plans remain readable.
     static func planName(_ value: Any?) -> String? {
         guard let raw = UsageParsing.string(value) else { return nil }
         switch raw.lowercased() {
-        case "prolite": return "Pro 5x"
-        case "pro": return "Pro 20x"
+        case "prolite": return "Pro 100"
+        case "pro": return "Pro 200"
+        case "promax": return "Pro 500"
+        case "self_serve_business_prolite": return "Business Premium"
         default: return UsageParsing.titleCased(raw)
         }
     }

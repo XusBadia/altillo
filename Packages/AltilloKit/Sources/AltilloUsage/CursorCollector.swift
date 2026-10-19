@@ -5,7 +5,7 @@ import Foundation
 //
 // Endpoints, headers, plan/team/enterprise rules, on-demand and credit maths adapted from openusage (MIT),
 // Sources/OpenUsage/Providers/Cursor/{CursorUsageClient,CursorProvider,CursorUsageMapper,CursorUsageSummaryMapper}.swift
-// @87c3d2db465a5eb6c6dd2c2453c55cd82141a76e.
+// @26132ff48dd78eb2c4a9498e40424e6365f99fec.
 
 extension UsageProviderID {
     public static let cursor = UsageProviderID(rawValue: "cursor")
@@ -93,30 +93,48 @@ public struct CursorCollector: UsageCollector {
 
         let planInfo = await planReply
         let planName = (planInfo?["planInfo"] as? [String: Any]).flatMap { UsageParsing.string($0["planName"]) }
-        var plan = CursorUsageMapper.plan(planName) ?? storedPlan
+        var plan = CursorUsageMapper.resolvedPlan(planName, membership: credential.membershipType)
+        let routingPlan = CursorUsageMapper.isOrg(credential.membershipType) ? credential.membershipType : planName
 
         if usage["enabled"] as? Bool == false {
             return failure(.notSignedIn, detail: "This Cursor account has no active plan with usage limits.",
                            previous: previous, plan: plan, now: now)
         }
 
-        var mapped = CursorUsageMapper.mapPlanUsage(usage, planName: planName)
-        if mapped == nil || CursorUsageMapper.prefersDashboardSummary(usage, planName: planName,
+        var usedDashboard = false
+        var mapped = CursorUsageMapper.mapPlanUsage(usage, planName: routingPlan)
+        if mapped == nil || CursorUsageMapper.prefersDashboardSummary(usage, planName: routingPlan,
                                                                       planInfoMissing: planInfo == nil) {
             // Team/enterprise and request-based accounts: the dashboard's REST endpoints carry the real numbers.
             async let summaryReply = optional(cookieRequest(Self.usageSummaryURL, credential), now: now)
             async let requestsReply = optional(restUsageRequest(credential), now: now)
             let (summary, requests) = await (summaryReply, requestsReply)
+            usedDashboard = true
             if let fromDashboard = CursorUsageMapper.mapDashboard(summary: summary, requests: requests) {
                 mapped = fromDashboard
-                if planName == nil, let membership = CursorUsageMapper.plan(summary?["membershipType"] as? String) {
-                    plan = membership
-                }
+                plan = CursorUsageMapper.resolvedPlan(planName, membership: CursorUsageMapper.preferredMembership(
+                    local: credential.membershipType, summary: summary?["membershipType"] as? String))
             }
         }
         guard var result = mapped else {
             return failure(.unexpectedResponse("Cursor usage response changed shape"), detail: nil,
                            previous: previous, plan: plan, now: now)
+        }
+
+        // Org seats can expose live model pools in the primary endpoint but Extra Usage only in REST.
+        let localIsOrg = CursorUsageMapper.isOrg(credential.membershipType)
+        if !usedDashboard, (localIsOrg || CursorUsageMapper.isTeamByShape(usage["spendLimitUsage"] as? [String: Any])),
+           !localIsOrg || !result.balances.contains(where: { $0.id == "on-demand" }) {
+            if let summary = await optional(cookieRequest(Self.usageSummaryURL, credential), now: now) {
+                if !result.balances.contains(where: { $0.id == "on-demand" }),
+                   let extra = CursorUsageMapper.mapDashboard(summary: summary, requests: nil)?.balances.first(where: {
+                       $0.id == "on-demand"
+                   }) {
+                    result.balances.append(extra)
+                }
+                plan = CursorUsageMapper.resolvedPlan(planName, membership: CursorUsageMapper.preferredMembership(
+                    local: credential.membershipType, summary: summary["membershipType"] as? String))
+            }
         }
 
         if let grok = await grokReply, let window = CursorUsageMapper.grokBotWindow(grok) {
@@ -182,6 +200,34 @@ enum CursorUsageMapper {
         return UsageParsing.titleCased(raw)
     }
 
+    static func isOrg(_ membership: String?) -> Bool {
+        ["team", "enterprise"].contains(membership?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? "")
+    }
+
+    static func preferredMembership(local: String?, summary: String?) -> String? {
+        if isOrg(local) { return local }
+        if isOrg(summary) { return summary }
+        return local ?? summary
+    }
+
+    static func resolvedPlan(_ name: String?, membership: String?) -> String? {
+        let normalized = UsageParsing.string(name)?.lowercased()
+        if isOrg(membership), normalized == nil || normalized == "pro" || normalized == "pro plan" {
+            return plan(membership)
+        }
+        return plan(name) ?? plan(membership)
+    }
+
+    /// Zero pool placeholders alongside positive legacy spend are not structured usage.
+    static func hasModelPools(_ planUsage: [String: Any]) -> Bool {
+        guard let auto = UsageParsing.number(planUsage["autoPercentUsed"]), auto >= 0, auto.isFinite,
+              let api = UsageParsing.number(planUsage["apiPercentUsed"]), api >= 0, api.isFinite else { return false }
+        let limit = UsageParsing.number(planUsage["limit"]) ?? 0
+        let spent = UsageParsing.number(planUsage["totalSpend"])
+            ?? (limit - (UsageParsing.number(planUsage["remaining"]) ?? limit))
+        return auto > 0 || api > 0 || spent == 0
+    }
+
     // MARK: GetCurrentPeriodUsage
 
     /// Nil when the response has no usable plan meter (no `planUsage`, or neither a limit nor a percentage).
@@ -191,7 +237,8 @@ enum CursorUsageMapper {
         }
         let limit = UsageParsing.number(planUsage["limit"])
         let totalPercent = UsageParsing.number(planUsage["totalPercentUsed"])
-        guard limit != nil || totalPercent != nil else { return nil }
+        let modelPools = hasModelPools(planUsage)
+        guard limit != nil || totalPercent != nil || modelPools else { return nil }
 
         let (resetsAt, duration) = cycle(start: UsageParsing.date(usage["billingCycleStart"]),
                                          end: UsageParsing.date(usage["billingCycleEnd"]))
@@ -201,10 +248,13 @@ enum CursorUsageMapper {
 
         let usedCents = UsageParsing.number(planUsage["totalSpend"])
             ?? ((limit ?? 0) - (UsageParsing.number(planUsage["remaining"]) ?? 0))
-        let used: Double
-        if isTeam {
-            guard let limit, limit > 0 else { return nil }
-            used = max(0, usedCents) / limit
+        let used: Double?
+        if isTeam && modelPools {
+            used = totalPercent.map { Group1Support.fraction(percent: $0) }
+        } else if isTeam {
+            if let limit, limit > 0 { used = max(0, usedCents) / limit }
+            else if let totalPercent { used = Group1Support.fraction(percent: totalPercent) }
+            else { return nil }
         } else if let totalPercent {
             used = Group1Support.fraction(percent: totalPercent)
         } else if let limit, limit > 0 {
@@ -213,8 +263,11 @@ enum CursorUsageMapper {
             used = 0
         }
 
-        var windows = [UsageWindow(id: "total", kind: .monthly, label: "Month", used: used, resetsAt: resetsAt,
-                                   duration: duration)]
+        var windows: [UsageWindow] = []
+        if let used {
+            windows.append(UsageWindow(id: "total", kind: .monthly, label: "Month", used: used, resetsAt: resetsAt,
+                                       duration: duration))
+        }
         for (key, id, label) in [("autoPercentUsed", "auto", "Cursor models"), ("apiPercentUsed", "api", "Other models")] {
             if let percent = UsageParsing.number(planUsage[key]) {
                 windows.append(UsageWindow(id: id, kind: .monthly, label: label,
@@ -234,12 +287,13 @@ enum CursorUsageMapper {
         let limitMissing = planUsage.map { UsageParsing.number($0["limit"]) == nil } ?? true
         let percentMissing = planUsage.map { UsageParsing.number($0["totalPercentUsed"]) == nil } ?? true
         let plan = planName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
-        if limitMissing && (plan == "enterprise" || plan == "team") { return true }
-        if limitMissing && percentMissing && plan.isEmpty && planInfoMissing { return true }
-        return planUsage != nil && limitMissing && isTeamByShape(usage["spendLimitUsage"] as? [String: Any])
+        let modelPools = planUsage.map(hasModelPools) ?? false
+        if limitMissing && percentMissing && !modelPools && (plan == "enterprise" || plan == "team") { return true }
+        if limitMissing && percentMissing && !modelPools && plan.isEmpty && planInfoMissing { return true }
+        return planUsage != nil && limitMissing && !modelPools && isTeamByShape(usage["spendLimitUsage"] as? [String: Any])
     }
 
-    private static func isTeamByShape(_ spendLimit: [String: Any]?) -> Bool {
+    static func isTeamByShape(_ spendLimit: [String: Any]?) -> Bool {
         (spendLimit?["limitType"] as? String)?.lowercased() == "team"
             || (UsageParsing.number(spendLimit?["pooledLimit"]) ?? 0) > 0
     }

@@ -1,5 +1,6 @@
 import AltilloCore
 import Foundation
+import SQLite3
 import Testing
 @testable import AltilloUsage
 
@@ -36,6 +37,13 @@ struct OpenCodeMapperTests {
         #expect(partial[0].resetsAt == nil)
         #expect(OpenCodeUsageMapper.map(Data(#"{"usage":{}}"#.utf8)) == nil)
         #expect(OpenCodeUsageMapper.map(Data(#"{"rolling":{"percent":1}}"#.utf8)) == nil)
+    }
+
+    @Test func roundedZeroSessionsKeepTheirRealReset() throws {
+        let body = #"{"usage":{"rolling":{"percent":0,"resetsAt":"2026-07-12T13:30:00Z"}}}"#
+        let session = try #require(OpenCodeUsageMapper.map(Data(body.utf8))?.first)
+        #expect(session.used == 0)
+        #expect(session.resetsAt == iso("2026-07-12T13:30:00Z"))
     }
 
     @Test func readsErrorTypes() {
@@ -134,5 +142,76 @@ struct OpenCodeCollectorTests {
         let down = await collector(FakeTransport([.response(status: 502, body: "")])).fetch(previous: good, now: referenceNow)
         #expect(down.problem == .unreachable("HTTP 502"))
         #expect(down.windows == good.windows)
+    }
+}
+
+
+struct OpenCodeDatabaseAuthTests {
+    private func directory() throws -> URL {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: url, withIntermediateDirectories: true)
+        try Data(OpenCodeFixtures.auth.utf8).write(to: url.appendingPathComponent("auth.json"))
+        return url
+    }
+
+    private func database(_ directory: URL, name: String = "opencode.db", sql: String) throws {
+        var db: OpaquePointer?
+        try #require(sqlite3_open(directory.appendingPathComponent(name).path, &db) == SQLITE_OK)
+        defer { sqlite3_close(db) }
+        try #require(sqlite3_exec(db, sql, nil, nil, nil) == SQLITE_OK)
+    }
+
+    private let schema = """
+    CREATE TABLE migration (id TEXT);
+    CREATE TABLE credential (id TEXT, integration_id TEXT, active INTEGER, time_updated INTEGER, value TEXT);
+    """
+    private let imported = "INSERT INTO migration VALUES ('20260805200742_import_legacy_credentials');"
+
+    private func lookup(_ directory: URL) -> OpenCodeAuth.Lookup? {
+        OpenCodeAuth.lookup(authFile: directory.appendingPathComponent("auth.json"), readFile: { try? Data(contentsOf: $0) })
+    }
+
+    @Test func versionOneKeepsUsingAuthFileEvenWithCredentialTable() throws {
+        let directory = try directory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try database(directory, sql: schema)
+        #expect(lookup(directory) == .key("sk-go-test"))
+    }
+
+    @Test func versionOneWithoutMigrationTableKeepsUsingAuthFile() throws {
+        let directory = try directory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try database(directory, sql: "CREATE TABLE message (id TEXT)")
+        #expect(lookup(directory) == .key("sk-go-test"))
+    }
+
+    @Test func importedChannelUsesCurrentActiveGoKey() async throws {
+        let directory = try directory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try database(directory, name: "opencode-next.db", sql: schema + imported + """
+        INSERT INTO credential VALUES ('old', 'opencode-go', 0, 999, '{"key":"inactive"}');
+        INSERT INTO credential VALUES ('import', 'opencode-go', NULL, 999, '{"key":"imported"}');
+        INSERT INTO credential VALUES ('live', 'opencode-go', 1, 1, '{"key":"current"}');
+        """)
+        #expect(lookup(directory) == .key("current"))
+        let transport = FakeTransport([.response(status: 200, body: OpenCodeFixtures.usage)])
+        let collector = OpenCodeCollector(transport: transport, authFile: directory.appendingPathComponent("auth.json"))
+        #expect(await collector.isAvailable())
+        #expect(await collector.fetch(previous: nil, now: referenceNow).problem == nil)
+        #expect(transport.requests.first?.value(forHTTPHeaderField: "Authorization") == "Bearer current")
+    }
+
+    @Test func logoutNeverRevivesTheImportedAuthFile() throws {
+        let directory = try directory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try database(directory, sql: schema + imported)
+        #expect(lookup(directory) == .noGoKey)
+    }
+
+    @Test func unreadableDatabaseNeverFallsBackToStaleAuth() throws {
+        let directory = try directory()
+        defer { try? FileManager.default.removeItem(at: directory) }
+        try Data("not sqlite".utf8).write(to: directory.appendingPathComponent("opencode.db"))
+        #expect(lookup(directory) == .unreadable)
     }
 }

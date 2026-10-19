@@ -6,7 +6,7 @@ import Testing
 struct CodexMapperTests {
     @Test func mapsTheLiveAppServerShape() throws {
         let mapped = try #require(CodexUsageMapper.mapAppServer(Data(Fixtures.codexAppServerWeeklyOnly.utf8)))
-        #expect(mapped.plan == "Pro 5x")
+        #expect(mapped.plan == "Pro 100")
         #expect(mapped.windows == [UsageWindow(id: "weekly", kind: .weekly, label: "Week", used: 1,
                                                resetsAt: Date(timeIntervalSince1970: 1_790_414_188),
                                                duration: 10080 * 60)])
@@ -17,7 +17,7 @@ struct CodexMapperTests {
 
     @Test func mapsSessionWeekModelsAndCredits() throws {
         let mapped = try #require(CodexUsageMapper.mapAppServer(Data(Fixtures.codexAppServerFull.utf8)))
-        #expect(mapped.plan == "Pro 20x")
+        #expect(mapped.plan == "Pro 200")
         #expect(mapped.windows.map(\.id) == ["session", "weekly", "weekly-codex-spark", "session-codex-spark"])
         #expect(mapped.windows[0].used == 0.125) // fractional percent survives (Double, not Int)
         #expect(mapped.windows[0].duration == TimeInterval(300 * 60))
@@ -56,8 +56,11 @@ struct CodexMapperTests {
     }
 
     @Test func planNames() {
-        #expect(CodexUsageMapper.planName("prolite") == "Pro 5x")
-        #expect(CodexUsageMapper.planName("pro") == "Pro 20x")
+        #expect(CodexUsageMapper.planName("prolite") == "Pro 100")
+        #expect(CodexUsageMapper.planName("pro") == "Pro 200")
+        #expect(CodexUsageMapper.planName("promax") == "Pro 500")
+        #expect(CodexUsageMapper.planName("self_serve_business_prolite") == "Business Premium")
+        #expect(CodexUsageMapper.planName(" PROLITE ") == "Pro 100")
         #expect(CodexUsageMapper.planName("plus") == "Plus")
         #expect(CodexUsageMapper.planName("") == nil)
     }

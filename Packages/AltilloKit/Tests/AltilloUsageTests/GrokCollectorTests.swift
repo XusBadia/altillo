@@ -224,6 +224,22 @@ struct GrokCollectorTests {
         #expect(usage.fetchedAt == referenceNow)
     }
 
+    @Test func teamBilling412KeepsPreviouslyKnownBalances() async {
+        let previous = ProviderUsage(id: .grok, displayName: "Grok", plan: "SuperGrok", windows: [],
+                                     balances: [UsageBalance(id: "prepaid", label: "Prepaid", remaining: 12,
+                                                             used: nil, limit: nil, unit: "credits")],
+                                     fetchedAt: referenceNow)
+        let transport = Group2RoutedTransport([
+            ("/billing", .response(status: 412, body: #"{"error":"No personal team"}"#)),
+            ("/settings", .response(status: 200, body: GrokFixtures.settings)),
+        ])
+        let usage = await collector(transport, auth: liveAuth)
+            .fetch(previous: previous, now: referenceNow.addingTimeInterval(300))
+        #expect(usage.problem == .unreachable("HTTP 412"))
+        #expect(usage.balances == previous.balances)
+        #expect(usage.fetchedAt == previous.fetchedAt)
+    }
+
     @Test func rateLimitHonoursRetryAfter() async {
         let limited = Group2RoutedTransport([("/", .response(status: 429, body: "", headers: ["Retry-After": "120"]))])
         let grok = collector(limited, auth: liveAuth)

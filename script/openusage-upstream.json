@@ -11,7 +11,7 @@
         "Sources/OpenUsage/Providers/Claude/ClaudeUsageMapper.swift",
         "Sources/OpenUsage/Providers/Claude/ClaudeAuthStore.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "codex": {
       "label": "Codex",
@@ -21,7 +21,7 @@
       "upstream_paths": [
         "Sources/OpenUsage/Providers/Codex/CodexUsageMapper.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "core": {
       "label": "Núcleo compartido (pace y alertas)",
@@ -34,7 +34,7 @@
         "Sources/OpenUsage/Support/PaceNotificationLogic.swift",
         "Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "cursor": {
       "label": "Cursor",
@@ -49,7 +49,7 @@
         "Sources/OpenUsage/Providers/Cursor/CursorUsageMapper.swift",
         "Sources/OpenUsage/Providers/Cursor/CursorUsageSummaryMapper.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "copilot": {
       "label": "GitHub Copilot",
@@ -61,7 +61,7 @@
         "Sources/OpenUsage/Providers/Copilot/CopilotUsageClient.swift",
         "Sources/OpenUsage/Providers/Copilot/CopilotUsageMapper.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "openrouter": {
       "label": "OpenRouter",
@@ -74,7 +74,7 @@
         "Sources/OpenUsage/Providers/OpenRouter/OpenRouterUsageMapper.swift",
         "Sources/OpenUsage/Providers/OpenRouter/OpenRouterProvider.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "zai": {
       "label": "Z.ai",
@@ -87,7 +87,7 @@
         "Sources/OpenUsage/Providers/ZAI/ZAIUsageMapper.swift",
         "Sources/OpenUsage/Providers/ZAI/ZAIProvider.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "grok": {
       "label": "Grok",
@@ -100,7 +100,7 @@
         "Sources/OpenUsage/Providers/Grok/GrokUsageMapper.swift",
         "Sources/OpenUsage/Providers/Grok/GrokAuthStore.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "gemini": {
       "label": "Gemini (Antigravity)",
@@ -114,7 +114,7 @@
         "Sources/OpenUsage/Providers/Antigravity/AntigravityAuthStore.swift",
         "Sources/OpenUsage/Services/LanguageServerDiscovery.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "devin": {
       "label": "Devin",
@@ -127,7 +127,7 @@
         "Sources/OpenUsage/Providers/Devin/DevinUsageMapper.swift",
         "Sources/OpenUsage/Providers/Devin/DevinProvider.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "opencode": {
       "label": "OpenCode",
@@ -141,7 +141,7 @@
         "Sources/OpenUsage/Providers/OpenCode/OpenCodeUsageMapper.swift",
         "Sources/OpenUsage/Providers/OpenCode/OpenCodeProvider.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     },
     "shared": {
       "label": "Ayudas compartidas (claves y parseo)",
@@ -153,7 +153,7 @@
         "Sources/OpenUsage/Providers/UserAPIKeyStore.swift",
         "Sources/OpenUsage/Support/ProviderParse.swift"
       ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
+      "last_reviewed_sha": "26132ff48dd78eb2c4a9498e40424e6365f99fec"
     }
   }
 }

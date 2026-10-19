@@ -22,6 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - run: bash script/release-gates-test.sh
+      - name: Upstream tracker regression tests
+        run: bash script/openusage-upstream-test.sh
 
   secrets:
     name: Secret scan (gitleaks)

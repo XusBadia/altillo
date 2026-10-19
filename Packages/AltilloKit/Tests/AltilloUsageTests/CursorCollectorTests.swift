@@ -75,6 +75,29 @@ struct CursorMapperTests {
         #expect(mapped.balances.first?.limit == 5000)
     }
 
+    @Test func teamModelPoolsOverrideStaleLegacyDollars() throws {
+        var plan: [String: Any] = ["limit": 2000, "totalSpend": 9000, "autoPercentUsed": 25,
+                                   "apiPercentUsed": 15, "totalPercentUsed": 40]
+        var usage: [String: Any] = ["enabled": true, "planUsage": plan]
+        let mapped = try #require(CursorUsageMapper.mapPlanUsage(usage, planName: "team"))
+        #expect(mapped.windows.map(\.used) == [0.4, 0.25, 0.15])
+        plan.removeValue(forKey: "totalPercentUsed")
+        usage["planUsage"] = plan
+        #expect(CursorUsageMapper.mapPlanUsage(usage, planName: "team")?.windows.map(\.id) == ["auto", "api"])
+        plan.removeValue(forKey: "limit")
+        usage["planUsage"] = plan
+        let pools = try #require(CursorUsageMapper.mapPlanUsage(usage, planName: "team"))
+        #expect(pools.windows.map(\.id) == ["auto", "api"])
+        #expect(!CursorUsageMapper.prefersDashboardSummary(usage, planName: "team", planInfoMissing: false))
+    }
+
+    @Test func zeroPoolPlaceholdersKeepLegacyTeamDollars() throws {
+        let usage: [String: Any] = ["enabled": true, "planUsage": [
+            "limit": 2000, "totalSpend": 1000, "autoPercentUsed": 0, "apiPercentUsed": 0,
+        ]]
+        #expect(CursorUsageMapper.mapPlanUsage(usage, planName: "team")?.windows.first?.used == 0.5)
+    }
+
     @Test func unusablePlanUsageNeedsTheDashboard() throws {
         let usage = try #require(UsageParsing.object(Data(CursorFixtures.enterpriseUsage.utf8)))
         #expect(CursorUsageMapper.mapPlanUsage(usage, planName: "Enterprise") == nil)
@@ -195,6 +218,35 @@ struct CursorCollectorTests {
         #expect(usage.windows.first?.id == "requests")
         let rest = try #require(transport.requests.first { $0.url?.path == "/api/usage" })
         #expect(rest.url?.query == "user=user_abc123")
+    }
+
+    @Test func enterpriseMembershipEnrichesPoolsWithoutReplacingThem() async {
+        let transport = RoutedTransport([
+            ("GetCurrentPeriodUsage", .response(status: 200, body:
+                #"{"enabled":true,"planUsage":{"autoPercentUsed":20,"apiPercentUsed":30,"totalPercentUsed":50}}"#)),
+            ("GetPlanInfo", .response(status: 200, body: CursorFixtures.planInfo)),
+            ("usage-summary", .response(status: 200, body: CursorFixtures.enterpriseSummary)),
+        ])
+        let enterprise = CursorCredentials(accessToken: token, membershipType: "enterprise", source: .stateDatabase)
+        let usage = await collector(.found(enterprise), transport).fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(usage.plan == "Enterprise")
+        #expect(usage.windows.first(where: { $0.id == "total" })?.used == 0.5)
+        #expect(usage.balances.first(where: { $0.id == "on-demand" })?.limit == 250)
+        #expect(transport.requests.filter { $0.url?.path == "/api/usage-summary" }.count == 1)
+        #expect(!transport.requests.contains { $0.url?.path == "/api/usage" })
+    }
+
+    @Test func teamShapePromotesStalePersonalMembershipFromSummary() async {
+        let transport = RoutedTransport([
+            ("GetCurrentPeriodUsage", .response(status: 200, body: CursorFixtures.teamUsage)),
+            ("GetPlanInfo", .response(status: 200, body: CursorFixtures.planInfo)),
+            ("usage-summary", .response(status: 200, body: CursorFixtures.enterpriseSummary)),
+        ])
+        let usage = await collector(.found(credential), transport).fetch(previous: nil, now: referenceNow)
+        #expect(usage.plan == "Enterprise")
+        #expect(usage.windows.first?.used == 0.25)
+        #expect(usage.balances.first?.used == 500)
     }
 
     @Test func expiredTokenNeverTouchesTheNetwork() async {

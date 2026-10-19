@@ -214,6 +214,18 @@ struct ClaudeCollectorTests {
         #expect(early.requests.count == 1)
     }
 
+    @Test func firstRateLimitAfterRelaunchKeepsArchivedLimits() async throws {
+        let good = await collector(.found(valid), FakeTransport([.response(status: 200, body: Fixtures.claudeUsage)]))
+            .fetch(previous: nil, now: referenceNow)
+        let archived = try JSONDecoder().decode(ProviderUsage.self, from: JSONEncoder().encode(good))
+        let usage = await collector(.found(valid), FakeTransport([.response(status: 429, body: "")]))
+            .fetch(previous: archived, now: referenceNow.addingTimeInterval(60))
+        #expect(usage.problem == .rateLimited(retryAfter: referenceNow.addingTimeInterval(360)))
+        #expect(usage.windows == good.windows)
+        #expect(usage.balances == good.balances)
+        #expect(usage.fetchedAt == good.fetchedAt)
+    }
+
     @Test func rateLimitWithoutHeaderWaitsFiveMinutes() async {
         let transport = FakeTransport([.response(status: 429, body: "")])
         let usage = await collector(.found(valid), transport).fetch(previous: nil, now: referenceNow)

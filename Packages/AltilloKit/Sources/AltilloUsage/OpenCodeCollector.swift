@@ -1,10 +1,11 @@
 import AltilloCore
 import Foundation
+import SQLite3
 
-// OpenCode Go usage from opencode.ai, with the `opencode-go` key OpenCode keeps in its own auth.json (read-only).
+// OpenCode Go usage from opencode.ai, with OpenCode's `opencode-go` credential (read-only).
 //
 // Adapted from openusage (MIT), Sources/OpenUsage/Providers/OpenCode/{OpenCodePaths,OpenCodeAuthStore,
-// OpenCodeUsageClient,OpenCodeUsageMapper,OpenCodeProvider}.swift@87c3d2db465a5eb6c6dd2c2453c55cd82141a76e: the
+// OpenCodeUsageClient,OpenCodeUsageMapper,OpenCodeProvider}.swift@26132ff48dd78eb2c4a9498e40424e6365f99fec: the
 // data-directory resolution, the endpoint, the rolling/weekly/monthly shape and the EntitlementError meaning.
 // See ThirdPartyNotices/README.md.
 
@@ -12,7 +13,7 @@ extension UsageProviderID {
     public static let opencode = UsageProviderID(rawValue: "opencode")
 }
 
-/// Where OpenCode keeps its data, and the Go key inside it.
+/// Where OpenCode keeps its data, and the Go key in auth.json (v1) or channel databases (v2).
 public enum OpenCodeAuth {
     /// `$OPENCODE_DATA_DIR`, else `$XDG_DATA_HOME/opencode`, else `~/.local/share/opencode` (OpenCode's own order).
     public static func dataDirectory(environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -46,6 +47,72 @@ public enum OpenCodeAuth {
         }
         return .key(key)
     }
+
+    /// OpenCode 2 imports auth.json once. After that migration a missing row means logout,
+    /// and the leftover file must never revive the old key. Older databases keep using the file.
+    static func lookup(authFile: URL, readFile: @Sendable (URL) -> Data?) -> Lookup? {
+        let directory = authFile.deletingLastPathComponent()
+        let databases: [URL]
+        do {
+            databases = try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)
+                .filter { $0.lastPathComponent.hasPrefix("opencode") && $0.pathExtension == "db" }
+                .sorted { $0.path < $1.path }
+        } catch {
+            if FileManager.default.fileExists(atPath: directory.path) { return .unreadable }
+            databases = []
+        }
+        var imported = false
+        var unreadable = false
+        for database in databases {
+            switch databaseKey(database) {
+            case .key(let key): return .key(key)
+            case .noGoKey: imported = true
+            case .unreadable: unreadable = true
+            case nil: break
+            }
+        }
+        if unreadable { return .unreadable }
+        if imported { return .noGoKey }
+        return readFile(authFile).map(parse)
+    }
+
+    /// nil means an OpenCode 1 database (no import migration). Open strictly read-only,
+    /// including its live WAL, so a refresh cannot create a database or change a login.
+    private static func databaseKey(_ url: URL) -> Lookup? {
+        var handle: OpaquePointer?
+        guard sqlite3_open_v2(url.path, &handle, SQLITE_OPEN_READONLY, nil) == SQLITE_OK, let db = handle else {
+            sqlite3_close(handle)
+            return .unreadable
+        }
+        defer { sqlite3_close(db) }
+        sqlite3_busy_timeout(db, 1000)
+        var migration: OpaquePointer?
+        let migrationSQL = "SELECT 1 FROM migration WHERE id = '20260805200742_import_legacy_credentials' LIMIT 1"
+        guard sqlite3_prepare_v2(db, migrationSQL, -1, &migration, nil) == SQLITE_OK else {
+            sqlite3_finalize(migration)
+            return String(cString: sqlite3_errmsg(db)).contains("no such table") ? nil : .unreadable
+        }
+        let migrationResult = sqlite3_step(migration)
+        sqlite3_finalize(migration)
+        if migrationResult == SQLITE_DONE { return nil }
+        guard migrationResult == SQLITE_ROW else { return .unreadable }
+
+        let keySQL = """
+        SELECT json_extract(value, '$.key') FROM credential
+        WHERE integration_id = 'opencode-go' AND (active IS NULL OR active = 1)
+        ORDER BY active DESC, time_updated DESC, id DESC LIMIT 1
+        """
+        var statement: OpaquePointer?
+        defer { sqlite3_finalize(statement) }
+        guard sqlite3_prepare_v2(db, keySQL, -1, &statement, nil) == SQLITE_OK else { return .unreadable }
+        let result = sqlite3_step(statement)
+        if result == SQLITE_DONE { return .noGoKey }
+        guard result == SQLITE_ROW else { return .unreadable }
+        guard let text = sqlite3_column_text(statement, 0),
+              let key = UsageParsing.string(String(cString: text)) else { return .noGoKey }
+        return .key(key)
+    }
+
 }
 
 /// Reads OpenCode Go's rolling (5-hour), weekly and monthly limits.
@@ -70,19 +137,20 @@ public struct OpenCodeCollector: UsageCollector {
 
     /// Only an OpenCode Go key has limits to read.
     public func isAvailable() async -> Bool {
-        guard let data = readFile(authFile), case .key = OpenCodeAuth.parse(data) else { return false }
+        guard let lookup = OpenCodeAuth.lookup(authFile: authFile, readFile: readFile),
+              case .key = lookup else { return false }
         return true
     }
 
     public func fetch(previous: ProviderUsage?, now: Date) async -> ProviderUsage {
         if CollectorOutcome.isBackingOff(previous, now: now) { return previous! }
 
-        guard let data = readFile(authFile) else {
+        guard let lookup = OpenCodeAuth.lookup(authFile: authFile, readFile: readFile) else {
             return failure(.notSignedIn, detail: "OpenCode isn't signed in on this Mac.", previous: previous,
                            now: now)
         }
         let key: String
-        switch OpenCodeAuth.parse(data) {
+        switch lookup {
         case .key(let found):
             key = found
         case .noGoKey:
@@ -90,7 +158,7 @@ public struct OpenCodeCollector: UsageCollector {
                            detail: "OpenCode isn't signed in to OpenCode Go, the only OpenCode plan with usage limits.",
                            previous: previous, now: now)
         case .unreadable:
-            return failure(.notSignedIn, detail: "OpenCode's auth.json couldn't be read. Sign in to OpenCode Go again.",
+            return failure(.notSignedIn, detail: "OpenCode's credentials couldn't be read. Sign in to OpenCode Go again.",
                            previous: previous, now: now)
         }
 

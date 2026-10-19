@@ -6,7 +6,7 @@ import Foundation
 //
 // Adapted from openusage (MIT), Sources/OpenUsage/Providers/Antigravity/{AntigravityProvider,AntigravityUsageClient,
 // AntigravityUsageMapper,AntigravityAuthStore}.swift and Sources/OpenUsage/Services/LanguageServerDiscovery.swift
-// @87c3d2db465a5eb6c6dd2c2453c55cd82141a76e: the process discovery (ps/lsof, CSRF flag, marker ranking), the RPC and
+// @26132ff48dd78eb2c4a9498e40424e6365f99fec: the process discovery (ps/lsof, CSRF flag, marker ranking), the RPC and
 // Cloud Code endpoints, the quota-summary buckets, the legacy per-model pooling, plan naming and the go-keyring token
 // format. Unlike openusage, Altillo never refreshes the Google token (no OAuth client secret, no token cache): an
 // expired keychain token means "open Antigravity once". See ThirdPartyNotices/README.md.
@@ -247,7 +247,7 @@ public struct GeminiKeychainToken: Sendable, Hashable {
 /// window.
 public struct GeminiCollector: UsageCollector {
     static let languageServerService = "exa.language_server_pb.LanguageServerService"
-    static let cloudCodeBases = ["https://daily-cloudcode-pa.googleapis.com", "https://cloudcode-pa.googleapis.com"]
+    static let cloudCodeBases = ["https://cloudcode-pa.googleapis.com", "https://daily-cloudcode-pa.googleapis.com"]
         .compactMap(URL.init(string:))
     static let languageServerMetadata = ["ideName": "antigravity", "extensionName": "antigravity",
                                          "ideVersion": "unknown", "locale": "en"]
@@ -362,28 +362,44 @@ public struct GeminiCollector: UsageCollector {
 
     private func readCloudCode(token: String, previous: ProviderUsage?, now: Date) async -> ProviderUsage {
         var lastFailure = "Cloud Code didn't answer"
-        // The quota summary (both pools, 5-hour and weekly), then the legacy model list (5-hour pools only).
-        for (path, legacy) in [("/v1internal:retrieveUserQuotaSummary", false),
-                               ("/v1internal:fetchAvailableModels", true)] {
-            for base in Self.cloudCodeBases {
-                switch await HTTPReply.send(cloudCodeRequest(base: base, path: path, token: token,
-                                                             userAgent: "antigravity"),
-                                            with: transport, now: now) {
-                case .success(let body):
-                    let windows = legacy ? GeminiUsageMapper.cloudCodeModelWindows(body)
-                                         : GeminiUsageMapper.quotaSummary(body)
-                    guard let windows, legacy ? !windows.isEmpty : true else { continue }
-                    let plan = await cloudCodePlan(token: token, now: now) ?? previous?.plan
-                    return ProviderUsage(id: providerID, displayName: displayName, plan: plan, windows: windows,
-                                         fetchedAt: now)
-                case .unauthorized:
-                    return failure(.sessionExpired, detail: "Open Antigravity once to renew its sign-in.",
-                                   previous: previous, now: now)
-                case .rateLimited(let retry):
-                    return failure(.rateLimited(retryAfter: retry), detail: nil, previous: previous, now: now)
-                case .failed(let reason):
-                    lastFailure = reason
-                }
+        // Hosts can return different subsets of the same account's pools. Keep the first usable bucket per id.
+        var summaries: [Data] = []
+        var summaryProblem: UsageProblem?
+        for base in Self.cloudCodeBases {
+            switch await HTTPReply.send(cloudCodeRequest(base: base, path: "/v1internal:retrieveUserQuotaSummary",
+                                                         token: token, userAgent: "antigravity"),
+                                        with: transport, now: now) {
+            case .success(let body):
+                summaries.append(body)
+                if GeminiUsageMapper.isCompleteSummary(body) { break }
+            case .unauthorized: summaryProblem = .sessionExpired
+            case .rateLimited(let retry): summaryProblem = .rateLimited(retryAfter: retry)
+            case .failed(let reason): lastFailure = reason
+            }
+        }
+        if let windows = GeminiUsageMapper.quotaSummaries(summaries) {
+            let plan = await cloudCodePlan(token: token, now: now) ?? previous?.plan
+            return ProviderUsage(id: providerID, displayName: displayName, plan: plan, windows: windows, fetchedAt: now)
+        }
+        if summaries.isEmpty, let problem = summaryProblem {
+            return failure(problem, detail: problem == .sessionExpired ? "Open Antigravity once to renew its sign-in." : nil,
+                           previous: previous, now: now)
+        }
+        // Older builds have only per-model, 5-hour quotas.
+        for base in Self.cloudCodeBases {
+            switch await HTTPReply.send(cloudCodeRequest(base: base, path: "/v1internal:fetchAvailableModels",
+                                                         token: token, userAgent: "antigravity"),
+                                        with: transport, now: now) {
+            case .success(let body):
+                guard let windows = GeminiUsageMapper.cloudCodeModelWindows(body), !windows.isEmpty else { continue }
+                let plan = await cloudCodePlan(token: token, now: now) ?? previous?.plan
+                return ProviderUsage(id: providerID, displayName: displayName, plan: plan, windows: windows, fetchedAt: now)
+            case .unauthorized:
+                return failure(.sessionExpired, detail: "Open Antigravity once to renew its sign-in.",
+                               previous: previous, now: now)
+            case .rateLimited(let retry):
+                return failure(.rateLimited(retryAfter: retry), detail: nil, previous: previous, now: now)
+            case .failed(let reason): lastFailure = reason
             }
         }
         return failure(.unreachable(lastFailure), detail: nil, previous: previous, now: now)
@@ -392,13 +408,22 @@ public struct GeminiCollector: UsageCollector {
     private func cloudCodePlan(token: String, now: Date) async -> String? {
         for base in Self.cloudCodeBases {
             if case .success(let body) = await HTTPReply.send(
-                cloudCodeRequest(base: base, path: "/v1internal:loadCodeAssist", token: token, userAgent: "agy"),
+                cloudCodeRequest(base: base, path: "/v1internal:loadCodeAssist", token: token, userAgent: Self.clientUserAgent),
                 with: transport, now: now) {
                 return GeminiUsageMapper.loadCodeAssistPlan(body)
             }
         }
         return nil
     }
+
+    static let clientUserAgent: String = {
+        #if arch(arm64)
+        let architecture = "arm64"
+        #else
+        let architecture = "amd64"
+        #endif
+        return "antigravity/2.24.0 (aidev_client; os_type=darwin; arch=\(architecture))"
+    }()
 
     private func cloudCodeRequest(base: URL, path: String, token: String, userAgent: String) -> URLRequest {
         var request = URLRequest(url: URL(string: base.absoluteString + path)!,
@@ -408,7 +433,9 @@ public struct GeminiCollector: UsageCollector {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         request.setValue(userAgent, forHTTPHeaderField: "User-Agent")
-        request.httpBody = Data("{}".utf8)
+        request.httpBody = path == "/v1internal:loadCodeAssist"
+            ? Data(#"{"metadata":{"ideType":"ANTIGRAVITY","platform":"PLATFORM_UNSPECIFIED","pluginType":"GEMINI"}}"#.utf8)
+            : Data("{}".utf8)
         return request
     }
 
@@ -452,26 +479,65 @@ enum GeminiUsageMapper {
     /// same without `response` (Cloud Code). Nil when it isn't a summary at all; an empty array is an authoritative
     /// "no buckets". A bucket without a usable fraction is dropped rather than guessed.
     static func quotaSummary(_ data: Data) -> [UsageWindow]? {
+        quotaSummaries([data])
+    }
+
+    private static func groups(_ data: Data) -> [[String: Any]]? {
         guard let body = UsageParsing.object(data) else { return nil }
         let root = body["response"] as? [String: Any] ?? body
-        guard let groups = root["groups"] as? [Any] else { return nil }
+        return (root["groups"] as? [Any])?.compactMap { $0 as? [String: Any] }
+    }
+
+    static func isCompleteSummary(_ data: Data) -> Bool {
+        guard let windows = quotaSummary(data) else { return false }
+        return summaryBuckets.allSatisfy { bucket in windows.contains { $0.id == bucket.id } }
+    }
+
+    static func quotaSummaries(_ bodies: [Data]) -> [UsageWindow]? {
+        let sources = bodies.compactMap(groups)
+        guard !sources.isEmpty else { return nil }
         var found: [String: (remaining: Double, reset: Date?)] = [:]
-        for group in groups {
-            guard let buckets = (group as? [String: Any])?["buckets"] as? [Any] else { continue }
-            for case let bucket as [String: Any] in buckets {
-                guard let id = bucket["bucketId"] as? String, found[id] == nil,
-                      summaryBuckets.contains(where: { $0.bucketID == id }),
-                      let fraction = bucket["remainingFraction"] as? NSNumber,
-                      CFGetTypeID(fraction) != CFBooleanGetTypeID(), fraction.doubleValue.isFinite else { continue }
-                found[id] = (fraction.doubleValue, UsageParsing.date(bucket["resetTime"]))
+        var argon: UsageWindow?
+        for groups in sources {
+            for group in groups where group["displayName"] as? String != "Gemini 4 Argon" {
+                for case let bucket as [String: Any] in group["buckets"] as? [Any] ?? [] {
+                    guard let id = bucket["bucketId"] as? String, found[id] == nil,
+                          summaryBuckets.contains(where: { $0.bucketID == id }),
+                          let fraction = summaryFraction(bucket["remainingFraction"]) else { continue }
+                    found[id] = (fraction, UsageParsing.date(bucket["resetTime"]))
+                }
+            }
+            // Judge Argon per response: merging hosts must not make its single weekly bucket ambiguous.
+            let argonBuckets = groups.filter { $0["displayName"] as? String == "Gemini 4 Argon" }
+                .flatMap { $0["buckets"] as? [[String: Any]] ?? [] }.filter { $0["window"] as? String == "weekly" }
+            if argon == nil, argonBuckets.count == 1, let bucket = argonBuckets.first,
+               let id = UsageParsing.string(bucket["bucketId"]), !summaryBuckets.contains(where: { $0.bucketID == id }),
+               bucket["disabled"] == nil || bucket["disabled"] is NSNull || Self.isFalse(bucket["disabled"]),
+               let fraction = summaryFraction(bucket["remainingFraction"]) {
+                argon = UsageWindow(id: "argon-weekly", kind: .modelWeekly, label: "Argon week",
+                                    used: used(remaining: fraction), resetsAt: UsageParsing.date(bucket["resetTime"]),
+                                    duration: weekDuration)
             }
         }
-        return summaryBuckets.compactMap { spec in
+        var windows = summaryBuckets.compactMap { spec in
             found[spec.bucketID].map {
                 UsageWindow(id: spec.id, kind: spec.kind, label: spec.label, used: used(remaining: $0.remaining),
                             resetsAt: $0.reset, duration: spec.duration)
             }
         }
+        if let argon { windows.insert(argon, at: windows.firstIndex { $0.id.hasPrefix("claude-") } ?? windows.endIndex) }
+        return windows
+    }
+
+    private static func summaryFraction(_ value: Any?) -> Double? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue.isFinite else { return nil }
+        return number.doubleValue
+    }
+
+    private static func isFalse(_ value: Any?) -> Bool {
+        guard let number = value as? NSNumber, CFGetTypeID(number) == CFBooleanGetTypeID() else { return false }
+        return !number.boolValue
     }
 
     /// Plan from `GetUserStatus`: Google's `userTier` wins over the inherited `planInfo.planName` ("Pro" for every
@@ -512,6 +578,10 @@ enum GeminiUsageMapper {
     /// Plan from Cloud Code `loadCodeAssist` (paid tier over current tier).
     static func loadCodeAssistPlan(_ data: Data) -> String? {
         guard let body = UsageParsing.object(data) else { return nil }
+        if let tier = body["paidTier"] as? [String: Any], let id = tier["id"] as? String,
+           let plan = ["g1-pro-tier": "Pro", "g1-ultra-tier": "Ultra", "g1-ultra-lite-tier": "Ultra Lite"][id] {
+            return plan
+        }
         let name = { (key: String) in (body[key] as? [String: Any]).flatMap { UsageParsing.string($0["name"]) } }
         return formatPlan(name("paidTier") ?? name("currentTier"))
     }
@@ -543,6 +613,10 @@ enum GeminiUsageMapper {
         var pools: [Bool: (remaining: Double, reset: Date?)] = [:]
         for model in models {
             if let id = model.modelID, modelBlacklist.contains(id) { continue }
+            if model.modelID == "MODEL_PLACEHOLDER_M421" || [model.label, model.modelID ?? ""].contains(where: {
+                let slug = $0.lowercased().replacingOccurrences(of: " ", with: "-")
+                return slug == "gemini-4-argon" || slug.hasPrefix("gemini-4-argon-")
+            }) { continue }
             guard let quota = model.quota as? [String: Any],
                   let remaining = UsageParsing.number(quota["remainingFraction"]) else { continue }
             let isGemini = model.label.lowercased().contains("gemini")

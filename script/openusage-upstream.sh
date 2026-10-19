@@ -120,7 +120,7 @@ while IFS= read -r provider; do
 
   label="$(jq -r --arg p "$provider" '.providers[$p].label' "$manifest")"
   base_sha="$(jq -r --arg p "$provider" '.providers[$p].last_reviewed_sha' "$manifest")"
-  mapfile -t paths < <(jq -r --arg p "$provider" '.providers[$p].upstream_paths[]' "$manifest")
+  paths="$(jq -r --arg p "$provider" '.providers[$p].upstream_paths[]' "$manifest")"
 
   echo "## $label ($provider)"
   echo "Reviewed at $base_sha; upstream HEAD is $head_sha."
@@ -131,44 +131,47 @@ while IFS= read -r provider; do
     continue
   fi
 
-  base_date="$(gh api "repos/$repo/commits/$base_sha" -q '.commit.committer.date' 2>/dev/null || true)"
-  if [[ -z "$base_date" ]]; then
-    echo "warning: reviewed commit $base_sha not found upstream (rewritten history?);" \
-      "showing all history for tracked paths instead." >&2
-    base_date="1970-01-01T00:00:00Z"
-  fi
+  # Compare commit membership, rather than dates: Git timestamps may be equal or out of
+  # order, and the commits endpoint's `since` boundary includes the reviewed commit.
+  comparison="$(gh api --method GET --paginate --slurp \
+    "repos/$repo/compare/$base_sha...$head_sha" -f per_page=100)" \
+    || die "couldn't compare $base_sha to $head_sha (check gh auth status / network and reviewed SHA)"
+  jq -e 'length > 0 and all(.[]; .status == "ahead" or .status == "identical")' \
+    <<<"$comparison" >/dev/null \
+    || die "reviewed commit $base_sha is not an ancestor of upstream HEAD; review the rewritten history manually"
+  new_shas="$(jq '[.[].commits[].sha] | unique' <<<"$comparison")"
 
   provider_changed=0
-  declare -A seen_commits=()
-  commit_lines=()
+  commit_lines=""
 
-  for path in "${paths[@]}"; do
+  while IFS= read -r path; do
     [[ -n "$path" ]] || continue
-    commits_json="$(gh api --method GET "repos/$repo/commits" \
-      -f path="$path" -f sha="$head_sha" -f since="$base_date" -f per_page=100 2>/dev/null || echo '[]')"
-    file_commit_count="$(jq 'length' <<<"$commits_json")"
-    [[ "$file_commit_count" -gt 0 ]] || continue
+    # Fetch every page. Filter by the exact comparison range so old commits and
+    # timestamp skew cannot produce false positives or hide a newer commit.
+    commits_json="$(gh api --method GET --paginate --slurp "repos/$repo/commits" \
+      -f path="$path" -f sha="$head_sha" -f per_page=100)" \
+      || die "couldn't read commit history for $path (check gh auth status / network)"
+    commits_json="$(jq -e --argjson shas "$new_shas" \
+      '[.[][] | select(.sha as $sha | $shas | index($sha))]' <<<"$commits_json")" \
+      || die "invalid commit history for $path"
+    [[ "$(jq 'length' <<<"$commits_json")" -gt 0 ]] || continue
 
     provider_changed=1
     echo "- changed: $path (https://github.com/$repo/commits/$head_sha/$path)"
-    while IFS=$'\t' read -r sha date msg; do
-      [[ "$sha" == "$base_sha" ]] && continue
-      if [[ -z "${seen_commits[$sha]:-}" ]]; then
-        seen_commits["$sha"]=1
-        commit_lines+=("$date  $sha  $msg  https://github.com/$repo/commit/$sha")
-      fi
-    done < <(jq -r '.[] | [.sha, .commit.committer.date, (.commit.message | split("\n")[0])] | @tsv' <<<"$commits_json")
-  done
+    lines="$(jq -r '.[] | [.commit.committer.date, .sha, (.commit.message | split("\n")[0]), ("https://github.com/" + $repo + "/commit/" + .sha)] | join("  ")' \
+      --arg repo "$repo" <<<"$commits_json")"
+    commit_lines="${commit_lines}${lines}
+"
+  done <<<"$paths"
 
   if [[ "$provider_changed" -eq 1 ]]; then
     any_changes=1
     echo "Commits since $base_sha:"
-    printf '  %s\n' "${commit_lines[@]}" | sort -r
+    printf '%s' "$commit_lines" | sort -ru | sed 's/^/  /'
   else
     echo "No changes in tracked paths (upstream moved on, but not there)."
   fi
   echo
-  unset seen_commits
 done <<<"$providers"
 
 if [[ "$any_changes" -eq 1 ]]; then

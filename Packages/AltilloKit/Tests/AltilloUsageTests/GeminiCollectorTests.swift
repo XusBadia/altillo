@@ -157,6 +157,40 @@ struct GeminiMapperTests {
         #expect(bare.map(\.duration) == [session, week, session, week])
     }
 
+    @Test func mergesHostBucketsFirstUsableWins() throws {
+        let partial = Data(#"{"groups":[{"buckets":[{"bucketId":"3p-5h","remainingFraction":0.2},{"bucketId":"gemini-5h","remainingFraction":"invalid"}]}]}"#.utf8)
+        let merged = try #require(GeminiUsageMapper.quotaSummaries([partial, Data(GeminiFixtures.summaryBare.utf8)]))
+        #expect(merged.count == 4)
+        #expect(merged.first?.used == 0.25)
+        #expect(merged.first(where: { $0.id == "claude-session" })?.used == 0.8)
+        #expect(!GeminiUsageMapper.isCompleteSummary(partial))
+        #expect(GeminiUsageMapper.isCompleteSummary(Data(GeminiFixtures.summaryBare.utf8)))
+    }
+
+    @Test func argonHasItsOwnWeeklyQuotaAndDoesNotJoinLegacyPools() throws {
+        let body = #"{"groups":[{"displayName":"Gemini 4 Argon","buckets":[{"bucketId":"argon-v1","window":"weekly","remainingFraction":0.4,"disabled":false,"resetTime":"2026-07-06T07:00:00Z"}]}]}"#
+        let windows = try #require(GeminiUsageMapper.quotaSummary(Data(body.utf8)))
+        #expect(windows.map(\.id) == ["argon-weekly"])
+        #expect(windows.first?.used == 0.6)
+        #expect(windows.first?.duration == GeminiUsageMapper.weekDuration)
+        #expect(windows.first?.resetsAt == iso("2026-07-06T07:00:00Z"))
+        for disabled in ["true", "1", #""false""#] {
+            let invalid = body.replacingOccurrences(of: "false", with: disabled)
+            #expect(GeminiUsageMapper.quotaSummary(Data(invalid.utf8)) == [])
+        }
+        let ambiguous = body.replacingOccurrences(of: #""window":"weekly""#, with: #""window":"5h""#)
+        #expect(GeminiUsageMapper.quotaSummary(Data(ambiguous.utf8)) == [])
+        let sharedID = body.replacingOccurrences(of: "argon-v1", with: "gemini-weekly")
+        #expect(GeminiUsageMapper.quotaSummary(Data(sharedID.utf8)) == [])
+        let models: [GeminiUsageMapper.ModelQuota] = [
+            .init(label: "Gemini 4 Argon", modelID: nil, quota: ["remainingFraction": 0]),
+            .init(label: "Unknown", modelID: "MODEL_PLACEHOLDER_M421", quota: ["remainingFraction": 0]),
+            .init(label: "Unknown", modelID: "gemini-4-argon-high", quota: ["remainingFraction": 0]),
+            .init(label: "Gemini Pro", modelID: nil, quota: ["remainingFraction": 0.75]),
+        ]
+        #expect(GeminiUsageMapper.pooledSessions(models).map(\.used) == [0.25])
+    }
+
     @Test func dropsUnusableAndUnknownBuckets() {
         let json = """
         {"groups":[{"buckets":[
@@ -203,6 +237,12 @@ struct GeminiMapperTests {
         let windows = GeminiUsageMapper.cloudCodeModelWindows(Data(json.utf8))
         #expect(windows?.map(\.id) == ["session", "claude-session"])
         #expect(windows.map { $0.map { ($0.used * 100).rounded() } } == [20, 70])
+    }
+
+    @Test func stablePaidTierIDsOverrideAmbiguousNames() {
+        let data = Data(#"{"paidTier":{"id":"g1-ultra-lite-tier","name":"Google AI Pro"},"currentTier":{"name":"Free"}}"#.utf8)
+        #expect(GeminiUsageMapper.loadCodeAssistPlan(data) == "Ultra Lite")
+        #expect(GeminiUsageMapper.loadCodeAssistPlan(Data(#"{"currentTier":{"name":"Google AI Pro"}}"#.utf8)) == "Pro")
     }
 
     @Test func formatsPlans() {
@@ -291,10 +331,43 @@ struct GeminiCollectorTests {
         #expect(abs((usage.weekly?.used ?? 0) - 0.1) < 1e-9)
         #expect(runner.arguments == [["find-generic-password", "-s", "gemini", "-a", "antigravity", "-w"]])
         let request = try #require(remote.requests.first)
-        #expect(request.url?.absoluteString == "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary")
+        #expect(request.url?.absoluteString == "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer ya29.test")
         #expect(remote.requests.allSatisfy { $0.url?.host?.hasSuffix("googleapis.com") == true
             && $0.url?.host != "oauth2.googleapis.com" }) // never a token refresh
+    }
+
+    @Test func cloudCodeMergesIncompleteHostsAndUsesClientMetadataForPlan() async throws {
+        let remote = Group2RoutedTransport([
+            ("https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary", .response(status: 200, body:
+                #"{"groups":[{"buckets":[{"bucketId":"3p-5h","remainingFraction":0.2}]}]}"#)),
+            ("https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary", .response(status: 200, body: GeminiFixtures.summaryBare)),
+            ("loadCodeAssist", .response(status: 200, body: #"{"paidTier":{"id":"g1-ultra-lite-tier"}}"#)),
+        ])
+        let usage = await collector(remote: remote, keychain: [keychainHit(expiry: "2099-01-01T00:00:00Z")])
+            .fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(usage.windows.count == 4)
+        #expect(usage.session?.used == 0.25)
+        #expect(usage.windows.first(where: { $0.id == "claude-session" })?.used == 0.8)
+        #expect(usage.plan == "Ultra Lite")
+        let request = try #require(remote.requests.first { $0.url?.path.hasSuffix("loadCodeAssist") == true })
+        #expect(request.value(forHTTPHeaderField: "User-Agent") == GeminiCollector.clientUserAgent)
+        let body = try #require(request.httpBody.flatMap(UsageParsing.object))
+        #expect((body["metadata"] as? [String: String]) == ["ideType": "ANTIGRAVITY",
+            "platform": "PLATFORM_UNSPECIFIED", "pluginType": "GEMINI"])
+    }
+
+    @Test func partialSuccessfulHostSurvivesOtherHostRejectingToken() async {
+        let remote = Group2RoutedTransport([
+            ("https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary", .response(status: 200, body:
+                #"{"groups":[{"buckets":[{"bucketId":"gemini-5h","remainingFraction":0.5}]}]}"#)),
+            ("https://daily-cloudcode-pa.googleapis.com/", .response(status: 401, body: "")),
+        ])
+        let usage = await collector(remote: remote, keychain: [keychainHit(expiry: "2099-01-01T00:00:00Z")])
+            .fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(usage.session?.used == 0.5)
     }
 
     @Test func expiredKeychainTokenIsNeverRefreshed() async {

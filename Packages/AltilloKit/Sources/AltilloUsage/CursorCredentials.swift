@@ -6,7 +6,7 @@ import SQLite3
 // even read.
 //
 // Sources and source-selection rule adapted from openusage (MIT),
-// Sources/OpenUsage/Providers/Cursor/CursorAuthStore.swift @87c3d2db465a5eb6c6dd2c2453c55cd82141a76e.
+// Sources/OpenUsage/Providers/Cursor/CursorAuthStore.swift @26132ff48dd78eb2c4a9498e40424e6365f99fec.
 
 /// The parts of Cursor's sign-in Altillo needs.
 public struct CursorCredentials: Sendable, Hashable {
@@ -91,7 +91,7 @@ public struct CursorCredentialStore: CursorCredentialReading {
 
     public func read(now: Date) async -> CursorCredentialLookup {
         let values = database.values(for: [Self.accessTokenKey, Self.membershipKey])
-        let membership = values[Self.membershipKey].map { $0.lowercased() }
+        let membership = values[Self.membershipKey].map { $0.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() }
         let fromDatabase = values[Self.accessTokenKey].map {
             CursorCredentials(accessToken: $0, membershipType: membership, source: .stateDatabase)
         }
