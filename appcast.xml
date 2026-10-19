@@ -3,6 +3,14 @@
     <channel>
         <title>Altillo</title>
         <item>
+            <title>0.10.8</title>
+            <pubDate>Mon, 19 Oct 2026 18:28:23 +0200</pubDate>
+            <sparkle:version>182</sparkle:version>
+            <sparkle:shortVersionString>0.10.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.8/Altillo-0.10.8.dmg" length="15490025" type="application/octet-stream" sparkle:edSignature="rGJA96+bScv/nMHQW4AMFDU946BMObMYevByqIRppvFw7Q/sdewl6uzWt92tbEVl2BrDncdXmRNo8mXCEinKDQ=="/>
+        </item>
+        <item>
             <title>0.10.7</title>
             <pubDate>Fri, 16 Oct 2026 17:50:12 +0200</pubDate>
             <sparkle:version>179</sparkle:version>
