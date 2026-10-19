@@ -90,19 +90,25 @@ struct WireProtocolTests {
         let path = WireProtocolTests.socketPath()
         let fd: Int32
         private let lock = NSLock()
+        private let worker = DispatchGroup()
+        private var stopped = false
         private var received: [HookEnvelope] = []
         var envelopes: [HookEnvelope] { lock.withLock { received } }
 
         /// `reply`: what a waiting stop hook gets (nil: held open until it gives up).
         init(decision: WireDecision?, reply: String? = nil) throws {
             fd = try UnixSocket.listen(path: path).fd
-            // The fake serves one connection at a time, blocking.
-            _ = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) & ~O_NONBLOCK)
-            let (fd, path) = (fd, path)
+            // Keep the listener non-blocking so shutdown never depends on waking a blocking accept.
+            let fd = fd
+            worker.enter()
             Thread.detachNewThread { [self] in
-                while true {
-                    let client = accept(fd, nil, nil)
-                    if client < 0 { return }
+                defer { worker.leave() }
+                while !lock.withLock({ stopped }) {
+                    guard let client = UnixSocket.accept(fd) else {
+                        var descriptor = pollfd(fd: fd, events: Int16(POLLIN), revents: 0)
+                        _ = poll(&descriptor, 1, 10)
+                        continue
+                    }
                     guard let line = UnixSocket.readLine(client, timeout: 5),
                           let envelope = AgentWire.decodeEnvelope(line) else { close(client); continue }
                     lock.withLock { received.append(envelope) }
@@ -123,11 +129,14 @@ struct WireProtocolTests {
                     close(client)
                 }
             }
-            _ = path
         }
 
         func stop() {
+            lock.withLock { stopped = true }
             shutdown(fd, SHUT_RDWR)
+            // The old worker must finish before the descriptor can be reused by another FakeApp. Otherwise
+            // it can accept the next test's connection and record that envelope on the wrong instance.
+            worker.wait()
             close(fd)
             unlink(path)
         }
