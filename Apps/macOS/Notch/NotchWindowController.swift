@@ -55,6 +55,15 @@ final class NotchWindowController {
         return panel.convertToScreen(host.convert(host.visibleShapeRect, to: nil))
     }
 
+    /// Drag destinations are selected at the window level. Returning nil from the host's hitTest (or refusing
+    /// a drop) does not pass the drag to Finder underneath the transparent part of our 780 × 480 panel.
+    /// Keep that window out of routing until the pointer actually reaches the visible drop target.
+    func updateMouseEventHandling(state: NotchState, pointer: CGPoint) {
+        let receivesEvents = state.isInteractive
+            && (state != .dropTarget || NotchGeometry.containsPointer(pointer, in: visibleShapeScreenRect))
+        panel.ignoresMouseEvents = !receivesEvents
+    }
+
     func setShown(_ shown: Bool) {
         guard shown != isShown else { return }
         isShown = shown

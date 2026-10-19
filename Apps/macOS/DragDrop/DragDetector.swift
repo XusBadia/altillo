@@ -107,7 +107,6 @@ final class DragDetector {
             phase = .ignored
             return
         }
-        let items = pasteboard.pasteboardItems?.count ?? 0
         guard DragPasteboard.isDroppable(types) else {
             phase = .ignored
             DiagnosticLog.shared.record(DiagnosticLog.Category.dragStart,
@@ -116,7 +115,7 @@ final class DragDetector {
         }
         phase = .dragging
         DiagnosticLog.shared.record(DiagnosticLog.Category.dragStart,
-                                     "accepted \(items) item(s) · \(types.count) type(s)")
+                                     "accepted drag · \(types.count) type(s)")
         callbacks.began()
         callbacks.moved(NSEvent.mouseLocation)
     }
