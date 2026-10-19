@@ -84,9 +84,9 @@ struct NotchStateMachineTests {
         #expect(machine.state == .idle)
     }
 
-    @Test func onlyIdleLetsMouseEventsPassThrough() {
+    @Test func idleAndDistantDragsLetMouseEventsPassThrough() {
         for state in NotchState.allCases {
-            #expect(state.isInteractive == (state != .idle))
+            #expect(state.isInteractive == (state != .idle && state != .dragArmed))
         }
     }
 

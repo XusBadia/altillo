@@ -71,6 +71,9 @@ Para cada fuente, comprueba además que el notch reacciona **en cuanto empieza e
 
 ## Casos límite
 
+- ☐ **Finder → Finder con Altillo abierto:** monta un DMG y arrastra su `.app` al acceso a Applications sin pasar por el notch. Debe copiarse normalmente, también con la ventana del DMG en la parte superior central, detrás del panel transparente de Altillo (780 × 480 pt).
+- ☐ Repite acercando primero el arrastre al notch para desplegarlo y saliendo después hacia Applications. El destino de Finder debe recuperar el drop incluso dentro del margen que mantiene el notch desplegado.
+- ☐ Tras esos casos, arrastra un archivo al shelf y comprueba que sigue aceptándolo; entra y sal de la silueta varias veces sin soltar.
 - ☐ Arrastre que no va al notch (otra ventana, otro destino): el notch no debe quedarse abierto.
 - ☐ Cancelar el arrastre con Esc.
 - ☐ Soltar fuera del notch.

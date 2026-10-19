@@ -317,4 +317,48 @@ struct ScreensTests {
         #expect(!controller.update(screen: Self.macBook), "the same screen again changes nothing")
         controller.close()
     }
+
+    @MainActor
+    @Test func externalDragsOnlyCaptureTheVisibleDropTarget() {
+        let suite = "screens-drag-\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let model = NotchModel(settings: AltilloSettings(defaults: defaults))
+        let controller = NotchWindowController(screen: Self.external, model: model)
+        defer { controller.close() }
+        model.visibleShapeSize = CGSize(width: 400, height: 160)
+        let shape = controller.visibleShapeScreenRect
+        let inside = CGPoint(x: shape.midX, y: shape.midY)
+        let transparent = CGPoint(x: shape.midX, y: shape.minY - 20)
+        #expect(controller.panel.frame.contains(transparent), "Finder's destination is behind our window")
+
+        controller.updateMouseEventHandling(state: .dragArmed, pointer: inside)
+        #expect(controller.panel.ignoresMouseEvents, "arming must never mask Finder")
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: inside)
+        #expect(!controller.panel.ignoresMouseEvents, "the shelf still accepts drops")
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: transparent)
+        #expect(controller.panel.ignoresMouseEvents, "leaving the shape passes through even inside the keep-open margin")
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: inside)
+        #expect(!controller.panel.ignoresMouseEvents, "re-entering the same expanded target works")
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: CGPoint(x: shape.midX, y: shape.maxY))
+        #expect(!controller.panel.ignoresMouseEvents, "the exact top edge of the screen accepts drops")
+        controller.updateMouseEventHandling(state: .dragArmed, pointer: transparent)
+        #expect(controller.panel.ignoresMouseEvents, "moving away restores Finder's destination")
+        controller.updateMouseEventHandling(state: .idle, pointer: inside)
+        #expect(controller.panel.ignoresMouseEvents)
+
+        model.visibleShapeSize.height += 40
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: transparent)
+        #expect(!controller.panel.ignoresMouseEvents, "a target growing under a stationary pointer becomes interactive")
+
+        model.visibleShapeOffset = 100
+        let shifted = controller.visibleShapeScreenRect
+        let shiftedInside = CGPoint(x: shifted.maxX - 10, y: shifted.midY)
+        #expect(!shape.contains(shiftedInside))
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: shiftedInside)
+        #expect(!controller.panel.ignoresMouseEvents, "asymmetric ears shift the real target")
+        controller.panel.passesClicksThrough = true
+        controller.updateMouseEventHandling(state: .dropTarget, pointer: shiftedInside)
+        #expect(controller.panel.ignoresMouseEvents, "Drawer's temporary pass-through still wins")
+    }
 }
