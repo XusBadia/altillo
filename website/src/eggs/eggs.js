@@ -167,6 +167,24 @@ const STRINGS = {
     allFound: "Todas las puertas abiertas. Conoces este altillo mejor que nosotros.",
     hintLead: "Pista",
   },
+  ca: {
+    drawerTitle: "El calaix secret",
+    drawerLabel: "Calaix secret: ous de Pasqua trobats",
+    count: (n, total) => `${n} de ${total} trobats`,
+    keyhole: "Obre el calaix secret",
+    close: "Tanca",
+    putBack: "Deixa-la on era",
+    noteFound: "Nota trobada",
+    reset: "Oblida el que he trobat",
+    resetDone: "Oblidat. La casa torna a guardar els seus secrets.",
+    nightOn: "Apaga el llum",
+    nightOff: "Encén el llum",
+    unknown: "Encara per trobar",
+    nightToggle: "Mode nit",
+    hidden: "Algú s’ha deixat el llum encès…",
+    allFound: "Totes les portes obertes. Coneixes aquestes golfes millor que nosaltres.",
+    hintLead: "Pista",
+  },
 };
 
 /** Built-in catalogue copy: [title, hint, message]. */
@@ -203,6 +221,22 @@ const EGG_COPY = {
     yawn: ["El bostezo", "No hagas nada durante un minuto.", "*bosteza* Sigo aquí arriba si me necesitas."],
     hint: ["Curiosidad", "Pulsa ? en cualquier sitio.", "¿Curiosidad? Bien. Aquí está el cajón."],
   },
+  ca: {
+    knock: ["La trucada", "El notch té una porta. Truca-hi tres vegades, ràpid.", "Algú ha sentit la trucada."],
+    "lights-out": ["Llums fora", "Digues el nom de la casa. Escriu-lo i prou.", "Llums fora. Compte amb l’escala."],
+    blueprint: ["El plànol", "Els jocs d’abans tenien un codi per a tot. ↑ ↑ ↓ ↓ …", "Has trobat els plànols."],
+    creak: ["El cruixit", "Omple el prestatge fins que no hi càpiga res més.", "Les golfes cruixen."],
+    "good-call": ["Ben vist", "Quan un agent ho vulgui esborrar tot, digues-li que no.", "Ben vist."],
+    "fourth-track": ["La quarta pista", "Escolta totes les cançons de Sona.", "Pista amagada"],
+    "still-you": ["Continues sent tu", "Els miralls no canvien d’opinió. Pregunta cinc vegades.", "Continues sent tu."],
+    "window-light": ["Hi ha algú a casa", "El logo és una casa. Truca-hi cinc vegades.", "Hi ha algú a casa."],
+    "light-on": ["El llum encès", "Vés a una altra pestanya. Després torna.", "Benvingut. T’hem deixat el llum encès."],
+    "night-owl": ["Mussol", "Passa després de mitjanit i abans de les cinc.", "La casa llueix més quan la resta dorm."],
+    console: ["L’entrada de servei", "Qui construeix entra per la porta lateral: la consola.", "La porta lateral és oberta. Hola."],
+    aurio: ["El veí", "El drac del costat respon al seu nom.", "Aurio saluda des de la casa del costat."],
+    yawn: ["El badall", "No facis res durant un minut.", "*badalla* Continuo aquí dalt si em necessites."],
+    hint: ["Curiositat", "Prem ? a qualsevol lloc.", "Curiositat? Bé. Aquí tens el calaix."],
+  },
 };
 
 const HIDDEN_TRACK = { title: "Dust on the Rafters", artist: "The Attic Sessions", number: 4 };
@@ -217,12 +251,15 @@ const LIGHT_ON_FAVICON =
 
 /* ---------- The blueprint (hand-drawn attic floor plan) ------------------- */
 
-function blueprintSVG(english) {
-  const L = english
+function blueprintSVG(lang) {
+  const english = lang === "en";
+  const L = lang === "ca"
+    ? { shelf: "PRESTATGE", usage: "ÚS", agents: "AGENTS", music: "SONA", cal: "AGENDA", stairs: "ESCALA", secret: "fora de la visita", title: "ALTILLO · PIS DE LES GOLFES", sheet: "FULL 1 D’1 · ESCALA: A ULL", drawn: "dibuixat per: algú de dalt", camera: "càmera (no truqueu)" }
+    : english
     ? { shelf: "SHELF", usage: "USAGE", agents: "AGENTS", music: "MUSIC", cal: "CALENDAR", stairs: "STAIRS", secret: "not on the tour", title: "ALTILLO · ATTIC LEVEL", sheet: "SHEET 1 OF 1 · SCALE: ROUGHLY", drawn: "drawn by: someone upstairs", camera: "camera (do not knock)" }
     : { shelf: "ALTILLO", usage: "USO", agents: "AGENTES", music: "SONANDO", cal: "AGENDA", stairs: "ESCALERA", secret: "fuera de la visita", title: "ALTILLO · PLANTA ÁTICO", sheet: "HOJA 1 DE 1 · ESCALA: A OJO", drawn: "dibujado por: alguien de arriba", camera: "cámara (no llamar)" };
   return `
-<svg class="egg-blueprint" viewBox="0 0 560 380" role="img" aria-label="${esc(english ? "A hand-drawn floor plan of the attic, with one room that is not on the tour" : "Un plano dibujado a mano del altillo, con una habitación fuera de la visita")}">
+<svg class="egg-blueprint" viewBox="0 0 560 380" role="img" aria-label="${esc(lang === "ca" ? "Un plànol dibuixat a mà de les golfes, amb una habitació fora de la visita" : english ? "A hand-drawn floor plan of the attic, with one room that is not on the tour" : "Un plano dibujado a mano del altillo, con una habitación fuera de la visita")}">
   <defs>
     <filter id="egg-wobble" x="-5%" y="-5%" width="110%" height="110%">
       <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="7"/>
@@ -319,8 +356,10 @@ export function mountEggs(options = {}) {
     builtins = true,
   } = options;
 
-  const english = !normalize(locale).startsWith("es");
-  const lang = english ? "en" : "es";
+  const lang = ["ca", "es"].find((l) => normalize(locale).startsWith(l)) || "en";
+  const english = lang === "en";
+  /** Pick the copy for the page's language; Catalan falls back to Spanish, then English. */
+  const pick = (en, es, ca) => (lang === "ca" ? ca ?? es ?? en : lang === "es" ? es ?? en : en);
   const S = STRINGS[lang];
   const html = document.documentElement;
   const demoRoot = resolve(options.demoRoot);
@@ -690,7 +729,7 @@ export function mountEggs(options = {}) {
   const ctx = {
     locale: lang,
     english,
-    t: (en, es) => (english ? en : es ?? en),
+    t: (en, es, ca) => pick(en, es, ca),
     el,
     demoRoot,
     peek,
@@ -782,6 +821,7 @@ export function mountEggs(options = {}) {
       trigger: ({ found, onKeys }) => {
         onKeys("altillo", () => found());
         onKeys("desvan", () => found());
+        onKeys("golfes", () => found());
       },
       reveal: ({ peek }) => {
         const on = !html.classList.contains("is-night");
@@ -805,12 +845,14 @@ export function mountEggs(options = {}) {
       reveal: ({ note }) =>
         note({
           variant: "blueprint",
-          eyebrow: english ? "Rolled up behind the rafters" : "Enrollado detrás de las vigas",
-          title: english ? "The blueprint" : "El plano",
-          figure: blueprintSVG(english),
-          body: english
-            ? "Every room on the tour, plus one that isn’t. There’s nothing to complete in there. Just a lamp someone forgot to switch off."
-            : "Todas las habitaciones de la visita y una que no lo está. Ahí dentro no hay nada que completar. Solo una lámpara que alguien olvidó apagar.",
+          eyebrow: pick("Rolled up behind the rafters", "Enrollado detrás de las vigas", "Enrotllat darrere les bigues"),
+          title: pick("The blueprint", "El plano", "El plànol"),
+          figure: blueprintSVG(lang),
+          body: pick(
+            "Every room on the tour, plus one that isn’t. There’s nothing to complete in there. Just a lamp someone forgot to switch off.",
+            "Todas las habitaciones de la visita y una que no lo está. Ahí dentro no hay nada que completar. Solo una lámpara que alguien olvidó apagar.",
+            "Totes les habitacions de la visita i una que no hi és. Allà dins no hi ha res per completar. Només un llum que algú es va oblidar d’apagar.",
+          ),
         }),
     });
 
@@ -973,13 +1015,13 @@ export function mountEggs(options = {}) {
             " /______|______\\",
             " |   _______   |",
             " |  |       |  |",
-            " |  |    o  |  |   " + (english ? "The attic is open." : "El altillo está abierto."),
-            " |  |       |  |   " + (english ? "Knock: altillo.knock()" : "Llama: altillo.knock()"),
+            " |  |    o  |  |   " + pick("The attic is open.", "El altillo está abierto.", "Les golfes són obertes."),
+            " |  |       |  |   " + pick("Knock: altillo.knock()", "Llama: altillo.knock()", "Truca: altillo.knock()"),
             " |__|_______|__|   " + GITHUB,
           ].join("\n");
           // A styled greeting. It contains nothing sensitive.
           console.log(
-            `%c${door}\n%c${english ? "Built in the open. Pull requests welcome — wipe your feet." : "Hecho a la vista. Se aceptan pull requests — límpiate los pies."}`,
+            `%c${door}\n%c${pick("Built in the open. Pull requests welcome — wipe your feet.", "Hecho a la vista. Se aceptan pull requests — límpiate los pies.", "Fet a la vista. S’accepten pull requests — eixuga’t els peus.")}`,
             "color:#ffb547;font:12px/1.35 ui-monospace,SFMono-Regular,Menlo,monospace",
             "color:#9d968d;font:12px/1.6 ui-monospace,SFMono-Regular,Menlo,monospace",
           );
@@ -988,7 +1030,7 @@ export function mountEggs(options = {}) {
             window.altillo = Object.freeze({
               knock() {
                 found();
-                return english ? "Come on up." : "Sube.";
+                return pick("Come on up.", "Sube.", "Puja.");
               },
               drawer() {
                 openDrawer();
@@ -1021,7 +1063,7 @@ export function mountEggs(options = {}) {
           const local = String(aurioHref).startsWith("#");
           dragon.href = aurioHref;
           if (local) {
-            dragon.setAttribute("aria-label", english ? "Aurio, our dragon, from our other app — read about it below" : "Aurio, nuestro dragón, de nuestra otra app — más abajo");
+            dragon.setAttribute("aria-label", pick("Aurio, our dragon, from our other app — read about it below", "Aurio, nuestro dragón, de nuestra otra app — más abajo", "Aurio, el nostre drac, de la nostra altra app — més avall"));
             dragon.addEventListener("click", () => {
               dragon.classList.remove("is-in");
               later(() => dragon.remove(), 700);
@@ -1029,9 +1071,9 @@ export function mountEggs(options = {}) {
           } else {
             dragon.target = "_blank";
             dragon.rel = "noopener";
-            dragon.setAttribute("aria-label", english ? "Aurio, our dragon, from our other app — visit aurioapp.com" : "Aurio, nuestro dragón, de nuestra otra app — visita aurioapp.com");
+            dragon.setAttribute("aria-label", pick("Aurio, our dragon, from our other app — visit aurioapp.com", "Aurio, nuestro dragón, de nuestra otra app — visita aurioapp.com", "Aurio, el nostre drac, de la nostra altra app — visita aurioapp.com"));
           }
-          dragon.innerHTML = `<img src="${esc(aurioImage)}" alt="" width="200" height="200" decoding="async"><span class="egg-dragon__bubble">${esc(english ? "Psst. I live next door." : "Psst. Vivo al lado.")}</span>`;
+          dragon.innerHTML = `<img src="${esc(aurioImage)}" alt="" width="200" height="200" decoding="async"><span class="egg-dragon__bubble">${esc(pick("Psst. I live next door.", "Psst. Vivo al lado.", "Psst. Visc al costat."))}</span>`;
           layer.append(dragon);
           requestAnimationFrame(() => requestAnimationFrame(() => dragon.classList.add("is-in")));
           later(() => {

@@ -1,0 +1,17 @@
+/* "Free NotchNook alternative" pages: the privacy document style, plus a
+   download button, a comparison table and a short source list. */
+@import "./privacy.css";
+
+.lede + .actions { margin-top: 30px; }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.actions .contact { margin-top: 0; }
+.ghost { display: inline-flex; padding: 11px 17px; border: 1px solid var(--line); border-radius: 999px; color: var(--paper); text-decoration: none; font-weight: 500; }
+.ghost:hover { border-color: #ffffff40; }
+.compare th:first-child, .compare td:first-child { min-width: 150px; color: var(--paper); }
+.compare td { min-width: 190px; }
+.compare .no { color: #85837c; }
+.sources { font-size: 13px; }
+.sources li { font-size: 13px; }
+.sources a { word-break: break-word; }
+.fine { color: #85837c; font-size: 12px; }
+sup a { color: var(--accent); text-decoration: none; font-size: 10px; padding-left: 1px; }

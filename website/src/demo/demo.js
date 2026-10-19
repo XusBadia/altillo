@@ -146,6 +146,68 @@ const COPY = {
     opened: "Altillo abierto", closed: "Altillo cerrado",
     shelvedA: (f) => `${f} está en el altillo.`, deliveredA: (f) => `${f} entregado.`,
   },
+  ca: {
+    demoLabel: "Altillo en un escriptori de Mac d’exemple",
+    openAltillo: "Obre Altillo", closeAltillo: "Tanca Altillo",
+    hoverCue: "Acosta el cursor al notch", tapCue: "Toca el notch",
+    tabs: { shelf: "Prestatge", ask: "Pregunta", usage: "Ús", agents: "Agents", calendar: "Agenda", mirror: "Mirall", music: "Sona" },
+    sections: "Seccions d’Altillo",
+    thingsUp: (n) => (n === 1 ? "cosa a dalt" : "coses a dalt"),
+    empty: "Buida", toDeliveries: "A Lliuraments",
+    shelfEmptyTitle: "Encara no hi ha res a dalt", shelfEmptyText: "Arrossega un fitxer al notch per tenir-lo a prop.",
+    shelfDropTitle: "Deixa’l anar per pujar-lo", shelfDropText: "Es queda a dalt fins que el baixis a un altre lloc.",
+    shelfFull: "El prestatge és ple. Baixa-hi alguna cosa primer.",
+    onShelf: "al prestatge",
+    upToDate: "Al dia · ara", refresh: "Actualitza",
+    session: "Sessió", week: "Setmana", refills: (s) => `es recarrega d’aquí a ${s}`, pct: (n) => `${n} %`,
+    runsOut: (s) => `Fins a les ${s}`, plentyLeft: "En queda de sobres", limitResets: "Reinicis de límit · en queden 2",
+    knocking: (n) => `${n} ${n === 1 ? "truca" : "truquen"} a la porta`, working: (n) => `${n} treballant`, allQuiet: "Tot tranquil",
+    wantsCommand: (a, p) => `${a} vol executar una ordre a <em>${p}</em>`,
+    goTerminal: "Terminal", deny: "Denega", allowSession: "Permet en aquesta sessió", allowSessionShort: "Sessió", allow: "Permet",
+    danger: "Això pot ser difícil de desfer. Mantén premut Permet un segon per confirmar.",
+    holdAllow: "Mantén premut per permetre", keepHolding: "Continua prement",
+    agoS: (n) => `fa ${n} s`, agoMin: (n) => `fa ${n} min`,
+    runningTests: "Passant tests · 42 de 118", done: "Fet", workingLabel: "Treballant", stopped: "Aturat",
+    doneIn: "Tot llest. Ha acabat en 6 min 12 s", pushing: "Pujant a origin…", pushed: "Pujada feat/notch-design",
+    deniedRow: "Aturat. Has dit que no.", waitingRow: "Esperant el teu permís", removedRow: "node_modules eliminat",
+    join: "Uneix-t’hi", joining: "Unint-t’hi…", joined: "Dins", inMin: (n) => `d’aquí a ${n} min`, joinedNote: "Trucada simulada · sense càmera ni micro",
+    joinWith: (e, p) => `Uneix-te a ${e} amb ${p}`,
+    mirrored: "Com un mirall", asItIs: "Tal com és", flipTip: "Inverteix la imatge",
+    sampleCamera: "Retrat d’exemple · càmera apagada", portrait: "Retrat il·lustrat d’exemple (la càmera continua apagada)",
+    prev: "Cançó anterior", next: "Cançó següent", play: "Reprodueix", pause: "Pausa", progress: "Progrés de la cançó",
+    audioFail: "No s’ha pogut reproduir.",
+    askTitle: "Pregunta-li a Altillo",
+    askIntro: "En privat, en aquest Mac. Conec el teu prestatge, l’agenda, la música, l’ús d’IA i els agents, poso temporitzadors i prenc notes.",
+    askPlaceholder: "Pregunta pel teu dia, el prestatge, el que sigui…", askLabel: "Pregunta a Altillo", send: "Envia", stop: "Atura",
+    thinking: "Pensant…", copy: "Copia", copied: "Copiat", putUp: "Puja-ho", saved: "Desa", dictate: "Dicta, en privat en aquest Mac",
+    chips: { today: "Què tinc avui?", clipboard: "Explica el que he copiat", music: "Què sona?", summarize: (f) => `Resumeix «${f}»`, can: "Què saps fer?" },
+    drawerTip: "Tria les icones del Calaix", drawerOpen: (t, a) => `Obre ${t} de ${a}`,
+    showIcons: "Mostra les icones de la barra", hideIcons: "Desa les icones de la barra al Calaix",
+    finder: "Documents", favourites: "Preferits", recents: "Recents", desktop: "Escriptori", downloads: "Baixades", documents: "Documents",
+    putOnShelf: "Puja al prestatge", alreadyUp: "Al prestatge", items: (n) => `${n} elements`,
+    deliveries: "Lliuraments", emptyFolder: "Carpeta buida", received: (n) => `${n} ${n === 1 ? "fitxer" : "fitxers"}`,
+    deliverSelected: "Deixa la selecció del prestatge a Lliuraments",
+    terminal: "altillo — claude — 80×24", askPush: "Continua: puja la branca", askRm: "Prova una altra sol·licitud", again: "Torna-hi",
+    reset: "Reinicia", sample: "Dades d’exemple · res no surt d’aquesta pàgina",
+    tips: {
+      closed: "Acosta el cursor al notch o arrossega-hi un fitxer de Documents.",
+      closedTouch: "Toca el notch o arrossega-hi un fitxer de Documents.",
+      shelf: "Arrossega alguna cosa del prestatge a Lliuraments.",
+      ask: "Tria un suggeriment. Les respostes surten d’aquest dia d’exemple.",
+      usage: "La teva quota, el teu ritme i quan es recarrega.",
+      agents: "Claude t’espera. Permet o denega des del notch.",
+      agentsIdle: "Els teus agents d’un cop d’ull. Demana-li una altra cosa a Claude a Terminal.",
+      calendar: "Unir-s’hi és simulat: no comença cap trucada.",
+      mirror: "La càmera continua apagada: és un dibuix.",
+      music: "Tres cançons originals, àudio real.",
+      drawer: "Les icones de la barra ara viuen al Calaix — toca la tira per fer-les servir.",
+    },
+    earNow: "ara", earMin: (n) => `${n} min`,
+    earEvent: (e, n) => (n ? `${e} d’aquí a ${n} min` : `${e} comença ara`),
+    earAgent: (a) => `${a} t’està esperant`, earMusic: (s) => `Sona: ${s}`, earUsage: (p, n) => `${p} al ${n} %`,
+    opened: "Altillo obert", closed: "Altillo tancat",
+    shelvedA: (f) => `${f} és al prestatge.`, deliveredA: (f) => `${f} lliurat.`,
+  },
 };
 
 // ----------------------------------------------------------- sample data ----
@@ -179,6 +241,27 @@ const EVENTS_ES = [
   { title: "Revisión de diseño", when: "15:00 – 15:30", place: "Estudio", provider: "Google Meet", cal: "sky", mins: 12 },
   { title: "Entrega final", time: "16:00", cal: "sage" },
   { title: "Escalada con Marta", time: "18:30", place: "Rocódromo Sharma", cal: "rose" },
+];
+// Catalan sample data: same ids again.
+const FILES_CA = [
+  { id: "proposal", name: "Proposta – Altillo v2.pdf", short: "Propo…Altillo v2", thumb: "pdf", tilt: 0.6, meta: "PDF · 1,2 MB" },
+  { id: "shot", name: "Captura 10.24.12.png", short: "Captura…10.24.12", thumb: "image", tilt: -0.8, meta: "PNG · 840 KB" },
+  { id: "notes", name: "notes-reunió.txt", short: "notes-reunió", thumb: "text", tilt: 1.2, meta: "Text · 4 KB" },
+  { id: "assets", name: "altillo-assets.zip", short: "altillo-assets", thumb: "zip", tilt: 0, meta: "ZIP · 18 MB" },
+  { id: "link", name: "getseam.app", short: "getseam.app", thumb: "postcard", tilt: -1.3, meta: "Enllaç" },
+  { id: "idea", name: "Revisar la matriu d’arrossegament abans de divendres", short: "Revisar la matriu", thumb: "note", tilt: 1, meta: "Retall de text" },
+  { id: "invoice", name: "Factura 0924.pdf", short: "Factura 0924", thumb: "pdf", tilt: -0.5, meta: "PDF · 96 KB" },
+  { id: "holiday", name: "Menorca.jpg", short: "Menorca", thumb: "image", tilt: 0.9, meta: "JPEG · 3,1 MB", hue: 150 },
+];
+const EVENTS_CA = [
+  { title: "Revisió de disseny", when: "15:00 – 15:30", place: "Estudi", provider: "Google Meet", cal: "sky", mins: 12 },
+  { title: "Lliurament final", time: "16:00", cal: "sage" },
+  { title: "Escalada amb la Marta", time: "18:30", place: "Rocòdrom Sharma", cal: "rose" },
+];
+const DRAWER_CA = [
+  { id: "icloud", icon: "cloud", title: "iCloud Drive", app: "Finder", status: "Al dia", items: ["Obre l’iCloud Drive", "Posa en pausa la sincronització"] },
+  { id: "vpn", icon: "shield", title: "VPN", app: "Tailscale", status: "Connectada · altillo-mini", items: ["Desconnecta", "Node de sortida: cap"] },
+  { id: "focus", icon: "moon", title: "Concentració", app: "Centre de control", status: "No molestis · desactivat", items: ["No molestis", "Feina"] },
 ];
 const TRACKS = [
   { title: "Azotea", file: "azotea.mp3", art: "AZOTEA" },
@@ -215,10 +298,19 @@ const SCENE = {
     denied: "<span class=\"t-bad\">⎿  Denegado en Altillo.</span> No se ha ejecutado nada.", stopping: "Entendido, lo dejo aquí.",
     pushed: "<span class=\"t-ok\">Subida.</span> La PR está lista para revisión.", installed: "<span class=\"t-ok\">Instalación limpia hecha.</span> El lockfile cuadra.",
   },
+  ca: {
+    menus: ["Arxiu", "Edició", "Visualització", "Ves"], clock: "ds. 27 set.&nbsp;&nbsp;14:48",
+    prompt: "publica el redisseny del notch", ran: "128 tests executats <span class=\"t-ok\">— tots en verd</span>", committed: "3 fitxers confirmats a <b>feat/notch-design</b>",
+    pushWhy: "Pujo la branca per poder obrir la PR.", rmWhy: "Instal·lació neta per arreglar el desfasament del lockfile.",
+    bash: "Ordre Bash", proceed: "Vols continuar?", waiting: "Esperant la teva resposta a Altillo…",
+    denied: "<span class=\"t-bad\">⎿  Denegat a Altillo.</span> No s’ha executat res.", stopping: "Entesos, ho deixo aquí.",
+    pushed: "<span class=\"t-ok\">Pujada.</span> La PR està llesta per revisar.", installed: "<span class=\"t-ok\">Instal·lació neta feta.</span> El lockfile quadra.",
+  },
 };
 const SAMPLE = {
   en: { files: FILES_EN, events: EVENTS_EN, drawer: DRAWER_EN, scene: SCENE.en },
   es: { files: FILES_ES, events: EVENTS_ES, drawer: DRAWER_ES, scene: SCENE.es },
+  ca: { files: FILES_CA, events: EVENTS_CA, drawer: DRAWER_CA, scene: SCENE.ca },
 };
 const REQUESTS = {
   push: { tool: "Bash", cmd: "git push origin feat/notch-design", danger: false },
@@ -310,7 +402,8 @@ const PORTRAIT = `
 export function mountDemo(root, options = {}) {
   if (!root) throw new Error("mountDemo: missing element");
   ensureStyles();
-  const lang = String(options.locale || document.documentElement.lang || "en").toLowerCase().startsWith("es") ? "es" : "en";
+  const htmlLang = String(options.locale || document.documentElement.lang || "en").toLowerCase();
+  const lang = ["ca", "es"].find((l) => htmlLang.startsWith(l)) || "en";
   const t = COPY[lang];
   const { files: FILES, events: EVENTS, drawer: DRAWER_ITEMS, scene: X } = SAMPLE[lang];
   const mediaBase = options.mediaBase || "/media/music/";
@@ -1209,11 +1302,11 @@ export function mountDemo(root, options = {}) {
     const m = S.music;
     const q = raw.toLowerCase();
     if (!id) {
-      if (/today|calendar|meeting|agenda|hoy|reuni|calendario/.test(q)) id = "today";
-      else if (/cop(y|ied)|clipboard|portapapeles|copiado/.test(q)) id = "clipboard";
-      else if (/play|music|song|track|sonando|música|canci/.test(q)) id = "music";
-      else if (/usage|limit|quota|claude|codex|uso|límite/.test(q)) id = "usage";
-      else if (/shelf|file|estante|archivo/.test(q)) id = S.shelf.length ? "summarize" : "shelf";
+      if (/today|calendar|meeting|agenda|hoy|reuni|calendario|avui|calendari/.test(q)) id = "today";
+      else if (/cop(y|ied)|clipboard|portapapeles|copiado|porta-retalls|copiat/.test(q)) id = "clipboard";
+      else if (/play|music|song|track|sonando|música|canci|sona|cançó/.test(q)) id = "music";
+      else if (/usage|limit|quota|claude|codex|uso|límite|ús|límit/.test(q)) id = "usage";
+      else if (/shelf|file|estante|archivo|prestatge|fitxer/.test(q)) id = S.shelf.length ? "summarize" : "shelf";
       else id = "fallback";
     }
     const tr = TRACKS[m.track];
@@ -1236,7 +1329,17 @@ export function mountDemo(root, options = {}) {
       shelf: `Tu altillo está vacío. Arrastra un archivo al notch y te cuento.`,
       fallback: `Esto es una demo: solo conozco este día de ejemplo — tu agenda, lo que has copiado, tu altillo, la música y tu uso de IA. Pregúntame por algo de eso.`,
     };
-    return { id, html: (lang === "es" ? es : en)[id] || (lang === "es" ? es : en).fallback };
+    const ca = {
+      today: `Tres coses avui. <b>Revisió de disseny</b> a les 15:00 a l’Estudi — d’aquí a 12 minuts, per Google Meet. Després el <b>lliurament final</b> a les 16:00 i <b>escalada amb la Marta</b> a les 18:30 al Rocòdrom Sharma. Entre les 15:30 i les 16:00 tens un respir.`,
+      clipboard: `Has copiat un error de JavaScript: alguna cosa ha cridat <code>.map()</code> sobre un valor <code>undefined</code>, a <b>routes.ts</b> línia 42. Sol passar quan les dades encara no han arribat o la clau està mal escrita. Protegeix-ho amb <code>items ?? []</code> o revisa què retorna la resposta.`,
+      music: m.playing ? `<b>${tr.title}</b> d’Estudi Altillo, pel ${clock(m.t)}. És de <i>Desde el altillo</i>, tres peces originals fetes per a aquesta pàgina.` : `Ara no sona res. La cua comença amb <b>${tr.title}</b> d’Estudi Altillo — prem reproduir a Sona i ho sabré.`,
+      usage: `Claude va pel <b>${S.usage.claude} %</b> d’aquesta sessió de 5 hores i, a aquest ritme, s’acaba a les 16:40; es recarrega d’aquí a 1 h 11 min. Codex va pel <b>34 %</b> de la setmana i Grok pel <b>6 %</b>: en tenen de sobres.`,
+      summarize: shelfFile ? `<b>${esc(shelfFile.name)}</b> és al teu prestatge. En aquesta demo no el puc obrir; al teu Mac el llegiria aquí mateix i te’n donaria l’essencial en poques línies. Pregunta funciona al dispositiu per defecte; només sortiria al web si m’ho demanessis i ho permetessis.` : "",
+      shelf: `El prestatge és buit. Arrossega un fitxer al notch i te n’explico.`,
+      fallback: `Això és una demo: només conec aquest dia d’exemple — l’agenda, el que has copiat, el prestatge, la música i el teu ús d’IA. Pregunta’m per alguna d’aquestes coses.`,
+    };
+    const answers = { en, es, ca }[lang];
+    return { id, html: answers[id] || answers.fallback };
   }
   function ask(id, text) {
     if (S.ask.busy) return;

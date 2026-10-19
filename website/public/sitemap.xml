@@ -3,26 +3,56 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://altillo.app/</loc>
-    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/" />
+    <xhtml:link rel="alternate" hreflang="ca" href="https://altillo.app/ca/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/" />
   </url>
   <url>
     <loc>https://altillo.app/es/</loc>
-    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/" />
+    <xhtml:link rel="alternate" hreflang="ca" href="https://altillo.app/ca/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/" />
+  </url>
+  <url>
+    <loc>https://altillo.app/ca/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/" />
+    <xhtml:link rel="alternate" hreflang="ca" href="https://altillo.app/ca/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/" />
   </url>
   <url>
     <loc>https://altillo.app/privacy/</loc>
-    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/privacy/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
+    <xhtml:link rel="alternate" hreflang="ca" href="https://altillo.app/ca/privadesa/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/privacy/" />
   </url>
   <url>
     <loc>https://altillo.app/es/privacidad/</loc>
-    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
     <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/privacy/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
+    <xhtml:link rel="alternate" hreflang="ca" href="https://altillo.app/ca/privadesa/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/privacy/" />
+  </url>
+  <url>
+    <loc>https://altillo.app/ca/privadesa/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/privacy/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
+    <xhtml:link rel="alternate" hreflang="ca" href="https://altillo.app/ca/privadesa/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/privacy/" />
+  </url>
+  <url>
+    <loc>https://altillo.app/notchnook-alternative/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/notchnook-alternative/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/alternativa-notchnook/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/notchnook-alternative/" />
+  </url>
+  <url>
+    <loc>https://altillo.app/es/alternativa-notchnook/</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://altillo.app/notchnook-alternative/" />
+    <xhtml:link rel="alternate" hreflang="es" href="https://altillo.app/es/alternativa-notchnook/" />
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://altillo.app/notchnook-alternative/" />
   </url>
 </urlset>

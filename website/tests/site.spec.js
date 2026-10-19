@@ -25,6 +25,7 @@ for (const L of LOCALES) {
       await expect(page.locator('link[rel="canonical"]')).toHaveAttribute("href", L.canonical);
       await expect(page.locator('link[hreflang="en"]')).toHaveAttribute("href", "https://altillo.app/");
       await expect(page.locator('link[hreflang="es"]')).toHaveAttribute("href", "https://altillo.app/es/");
+      await expect(page.locator('link[hreflang="ca"]')).toHaveAttribute("href", "https://altillo.app/ca/");
       await expect(page.locator('link[hreflang="x-default"]')).toHaveAttribute("href", "https://altillo.app/");
       await expect(page.locator('meta[property="og:locale"]')).toHaveAttribute("content", L.ogLocale);
       await expect(page.locator('meta[property="og:url"]')).toHaveAttribute("content", L.canonical);
@@ -81,7 +82,8 @@ for (const L of LOCALES) {
 
       // Footer: privacy in the same language, and the switch to the other one.
       await expect(page.locator(`.footer a[href="${L.privacy}"]`)).toHaveCount(1);
-      await expect(page.locator(`.footer a[href="${L.other}"]`)).toHaveCount(1);
+      // One link per other language, each marked with its own hreflang.
+      for (const href of L.langLinks) await expect(page.locator(`.footer a[href="${href}"][hreflang]`)).toHaveCount(1);
 
       // Native anchors align below the nav when possible, and stop at the
       // document boundary when there isn't enough content below the target.
@@ -147,7 +149,7 @@ for (const L of LOCALES) {
       await gotoPage(page, L.path);
       await page.locator(`.footer a[href="${L.other}"]`).click();
       await expect(page).toHaveURL(new RegExp(`${L.other.replace(/\//g, "\\/")}$`));
-      await expect(page.locator("html")).toHaveAttribute("lang", L.code === "en" ? "es" : "en");
+      await expect(page.locator("html")).toHaveAttribute("lang", L.otherLang);
     });
 
     test("reduced motion shows a still page", async ({ page }) => {
