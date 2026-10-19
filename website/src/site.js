@@ -13,8 +13,10 @@ const easeOut = (t) => 1 - Math.pow(1 - t, 3);
 const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
 
 // The page's language drives the demo, the eggs and our own strings.
-const LOCALE = (document.documentElement.lang || "en").toLowerCase().startsWith("es") ? "es" : "en";
-const tr = (en, es) => (LOCALE === "es" ? es : en);
+const HTML_LANG = (document.documentElement.lang || "en").toLowerCase();
+const LOCALE = ["ca", "es"].find((l) => HTML_LANG.startsWith(l)) || "en";
+// Catalan falls back to Spanish, then English, if a string has no Catalan yet.
+const tr = (en, es, ca) => (LOCALE === "ca" ? ca ?? es ?? en : LOCALE === "es" ? es : en);
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const mqNarrowNav = matchMedia("(max-width: 940px)");
@@ -398,9 +400,9 @@ async function loadEggs() {
   eggs.register({
     id: "moth",
     icon: "bulb",
-    title: tr("Moth", "Polilla"),
-    hint: tr("Linger by the light.", "Quédate cerca de la luz."),
-    message: tr("A moth found the light.", "Una polilla ha encontrado la luz."),
+    title: tr("Moth", "Polilla", "Arna"),
+    hint: tr("Linger by the light.", "Quédate cerca de la luz.", "Queda’t a prop del llum."),
+    message: tr("A moth found the light.", "Una polilla ha encontrado la luz.", "Una arna ha trobat el llum."),
     requires: ["heroNotch"],
     trigger: ({ found, listen }) => {
       let timer = 0;
@@ -422,7 +424,7 @@ async function loadEggs() {
       return stop;
     },
     reveal: ({ peek }) => {
-      peek(tr("A moth found the light.", "Una polilla ha encontrado la luz."), { icon: "bulb" });
+      peek(tr("A moth found the light.", "Una polilla ha encontrado la luz.", "Una arna ha trobat el llum."), { icon: "bulb" });
       if (reduce || mothBusy) return;
       mothBusy = true;
       const r = H.notch.getBoundingClientRect();
@@ -440,9 +442,9 @@ async function loadEggs() {
   if (demoOk) eggs.register({
     id: "grand-tour",
     icon: "house",
-    title: tr("Grand tour", "Visita completa"),
-    hint: tr("Open every room in the demo yourself.", "Abre tú mismo todas las estancias de la demo."),
-    message: tr("Every room seen. Make yourself at home.", "Ya lo has visto todo. Estás en tu casa."),
+    title: tr("Grand tour", "Visita completa", "Visita completa"),
+    hint: tr("Open every room in the demo yourself.", "Abre tú mismo todas las estancias de la demo.", "Obre tu mateix totes les estances de la demo."),
+    message: tr("Every room seen. Make yourself at home.", "Ya lo has visto todo. Estás en tu casa.", "Ja ho has vist tot. Ets a casa teva."),
     requires: ["demoRoot"],
     trigger: ({ found, listen, onDemo }) => {
       let last = 0;

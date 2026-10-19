@@ -832,7 +832,7 @@ html.is-night .aurio__halo {
   color: var(--text-2);
   letter-spacing: 0;
 }
-.footer nav { display: flex; align-items: center; gap: 22px; }
+.footer nav { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 22px; }
 .footer a:hover { color: var(--text); }
 
 /* ==========================================================================
