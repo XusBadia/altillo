@@ -21126,6 +21126,13 @@
         "es" : { "stringUnit" : { "state" : "translated", "value" : "O arrastra el icono a la lista de Accesibilidad de Ajustes del Sistema." } }
       }
     },
+    "Already on in System Settings? Remove Altillo with − and add it again: macOS may be keeping the permission of an older copy." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Already on in System Settings? Remove Altillo with − and add it again: macOS may be keeping the permission of an older copy." } },
+        "es" : { "stringUnit" : { "state" : "translated", "value" : "¿Ya aparece activado en Ajustes del Sistema? Quita Altillo con − y vuelve a añadirlo: macOS puede estar guardando el permiso de una copia anterior." } }
+      }
+    },
     "Drag icons between areas. Icons from the same app move together." : {
       "extractionState" : "manual",
       "localizations" : {

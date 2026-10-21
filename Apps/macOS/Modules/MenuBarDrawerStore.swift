@@ -21,6 +21,8 @@ final class MenuBarDrawerStore: NSObject {
     /// How the Drawer draws its icons: as they look in the menu bar, or as their apps' icons.
     private(set) var iconStyle: DrawerIconStyle
     private(set) var hasAccess = false
+    /// The user asked for Accessibility and macOS still says no: often a stale entry from another copy of Altillo.
+    private(set) var accessStillDenied = false
     private(set) var isLoading = false
     /// The Drawer's apps are hidden from the menu bar right now.
     private(set) var isConcealing = false
@@ -1032,6 +1034,7 @@ final class MenuBarDrawerStore: NSObject {
         _ = AXIsProcessTrustedWithOptions(options)
         checkAccess()
         monitorAccess()
+        accessStillDenied = !hasAccess
         if !hasAccess,
            let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility") {
             NSWorkspace.shared.open(url)
@@ -1056,6 +1059,7 @@ final class MenuBarDrawerStore: NSObject {
             }
         } else {
             problem = nil
+            accessStillDenied = false
             guard enabled else { return }
             refresh()
             applyConcealment()
