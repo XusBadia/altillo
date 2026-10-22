@@ -98,6 +98,48 @@ struct CursorMapperTests {
         #expect(CursorUsageMapper.mapPlanUsage(usage, planName: "team")?.windows.first?.used == 0.5)
     }
 
+    @Test func incompleteOrMalformedPoolsKeepLegacyTeamDollars() throws {
+        let invalid: [[String: Any]] = [
+            ["autoPercentUsed": 1],
+            ["autoPercentUsed": true, "apiPercentUsed": 2],
+            ["autoPercentUsed": -1, "apiPercentUsed": 2],
+            ["autoPercentUsed": "inf", "apiPercentUsed": 2],
+        ]
+        for pools in invalid {
+            let plan = pools.merging(["limit": 500_000, "totalSpend": 234_500]) { first, _ in first }
+            let mapped = try #require(CursorUsageMapper.mapPlanUsage(["enabled": true, "planUsage": plan],
+                                                                      planName: "team"))
+            #expect(mapped.windows.first?.id == "total")
+            #expect(mapped.windows.first?.used == 0.469)
+        }
+        let zeros: [String: Any] = ["limit": 500_000, "totalSpend": 234_500, "autoPercentUsed": 0,
+                                    "apiPercentUsed": 0, "totalPercentUsed": 0]
+        let legacy = try #require(CursorUsageMapper.mapPlanUsage(["enabled": true, "planUsage": zeros],
+                                                                  planName: "team"))
+        #expect(legacy.windows.first?.used == 0.469)
+    }
+
+    @Test func limitlessPoolsNeedNoDashboardAndKeepExtraUsage() throws {
+        let bare: [String: Any] = ["enabled": true, "planUsage": ["autoPercentUsed": 0, "apiPercentUsed": 0],
+                                   "spendLimitUsage": ["limitType": "team"]]
+        for name: String? in ["Team", "Enterprise", nil] {
+            #expect(!CursorUsageMapper.prefersDashboardSummary(bare, planName: name, planInfoMissing: name == nil))
+        }
+        let zero = try #require(CursorUsageMapper.mapPlanUsage(bare, planName: nil))
+        #expect(zero.windows.map(\.id) == ["auto", "api"])
+        #expect(zero.windows.map(\.used) == [0, 0])
+
+        let seat: [String: Any] = [
+            "enabled": true,
+            "planUsage": ["limit": 2000, "autoPercentUsed": 0, "apiPercentUsed": 12],
+            "spendLimitUsage": ["individualLimit": 5000, "individualRemaining": 4000],
+        ]
+        let mapped = try #require(CursorUsageMapper.mapPlanUsage(seat, planName: " Team "))
+        #expect(mapped.windows.map(\.id) == ["auto", "api"])
+        #expect(mapped.balances.first?.id == "on-demand")
+        #expect(mapped.balances.first?.used == 10)
+    }
+
     @Test func unusablePlanUsageNeedsTheDashboard() throws {
         let usage = try #require(UsageParsing.object(Data(CursorFixtures.enterpriseUsage.utf8)))
         #expect(CursorUsageMapper.mapPlanUsage(usage, planName: "Enterprise") == nil)
