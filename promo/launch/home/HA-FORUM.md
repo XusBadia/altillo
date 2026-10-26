@@ -45,14 +45,14 @@ Por qué: plataforma, precio y licencia en el título. En MIDI-HA Bridge un lect
 
 ## Post (EN)
 
-Pegar en el editor Markdown del foro. `<YOUTUBE_EN_URL>` = URL completa del vídeo EN, sola en su línea para que Discourse la convierta en onebox. Líneas personales confirmadas por Xus el 17/10 (motivo: «sin abrir un dashboard»; sin mencionar su instalación; sin prometer próximos pasos). Publica Claude desde la sesión de Chrome de Xus el 27/10, tras su visto bueno ese día.
+Pegar en el editor Markdown del foro. `https://www.youtube.com/watch?v=IWd3CM_M17k` = URL completa del vídeo EN, sola en su línea para que Discourse la convierta en onebox. Líneas personales confirmadas por Xus el 17/10 (motivo: «sin abrir un dashboard»; sin mencionar su instalación; sin prometer próximos pasos). Publica Claude desde la sesión de Chrome de Xus el 27/10, tras su visto bueno ese día.
 
 ```markdown
 Hi everyone. I'm Xus, a developer in Spain. I make Altillo, a free, open-source (MIT) macOS app that lives in the MacBook notch, or in a small virtual island on displays without one. Version 0.11.0 adds a **Home** section, in beta, that talks directly to Home Assistant on your network.
 
 The essentials first: **macOS 26 or later only**. Free, MIT, no account, no Altillo server and no analytics. Signed and notarized. Altillo is pre-1.0, and Home is a beta. It's an independent project, not affiliated with or endorsed by Home Assistant or the Open Home Foundation.
 
-<YOUTUBE_EN_URL>
+https://www.youtube.com/watch?v=IWd3CM_M17k
 
 The video uses Altillo's built-in demo home, not my house, and the doorbell picture is an illustration.
 

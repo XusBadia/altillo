@@ -4,7 +4,11 @@ Canal **Altillo**, @Altilloapp (ver `promo/youtube/README.md` en `main`). Propue
 - **Lunes 26/10:** subir los dos vídeos como **no listados**.
 - **Martes 27/10, 13:30 Madrid (12:30 UTC):** pasarlos a **públicos**, antes del post del foro, que incrusta el EN.
 
-Nada subido ni programado por este kit.
+Subidos el **26/10/2026** al canal Altillo como **no listados**:
+- EN: https://www.youtube.com/watch?v=IWd3CM_M17k
+- ES: https://www.youtube.com/watch?v=xz2JBf3yTy0
+
+Visibilidad, miniaturas y reproducción sin sesión comprobadas. No están programados ni públicos; el cambio de visibilidad queda pendiente del visto bueno final del 27/10.
 
 | Vídeo | Archivo | Especificación | Miniatura |
 |---|---|---|---|
@@ -91,7 +95,7 @@ Etiquetas:
 altillo, home assistant, home assistant mac, notch mac, app notch macbook, macos 26, domótica mac, domótica, app mac código abierto
 ```
 
-`https://altillo.app/es/` y `/es/privacidad/` responden 200 el 17/10. La sección de privacidad de Casa **todavía no está en producción** (la página pública no contiene «Home (optional)»): dependencia del día 26.
+`https://altillo.app/es/` y `/es/privacidad/` responden 200 el 17/10. La sección de privacidad de Casa está **en producción desde el 26/10**, comprobada en EN, ES y CA (HTTP 200).
 
 ## Campos comunes
 

@@ -2,7 +2,7 @@
 
 Zona del usuario: **Europe/Madrid**. Desde el domingo 25/10 rige **CET, UTC+1**. EE. UU. sigue en horario de verano hasta el domingo 1/11: el martes 27 Nueva York es **EDT, UTC−4** y Los Ángeles **PDT, UTC−7**. Esa semana Madrid y Nueva York están a 5 h, no a 6. Comprobado con `date` del sistema el 17/10.
 
-Propuesta del 17/10, **no aprobada**. Nada está programado ni publicado; el [ICS](home-launch.ics) es una agenda local que no publica, no reserva nada ni crea borradores en ninguna plataforma. Las horas son ventanas de trabajo elegidas para poder responder en directo, no horarios óptimos demostrados.
+Preparación del 26/10 **autorizada por Xus**: 0.11.0 publicada, privacidad desplegada y vídeos no listados subidos. El anuncio del 27/10 queda pendiente de comprobaciones manuales y visto bueno final; hay un recordatorio en este hilo el 27/10 a las 13:20 Madrid (12:20 UTC), que se elimina tras ejecutarse. Las publicaciones no están programadas; el [ICS](home-launch.ics) es una agenda local que no publica, no reserva nada ni crea borradores en ninguna plataforma. Las horas son ventanas de trabajo elegidas para poder responder en directo, no horarios óptimos demostrados.
 
 ## Por qué el martes 27
 

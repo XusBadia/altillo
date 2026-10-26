@@ -12,24 +12,24 @@
 
 - [ ] Aprobar el calendario (martes 27, 14:00 Madrid) o elegir otra fecha.
 - [x] Rótulo de 13–16 s: cambiado a «Straight from your Home Assistant.» / «Desde tu Home Assistant.» y vueltos a renderizar los cuatro MP4 ([COPY-REVIEW.md](COPY-REVIEW.md#vídeo)).
-- [ ] Rellenar o borrar los `[[ ]]` de [HA-FORUM.md](HA-FORUM.md): motivo personal, versión y tamaño de su Home Assistant, orden de lo siguiente (¿clima?), universal binary de 0.11.0.
+- [x] Rellenar o borrar los `[[ ]]` de [HA-FORUM.md](HA-FORUM.md): motivo personal, versión y tamaño de su Home Assistant, orden de lo siguiente (¿clima?), universal binary de 0.11.0.
 - [ ] Confirmar las frases personales de [SOCIAL.md](SOCIAL.md) («lo que más uso», «mi parte favorita»).
 - [x] Sustituir `docs/releases/0.11.0.md` por [RELEASE-NOTES.md](RELEASE-NOTES.md).
-- [ ] Aprobar el ajuste de privacidad y, si se quiere, la sección web ([WEBSITE.md](WEBSITE.md)).
+- [x] Ajuste de privacidad aprobado y desplegado en EN/ES/CA. La sección comercial Home de [WEBSITE.md](WEBSITE.md) sigue siendo opcional y no se ha añadido.
 - [ ] Idioma por perfil: X en EN y LinkedIn en ES (propuesta) u otra combinación.
 
 ## Dependencias (lunes 26, go/no-go a las 18:00)
 
-- [ ] `docs/releases/0.11.0.md` corregido y fusionado en `main`; CI verde en ese SHA.
-- [ ] Tag `v0.11.0` y `script/release.sh 0.11.0 --publish` desde un worktree limpio (el tag solo no publica). Release **Latest** con `Altillo-0.11.0.dmg`.
-- [ ] `https://altillo.app/appcast.xml` apunta a 0.11.0 (puede tardar unos minutos tras gh-pages).
-- [ ] Actualización 0.10.7 → 0.11.0 por **Check for Updates…** en un Mac real; Home apagada por defecto y la bienvenida en orden.
+- [x] `docs/releases/0.11.0.md` corregido y fusionado en `main`; CI verde en ese SHA.
+- [x] Tag `v0.11.0` y `script/release.sh 0.11.0 --publish` desde un worktree limpio (el tag solo no publica). Release **Latest** con `Altillo-0.11.0.dmg`.
+- [x] `https://altillo.app/appcast.xml` apunta a 0.11.0 (build 205); longitud y firma Ed25519 del DMG verificadas con la clave pública de la app.
+- [ ] Actualización 0.10.8 → 0.11.0 por **Check for Updates…** en un Mac real; Home apagada por defecto y la bienvenida en orden.
 - [ ] Prueba completa con Home Assistant real: descubrimiento, «Sign in with Home Assistant», token visible en Perfil → Seguridad, pegar token, timbre, desconectar.
-- [ ] `script/update-cask.sh 0.11.0`, commit y push.
-- [ ] Privacidad «Home (optional)» / «Casa (opcional)» **en producción** (el 17/10 aún no está).
-- [ ] Vídeos de YouTube EN y ES subidos como no listados; URL completa copiada.
-- [ ] Cuenta del foro de Home Assistant de Xus creada; anotar su nivel de confianza.
-- [ ] Baseline de descargas:
+- [x] `script/update-cask.sh 0.11.0`, commit y push.
+- [x] Privacidad «Home (optional)» / «Casa (opcional)» **en producción** (el 17/10 aún no está).
+- [x] Vídeos de YouTube EN y ES subidos como no listados; URL completa copiada.
+- [x] Cuenta del foro de Home Assistant de Xus creada; anotar su nivel de confianza.
+- [x] Baseline de descargas:
   ```sh
   gh api --paginate repos/XusBadia/altillo/releases --jq '.[] | .assets[] | select(.name | endswith(".dmg")) | {id, name, download_count}'
   ```
@@ -62,3 +62,18 @@
 - [ ] Issues abiertos y peticiones repetidas (clima, cerraduras, cámara…) priorizados.
 - [ ] Si la ficha de TinyLaunch del 2/11 se puede editar, añadir Home beta; no crear otra.
 - [ ] awesome-home-assistant: **no** antes del 20/03/2027. Exige que el repo tenga al menos 6 meses (se creó el 20/09/2026) y penaliza la autopromoción.
+
+## Preparación ejecutada · 26/10/2026
+
+- Autorización de Xus en este hilo para push, PR, merge, release, cask, privacidad y vídeos ocultos.
+- [PR #10](https://github.com/XusBadia/altillo/pull/10) fusionada. Fuente de la release: `06c245f65e7c9f8fb6ced0aceb9c9f0890a7aff6`; build 205, universal `x86_64 arm64`. Conserva el arreglo de Finder de 0.10.8.
+- [CI de main](https://github.com/XusBadia/altillo/actions/runs/40294922649) verde en ese SHA. Pruebas locales: 421 AltilloKit; 867 macOS correctas / 1 omitida; 252 web correctas / 36 omitidas por proyecto. Localización: 0 de 1488 cadenas sin español.
+- [Release Latest 0.11.0](https://github.com/XusBadia/altillo/releases/tag/v0.11.0), DMG de 17.185.483 bytes. App y DMG notarizados y stapled; Gatekeeper y arranque desde el DMG correctos. SHA256 público/local: `2ac6822a43092af1599658c6aad3b47a35fc26c3d174cacfc36d5ef70f8be63a`.
+- Privacidad desplegada y comprobada en `/privacy/`, `/es/privacidad/` y `/ca/privadesa/`, con descubrimiento de red, login, token y revocación. Deployment de producción: `dpl_D5NvBREy9D2RqEVvCu3HNvUWzRuC`. La portada no se ha ampliado con la sección Home opcional.
+- YouTube EN: https://www.youtube.com/watch?v=IWd3CM_M17k · ES: https://www.youtube.com/watch?v=xz2JBf3yTy0. Ambos **no listados**, miniaturas correctas, checks sin incidencias, reproducen sin sesión.
+- Foro: sesión `xusbadia`, nivel de confianza **2**, verificada en preview default de T3; no necesita Apple Events. Nada publicado ni borrador creado.
+- Baseline anterior a publicar: `download-baseline-2026-10-26.jsonl`, capturado a las **08:45:04 UTC**. La nueva 0.11.0 todavía no existía; sus descargas empiezan en cero. Las comprobaciones de descarga y actualizaciones también incrementan el contador.
+- Recordatorio de revisión final: **27/10, 13:20 Madrid / 12:20 UTC**. Se elimina tras ejecutarse. No hay publicaciones sociales ni cambios de visibilidad programados.
+- **Pendiente manual antes del anuncio:** actualización 0.10.8 → 0.11.0 por Sparkle y recorrido completo con Home Assistant real, incluido login, token visible, timbre y desconexión. El servidor real responde, pero no se ha repetido ese recorrido completo en la release final.
+- Appcast público verificado a las 09:07 UTC: 0.11.0 / build 205, firma Ed25519 correcta y versiones anteriores conservadas.
+- Cask actualizado en este repositorio con el checksum de la descarga pública. No existe un tap propio publicado verificado; no se ha creado ninguno ni se afirma que `brew upgrade --cask altillo` esté comprobado.
