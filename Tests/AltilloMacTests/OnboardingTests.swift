@@ -24,12 +24,12 @@ struct OnboardingTests {
     // MARK: Pages
 
     @Test func minimalSkipsAIToolsAndPermissions() {
-        #expect(OnboardingLogic.steps(for: Self.context(.minimal)) == [.hello, .preset, .tricks, .done])
+        #expect(OnboardingLogic.steps(for: Self.context(.minimal)) == [.hello, .preset, .home, .tricks, .done])
     }
 
     @Test func developerGetsAIToolsButNoPermissions() {
         let steps = OnboardingLogic.steps(for: Self.context(.developer))
-        #expect(steps == [.hello, .preset, .aiTools, .tricks, .done])
+        #expect(steps == [.hello, .preset, .aiTools, .home, .tricks, .done])
         #expect(OnboardingLogic.permissions(for: Self.context(.developer)).isEmpty)
     }
 
@@ -76,7 +76,7 @@ struct OnboardingTests {
         #expect(OnboardingPermission.screenRecording.isOptional)
         #expect(!OnboardingPermission.accessibility.isOptional)
         #expect(!OnboardingLogic.permissions(for: Self.context(.everything)).contains(.screenRecording))
-        #expect(OnboardingLogic.steps(for: withDrawer) == [.hello, .preset, .permissions, .tricks, .done])
+        #expect(OnboardingLogic.steps(for: withDrawer) == [.hello, .preset, .home, .permissions, .tricks, .done])
     }
 
     @Test func systemAnswersReadAsRowStates() {
@@ -122,7 +122,7 @@ struct OnboardingTests {
         flow.next()
         #expect(flow.step == .preset)
         flow.next()
-        #expect(flow.step == .tricks, "Minimal has no AI tools and needs no permission")
+        #expect(flow.step == .home, "Minimal has no AI tools and needs no permission")
         flow.back()
         #expect(flow.step == .preset)
         #expect(flow.direction == -1)
@@ -161,6 +161,8 @@ struct OnboardingTests {
         let flow = OnboardingFlow(model: NotchModel(settings: settings), step: .preset, drawerEnabled: { false })
         #expect(flow.launchAtLogin, "on by default the first time")
         #expect(!settings.launchAtLogin)
+        flow.next()
+        #expect(flow.step == .home)
         flow.next()
         #expect(flow.step == .tricks)
         #expect(!settings.launchAtLogin, "nothing written while the page is on screen")
@@ -207,7 +209,7 @@ struct OnboardingTests {
     @Test func reviewsAndForcedShowing() {
         let reviewing = OnboardingLaunch(forceShow: false, requestedStep: nil, isReviewing: true, isTestHost: false)
         #expect(!reviewing.shouldShow(hasCompletedOnboarding: false), "a design scenario or -openSettings is on")
-        let forced = OnboardingLaunch(forceShow: true, requestedStep: 4, isReviewing: false, isTestHost: false)
+        let forced = OnboardingLaunch(forceShow: true, requestedStep: 5, isReviewing: false, isTestHost: false)
         #expect(forced.shouldShow(hasCompletedOnboarding: true))
         #expect(forced.step == .permissions)
         #expect(OnboardingLaunch(forceShow: true, requestedStep: 9, isReviewing: false, isTestHost: false).step == nil)

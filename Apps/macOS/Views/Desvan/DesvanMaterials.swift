@@ -14,15 +14,18 @@ struct DesvanBulbGlow: View {
     var radius: CGFloat = 180
     /// Vertical position of the bulb in the view.
     var originY: CGFloat = 0
+    /// The light's colour (a smart bulb's real RGB); nil is the attic's own warm bulb.
+    var tint: Color? = nil
 
     var body: some View {
+        let light = tint ?? Desvan.Palette.bulb
         GeometryReader { proxy in
             let center = UnitPoint(x: 0.5, y: proxy.size.height > 0 ? originY / proxy.size.height : 0)
             RadialGradient(
                 stops: [
-                    .init(color: Desvan.Palette.bulb.opacity(intensity), location: 0),
-                    .init(color: Desvan.Palette.bulb.opacity(intensity * 0.45), location: 0.45),
-                    .init(color: Desvan.Palette.bulb.opacity(0), location: 1),
+                    .init(color: light.opacity(intensity), location: 0),
+                    .init(color: light.opacity(intensity * 0.45), location: 0.45),
+                    .init(color: light.opacity(0), location: 1),
                 ],
                 center: center,
                 startRadius: 0,
@@ -214,16 +217,23 @@ struct DesvanHouseMark: View {
 struct DesvanBulbGlyph: View {
     var size: CGFloat = 14
     var lit: Double = 1
+    /// The colour the bulb shines with (a smart bulb's real RGB); nil is the attic's own amber bulb.
+    var tint: Color? = nil
 
     var body: some View {
         let glass = size * 0.8
         let neck = glass * 0.5
         let shape = BulbGlass()
+        let light = tint ?? Desvan.Palette.bulb
+        // Without a tint these are exactly the amber bulb's own stops.
+        let hot = tint.map { Color(hex: 0xFFF6DE).mix(with: $0, by: 0.18) } ?? Color(hex: 0xFFF6DE)
+        let warm = tint.map { Color.white.mix(with: $0, by: 0.55) } ?? Color(hex: 0xFFD27A)
+        let rim = tint.map { $0.mix(with: .black, by: 0.3) } ?? Color(hex: 0xC7761A)
         ZStack(alignment: .top) {
             // Halo: light, not paint.
             Circle()
                 .fill(RadialGradient(
-                    colors: [Desvan.Palette.bulb.opacity(0.55 * lit), Desvan.Palette.bulb.opacity(0.12 * lit), .clear],
+                    colors: [light.opacity(0.55 * lit), light.opacity(0.12 * lit), .clear],
                     center: .center,
                     startRadius: 0,
                     endRadius: glass * 1.5
@@ -239,10 +249,10 @@ struct DesvanBulbGlyph: View {
                     // Hot glass: white-hot around the filament, amber towards the rim.
                     shape.fill(RadialGradient(
                         stops: [
-                            .init(color: Color(hex: 0xFFF6DE), location: 0),
-                            .init(color: Color(hex: 0xFFD27A), location: 0.3),
-                            .init(color: Desvan.Palette.bulb, location: 0.62),
-                            .init(color: Color(hex: 0xC7761A), location: 1),
+                            .init(color: hot, location: 0),
+                            .init(color: warm, location: 0.3),
+                            .init(color: light, location: 0.62),
+                            .init(color: rim, location: 1),
                         ],
                         center: UnitPoint(x: 0.5, y: 0.42),
                         startRadius: 0,
@@ -265,7 +275,7 @@ struct DesvanBulbGlyph: View {
                         .offset(x: -glass * 0.2, y: -glass * 0.2)
                 }
                 .frame(width: glass, height: glass * 1.08)
-                .shadow(color: Desvan.Palette.bulb.opacity(0.9 * lit), radius: size * 0.35)
+                .shadow(color: light.opacity(0.9 * lit), radius: size * 0.35)
                 // Brass screw base.
                 VStack(spacing: 0.6) {
                     ForEach(0..<3, id: \.self) { index in

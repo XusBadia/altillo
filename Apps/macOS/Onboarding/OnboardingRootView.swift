@@ -47,6 +47,7 @@ struct OnboardingRootView: View {
         case .hello: OnboardingHelloPage(flow: flow)
         case .preset: OnboardingPresetPage(flow: flow, eyebrow: eyebrow)
         case .aiTools: OnboardingAIToolsPage(flow: flow, eyebrow: eyebrow)
+        case .home: OnboardingHomePage(flow: flow, eyebrow: eyebrow)
         case .permissions: OnboardingPermissionsPage(flow: flow, eyebrow: eyebrow)
         case .tricks: OnboardingTricksPage(flow: flow, eyebrow: eyebrow)
         case .done: OnboardingDonePage(flow: flow)

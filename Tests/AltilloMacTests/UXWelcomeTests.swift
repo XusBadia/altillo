@@ -8,12 +8,12 @@ struct UXWelcomeTests {
         let context = OnboardingContext(modules: [.shelf, .usage, .agents], detection: empty)
 
         let visible = OnboardingLogic.steps(for: context, keeping: .aiTools)
-        #expect(visible == [.hello, .preset, .aiTools, .tricks, .done])
-        #expect(OnboardingText.position(of: .aiTools, in: visible) == "Step 3 of 5")
-        #expect(OnboardingLogic.step(after: .aiTools, in: visible) == .tricks)
+        #expect(visible == [.hello, .preset, .aiTools, .home, .tricks, .done])
+        #expect(OnboardingText.position(of: .aiTools, in: visible) == "Step 3 of 6")
+        #expect(OnboardingLogic.step(after: .aiTools, in: visible) == .home)
 
-        let afterLeaving = OnboardingLogic.steps(for: context, keeping: .tricks)
-        #expect(afterLeaving == [.hello, .preset, .tricks, .done])
+        let afterLeaving = OnboardingLogic.steps(for: context, keeping: .home)
+        #expect(afterLeaving == [.hello, .preset, .home, .tricks, .done])
     }
 
     @Test func detectionWithResultsDoesNotDuplicateAITools() {

@@ -12,7 +12,11 @@
     "render:anuncio": "remotion render src/index.ts AltilloAnuncio videos/altillo-anuncio.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
     "render:teaser": "remotion render src/index.ts AltilloMisterio videos/altillo-teaser.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
     "render:teaser:en": "remotion render src/index.ts AltilloMisterioEN videos/altillo-teaser-en.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
-    "render:anuncio:en": "remotion render src/index.ts AltilloAnuncioEN videos/altillo-anuncio-en.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k"
+    "render:anuncio:en": "remotion render src/index.ts AltilloAnuncioEN videos/altillo-anuncio-en.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
+    "render:casa": "remotion render src/index.ts AltilloCasa videos/altillo-casa.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
+    "render:casa:en": "remotion render src/index.ts AltilloCasaEN videos/altillo-casa-en.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
+    "render:casa:vertical": "remotion render src/index.ts AltilloCasaVertical videos/altillo-casa-vertical.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k",
+    "render:casa:vertical:en": "remotion render src/index.ts AltilloCasaVerticalEN videos/altillo-casa-vertical-en.mp4 --codec=h264 --crf=18 --audio-codec=aac --audio-bitrate=256k"
   },
   "devDependencies": {
     "@remotion/cli": "4.0.526",

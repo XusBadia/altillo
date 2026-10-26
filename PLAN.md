@@ -231,6 +231,10 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **Cambio de sección con dirección:** el contenido se desliza hacia donde vas, con clic, ⌘1…⌘9, ⌃Tab o **swipe con dos dedos**. En los extremos, efecto goma elástica.
 - **Hápticos** (trackpad Force Touch, desactivables): solo como respuesta a algo que haces tú, es decir, al cambiar de sección con swipe y al aterrizar algo en el shelf. Un aviso nunca da un toque: bajo una mano en reposo parecería un fallo.
 
+### 5.10 Casa / Home (propuesta, [detalle](docs/casa.md))
+- Sección opt-in de domótica: Home Assistant completo en el Mac (WebSocket, sin sondeo), Hue directo y Apple Home vía Atajos (HomeKit no se puede aprovisionar con Developer ID); Apple Home completo en la companion de iPhone.
+- Baldosas Desván, oreja contextual, avisos (timbre con cámara), atajos por escena y Pregunta. Fases H1-H4 en el detalle.
+
 ## 6. Altillo para iOS y iPadOS
 
 **iPhone (v1):**

@@ -6,9 +6,14 @@ import {AltilloDirectorCut,DIRECTOR_FRAMES} from './AltilloDirectorCut';
 import {AltilloAnuncio, ANUNCIO_FPS, ANUNCIO_FRAMES} from './anuncio/Anuncio';
 import {YTAvatar, YTBanner, YTThumb} from './anuncio/YouTube';
 import {AltilloMisterio, MISTERIO_FPS, MISTERIO_FRAMES} from './anuncio/Misterio';
+import {AltilloCasa, CASA_FPS, CASA_FRAMES} from './casa/Casa';
 import {PHFeatures, PHOpen, PHThumb, PH_THUMB_FRAMES} from './anuncio/ProductHunt';
 
 const AltilloAnuncioEN = () => <AltilloAnuncio lang="en" score="b"/>;
+
+const AltilloCasaEN = () => <AltilloCasa lang="en"/>;
+const AltilloCasaVertical = () => <AltilloCasa lang="es" format="vertical"/>;
+const AltilloCasaVerticalEN = () => <AltilloCasa lang="en" format="vertical"/>;
 
 const AltilloMisterioEN = () => <AltilloMisterio lang="en"/>;
 
@@ -17,6 +22,10 @@ const AltilloTrailerDemo = () => <AltilloLaPuerta productDemo/>;
 export const RemotionRoot = () => (
   <>
     <Composition id="AltilloAnuncio" component={AltilloAnuncio} durationInFrames={ANUNCIO_FRAMES} fps={ANUNCIO_FPS} width={1920} height={1080}/>
+    <Composition id="AltilloCasa" component={AltilloCasa} durationInFrames={CASA_FRAMES} fps={CASA_FPS} width={1920} height={1080}/>
+    <Composition id="AltilloCasaEN" component={AltilloCasaEN} durationInFrames={CASA_FRAMES} fps={CASA_FPS} width={1920} height={1080}/>
+    <Composition id="AltilloCasaVertical" component={AltilloCasaVertical} durationInFrames={CASA_FRAMES} fps={CASA_FPS} width={1080} height={1920}/>
+    <Composition id="AltilloCasaVerticalEN" component={AltilloCasaVerticalEN} durationInFrames={CASA_FRAMES} fps={CASA_FPS} width={1080} height={1920}/>
     <Composition id="AltilloMisterio" component={AltilloMisterio} durationInFrames={MISTERIO_FRAMES} fps={MISTERIO_FPS} width={1920} height={1080}/>
     <Composition id="AltilloMisterioEN" component={AltilloMisterioEN} durationInFrames={MISTERIO_FRAMES} fps={MISTERIO_FPS} width={1920} height={1080}/>
     <Composition id="PHFeatures" component={PHFeatures} durationInFrames={1} fps={30} width={1270} height={760}/>

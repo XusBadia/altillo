@@ -16,7 +16,7 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: $(ALTILLO_TEAM)
-    MARKETING_VERSION: 0.10.8
+    MARKETING_VERSION: 0.11.0
     CURRENT_PROJECT_VERSION: 1
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
@@ -48,6 +48,8 @@ targets:
         product: AltilloUsage
       - package: AltilloKit
         product: AltilloAgents
+      - package: AltilloKit
+        product: AltilloHome
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook
@@ -71,6 +73,13 @@ targets:
         SUPublicEDKey: $(ALTILLO_SPARKLE_PUBLIC_KEY)
         SUEnableAutomaticChecks: YES
         SUScheduledCheckInterval: 86400
+        # Home (docs/casa.md): plain http to a Home Assistant on the local network (homeassistant.local:8123).
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: YES
+        # Home discovery (docs/casa-v2.md §4): NWBrowser for Home Assistant's Bonjour service. macOS refuses to browse
+        # a service type that isn't listed here.
+        NSBonjourServices:
+          - _home-assistant._tcp
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX)
@@ -86,6 +95,7 @@ targets:
         INFOPLIST_KEY_NSRemindersFullAccessUsageDescription: Altillo shows and completes your reminders, and Ask can add the ones you request. Your reminders never leave your Mac.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Ask listens only while you dictate a question, and only on this Mac. Nothing is recorded.
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Ask turns what you dictate into text on this Mac. Your voice never leaves it.
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: Altillo talks to your Home Assistant on your local network. Nothing passes through any other server.
         ENABLE_APP_SANDBOX: NO
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual

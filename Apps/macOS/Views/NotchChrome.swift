@@ -111,6 +111,8 @@ struct NotchChrome: Equatable {
         static let editing: CGFloat = 200
         /// The calendar with its month grid (alone, or beside the chosen day's agenda).
         static let calendarMonth: CGFloat = 220
+        /// Home: its header, the scenes and two rows of tiles (eight in view), the sensors underneath.
+        static let home: CGFloat = 238
     }
 
     /// Room between the band (or each Drawer row) and what comes below it.
@@ -231,6 +233,8 @@ struct NotchChrome: Equatable {
             return model.settings.calendarStyle == .agenda ? ExpandedContent.module : ExpandedContent.calendarMonth
         case .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .reminders, .keepAwake:
             return ExpandedContent.module
+        case .home:
+            return ExpandedContent.home
         }
     }
 
@@ -240,7 +244,7 @@ struct NotchChrome: Equatable {
         case .idle:
             return showsEars(model) ? .ears : .rest
         case .peek:
-            if model.alert != nil, model.scenario == nil || model.scenario == .peekAlert { return .peek(.alert) }
+            if model.alert != nil, model.scenario == nil || model.scenario?.showsAlert == true { return .peek(.alert) }
             switch model.scenario {
             case .peekUsageAlert: return .peek(.usageAlert)
             case .peekAgentWaiting: return .peek(.agentWaiting)
