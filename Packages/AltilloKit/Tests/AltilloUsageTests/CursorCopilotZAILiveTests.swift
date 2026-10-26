@@ -3,12 +3,12 @@ import Foundation
 import Testing
 @testable import AltilloUsage
 
-/// Opt-in, read-only check of the Cursor, Copilot, OpenRouter and Z.ai collectors on this Mac (never prints tokens):
-/// `ALTILLO_LIVE_USAGE=1 swift test --filter CursorCopilotOpenRouterZAILiveTests`
+/// Opt-in, read-only check of the Cursor, Copilot and Z.ai collectors on this Mac (never prints tokens):
+/// `ALTILLO_LIVE_USAGE=1 swift test --filter CursorCopilotZAILiveTests`
 @Suite(.enabled(if: ProcessInfo.processInfo.environment["ALTILLO_LIVE_USAGE"] != nil))
-struct CursorCopilotOpenRouterZAILiveTests {
+struct CursorCopilotZAILiveTests {
     @Test func printLiveUsage() async {
-        let collectors: [any UsageCollector] = [CursorCollector(), CopilotCollector(), OpenRouterCollector(),
+        let collectors: [any UsageCollector] = [CursorCollector(), CopilotCollector(),
                                                 ZAICollector()]
         var lines: [String] = []
         let formatter = ISO8601DateFormatter()
@@ -25,11 +25,7 @@ struct CursorCopilotOpenRouterZAILiveTests {
                 text += "\n   \(window.id) (\(window.kind.rawValue), \(window.label)): "
                     + "\(String(format: "%.1f", window.used * 100))% resets \(reset)"
             }
-            for balance in usage.balances {
-                text += "\n   balance \(balance.id): remaining=\(balance.remaining.map { "\($0)" } ?? "-") "
-                    + "used=\(balance.used.map { "\($0)" } ?? "-") limit=\(balance.limit.map { "\($0)" } ?? "-") "
-                    + balance.unit
-            }
+
             lines.append(text)
         }
         print(lines.joined(separator: "\n"))

@@ -132,18 +132,6 @@ struct UsageStoreTests {
         #expect(merged.windows == good.windows && merged.fetchedAt == start && merged.problem == .sessionExpired)
         failed.problem = nil
         #expect(UsageMerge.merge(failed, previous: good) == failed, "a good read always wins, even an empty one")
-
-        // A provider with only a balance (prepaid credits) keeps it too.
-        let credits = ProviderUsage(id: UsageProviderID(rawValue: "openrouter"), displayName: "OpenRouter", plan: nil,
-                                    windows: [],
-                                    balances: [UsageBalance(id: "credits", label: "Credits", remaining: 7.5, used: 12.5,
-                                                            limit: 20, unit: "USD")],
-                                    fetchedAt: start)
-        let offline = ProviderUsage(id: credits.id, displayName: "OpenRouter", plan: nil, windows: [],
-                                    fetchedAt: start.addingTimeInterval(300), problem: .unreachable("offline"))
-        let keptCredits = UsageMerge.merge(offline, previous: credits)
-        #expect(keptCredits.balances == credits.balances && keptCredits.fetchedAt == start)
-        #expect(keptCredits.problem == .unreachable("offline"))
     }
 
     @Test func aCollectorThatHangsTimesOutWithoutHoldingUpTheOthers() async {
@@ -183,7 +171,7 @@ struct UsageStoreTests {
     @Test func everyProviderFoundIsOnAndTheRestSayHowToSetThemUp() async {
         let clock = FakeUsageClock(now: start)
         let cursor = UsageProviderID(rawValue: "cursor")
-        let openRouter = UsageProviderID(rawValue: "openrouter")
+        let gemini = UsageProviderID(rawValue: "gemini")
         let copilot = UsageProviderID(rawValue: "copilot")
         let claude = ScriptedCollector(.claude, "Claude") { _, now in .sample(.claude, used: 0.4, at: now) }
         let cursorCollector = ScriptedCollector(cursor, "Cursor", hint: "Sign in to Cursor") { _, now in
@@ -192,11 +180,11 @@ struct UsageStoreTests {
                                                 resetsAt: now.addingTimeInterval(12 * 86_400), duration: 30 * 86_400)],
                           fetchedAt: now)
         }
-        let openRouterCollector = ScriptedCollector(openRouter, "OpenRouter", hint: "Add an OpenRouter API key") {
+        let geminiCollector = ScriptedCollector(gemini, "Gemini", hint: "Sign in to Gemini") {
             _, now in
-            ProviderUsage(id: openRouter, displayName: "OpenRouter", plan: nil, windows: [],
-                          balances: [UsageBalance(id: "credits", label: "Credits", remaining: 7.5, used: nil,
-                                                  limit: nil, unit: "USD")],
+            ProviderUsage(id: gemini, displayName: "Gemini", plan: nil,
+                          windows: [UsageWindow(id: "monthly", kind: .monthly, label: "Month", used: 0.2,
+                                                resetsAt: now.addingTimeInterval(12 * 86_400), duration: 30 * 86_400)],
                           fetchedAt: now)
         }
         let copilotCollector = ScriptedCollector(copilot, "Copilot", available: false,
@@ -206,33 +194,33 @@ struct UsageStoreTests {
         let codex = ScriptedCollector(.codex, "Codex", available: false) { _, now in .sample(.codex, used: 0.2, at: now) }
         let defaults = Self.makeDefaults()
         let settings = AltilloSettings(defaults: defaults)
-        let store = makeStore([claude, cursorCollector, openRouterCollector, copilotCollector, codex], clock: clock,
+        let store = makeStore([claude, cursorCollector, geminiCollector, copilotCollector, codex], clock: clock,
                               settings: settings, defaults: defaults)
 
         await store.refresh()
 
-        #expect(store.providers.map(\.id) == [.claude, cursor, openRouter], "found here: on, in the collectors' order")
-        #expect(store.setUpEntries.map(\.id) == [.claude, cursor, openRouter])
+        #expect(store.providers.map(\.id) == [.claude, cursor, gemini], "found here: on, in the collectors' order")
+        #expect(store.setUpEntries.map(\.id) == [.claude, cursor, gemini])
         #expect(store.notSetUpEntries.map(\.id) == [copilot, .codex])
         #expect(store.notSetUpEntries.map(\.setupHint) == ["Install GitHub Copilot in your editor",
                                                           "Sign in to Codex on this Mac"],
                 "each collector says how; the protocol's default names the provider")
         #expect(copilotCollector.calls == 0 && codex.calls == 0, "nothing to read until it's set up")
         #expect(BareCollector().setupHint == "Sign in to Bare on this Mac", "collectors without a hint get one")
-        #expect(store.freshness(now: clock.now) == .upToDate(since: start), "a balance counts as numbers")
+        #expect(store.freshness(now: clock.now) == .upToDate(since: start), "a quota counts as numbers")
         #expect(store.primary?.id == .claude)
 
         // Switching one off takes it out of the notch but not out of Settings.
         settings.setUsageProvider(cursor, enabled: false)
         await store.refresh()
-        #expect(store.providers.map(\.id) == [.claude, openRouter])
-        #expect(store.setUpEntries.map(\.id) == [.claude, cursor, openRouter])
+        #expect(store.providers.map(\.id) == [.claude, gemini])
+        #expect(store.setUpEntries.map(\.id) == [.claude, cursor, gemini])
         #expect(cursorCollector.calls == 1, "switched off: not read again")
 
         // Setting one up later brings it in, already on.
         copilotCollector.setAvailable(true)
         await store.refresh()
-        #expect(store.providers.map(\.id) == [.claude, openRouter, copilot])
+        #expect(store.providers.map(\.id) == [.claude, gemini, copilot])
         #expect(store.notSetUpEntries.map(\.id) == [.codex])
     }
 
@@ -367,6 +355,27 @@ struct UsageStoreTests {
         #expect(store.snapshot == nil)
     }
 
+    @Test func spendingEraArchivesAndHistoryAreDiscarded() throws {
+        let archive = Self.archiveURL()
+        try FileManager.default.createDirectory(at: archive.deletingLastPathComponent(), withIntermediateDirectories: true)
+        var legacy = UsageSnapshot(deviceID: "legacy", deviceName: "Mac", updatedAt: start,
+                                   providers: [.sample(.claude, used: 0.4, at: start)])
+        legacy.schema = "altillo.usage.v1"
+        try UsageArchive.encoder.encode(legacy).write(to: archive)
+        var oldHistory = UsageHistory()
+        oldHistory.record(legacy.providers, at: start)
+        oldHistory.schema = "altillo.usage-history.v1"
+        let historyURL = archive.deletingLastPathComponent().appending(path: "usage-history.json")
+        try UsageArchive.encoder.encode(oldHistory).write(to: historyURL)
+
+        let store = makeStore([], clock: FakeUsageClock(now: start), archive: archive)
+        store.start()
+        defer { store.stop() }
+        #expect(store.snapshot == nil)
+        #expect(store.providers.isEmpty)
+        #expect(store.trend(for: .claude).isEmpty)
+    }
+
     @Test func historyIsHourlyPrivateAndRetainedForThirtyDays() {
         var history = UsageHistory()
         let old = start.addingTimeInterval(-31 * 86_400)
@@ -386,7 +395,7 @@ struct UsageStoreTests {
         #expect(history.samples.count == 30 * 24, "the on-disk series has a fixed upper bound")
     }
 
-    @Test func existingSnapshotMigratesWithoutBeingRewrittenAndHistorySurvivesRelaunch() async throws {
+    @Test func quotaSnapshotLoadsWithoutBeingRewrittenAndHistorySurvivesRelaunch() async throws {
         let archive = Self.archiveURL()
         try FileManager.default.createDirectory(at: archive.deletingLastPathComponent(), withIntermediateDirectories: true)
         let legacy = UsageSnapshot(deviceID: "legacy", deviceName: "Mac", updatedAt: start,
@@ -530,13 +539,6 @@ struct UsageStoreTests {
         #expect(alert.title == "Claude has used all of the session")
         #expect(alert.isUrgent)
 
-        let week = try #require(claude.weekly)
-        let runsOut = now.addingTimeInterval(2 * 3600)
-        let early = UsageAlertPresenter.alert(for: event(claude, .runningOutEarly(runsOutAt: runsOut), window: "weekly"),
-                                              window: week, now: now)
-        #expect(early.title == "At this pace Claude runs out at \(UsageText.moment(runsOut, now: now))")
-        #expect(early.detail == "the week")
-        #expect(!early.isUrgent)
         #expect(UsageAlertPresenter.alert(for: [], providers: [claude], now: now) == nil)
     }
 
@@ -583,17 +585,8 @@ struct UsageStoreTests {
 
     // MARK: - Words
 
-    @Test func thePaceAndProblemsAreOneClearSentence() {
+    @Test func refillDatesAndProblemsAreClear() {
         let now = start
-        func window(used: Double, elapsed hours: Double) -> UsageWindow {
-            UsageWindow(id: "session", kind: .session, label: "Session", used: used,
-                        resetsAt: now.addingTimeInterval((5 - hours) * 3600), duration: 5 * 3600)
-        }
-        #expect(UsageText.pace(for: window(used: 0.1, elapsed: 2.5), now: now)?.text == "Plenty left")
-        #expect(UsageText.pace(for: window(used: 0.47, elapsed: 2.5), now: now)?.text == "On track")
-        let behind = UsageText.pace(for: window(used: 0.75, elapsed: 2.5), now: now)
-        #expect(behind?.text.hasPrefix("Runs out at") == true && behind?.tone == .warning)
-        #expect(UsageText.pace(for: window(used: 1, elapsed: 2.5), now: now)?.text == "Limit reached")
         let unstarted = UsageWindow(id: "session", kind: .session, label: "Session", used: 0, resetsAt: nil, duration: 5 * 3600)
         #expect(UsageText.refillsIn(unstarted, now: now) == "starts with your next message")
         #expect(UsageText.length(of: unstarted) == "5 h")
@@ -608,35 +601,6 @@ struct UsageStoreTests {
         let connected = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true,
                                          usage: .sample(.claude, used: 0.2, at: now))
         #expect(UsageText.status(for: connected) == "Connected · Max 20×")
-    }
-
-    @Test func balancesReadAsAFigureAndAFewWords() {
-        let dollars = UsageBalance(id: "credits", label: "Credits", remaining: 7.5, used: 12.5, limit: 20, unit: "usd")
-        #expect(UsageText.currencyCode("usd") == "USD" && UsageText.currencyCode("credits") == nil)
-        #expect(UsageText.unitWord("USD") == nil && UsageText.unitWord("requests") == "requests")
-        let figure = UsageText.figure(for: dollars)
-        #expect(figure?.caption == "left")
-        #expect(figure?.value.contains("7") == true && figure?.value.contains("5") == true)
-        #expect(UsageText.spentFraction(of: dollars) == 0.625)
-
-        let requests = UsageBalance(id: "premium", label: "Premium requests", remaining: nil, used: 120, limit: 300,
-                                    unit: "requests")
-        #expect(UsageText.figure(for: requests)?.value == "120")
-        #expect(UsageText.figure(for: requests)?.caption == "of 300 requests")
-        #expect(UsageText.summary(of: requests) == "120 of 300 requests")
-        #expect(UsageText.spentFraction(of: requests) == 0.4)
-
-        let credits = UsageBalance(id: "credits", label: "Credits", remaining: 340, used: nil, limit: nil,
-                                   unit: "credits")
-        #expect(UsageText.figure(for: credits)?.value == "340")
-        #expect(UsageText.figure(for: credits)?.caption == "credits left")
-        #expect(UsageText.summary(of: credits) == "340 credits left")
-        #expect(UsageText.spentFraction(of: credits) == nil, "no limit, no bar")
-
-        let spent = UsageBalance(id: "onDemand", label: "On demand", remaining: nil, used: 3, limit: nil, unit: "tokens")
-        #expect(UsageText.figure(for: spent)?.caption == "tokens used")
-        let empty = UsageBalance(id: "x", label: "Extra usage", remaining: nil, used: nil, limit: nil, unit: "USD")
-        #expect(UsageText.figure(for: empty) == nil && UsageText.summary(of: empty) == "Extra usage")
     }
 
     @Test func everyProviderGetsAMarkAndUnknownOnesKeepTheirColour() {
@@ -714,13 +678,11 @@ struct UsageStoreTests {
             .contains("isn't reading any AI limits"))
         #expect(AssistantUsage.answer(.init(isEnabled: false, providers: []), provider: nil, now: now)
             .contains("turned off"))
-        let openRouter = ProviderUsage(id: UsageProviderID(rawValue: "openrouter"), displayName: "OpenRouter", plan: nil,
-                                       windows: [],
-                                       balances: [UsageBalance(id: "credits", label: "Credits", remaining: 340,
-                                                               used: nil, limit: nil, unit: "credits")],
-                                       fetchedAt: now)
-        let credits = AssistantUsage.answer(.init(isEnabled: true, providers: [openRouter]), provider: nil, now: now)
-        #expect(credits.contains("- Credits: 340 credits left.") && !credits.contains("No limits reported"))
+        let noLimits = ProviderUsage(id: .claude, displayName: "Claude", plan: nil,
+                                     windows: [], fetchedAt: now)
+        let empty = AssistantUsage.answer(.init(isEnabled: true, providers: [noLimits]), provider: nil, now: now)
+        #expect(empty.contains("No limits reported"))
+        #expect(!all.contains("pace") && !all.contains("On track"))
     }
 
     @Test func questionsAboutWhatIsLeftGoToTheLocalTools() {
@@ -766,7 +728,7 @@ extension ProviderUsage {
     }
 }
 
-/// A session reading the test moves by hand. No duration, so pace never adds its own alerts.
+/// A session reading the test moves by hand.
 private final class Reading: @unchecked Sendable {
     private let lock = NSLock()
     private var _used: Double

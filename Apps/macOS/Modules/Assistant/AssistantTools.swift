@@ -357,7 +357,7 @@ struct ClipboardTool: Tool {
 
 struct UsageTool: Tool {
     let name = "usage"
-    let description = "The user's AI limits (Claude, Codex…): how much is used, when each refills and the pace."
+    let description = "The user's AI limits (Claude, Codex…): how much is used and when each refills."
 
     @Generable
     struct Arguments {
@@ -379,7 +379,7 @@ struct UsageTool: Tool {
 }
 
 /// What Ask's `usage` tool says, in plain English for the model: one line per limit with its figure, when it
-/// refills and the pace, and how old the numbers are.
+/// refills, and how old the numbers are.
 enum AssistantUsage {
     struct Reading: Sendable {
         /// The usage section is on (with it off, nothing is read).
@@ -421,7 +421,7 @@ enum AssistantUsage {
         var lines: [String] = []
         let plan = usage.plan.map { " (\($0) plan)" } ?? ""
         lines.append("\(usage.displayName)\(plan):")
-        if usage.windows.isEmpty && usage.balances.isEmpty {
+        if usage.windows.isEmpty {
             if let problem = usage.problem {
                 lines.append("- No numbers: \(UsageText.sentence(for: problem, provider: usage.id, displayName: usage.displayName, now: now))")
             } else {
@@ -437,22 +437,7 @@ enum AssistantUsage {
             } else if window.resetsAt == nil, window.kind == .session {
                 line += ", starts with the next message"
             }
-            switch UsagePace.evaluate(window, now: now) {
-            case let .behind(runsOutAt?):
-                line += ". At this pace it runs out at \(time(runsOutAt, now: now, calendar: calendar)), before it refills"
-            case .behind(nil) where window.used >= 1:
-                line += ". The limit is reached"
-            case .ahead:
-                line += ". Plenty left at this pace"
-            case .onTrack:
-                line += ". On track to last until it refills"
-            default:
-                break
-            }
             lines.append(line + ".")
-        }
-        for balance in usage.balances where UsageText.figure(for: balance) != nil {
-            lines.append("- \(balance.label): \(UsageText.summary(of: balance)).")
         }
         let age = NotchFormat.ago(usage.fetchedAt, now: now)
         if let problem = usage.problem {

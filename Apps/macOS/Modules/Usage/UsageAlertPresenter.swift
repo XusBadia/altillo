@@ -3,7 +3,7 @@ import Foundation
 
 /// Turns what `UsageAlertEvaluator` noticed in a refresh into one peek (PLAN §5.8): "Claude is at 95% of the
 /// session · refills 16:10". A newer alert replaces the one on screen, so a batch that noticed several things shows
-/// only the one that matters most: a limit used up, then the highest level crossed, then running out early, then a
+/// only the one that matters most: a limit used up, then the highest level crossed, then a
 /// refill. Pure, so tests can read every sentence.
 enum UsageAlertPresenter {
     static func alert(for events: [UsageAlertEvent], providers: [ProviderUsage], now: Date = .now) -> NotchAlert? {
@@ -36,13 +36,6 @@ enum UsageAlertPresenter {
                 title: String(localized: "\(name) has used all of \(phrase)"),
                 trailing: refills, isUrgent: true, module: .usage, duration: .seconds(8)
             )
-        case let .runningOutEarly(runsOutAt):
-            return NotchAlert(
-                source: .usage, symbol: symbol,
-                title: String(localized: "At this pace \(name) runs out at \(UsageText.moment(runsOutAt, now: now))"),
-                detail: phrase,
-                trailing: refills, module: .usage, duration: .seconds(6)
-            )
         case .refilled:
             let noun = window.map(UsageText.name(for:)) ?? event.windowLabel
             return NotchAlert(
@@ -60,7 +53,6 @@ enum UsageAlertPresenter {
         switch kind {
         case .limitReached: 400
         case let .threshold(level): 200 + level
-        case .runningOutEarly: 100
         case .refilled: 0
         }
     }

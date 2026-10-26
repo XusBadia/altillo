@@ -57,7 +57,7 @@ public struct GrokCredential: Sendable, Hashable {
     }
 }
 
-/// Reads Grok's shared usage pool (weekly for current plans) and pay-as-you-go balance.
+/// Reads Grok's shared usage quota (weekly for current plans) and reset date.
 public struct GrokCollector: UsageCollector {
     public static let creditsURL = URL(string: "https://cli-chat-proxy.grok.com/v1/billing?format=credits")!
     public static let settingsURL = URL(string: "https://cli-chat-proxy.grok.com/v1/settings")!
@@ -117,7 +117,7 @@ public struct GrokCollector: UsageCollector {
                                previous: previous, plan: plan, now: now)
             }
             return ProviderUsage(id: providerID, displayName: displayName, plan: plan, windows: mapped.windows,
-                                 balances: mapped.balances, fetchedAt: now)
+                                 fetchedAt: now)
         case .unauthorized:
             return failure(.sessionExpired, detail: "Open Grok once to renew its sign-in.", previous: previous,
                            plan: plan, now: now)
@@ -149,12 +149,10 @@ public struct GrokCollector: UsageCollector {
 enum GrokUsageMapper {
     struct Mapped: Equatable {
         var windows: [UsageWindow]
-        var balances: [UsageBalance]
     }
 
-    /// `{"config":{"creditUsagePercent":99,"currentPeriod":{"type":"USAGE_PERIOD_TYPE_WEEKLY","start","end"},
-    /// "onDemandCap":{"val":…},"onDemandUsed":{"val":…},"prepaidBalance":{"val":…}}}`. Proto-JSON omits zero
-    /// values, so an absent percent or cap is 0; a present but non-numeric one is a shape change (nil).
+    /// The billing endpoint also carries the explicit shared-quota percentage and its period.
+    /// Missing percentages are unknown; monetary credit fields are ignored.
     static func map(_ data: Data) -> Mapped? {
         guard let body = UsageParsing.object(data), let config = body["config"] as? [String: Any],
               let period = config["currentPeriod"] as? [String: Any],
@@ -162,38 +160,13 @@ enum GrokUsageMapper {
               let start = UsageParsing.date(period["start"]), let end = UsageParsing.date(period["end"]), end > start
         else { return nil }
 
-        let percent: Double
-        if let raw = config["creditUsagePercent"] {
-            guard let number = UsageParsing.number(raw) else { return nil }
-            percent = number
-        } else {
-            percent = 0
-        }
+        guard let percent = UsageParsing.number(config["creditUsagePercent"]), percent >= 0 else { return nil }
 
         let (id, kind, label) = periodDescription(type)
         let window = UsageWindow(id: id, kind: kind, label: label, used: max(0, percent) / 100, resetsAt: end,
                                  duration: end.timeIntervalSince(start))
 
-        var balances: [UsageBalance] = []
-        guard let cap = credits(config["onDemandCap"]), let spent = credits(config["onDemandUsed"]),
-              let prepaid = credits(config["prepaidBalance"]) else { return nil }
-        if cap > 0 {
-            balances.append(UsageBalance(id: "pay-as-you-go", label: "Pay as you go",
-                                         remaining: max(0, cap - spent), used: spent, limit: cap, unit: "credits"))
-        }
-        if prepaid > 0 {
-            balances.append(UsageBalance(id: "prepaid", label: "Prepaid", remaining: prepaid, used: nil, limit: nil,
-                                         unit: "credits"))
-        }
-        return Mapped(windows: [window], balances: balances)
-    }
-
-    /// `{"val": n}`, absent → 0, anything else → nil.
-    private static func credits(_ value: Any?) -> Double? {
-        guard let value else { return 0 }
-        guard let object = value as? [String: Any] else { return nil }
-        guard let raw = object["val"] else { return 0 }
-        return UsageParsing.number(raw)
+        return Mapped(windows: [window])
     }
 
     private static func periodDescription(_ type: String) -> (String, UsageWindow.Kind, String) {

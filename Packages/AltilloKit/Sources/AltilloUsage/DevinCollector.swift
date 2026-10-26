@@ -150,7 +150,7 @@ public struct SQLiteReadOnlyReader: SQLiteValueReading {
     }
 }
 
-/// Reads Devin's daily and weekly quota and its extra-usage balance.
+/// Reads Devin's daily and weekly quotas and their reset dates.
 public struct DevinCollector: UsageCollector {
     static let service = "exa.seat_management_pb.SeatManagementService"
     static let compatibleVersion = "1.108.2"
@@ -214,7 +214,7 @@ public struct DevinCollector: UsageCollector {
                                    previous: previous, now: now)
                 }
                 return ProviderUsage(id: providerID, displayName: displayName, plan: mapped.plan,
-                                     windows: mapped.windows, balances: mapped.balances, fetchedAt: now)
+                                     windows: mapped.windows, fetchedAt: now)
             case .unauthorized:
                 continue // another stored key (the app's) may still be live
             case .rateLimited(let retry):
@@ -259,11 +259,10 @@ enum DevinUsageMapper {
     struct Mapped: Equatable {
         var plan: String?
         var windows: [UsageWindow]
-        var balances: [UsageBalance]
     }
 
     /// `{"userStatus":{"planStatus":{"planInfo":{"planName","hideDailyQuota"},"dailyQuotaRemainingPercent",
-    /// "weeklyQuotaRemainingPercent","dailyQuotaResetAtUnix","weeklyQuotaResetAtUnix","overageBalanceMicros"}}}`.
+    /// "weeklyQuotaRemainingPercent","dailyQuotaResetAtUnix","weeklyQuotaResetAtUnix"}}}`.
     /// Quotas arrive as percent *remaining*. Nil when there's nothing to show.
     static func map(_ data: Data) -> Mapped? {
         guard let body = UsageParsing.object(data), let status = body["userStatus"] as? [String: Any] else {
@@ -287,14 +286,8 @@ enum DevinUsageMapper {
                                        duration: dayDuration))
         }
 
-        var balances: [UsageBalance] = []
-        if let micros = UsageParsing.number(planStatus["overageBalanceMicros"]) {
-            balances.append(UsageBalance(id: "extra-usage", label: "Extra usage", remaining: max(0, micros) / 1e6,
-                                         used: nil, limit: nil, unit: "USD"))
-        }
-        guard !windows.isEmpty || !balances.isEmpty else { return nil }
-        return Mapped(plan: UsageParsing.string(planInfo["planName"]), windows: windows.sortedForDisplay(),
-                      balances: balances)
+        guard !windows.isEmpty else { return nil }
+        return Mapped(plan: UsageParsing.string(planInfo["planName"]), windows: windows.sortedForDisplay())
     }
 
     private static func used(remaining: Double) -> Double {

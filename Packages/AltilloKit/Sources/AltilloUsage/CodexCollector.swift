@@ -36,7 +36,7 @@ public struct CodexAuth: Sendable, Hashable {
     }
 }
 
-/// Reads Codex's session and weekly limits (plus per-model limits and credits).
+/// Reads Codex's session and weekly limits (including per-model limits).
 public struct CodexCollector: UsageCollector {
     public static let whamURL = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
 
@@ -83,7 +83,7 @@ public struct CodexCollector: UsageCollector {
                 let data = try await appServer.readRateLimits()
                 if let mapped = CodexUsageMapper.mapAppServer(data) {
                     return ProviderUsage(id: providerID, displayName: displayName, plan: mapped.plan,
-                                         windows: mapped.windows, balances: mapped.balances, fetchedAt: now)
+                                         windows: mapped.windows, fetchedAt: now)
                 }
                 appServerFailure = "codex app-server returned an unexpected result"
             } catch is CancellationError {
@@ -136,7 +136,7 @@ public struct CodexCollector: UsageCollector {
                            previous: previous, now: now)
         }
         return ProviderUsage(id: providerID, displayName: displayName, plan: mapped.plan, windows: mapped.windows,
-                             balances: mapped.balances, fetchedAt: now)
+                             fetchedAt: now)
     }
 
     private func failure(_ problem: UsageProblem, detail: String?, previous: ProviderUsage?, now: Date)
@@ -158,7 +158,6 @@ enum CodexUsageMapper {
     struct Mapped: Equatable {
         var plan: String?
         var windows: [UsageWindow]
-        var balances: [UsageBalance]
     }
 
     enum Slot { case primary, secondary }
@@ -191,7 +190,6 @@ enum CodexUsageMapper {
         }
 
         var windows: [UsageWindow] = []
-        var balances: [UsageBalance] = []
         var plan = (body["rateLimits"] as? [String: Any]).flatMap { planName($0["planType"]) }
         for (limitID, snapshot) in snapshots {
             plan = plan ?? planName(snapshot["planType"])
@@ -204,18 +202,9 @@ enum CodexUsageMapper {
                                       percent: percent, resetsAt: UsageParsing.date(raw["resetsAt"]),
                                       duration: minutes.map { $0 * 60 }))
             }
-            if limitID == defaultLimitID, let credits = snapshot["credits"] as? [String: Any],
-               let balance = creditsBalance(balance: credits["balance"], hasCredits: credits["hasCredits"],
-                                            unlimited: credits["unlimited"]) {
-                balances.append(balance)
-            }
         }
-        if let resets = body["rateLimitResetCredits"] as? [String: Any],
-           let count = UsageParsing.number(resets["availableCount"]), count > 0 {
-            balances.append(resetsBalance(count))
-        }
-        guard !windows.isEmpty || !balances.isEmpty else { return nil }
-        return Mapped(plan: plan, windows: dedupe(windows).sortedForDisplay(), balances: balances)
+        guard !windows.isEmpty else { return nil }
+        return Mapped(plan: plan, windows: dedupe(windows).sortedForDisplay())
     }
 
     // MARK: wham
@@ -230,19 +219,8 @@ enum CodexUsageMapper {
             let id = UsageParsing.string(object["metered_feature"]) ?? UsageParsing.slug(name)
             windows += whamWindows(object["rate_limit"], limitID: id, name: name, now: now)
         }
-        var balances: [UsageBalance] = []
-        if let credits = body["credits"] as? [String: Any],
-           let balance = creditsBalance(balance: credits["balance"], hasCredits: credits["has_credits"],
-                                        unlimited: credits["unlimited"]) {
-            balances.append(balance)
-        }
-        if let resets = body["rate_limit_reset_credits"] as? [String: Any],
-           let count = UsageParsing.number(resets["available_count"]), count > 0 {
-            balances.append(resetsBalance(count))
-        }
-        guard !windows.isEmpty || !balances.isEmpty else { return nil }
-        return Mapped(plan: planName(body["plan_type"]), windows: dedupe(windows).sortedForDisplay(),
-                      balances: balances)
+        guard !windows.isEmpty else { return nil }
+        return Mapped(plan: planName(body["plan_type"]), windows: dedupe(windows).sortedForDisplay())
     }
 
     private static func whamWindows(_ value: Any?, limitID: String, name: String, now: Date) -> [UsageWindow] {
@@ -302,19 +280,6 @@ enum CodexUsageMapper {
     private static func dedupe(_ windows: [UsageWindow]) -> [UsageWindow] {
         var seen = Set<String>()
         return windows.filter { seen.insert($0.id).inserted }
-    }
-
-    private static func creditsBalance(balance: Any?, hasCredits: Any?, unlimited: Any?) -> UsageBalance? {
-        if unlimited as? Bool == true { return nil }
-        let value = UsageParsing.number(balance) ?? 0
-        guard hasCredits as? Bool == true || value > 0 else { return nil }
-        return UsageBalance(id: "credits", label: "Credits", remaining: max(0, value), used: nil, limit: nil,
-                            unit: "credits")
-    }
-
-    private static func resetsBalance(_ count: Double) -> UsageBalance {
-        UsageBalance(id: "limit-resets", label: "Limit resets", remaining: count.rounded(.down), used: nil,
-                     limit: nil, unit: "resets")
     }
 
     /// "prolite" → "Pro 5x", "pro" → "Pro 20x" (the multipliers ChatGPT shows, consistent with Claude's

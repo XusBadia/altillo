@@ -26,11 +26,7 @@ struct Group2LiveUsageTests {
                 text += "\n   \(window.id) (\(window.kind.rawValue), \(window.label)): "
                     + "\(String(format: "%.1f", window.used * 100))% resets \(reset)"
             }
-            for balance in usage.balances {
-                text += "\n   balance \(balance.id): remaining=\(balance.remaining.map { "\($0)" } ?? "-") "
-                    + "used=\(balance.used.map { "\($0)" } ?? "-") limit=\(balance.limit.map { "\($0)" } ?? "-") "
-                    + balance.unit
-            }
+
             lines.append(text)
         }
         print(lines.joined(separator: "\n"))

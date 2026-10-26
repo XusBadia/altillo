@@ -3,7 +3,7 @@ import AltilloDesign
 import SwiftUI
 
 /// The usage tab: full-width provider rows on a shared walnut panel, with readable plans, usage bars,
-/// refill dates and status sentences. Balances retain their own units; missing readings never become zeroes.
+/// refill dates and status sentences. Missing readings never become zeroes.
 ///
 /// Real numbers come from `UsageStore`; design scenarios show `DemoContent`'s. Countdowns move with a `TimelineView`
 /// that only exists while the tab is on screen: nothing ticks when the notch is closed.
@@ -178,7 +178,7 @@ private struct DesvanUsageRow: View {
                         .fixedSize()
                         .contentTransition(.numericText(value: main.used))
                 }
-                DesvanBar(value: main.used, pace: hasOldNumbers ? nil : main.elapsedFraction(now: now))
+                DesvanBar(value: main.used)
                     .accessibilityLabel("\(UsageText.name(for: main)), \(NotchFormat.percent(main.used)) used")
                 if let secondary {
                     // One line always: the whole sentence when it fits, otherwise without the refill (still in
@@ -187,38 +187,13 @@ private struct DesvanUsageRow: View {
                         secondaryLine(windowSummary(secondary))
                         secondaryLine(windowSummary(secondary, includesRefill: false))
                     }
-                    .help(windowHelp(secondary))
-                } else if let balance = usage.balances.first {
-                    balanceSummary(balance)
+                    .help(windowSummary(secondary))
                 }
             }
             .opacity(hasOldNumbers ? 0.85 : 1)
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(UsageText.name(for: main)), \(NotchFormat.percent(main.used)) used")
             .accessibilityValue(measurementAccessibility)
-        } else if let balance = usage.balances.first(where: { UsageText.figure(for: $0) != nil }) {
-            VStack(alignment: .leading, spacing: 6) {
-                Text(verbatim: balance.label)
-                    .font(Desvan.Typeface.rounded(11.5, weight: .medium))
-                    .foregroundStyle(Desvan.Palette.paperSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if UsageText.figure(for: balance) != nil {
-                    Text(verbatim: UsageText.summary(of: balance))
-                        .font(Desvan.Typeface.figure(17, weight: .semibold))
-                        .foregroundStyle(Desvan.Palette.paper)
-                        .monospacedDigit()
-                        .fixedSize(horizontal: false, vertical: true)
-                        .contentTransition(.numericText())
-                }
-                if let spent = UsageText.spentFraction(of: balance) {
-                    DesvanBar(value: spent, pace: nil)
-                }
-                if let next = usage.balances.first(where: { $0.id != balance.id }) {
-                    balanceSummary(next)
-                }
-            }
-            .opacity(hasOldNumbers ? 0.85 : 1)
-            .accessibilityElement(children: .combine)
         } else if usage.problem == nil {
             Text("No limits to show for this plan.")
                 .font(.system(size: 12))
@@ -236,20 +211,12 @@ private struct DesvanUsageRow: View {
             .fixedSize()
     }
 
-    private func balanceSummary(_ balance: UsageBalance) -> some View {
-        Text(verbatim: "\(balance.label) · \(UsageText.summary(of: balance))")
-            .font(Desvan.Typeface.rounded(11.5, weight: .medium))
-            .foregroundStyle(Desvan.Palette.paperSecondary)
-            .monospacedDigit()
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
     private var details: some View {
         VStack(alignment: .leading, spacing: 5) {
             if let problem = usage.problem {
                 DesvanUsageNote(text: UsageText.shortStatus(for: problem), tone: .warning,
                                 symbol: "exclamationmark.triangle.fill")
-                if main == nil, !usage.balances.contains(where: { UsageText.figure(for: $0) != nil }) {
+                if main == nil {
                     Text(UsageText.sentence(for: problem, provider: usage.id,
                                            displayName: usage.displayName, now: now))
                         .font(.system(size: 12))
@@ -279,9 +246,6 @@ private struct DesvanUsageRow: View {
                 .font(Desvan.Typeface.rounded(12, weight: .medium))
                 .foregroundStyle(Desvan.Palette.paper)
                 .monospacedDigit()
-                if let pace = UsageText.pace(for: main, now: now) {
-                    DesvanUsageNote(text: pace.text, tone: pace.tone, symbol: nil)
-                }
             }
             if trend.count > 1 {
                 DesvanUsageTrend(points: trend)
@@ -307,16 +271,9 @@ private struct DesvanUsageRow: View {
         return "\(summary) · \(UsageText.refillsIn(window, now: now))"
     }
 
-    private func windowHelp(_ window: UsageWindow) -> String {
-        var parts = [windowSummary(window)]
-        if !hasOldNumbers, let pace = UsageText.pace(for: window, now: now) { parts.append(pace.text) }
-        return parts.joined(separator: " · ")
-    }
-
     private var measurementAccessibility: String {
         var parts: [String] = []
         if let secondary { parts.append(windowSummary(secondary)) }
-        else if let balance = usage.balances.first { parts.append("\(balance.label): \(UsageText.summary(of: balance))") }
         if hasOldNumbers {
             parts.append(String(localized: "These numbers are from \(NotchFormat.ago(usage.fetchedAt, now: now))."))
         }
@@ -324,7 +281,7 @@ private struct DesvanUsageRow: View {
     }
 }
 
-/// Status sentences wrap with the row, including full reset projections and fetch failures.
+/// Status sentences wrap with the row, including fetch failures.
 private struct DesvanUsageNote: View {
     let text: String
     let tone: UsageText.Tone
@@ -398,10 +355,9 @@ private func usageTrendSummary(_ points: [UsageTrendPoint]) -> String {
     return String(localized: "Down \(-change) percentage points over the recorded period")
 }
 
-/// A limit's bar on a plank-coloured track, with a small notch above it marking an even pace.
+/// A limit's observed usage on a plank-coloured track.
 private struct DesvanBar: View {
     let value: Double
-    let pace: Double?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -421,36 +377,11 @@ private struct DesvanBar: View {
                         endPoint: .bottom
                     ))
                     .frame(width: clamped > 0 ? min(width, max(2, width * clamped)) : 0)
-                // The notch: where an even pace would be.
-                if let pace {
-                    let x = width * min(max(pace, 0), 1)
-                    VStack(spacing: 0) {
-                        Triangle()
-                            .fill(Desvan.Palette.paper)
-                            .frame(width: 7, height: 4)
-                        Rectangle()
-                            .fill(Desvan.Palette.paper)
-                            .frame(width: 1.5, height: 9)
-                    }
-                    .shadow(color: .black.opacity(0.7), radius: 0.75)
-                    .offset(x: x - 3.5, y: -2.5)
-                }
             }
         }
         .frame(height: 8)
         .animation(Desvan.Motion.pick(Desvan.Motion.settle, reduceMotion: reduceMotion), value: clamped)
         .accessibilityElement(children: .ignore)
         .accessibilityValue(Text(clamped, format: .percent.precision(.fractionLength(0))))
-    }
-
-    private struct Triangle: Shape {
-        func path(in rect: CGRect) -> Path {
-            Path { path in
-                path.move(to: CGPoint(x: rect.minX, y: rect.minY))
-                path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
-                path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
-                path.closeSubpath()
-            }
-        }
     }
 }

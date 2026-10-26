@@ -32,10 +32,7 @@ struct LiveUsageTests {
             let reset = window.resetsAt.map { formatter.string(from: $0) } ?? "not started"
             text += "\n   \(window.id) (\(window.kind.rawValue), \(window.label)): \(percent)% resets \(reset)"
         }
-        for balance in usage.balances {
-            text += "\n   balance \(balance.id): remaining=\(balance.remaining.map { "\($0)" } ?? "-") "
-                + "used=\(balance.used.map { "\($0)" } ?? "-") limit=\(balance.limit.map { "\($0)" } ?? "-") \(balance.unit)"
-        }
+
         return text
     }
 }

@@ -1,7 +1,7 @@
 import AltilloCore
 import Foundation
 
-// Small helpers shared by the Cursor, GitHub Copilot, OpenRouter and Z.ai collectors: read-only keychain access
+// Small helpers shared by the Cursor, GitHub Copilot and Z.ai collectors: read-only keychain access
 // through `/usr/bin/security`, API keys the user already keeps in a provider's standard place, JWT payloads,
 // go-keyring values, and the HTTP status → `UsageProblem` mapping every collector repeats.
 //

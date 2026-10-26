@@ -142,7 +142,7 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 - **Collectors propios en `AltilloUsage`:**
   - Claude: llavero `Claude Code-credentials` y el fichero como respaldo. **Nunca se refresca el token.**
   - Codex: `codex app-server` por JSON-RPC.
-  - Después, un collector nativo por proveedor (Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode…), cada uno con su `setupHint`. openusage (MIT) solo sirve de referencia de cómo funciona cada proveedor; si se adapta código, con atribución.
+  - Después, un collector nativo por proveedor (Cursor, Copilot, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode…), cada uno con su `setupHint`. openusage (MIT) solo sirve de referencia de cómo funciona cada proveedor; si se adapta código, con atribución.
 - ~~**Fuente opcional "compatible with OpenUsage"**~~: **retirada el 24-09-2026 por decisión tuya.** Altillo es independiente y lee cada proveedor de forma nativa: no lee datos de otras apps (no hay acuerdos) ni obliga a instalar ninguna ([detalle](docs/uso-ia.md#independencia-24-09-2026)).
 - **Ajustes:** por defecto, todo proveedor encontrado en este Mac está activado y se puede apagar; los que no están configurados se pliegan en «Not set up on this Mac» con una línea de cómo configurarlos.
 - **Refresco:** cada 5 min, stale-while-revalidate, y en pausa mientras el Mac duerme.
@@ -238,7 +238,7 @@ Elegido el 18-09-2026 entre tres prototipos (Matriz, Desván, Fluido). La especi
 ## 6. Altillo para iOS y iPadOS
 
 **iPhone (v1):**
-- **Uso de IA:** dashboard por proveedor, con ventanas de sesión y semana, cuenta atrás hasta el reset e indicador de ritmo.
+- **Uso de IA:** dashboard por proveedor, con ventanas de sesión y semana, cuenta atrás hasta el reset.
 - **Agentes:** lista de sesiones activas en todos tus Macs y **Live Activity en la Dynamic Island** cuando un agente trabaja, espera o termina.
 - **Widgets:** pantalla de inicio (S/M/L), pantalla de bloqueo, StandBy y Centro de Control.
 - **Notificaciones:** umbrales de uso y resets, "Claude espera tu permiso en *altillo*" y "Codex ha terminado".
@@ -311,10 +311,10 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - **`AltilloUsage`:**
     - **Claude:** llavero leído con `/usr/bin/security`, sin diálogos, y el fichero como respaldo. Nunca refresca ni escribe tokens; si la sesión caduca, pide abrir Claude Code una vez.
     - **Codex:** `codex app-server` por JSON-RPC, con `wham/usage` de respaldo en solo lectura.
-    - ~~**Fuente compatible con OpenUsage**~~: retirada el 24-09-2026 por decisión tuya. Altillo lee todos los proveedores de forma nativa; los demás (Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode) llegan como collectors propios.
+    - ~~**Fuente compatible con OpenUsage**~~: retirada el 24-09-2026 por decisión tuya. Altillo lee todos los proveedores de forma nativa; los demás (Cursor, Copilot, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode) llegan como collectors propios.
     - **Verificado en vivo contra la app oficial:** las cifras coinciden al punto (Claude Max 5x sesión 64 %/semana 57 %/Fable 10 %; Codex Pro 5x semana 100 %).
   - **En el notch:**
-    - Pestaña Uso con anillos, ritmo («Hasta las 13:22», «Límite alcanzado») y estados de problema en una frase.
+    - Pestaña Uso con porcentajes de cuota, fechas de reinicio y estados de problema en una frase.
     - Estado en la cabecera («Al día · hace 2 min», desactualizado a los 15 min) y botón de actualizar.
     - La oreja de uso, y la oreja contextual solo cuando un límite pasa del primer umbral.
   - **Avisos:** umbrales 80/95 % configurables, límite agotado, se agota antes de recargarse y recargado. Nunca en la primera lectura y uno por ventana.
@@ -350,7 +350,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
 
 - **Independencia del uso de IA (24-09-2026, 0.3.1):**
   - Fuera la lectura de otras apps.
-  - Altillo lee por sí mismo **10 proveedores**: Claude, Codex, Cursor, GitHub Copilot, Gemini (Antigravity), Grok, OpenRouter, Z.ai, Devin y OpenCode. Usa las credenciales que ya guardan sus propias herramientas, en solo lectura y sin renovar nunca un token.
+  - Altillo lee por sí mismo **9 proveedores**: Claude, Codex, Cursor, GitHub Copilot, Gemini (Antigravity), Grok, Z.ai, Devin y OpenCode. Usa las credenciales que ya guardan sus propias herramientas, en solo lectura y sin renovar nunca un token.
   - Verificado en vivo: Claude, Codex, Copilot (Free) y Grok (SuperGrok). Los demás muestran cómo configurarlos.
   - openusage (MIT) es solo referencia, con atribución en `ThirdPartyNotices`.
   - Sus cambios se vigilan con `script/openusage-upstream.sh` y un workflow semanal que abre un issue ([docs/proveedores.md](docs/proveedores.md)).

@@ -10,12 +10,9 @@ struct CodexMapperTests {
         #expect(mapped.windows == [UsageWindow(id: "weekly", kind: .weekly, label: "Week", used: 1,
                                                resetsAt: Date(timeIntervalSince1970: 1_790_414_188),
                                                duration: 10080 * 60)])
-        // Zero credits without hasCredits are noise; one available limit reset is shown.
-        #expect(mapped.balances.map(\.id) == ["limit-resets"])
-        #expect(mapped.balances[0].remaining == 1)
     }
 
-    @Test func mapsSessionWeekModelsAndCredits() throws {
+    @Test func mapsSessionWeekAndModels() throws {
         let mapped = try #require(CodexUsageMapper.mapAppServer(Data(Fixtures.codexAppServerFull.utf8)))
         #expect(mapped.plan == "Pro 20x")
         #expect(mapped.windows.map(\.id) == ["session", "weekly", "weekly-codex-spark", "session-codex-spark"])
@@ -23,8 +20,6 @@ struct CodexMapperTests {
         #expect(mapped.windows[0].duration == TimeInterval(300 * 60))
         #expect(mapped.windows[2].label == "GPT-5.3-Codex-Spark week")
         #expect(mapped.windows[2].kind == .modelWeekly)
-        #expect(mapped.balances == [UsageBalance(id: "credits", label: "Credits", remaining: 42.75, used: nil,
-                                                 limit: nil, unit: "credits")])
     }
 
     @Test func mapsWham() throws {
@@ -34,8 +29,21 @@ struct CodexMapperTests {
         #expect(mapped.windows[0].used == 0.33)
         #expect(mapped.windows[0].duration == 18000)
         #expect(mapped.windows[1].resetsAt == Date(timeIntervalSince1970: 1_790_600_000))
-        #expect(mapped.balances.map(\.id) == ["credits", "limit-resets"])
-        #expect(mapped.balances[1].remaining == 2)
+    }
+
+    @Test func rejectsBalancesWithoutQuotas() {
+        for payload in [
+            #"{"rateLimits":{"limitId":"codex","credits":{"hasCredits":true,"balance":"42"}}}"#,
+            #"{"rateLimitResetCredits":{"availableCount":2}}"#,
+        ] {
+            #expect(CodexUsageMapper.mapAppServer(Data(payload.utf8)) == nil)
+        }
+        for payload in [
+            #"{"credits":{"has_credits":true,"balance":"42"}}"#,
+            #"{"rate_limit_reset_credits":{"available_count":2}}"#,
+        ] {
+            #expect(CodexUsageMapper.mapWham(Data(payload.utf8), now: referenceNow) == nil)
+        }
     }
 
     @Test(arguments: [
@@ -88,6 +96,27 @@ struct CodexCollectorTests {
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer codex-token")
         #expect(request.value(forHTTPHeaderField: "ChatGPT-Account-Id") == "acct-1")
         #expect(request.value(forHTTPHeaderField: "User-Agent") == "Altillo")
+    }
+
+    @Test func balancesOnlyAppServerFallsBackToRealQuotas() async {
+        let payload = #"{"rateLimits":{"limitId":"codex","credits":{"hasCredits":true,"balance":42}}}"#
+        let transport = FakeTransport([.response(status: 200, body: Fixtures.codexWham)])
+        let collector = CodexCollector(appServer: FakeCodexReader(result: .success(payload)),
+                                       transport: transport, readAuth: { auth }, authFileExists: { true })
+        let usage = await collector.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(!usage.windows.isEmpty)
+        #expect(transport.requests.count == 1)
+    }
+
+    @Test func balancesOnlyWhamIsAnError() async {
+        let payload = #"{"credits":{"has_credits":true,"balance":42}}"#
+        let collector = CodexCollector(appServer: nil,
+                                       transport: FakeTransport([.response(status: 200, body: payload)]),
+                                       readAuth: { auth }, authFileExists: { true })
+        let usage = await collector.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .unexpectedResponse("Codex usage response changed shape"))
+        #expect(usage.windows.isEmpty)
     }
 
     @Test func notInstalledNorSignedIn() async {

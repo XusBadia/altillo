@@ -17,12 +17,18 @@ proveedores" con la etiqueta `upstream`.
 Ver también [`ThirdPartyNotices/README.md`](../ThirdPartyNotices/README.md), que es la fuente legal de qué
 código se adaptó de dónde; esta tabla es la vista operativa (qué endpoint, qué credencial, qué revisar).
 
+## Alcance desde el 26 de octubre de 2026
+
+Uso de IA muestra únicamente cuotas comunicadas por la API del proveedor, sus fechas de reinicio y la antigüedad de la lectura. Se retiran saldos monetarios, créditos, contadores de tokens y conversiones de gasto en cuota, junto con las peticiones exclusivas de facturación. OpenRouter se retira del catálogo porque su integración solo ofrecía créditos y límites de gasto.
+
+No hay predicciones de agotamiento ni marcador de ritmo. Los avisos responden a umbrales de consumo observados, límite alcanzado y reposición. Una respuesta ausente o malformada no equivale a cero. Los archivos de uso v1 se descartan al actualizar: pueden contener ventanas calculadas desde gasto; el primer refresh reconstruye un snapshot v2 solo de cuotas. El historial también comienza de nuevo en v2 para no mezclar cuotas con porcentajes antiguos derivados de gasto.
+
 ## Claude
 
 | | |
 |---|---|
 | Collector de Altillo | [`ClaudeCollector.swift`](../Packages/AltilloKit/Sources/AltilloUsage/ClaudeCollector.swift), [`ClaudeCredentials.swift`](../Packages/AltilloKit/Sources/AltilloUsage/ClaudeCredentials.swift) |
-| Rutas de openusage en que se basa | `Sources/OpenUsage/Providers/Claude/ClaudeUsageMapper.swift` (ventanas, `limits[]` con `weekly_scoped`, `extra_usage` en centavos, formato del plan), `Sources/OpenUsage/Providers/Claude/ClaudeAuthStore.swift` (orden de búsqueda, sufijo del servicio de llavero con `CLAUDE_CONFIG_DIR`, fallback hex) |
+| Rutas de openusage en que se basa | `Sources/OpenUsage/Providers/Claude/ClaudeUsageMapper.swift` (ventanas, `limits[]` con `weekly_scoped`, formato del plan), `Sources/OpenUsage/Providers/Claude/ClaudeAuthStore.swift` (orden de búsqueda, sufijo del servicio de llavero con `CLAUDE_CONFIG_DIR`, fallback hex) |
 | Credenciales | Llavero `Claude Code-credentials` primero (vía `/usr/bin/security find-generic-password -w`, sin prompt porque el ACL del item confía en ese binario), luego `${CLAUDE_CONFIG_DIR:-~/.claude}/.credentials.json`. Solo lectura: Altillo nunca refresca ni reescribe el token (el refresh token rota; refrescarlo aquí cerraría la sesión de Claude Code) |
 | Endpoint | `GET https://api.anthropic.com/api/oauth/usage`, cabeceras `Authorization: Bearer <token>`, `anthropic-beta: oauth-2025-04-20`, `User-Agent: claude-code/<versión instalada>` |
 | Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
@@ -37,7 +43,7 @@ código se adaptó de dónde; esta tabla es la vista operativa (qué endpoint, q
 | Endpoint | Fallback: `GET https://chatgpt.com/backend-api/wham/usage`, cabeceras `Authorization: Bearer <token>`, `ChatGPT-Account-Id: <account_id>` |
 | Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
 
-## Núcleo compartido: ritmo y alertas
+## Núcleo compartido: alertas
 
 No es un proveedor, pero todos los collectors dependen de esta lógica y también viene de openusage, así que se
 sigue igual.
@@ -45,7 +51,7 @@ sigue igual.
 | | |
 |---|---|
 | Ficheros de Altillo | [`AltilloCore/Usage.swift`](../Packages/AltilloKit/Sources/AltilloCore/Usage.swift) (`UsagePace`), [`AltilloCore/UsageAlerts.swift`](../Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift) |
-| Rutas de openusage en que se basa | `Sources/OpenUsage/Support/Pace.swift` (proyección de ritmo de consumo), `Sources/OpenUsage/Support/PaceNotificationLogic.swift` (tolerancia de jitter en el reset, aviso de "se va a agotar"), `Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift` → `MobileQuotaNotificationEvaluator` (umbrales, límite alcanzado, una vez por ventana, solo el umbral más alto cruzado) |
+| Rutas de openusage en que se basa | `Sources/OpenUsage/Support/PaceNotificationLogic.swift` (tolerancia de jitter en el reset), `Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift` → `MobileQuotaNotificationEvaluator` (umbrales, límite alcanzado, una vez por ventana, solo el umbral más alto cruzado) |
 | Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
 
 ## Proveedores pendientes

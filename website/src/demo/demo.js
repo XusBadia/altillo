@@ -36,7 +36,6 @@ const COPY = {
     onShelf: "on the shelf",
     upToDate: "Up to date · just now", refresh: "Refresh",
     session: "Session", week: "Week", refills: (s) => `refills in ${s}`, pct: (n) => `${n}%`,
-    runsOut: (s) => `Runs out at ${s}`, plentyLeft: "Plenty left", limitResets: "Limit resets · 2 limit resets left",
     knocking: (n) => `${n} knocking`, working: (n) => `${n} working`, allQuiet: "All quiet",
     wantsCommand: (a, p) => `${a} wants to run a command in <em>${p}</em>`,
     goTerminal: "Terminal", deny: "Deny", allowSession: "Allow for this session", allowSessionShort: "Session", allow: "Allow",
@@ -70,7 +69,7 @@ const COPY = {
       closedTouch: "Tap the notch, or drag a file from Documents up to it.",
       shelf: "Drag a thing from the shelf to Deliveries.",
       ask: "Pick a suggestion. Answers come from this sample day.",
-      usage: "Your quota, your pace and when it refills.",
+      usage: "Your API quota and when it refills.",
       agents: "Claude is waiting on you. Allow or deny from the notch.",
       agentsIdle: "Your agents at a glance. Ask Claude for something else in Terminal.",
       calendar: "Join is simulated: no call starts.",
@@ -98,7 +97,6 @@ const COPY = {
     onShelf: "en el altillo",
     upToDate: "Al día · ahora", refresh: "Actualizar",
     session: "Sesión", week: "Semana", refills: (s) => `se repone en ${s}`, pct: (n) => `${n} %`,
-    runsOut: (s) => `Hasta las ${s}`, plentyLeft: "Queda de sobra", limitResets: "Reinicios de límite · quedan 2",
     knocking: (n) => `${n} ${n === 1 ? "llama" : "llaman"} a la puerta`, working: (n) => `${n} trabajando`, allQuiet: "Todo tranquilo",
     wantsCommand: (a, p) => `${a} quiere ejecutar un comando en <em>${p}</em>`,
     goTerminal: "Terminal", deny: "Denegar", allowSession: "Permitir en esta sesión", allowSessionShort: "Sesión", allow: "Permitir",
@@ -132,7 +130,7 @@ const COPY = {
       closedTouch: "Toca el notch o arrastra un archivo de Documentos hasta él.",
       shelf: "Arrastra algo del altillo a Entregas.",
       ask: "Elige una sugerencia. Las respuestas salen de este día de ejemplo.",
-      usage: "Tu cuota, tu ritmo y cuándo se recarga.",
+      usage: "Tu cuota API y cuándo se recarga.",
       agents: "Claude te espera. Permite o deniega desde el notch.",
       agentsIdle: "Tus agentes de un vistazo. Pídele otra cosa a Claude en Terminal.",
       calendar: "Unirse es simulado: no empieza ninguna llamada.",
@@ -160,7 +158,6 @@ const COPY = {
     onShelf: "al prestatge",
     upToDate: "Al dia · ara", refresh: "Actualitza",
     session: "Sessió", week: "Setmana", refills: (s) => `es recarrega d’aquí a ${s}`, pct: (n) => `${n} %`,
-    runsOut: (s) => `Fins a les ${s}`, plentyLeft: "En queda de sobres", limitResets: "Reinicis de límit · en queden 2",
     knocking: (n) => `${n} ${n === 1 ? "truca" : "truquen"} a la porta`, working: (n) => `${n} treballant`, allQuiet: "Tot tranquil",
     wantsCommand: (a, p) => `${a} vol executar una ordre a <em>${p}</em>`,
     goTerminal: "Terminal", deny: "Denega", allowSession: "Permet en aquesta sessió", allowSessionShort: "Sessió", allow: "Permet",
@@ -194,7 +191,7 @@ const COPY = {
       closedTouch: "Toca el notch o arrossega-hi un fitxer de Documents.",
       shelf: "Arrossega alguna cosa del prestatge a Lliuraments.",
       ask: "Tria un suggeriment. Les respostes surten d’aquest dia d’exemple.",
-      usage: "La teva quota, el teu ritme i quan es recarrega.",
+      usage: "La teva quota API i quan es recarrega.",
       agents: "Claude t’espera. Permet o denega des del notch.",
       agentsIdle: "Els teus agents d’un cop d’ull. Demana-li una altra cosa a Claude a Terminal.",
       calendar: "Unir-s’hi és simulat: no comença cap trucada.",
@@ -797,33 +794,26 @@ export function mountDemo(root, options = {}) {
     }).join("")}</div></div>`;
   }
   // The Usage tab (DesvanUsageView): one walnut panel, a full-width row per provider.
-  const SPARKS = {
-    claude: "0,10 8,10.5 16,9 22,9.5 30,7 38,7.5 46,4 54,2",
-    codex: "0,6 7,8 13,4 20,5 27,9 34,6 41,7 48,10 54,9",
-    grok: "0,4 8,11 18,10 28,9 36,6 44,8 54,11",
-  };
   const level = (v) => (v >= 95 ? " is-critical" : v >= 80 ? " is-warning" : "");
   function usageMarkup() {
     const u = S.usage;
     const shown = (v) => (u.shown ? v : 0);
-    const row = (id, name, plan, label, v, pace, sub, refill, status, tone) => `
+    const row = (id, name, plan, label, v, sub, refill) => `
       <div class="an-urow" role="group" aria-label="${name}: ${esc(label)}, ${esc(t.pct(v))}">
         <div class="an-urow__id"><i class="an-glyph an-glyph--${id}" aria-hidden="true"></i><div><span class="an-urow__name">${name}</span><span class="an-urow__plan">${plan}</span></div></div>
         <div class="an-urow__meas">
           <div class="an-urow__head"><span class="an-urow__label">${esc(label)}</span><span class="an-urow__pct${level(v)}" data-u="${id}-pct">${esc(t.pct(v)).replace(String(v), `<span class="dm-count" data-v="${v}">${shown(v)}</span>`)}</span></div>
-          <span class="an-bar dm-bar${level(v)}" data-u="${id}-bar" style="--v:${shown(v)}; --pace:${pace}" data-v="${v}"></span>
+          <span class="an-bar dm-bar${level(v)}" data-u="${id}-bar" style="--v:${shown(v)}" data-v="${v}"></span>
           ${sub ? `<div class="an-urow__sub" data-u="${id}-sub">${esc(sub)}</div>` : ""}
         </div>
         <div class="an-urow__det">
           <span class="an-urow__refill">${icon("clock")}${esc(t.refills(refill))}</span>
-          <span class="an-pace an-pace--${tone}">${esc(status)}</span>
-          <svg class="an-spark" viewBox="0 0 54 13" preserveAspectRatio="none" aria-hidden="true"><polyline points="${SPARKS[id]}"/></svg>
         </div>
       </div>`;
     return `<div class="an-card an-usage">${
-      row("claude", "Claude", "Max 20×", t.session, u.claude, 0.76, claudeWeek(), "1 h 11 min", t.runsOut("16:40"), u.claude >= 95 ? "critical" : "warning")
-    }${row("codex", "Codex", "Pro", t.week, u.codex, 0.48, t.limitResets, "3 d 14 h", t.plentyLeft, "good")
-    }${row("grok", "Grok", "SuperGrok", t.week, u.grok, 0.1, "", "6 d 19 h", t.plentyLeft, "good")}</div>`;
+      row("claude", "Claude", "Max 20×", t.session, u.claude, claudeWeek(), "1 h 11 min")
+    }${row("codex", "Codex", "Pro", t.week, u.codex, "", "3 d 14 h")
+    }${row("grok", "Grok", "SuperGrok", t.week, u.grok, "", "6 d 19 h")}</div>`;
   }
   const claudeWeek = () => `${t.week} · ${t.pct(S.usage.wClaude)} · ${t.refills("3 d 3 h")}`;
   function agentsMarkup() {
@@ -1315,7 +1305,7 @@ export function mountDemo(root, options = {}) {
       today: `Three things today. <b>Design review</b> at 3:00 PM in Studio — that's in 12 minutes, on Google Meet. Then the <b>final hand-off</b> at 4:00, and <b>climbing with Marta</b> at 6:30 at Sharma Gym. You're free between 3:30 and 4:00 if you need a breather.`,
       clipboard: `You copied a JavaScript error: something called <code>.map()</code> on a value that was <code>undefined</code>, at <b>routes.ts</b> line 42. Usually the data hasn't arrived yet or the key is misspelled. Guard it with <code>items ?? []</code>, or check what the response actually returns.`,
       music: m.playing ? `<b>${tr.title}</b> by Estudio Altillo, ${clock(m.t)} in. It's from <i>Desde el altillo</i>, three short original pieces made for this page.` : `Nothing's playing right now. Your queue starts with <b>${tr.title}</b> by Estudio Altillo — press play in Now playing and I'll know.`,
-      usage: `Claude is at <b>${S.usage.claude} %</b> of this 5-hour session and at this pace runs out at 16:40; it refills in 1 h 11 min. Codex is at <b>34 %</b> of its week and Grok at <b>6 %</b>, both with plenty left.`,
+      usage: `Claude is at <b>${S.usage.claude} %</b> of this 5-hour session; it refills in 1 h 11 min. Codex is at <b>${S.usage.codex} %</b> of its week and refills in 3 d 14 h. Grok is at <b>${S.usage.grok} %</b> and refills in 6 d 19 h.`,
       summarize: shelfFile ? `<b>${esc(shelfFile.name)}</b> is on your shelf. In this demo I can't open it — on your Mac I'd read it right here and give you the gist in a few lines. Ask runs on-device by default; I'd only reach out to the web if you asked me to and allowed it.` : "",
       shelf: `Your shelf is empty. Drag a file onto the notch and I can tell you about it.`,
       fallback: `This is a demo, so I only know this sample day: your calendar, what you copied, your shelf, the music and your AI usage. Try asking about one of those.`,
@@ -1324,7 +1314,7 @@ export function mountDemo(root, options = {}) {
       today: `Tres cosas hoy. <b>Revisión de diseño</b> a las 15:00 en el Estudio — en 12 minutos, por Google Meet. Luego la <b>entrega final</b> a las 16:00 y <b>escalada con Marta</b> a las 18:30 en el Rocódromo Sharma. Entre las 15:30 y las 16:00 tienes un respiro.`,
       clipboard: `Has copiado un error de JavaScript: algo llamó a <code>.map()</code> sobre un valor <code>undefined</code>, en <b>routes.ts</b> línea 42. Suele ser que los datos aún no han llegado o que la clave está mal escrita. Protégelo con <code>items ?? []</code> o revisa qué devuelve la respuesta.`,
       music: m.playing ? `<b>${tr.title}</b> de Estudio Altillo, por el ${clock(m.t)}. Es de <i>Desde el altillo</i>, tres piezas originales hechas para esta página.` : `Ahora no suena nada. Tu cola empieza con <b>${tr.title}</b> de Estudio Altillo — dale a reproducir en Sonando y lo sabré.`,
-      usage: `Claude va por el <b>${S.usage.claude} %</b> de esta sesión de 5 horas y a este ritmo se acaba a las 16:40; se repone en 1 h 11 min. Codex va por el <b>34 %</b> de su semana y Grok por el <b>6 %</b>: les queda de sobra.`,
+      usage: `Claude va por el <b>${S.usage.claude} %</b> de esta sesión de 5 horas; se repone en 1 h 11 min. Codex va por el <b>${S.usage.codex} %</b> de su semana y se repone en 3 d 14 h. Grok va por el <b>${S.usage.grok} %</b> y se repone en 6 d 19 h.`,
       summarize: shelfFile ? `<b>${esc(shelfFile.name)}</b> está en tu altillo. En esta demo no puedo abrirlo; en tu Mac lo leería aquí mismo y te daría lo esencial en pocas líneas. Pregunta funciona en el dispositivo por defecto; solo saldría a la web si tú lo pidieras y lo permitieras.` : "",
       shelf: `Tu altillo está vacío. Arrastra un archivo al notch y te cuento.`,
       fallback: `Esto es una demo: solo conozco este día de ejemplo — tu agenda, lo que has copiado, tu altillo, la música y tu uso de IA. Pregúntame por algo de eso.`,
@@ -1333,7 +1323,7 @@ export function mountDemo(root, options = {}) {
       today: `Tres coses avui. <b>Revisió de disseny</b> a les 15:00 a l’Estudi — d’aquí a 12 minuts, per Google Meet. Després el <b>lliurament final</b> a les 16:00 i <b>escalada amb la Marta</b> a les 18:30 al Rocòdrom Sharma. Entre les 15:30 i les 16:00 tens un respir.`,
       clipboard: `Has copiat un error de JavaScript: alguna cosa ha cridat <code>.map()</code> sobre un valor <code>undefined</code>, a <b>routes.ts</b> línia 42. Sol passar quan les dades encara no han arribat o la clau està mal escrita. Protegeix-ho amb <code>items ?? []</code> o revisa què retorna la resposta.`,
       music: m.playing ? `<b>${tr.title}</b> d’Estudi Altillo, pel ${clock(m.t)}. És de <i>Desde el altillo</i>, tres peces originals fetes per a aquesta pàgina.` : `Ara no sona res. La cua comença amb <b>${tr.title}</b> d’Estudi Altillo — prem reproduir a Sona i ho sabré.`,
-      usage: `Claude va pel <b>${S.usage.claude} %</b> d’aquesta sessió de 5 hores i, a aquest ritme, s’acaba a les 16:40; es recarrega d’aquí a 1 h 11 min. Codex va pel <b>34 %</b> de la setmana i Grok pel <b>6 %</b>: en tenen de sobres.`,
+      usage: `Claude va pel <b>${S.usage.claude} %</b> d’aquesta sessió de 5 hores; es recarrega d’aquí a 1 h 11 min. Codex va pel <b>${S.usage.codex} %</b> de la setmana i es recarrega d’aquí a 3 d 14 h. Grok va pel <b>${S.usage.grok} %</b> i es recarrega d’aquí a 6 d 19 h.`,
       summarize: shelfFile ? `<b>${esc(shelfFile.name)}</b> és al teu prestatge. En aquesta demo no el puc obrir; al teu Mac el llegiria aquí mateix i te’n donaria l’essencial en poques línies. Pregunta funciona al dispositiu per defecte; només sortiria al web si m’ho demanessis i ho permetessis.` : "",
       shelf: `El prestatge és buit. Arrossega un fitxer al notch i te n’explico.`,
       fallback: `Això és una demo: només conec aquest dia d’exemple — l’agenda, el que has copiat, el prestatge, la música i el teu ús d’IA. Pregunta’m per alguna d’aquestes coses.`,

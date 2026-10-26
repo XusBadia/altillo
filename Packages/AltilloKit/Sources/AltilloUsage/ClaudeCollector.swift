@@ -3,7 +3,7 @@ import Foundation
 
 // Claude usage from Anthropic's OAuth usage endpoint, with Claude Code's own credentials (read-only).
 //
-// Response mapping (windows, `limits[]` weekly_scoped entries, extra usage in cents, plan formatting, Retry-After)
+// Response mapping (windows, `limits[]` weekly_scoped entries, plan formatting, Retry-After)
 // adapted from openusage's ClaudeUsageMapper (https://github.com/robinebers/openusage, MIT).
 // See ThirdPartyNotices/README.md.
 
@@ -100,7 +100,7 @@ public struct ClaudeCollector: UsageCollector {
                            previous: previous, plan: plan, now: now)
         }
         return ProviderUsage(id: providerID, displayName: displayName, plan: plan, windows: mapped.windows,
-                             balances: mapped.balances, fetchedAt: now)
+                             fetchedAt: now)
     }
 
     private func failure(_ problem: UsageProblem, detail: String?, previous: ProviderUsage?, plan: String?,
@@ -133,7 +133,6 @@ enum ClaudeUsageMapper {
 
     struct Mapped: Equatable {
         var windows: [UsageWindow]
-        var balances: [UsageBalance]
     }
 
     static func map(_ data: Data) -> Mapped? {
@@ -143,7 +142,7 @@ enum ClaudeUsageMapper {
         if let session = window(body["five_hour"], id: "session", kind: .session, label: "Session",
                                 duration: sessionDuration) {
             windows.append(session)
-        } else if body.keys.contains("five_hour") {
+        } else if body["five_hour"] is NSNull {
             // Null session: none started yet (no message in the last five hours).
             windows.append(UsageWindow(id: "session", kind: .session, label: "Session", used: 0, resetsAt: nil,
                                        duration: sessionDuration))
@@ -174,18 +173,8 @@ enum ClaudeUsageMapper {
             }
         }
 
-        var balances: [UsageBalance] = []
-        if let extra = body["extra_usage"] as? [String: Any], extra["is_enabled"] as? Bool == true,
-           let usedCents = UsageParsing.number(extra["used_credits"]) {
-            let used = usedCents / 100
-            let limit = UsageParsing.number(extra["monthly_limit"]).flatMap { $0 > 0 ? $0 / 100 : nil }
-            balances.append(UsageBalance(id: "extra-usage", label: "Extra usage",
-                                         remaining: limit.map { max(0, $0 - used) }, used: used, limit: limit,
-                                         unit: "USD"))
-        }
-
-        guard !windows.isEmpty || !balances.isEmpty else { return nil }
-        return Mapped(windows: windows.sortedForDisplay(), balances: balances)
+        guard !windows.isEmpty else { return nil }
+        return Mapped(windows: windows.sortedForDisplay())
     }
 
     private static func window(_ value: Any?, id: String, kind: UsageWindow.Kind, label: String,

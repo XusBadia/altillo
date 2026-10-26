@@ -32,6 +32,15 @@ for (const L of LOCALES) {
         await input.press("Enter");
         await expect(page.locator("#demo .an-answer").last()).toContainText(a);
       }
+      const input = page.locator('#demo input[name="q"]');
+      await expect(input).toBeEnabled();
+      await input.fill("Claude quota");
+      await input.press("Enter");
+      const answer = page.locator("#demo .an-answer").last();
+      await expect(answer).toContainText("6 d 19 h");
+      await expect(answer).toContainText("34 %");
+      await expect(answer).toContainText("1 h 11 min");
+      await expect(answer).not.toContainText(/16:40|pace|ritmo|ritme|plenty|sobra|sobres/i);
     });
 
     test("the usage panel shows a row per provider with its percent and bar", async ({ page }) => {
@@ -45,10 +54,15 @@ for (const L of LOCALES) {
           await expect(row.locator(".an-bar")).toBeVisible();
           await expect(row.locator(".an-urow__refill")).toBeVisible();
         }
-        // Claude runs high: the warning colour on its figure and bar, with a status in words.
+        // Absolute quota thresholds drive the warning colour; no pace or forecast.
         await expect(rows.first().locator(".an-urow__pct")).toHaveClass(/is-warning/);
         await expect(rows.first().locator(".an-bar")).toHaveClass(/is-warning/);
-        await expect(rows.first().locator(".an-pace--warning")).not.toBeEmpty();
+        await expect(rows.locator(".an-pace, .an-spark")).toHaveCount(0);
+        await expect(rows.nth(1).locator(".an-urow__sub")).toHaveCount(0);
+        for (const bar of await rows.locator(".an-bar").all()) {
+          await expect(bar).not.toHaveAttribute("style", /--pace/);
+          expect(await bar.evaluate((el) => getComputedStyle(el, "::after").content)).toBe("none");
+        }
       };
       // The bento's static panel.
       const cell = page.locator(".bento .cell--full").filter({ has: page.locator(".an-usage") });

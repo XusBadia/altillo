@@ -47,10 +47,10 @@ Ninguna de las dos apps de Mac usa sandbox. Leer `~/.claude`, `~/.codex` o el ll
 ## Plan (decisión del 18-09-2026: monorepo `altillo` y app de iOS desde cero)
 
 ai-limits y el fork **no se usan como base**. Se aprovechan ideas y fragmentos puntuales, con atribución MIT en `ThirdPartyNotices`:
-- de openusage: los mappers de proveedores, el cálculo de ritmo y los umbrales de alerta;
+- de openusage: los mappers de proveedores, los umbrales de alerta;
 - de ai-limits: el collector de Codex vía `app-server` y la configuración de XcodeGen y la notarización.
 
-1. **`AltilloUsage`** (en `Packages/AltilloKit`): collectors de Claude (llavero primero, sin refrescar nunca el token) y Codex (`app-server`). Después, collectors nativos para el resto (Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode…), uno a uno.
+1. **`AltilloUsage`** (en `Packages/AltilloKit`): collectors de Claude (llavero primero, sin refrescar nunca el token) y Codex (`app-server`). Después, collectors nativos para el resto (Cursor, Copilot, Z.ai, Grok, Gemini/Antigravity, Devin, OpenCode…), uno a uno.
 2. **Altillo para iOS**, desde cero, con el contenedor nuevo `iCloud.me.badia.altillo` y CloudKit (`CKSyncEngine`). No hay transición: el fork y ai-limits no se leen ni se sustituyen por un puente, y la app de TestFlight `me.badia.ailimits` no es una dependencia de Altillo.
 3. **Marca:** nada con el nombre "OpenUsage".
 
@@ -62,7 +62,7 @@ Decisión tuya: **Altillo es una app independiente y lee cada proveedor por sí 
 - **openusage (MIT) es solo una referencia** de cómo funciona cada proveedor (qué fichero o llavero guarda la sesión, qué endpoint da el uso). Cuando se adapta código, va con atribución en `ThirdPartyNotices`.
 - **Cada proveedor es un `UsageCollector`** con su `UsageProviderID`, registrado en `UsageCollectors.all()`. Lee lo que las herramientas del propio proveedor ya guardan en este Mac (la sesión de un CLI o de un editor, una API key que añades tú), nunca refresca ni reescribe credenciales ajenas, y trae un `setupHint` de una línea («Sign in to Cursor») para quien aún no lo tiene configurado.
 - **Por defecto** todos los proveedores que se encuentran en este Mac están activados; cada uno se puede apagar en Ajustes › Secciones › Uso. Los que no están configurados se agrupan en «Not set up on this Mac», cada uno con su pista.
-- **Límites que no son sesión/semana:** cuotas mensuales, contadores de peticiones y saldos (créditos, dólares) se muestran igual de bien. La tarjeta lleva como anillo la sesión o, si no hay, el límite más lleno (`headline`); si un proveedor solo tiene saldo, la cifra grande es el saldo («$7.50 left»).
+- **Alcance actual (26-10-2026):** solo cuotas API, porcentaje y fecha de reinicio. Sin balances monetarios, tokens ni predicciones. OpenRouter se retira del catálogo porque esta integración solo ofrecía gasto. Los límites desconocidos se muestran como desconocidos; un fallo conserva la última cuota con su fecha y su problema.
 
 ## El fork y ai-limits ya no son parte de Altillo
 

@@ -4,7 +4,7 @@ import Testing
 @testable import AltilloUsage
 
 struct ClaudeMapperTests {
-    @Test func mapsWindowsScopedLimitsAndExtraUsage() throws {
+    @Test func mapsWindowsAndScopedLimits() throws {
         let mapped = try #require(ClaudeUsageMapper.map(Data(Fixtures.claudeUsage.utf8)))
         #expect(mapped.windows.map(\.id) == ["session", "weekly", "weekly-fable"])
 
@@ -20,9 +20,6 @@ struct ClaudeMapperTests {
         #expect(mapped.windows[2].label == "Fable week")
         #expect(mapped.windows[2].kind == .modelWeekly)
         #expect(mapped.windows[2].used == 0.1)
-
-        #expect(mapped.balances == [UsageBalance(id: "extra-usage", label: "Extra usage", remaining: 37.5, used: 12.5,
-                                                 limit: 50, unit: "USD")])
     }
 
     @Test func nullSessionMeansNotStartedAndEpochResets() throws {
@@ -32,13 +29,27 @@ struct ClaudeMapperTests {
         #expect(mapped.windows[0].resetsAt == nil)
         #expect(mapped.windows[1].resetsAt == Date(timeIntervalSince1970: 1_790_650_800))
         #expect(mapped.windows[2].resetsAt == Date(timeIntervalSince1970: 1_790_650_800)) // milliseconds
-        #expect(mapped.balances.isEmpty) // extra usage disabled
     }
 
     @Test func missingResetMeansNotStarted() throws {
         let mapped = try #require(ClaudeUsageMapper.map(Data(Fixtures.claudeUsageSessionNotStarted.utf8)))
         #expect(mapped.windows.allSatisfy { $0.resetsAt == nil })
         #expect(mapped.windows.map(\.used) == [0, 0.2])
+    }
+
+    @Test func rejectsExtraUsageWithoutQuotas() {
+        let payload = #"{"extra_usage":{"is_enabled":true,"used_credits":1250,"monthly_limit":5000}}"#
+        #expect(ClaudeUsageMapper.map(Data(payload.utf8)) == nil)
+    }
+
+    @Test(arguments: ["{}", "[]", "false", "42", #""invalid""#, #"{"utilization":"invalid"}"#,
+                      #"{"utilization":null}"#, #"{"utilization":true}"#])
+    func malformedSessionNeverBecomesZero(_ session: String) throws {
+        #expect(ClaudeUsageMapper.map(Data("{\"five_hour\":\(session)}".utf8)) == nil)
+        let payload = "{\"five_hour\":\(session),\"seven_day\":{\"utilization\":20}}"
+        let mapped = try #require(ClaudeUsageMapper.map(Data(payload.utf8)))
+        #expect(mapped.windows.map(\.id) == ["weekly"])
+        #expect(mapped.windows[0].used == 0.2)
     }
 
     @Test func rejectsUnknownShapes() {
@@ -174,6 +185,19 @@ struct ClaudeCollectorTests {
         #expect(request.value(forHTTPHeaderField: "anthropic-beta") == "oauth-2025-04-20")
         #expect(request.value(forHTTPHeaderField: "Accept") == "application/json")
         #expect(request.value(forHTTPHeaderField: "User-Agent") == "claude-code/2.1.280")
+    }
+
+    @Test func malformedSessionKeepsPreviousUsageAsStale() async {
+        let good = await collector(.found(valid), FakeTransport([.response(status: 200, body: Fixtures.claudeUsage)]))
+            .fetch(previous: nil, now: referenceNow)
+        for body in [#"{"five_hour":{"utilization":"invalid"}}"#,
+                     #"{"extra_usage":{"is_enabled":true,"used_credits":1250}}"#] {
+            let usage = await collector(.found(valid), FakeTransport([.response(status: 200, body: body)]))
+                .fetch(previous: good, now: referenceNow.addingTimeInterval(300))
+            #expect(usage.problem == .unexpectedResponse("Claude usage response changed shape"))
+            #expect(usage.windows == good.windows)
+            #expect(usage.fetchedAt == good.fetchedAt)
+        }
     }
 
     @Test func expiredTokenNeverHitsTheNetwork() async {

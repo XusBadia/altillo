@@ -96,7 +96,7 @@ quotas and agent sessions. Your enabled sections and panel size can differ.
 | :---: | :---: |
 | ![The shelf with files](docs/assets/readme/shelf.png) | ![Ask, the on-device assistant](docs/assets/readme/ask.png) |
 
-**AI usage** — provider rows with plans, usage bars, pace and refill times.
+**AI usage** — provider rows with plans, usage bars and refill times.
 
 ![AI usage with full-width provider rows for Claude and Codex](docs/assets/readme/usage.png)
 
@@ -289,7 +289,7 @@ attribution as reused code lands):
 - [DynamicNotchKit](https://github.com/MrKai77/DynamicNotchKit) (MIT) — notch
   window and shape reference.
 - [OpenUsage](https://github.com/robinebers/openusage) (MIT) — AI usage
-  provider mappers and pacing/threshold logic. Altillo reads providers itself;
+  provider mappers and quota alert thresholds. Altillo reads providers itself;
   it does not require or connect to an OpenUsage installation. Altillo is not
   affiliated with or endorsed by the OpenUsage project. "OpenUsage" is
   governed by its own trademark policy (`TRADEMARK.md` in that repository),

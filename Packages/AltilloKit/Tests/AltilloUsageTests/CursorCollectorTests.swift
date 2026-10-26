@@ -19,9 +19,6 @@ enum CursorFixtures {
     {"usagePercent": 37.5, "currentPeriodStart": "2026-09-20T00:00:00Z",
      "nextResetTimestampUtc": "2026-09-27T00:00:00Z", "hasNonZeroIncludedLimit": true}
     """
-    static let noGrants = #"{"hasCreditGrants":false}"#
-    static let grants = #"{"hasCreditGrants":true,"totalCents":2000,"usedCents":500}"#
-    static let stripeCredit = #"{"customerBalance":"-50000"}"#
 
     static let teamUsage = """
     {"enabled": true, "billingCycleEnd": 1790899200000,
@@ -49,9 +46,9 @@ enum CursorFixtures {
 // MARK: - Mapping
 
 struct CursorMapperTests {
-    @Test func mapsProPlanUsageAndOnDemand() throws {
+    @Test func mapsReportedPlanQuotaPercentages() throws {
         let usage = try #require(UsageParsing.object(Data(CursorFixtures.proUsage.utf8)))
-        let mapped = try #require(CursorUsageMapper.mapPlanUsage(usage, planName: "pro plan"))
+        let mapped = try #require(CursorUsageMapper.mapPlanUsage(usage))
         #expect(mapped.windows.map(\.id) == ["total", "auto", "api"])
         #expect(mapped.windows.allSatisfy { $0.kind == .monthly })
         #expect(mapped.windows[0].label == "Month")
@@ -60,24 +57,16 @@ struct CursorMapperTests {
         #expect(mapped.windows[0].duration == TimeInterval(1_790_899_200 - 1_788_220_800))
         #expect(mapped.windows[1].used == 0.125)
         #expect(mapped.windows[2].used == 0.075)
-        // No reported spend: inferred from limit − remaining (cents → USD).
-        #expect(mapped.balances == [UsageBalance(id: "on-demand", label: "On-demand", remaining: 10, used: 40,
-                                                 limit: 50, unit: "USD")])
     }
 
-    @Test func teamPlanUsesPooledSpend() throws {
+    @Test func spendingOnlyPlanDoesNotBecomeAQuota() throws {
         let usage = try #require(UsageParsing.object(Data(CursorFixtures.teamUsage.utf8)))
-        let mapped = try #require(CursorUsageMapper.mapPlanUsage(usage, planName: "Team"))
-        #expect(mapped.windows.map(\.id) == ["total"])
-        #expect(mapped.windows[0].used == 0.25)
-        #expect(mapped.windows[0].duration == CursorUsageMapper.defaultCycle)
-        #expect(mapped.balances.first?.used == 500)
-        #expect(mapped.balances.first?.limit == 5000)
+        #expect(CursorUsageMapper.mapPlanUsage(usage) == nil)
     }
 
-    @Test func unusablePlanUsageNeedsTheDashboard() throws {
+    @Test func partialEnterpriseQuotaStillPrefersDashboard() throws {
         let usage = try #require(UsageParsing.object(Data(CursorFixtures.enterpriseUsage.utf8)))
-        #expect(CursorUsageMapper.mapPlanUsage(usage, planName: "Enterprise") == nil)
+        #expect(CursorUsageMapper.mapPlanUsage(usage)?.windows.map(\.used) == [0])
         #expect(CursorUsageMapper.prefersDashboardSummary(usage, planName: "Enterprise", planInfoMissing: false))
         let pro = try #require(UsageParsing.object(Data(CursorFixtures.proUsage.utf8)))
         #expect(!CursorUsageMapper.prefersDashboardSummary(pro, planName: "Pro", planInfoMissing: false))
@@ -92,24 +81,29 @@ struct CursorMapperTests {
         #expect(mapped.windows[0].resetsAt == iso("2026-10-01T00:00:00Z"))
         #expect(mapped.windows[0].duration == TimeInterval(30 * 86400))
         #expect(mapped.windows[2].used == 0.0625)
-        // The individual bucket wins over the team aggregate.
-        #expect(mapped.balances == [UsageBalance(id: "on-demand", label: "On-demand", remaining: 250, used: 0,
-                                                 limit: 250, unit: "USD")])
     }
 
-    @Test func dashboardFallsBackToPooledTotal() throws {
+    @Test func dashboardSpendingBucketsDoNotBecomeQuotas() throws {
         let summary: [String: Any] = ["limitType": "team", "teamUsage": [
             "pooled": ["enabled": true, "used": 125_000, "limit": 4_000_000],
             "onDemand": ["enabled": true, "used": 50_000, "limit": 500_000],
         ]]
-        let mapped = try #require(CursorUsageMapper.mapDashboard(summary: summary, requests: nil))
-        #expect(mapped.windows.map(\.id) == ["total"])
-        #expect(mapped.windows[0].used == 0.03125)
-        #expect(mapped.balances.first?.used == 500)
+        #expect(CursorUsageMapper.mapDashboard(summary: summary, requests: nil) == nil)
         #expect(CursorUsageMapper.mapDashboard(summary: [:], requests: nil) == nil)
     }
 
-    @Test func grokBotAndCredits() throws {
+    @Test func missingRequestCountAndResetAreNotEstimated() throws {
+        let requests: [String: Any] = ["gpt-4": ["maxRequestUsage": 750],
+                                       "startOfMonth": "2026-09-01T00:00:00Z"]
+        #expect(CursorUsageMapper.mapDashboard(summary: nil, requests: requests) == nil)
+        let zeroRequests: [String: Any] = ["gpt-4": ["maxRequestUsage": 750, "numRequests": 0],
+                                           "startOfMonth": "2026-09-01T00:00:00Z"]
+        let mapped = try #require(CursorUsageMapper.mapDashboard(summary: nil, requests: zeroRequests))
+        #expect(mapped.windows.first?.used == 0)
+        #expect(mapped.windows.first?.resetsAt == nil)
+    }
+
+    @Test func mapsGrokBotQuota() throws {
         let grokBody = try #require(UsageParsing.object(Data(CursorFixtures.grokBot.utf8)))
         let grok = try #require(CursorUsageMapper.grokBotWindow(grokBody))
         #expect(grok.id == "grok-bot")
@@ -117,14 +111,6 @@ struct CursorMapperTests {
         #expect(grok.used == 0.375)
         #expect(grok.duration == TimeInterval(7 * 86400))
         #expect(CursorUsageMapper.grokBotWindow(["usagePercent": 10, "usesPooledEnterpriseAllowance": true]) == nil)
-
-        let stripe = UsageParsing.object(Data(CursorFixtures.stripeCredit.utf8))
-        let grants = UsageParsing.object(Data(CursorFixtures.grants.utf8))
-        #expect(CursorUsageMapper.credits(grants: nil, stripe: stripe)
-            == UsageBalance(id: "credits", label: "Credits", remaining: 500, used: 0, limit: 500, unit: "USD"))
-        #expect(CursorUsageMapper.credits(grants: grants, stripe: stripe)
-            == UsageBalance(id: "credits", label: "Credits", remaining: 515, used: 5, limit: 520, unit: "USD"))
-        #expect(CursorUsageMapper.credits(grants: ["hasCreditGrants": false], stripe: ["customerBalance": 100]) == nil)
     }
 
     @Test func formatsPlans() {
@@ -149,15 +135,12 @@ struct CursorCollectorTests {
         let transport = RoutedTransport([
             ("GetCurrentPeriodUsage", .response(status: 200, body: CursorFixtures.proUsage)),
             ("GetPlanInfo", .response(status: 200, body: CursorFixtures.planInfo)),
-            ("GetCreditGrantsBalance", .response(status: 200, body: CursorFixtures.noGrants)),
             ("GetSandUsageStatus", .response(status: 200, body: CursorFixtures.grokBot)),
-            ("/api/auth/stripe", .response(status: 200, body: CursorFixtures.stripeCredit)),
         ])
         let usage = await collector(.found(credential), transport).fetch(previous: nil, now: referenceNow)
         #expect(usage.problem == nil)
         #expect(usage.plan == "Pro Plan")
         #expect(usage.windows.map(\.id) == ["total", "auto", "api", "grok-bot"])
-        #expect(usage.balances.map(\.id) == ["on-demand", "credits"])
 
         let rpc = try #require(transport.requests.first { $0.url?.lastPathComponent == "GetCurrentPeriodUsage" })
         #expect(rpc.httpMethod == "POST")
@@ -165,8 +148,10 @@ struct CursorCollectorTests {
         #expect(rpc.value(forHTTPHeaderField: "Connect-Protocol-Version") == "1")
         #expect(rpc.httpBody == Data("{}".utf8))
         #expect(rpc.timeoutInterval <= 10)
-        let stripe = try #require(transport.requests.first { $0.url?.path == "/api/auth/stripe" })
-        #expect(stripe.value(forHTTPHeaderField: "Cookie") == "WorkosCursorSessionToken=user_abc123%3A%3A\(token)")
+        #expect(transport.requests.count == 3)
+        #expect(!transport.requests.contains { request in
+            ["GetCreditGrantsBalance", "stripe"].contains(request.url?.lastPathComponent ?? "")
+        })
         // Never the token endpoint: Altillo doesn't refresh Cursor's sign-in.
         #expect(!transport.requests.contains { $0.url?.path.contains("oauth") == true })
     }
@@ -179,7 +164,6 @@ struct CursorCollectorTests {
         #expect(usage.problem == nil)
         #expect(usage.plan == "Pro") // from Cursor's stored membership
         #expect(usage.windows.map(\.id) == ["total", "auto", "api"])
-        #expect(usage.balances.map(\.id) == ["on-demand"])
     }
 
     @Test func enterpriseUsesDashboardRESTEndpoints() async throws {
@@ -195,6 +179,17 @@ struct CursorCollectorTests {
         #expect(usage.windows.first?.id == "requests")
         let rest = try #require(transport.requests.first { $0.url?.path == "/api/usage" })
         #expect(rest.url?.query == "user=user_abc123")
+    }
+
+    @Test func grokBotQuotaSurvivesAMonetaryOnlyPlan() async {
+        let transport = RoutedTransport([
+            ("GetCurrentPeriodUsage", .response(status: 200, body: CursorFixtures.teamUsage)),
+            ("GetSandUsageStatus", .response(status: 200, body: CursorFixtures.grokBot)),
+        ])
+        let usage = await collector(.found(credential), transport).fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(usage.windows.map(\.id) == ["grok-bot"])
+        #expect(usage.windows.first?.used == 0.375)
     }
 
     @Test func expiredTokenNeverTouchesTheNetwork() async {

@@ -147,9 +147,7 @@ public struct CopilotTokenStore: CopilotTokenReading {
 
 /// Reads Copilot's monthly quotas: premium requests ("Credits"), and on the free plan chat and completions.
 ///
-/// Windows (monthly, resetting on `quota_reset_date`): `premium`, `chat`, `completions`. Balances: `extra-usage`
-/// (premium requests beyond the allowance, when overage is enabled), `credits` (a business seat's own credits used,
-/// when it has no per-seat allowance).
+/// Windows reset monthly on `quota_reset_date`: `premium`, `chat`, `completions`.
 public struct CopilotCollector: UsageCollector {
     public static let usageURL = URL(string: "https://api.github.com/copilot_internal/user")!
 
@@ -199,10 +197,12 @@ public struct CopilotCollector: UsageCollector {
             switch CopilotUsageMapper.map(data) {
             case .mapped(let mapped):
                 return ProviderUsage(id: providerID, displayName: displayName, plan: mapped.plan,
-                                     windows: mapped.windows, balances: mapped.balances, fetchedAt: now)
+                                     windows: mapped.windows, fetchedAt: now)
             case .noQuota(let plan):
-                return failure(.notSignedIn, detail: "This GitHub account has no Copilot usage to show.",
-                               previous: previous, plan: plan, now: now)
+                // Authentication succeeded; this plan exposes no finite quota. Replace old
+                // windows rather than telling an authenticated user to sign in again.
+                return ProviderUsage(id: providerID, displayName: displayName, plan: plan,
+                                     windows: [], fetchedAt: now)
             case .unreadable:
                 return failure(.unexpectedResponse("Copilot usage response changed shape"), detail: nil,
                                previous: previous, now: now)
@@ -233,12 +233,11 @@ enum CopilotUsageMapper {
     struct Mapped: Equatable {
         var plan: String?
         var windows: [UsageWindow]
-        var balances: [UsageBalance]
     }
 
     enum Result: Equatable {
         case mapped(Mapped)
-        /// Valid response with nothing to meter (no quota buckets and not a token-billed seat).
+        /// Valid response with nothing to meter (no finite quota buckets).
         case noQuota(plan: String?)
         case unreadable
     }
@@ -251,19 +250,12 @@ enum CopilotUsageMapper {
         let duration = Group1Support.monthDuration(endingAt: resetsAt)
 
         var windows: [UsageWindow] = []
-        var balances: [UsageBalance] = []
         let snapshots = body["quota_snapshots"] as? [String: Any]
         let premium = snapshots?["premium_interactions"] as? [String: Any]
 
         if let used = usedFraction(premium) {
             windows.append(UsageWindow(id: "premium", kind: .monthly, label: "Credits", used: used,
                                        resetsAt: resetsAt, duration: duration))
-            // Overage only means something next to an included allowance.
-            if let premium, premium["overage_permitted"] as? Bool == true {
-                balances.append(UsageBalance(id: "extra-usage", label: "Extra usage", remaining: nil,
-                                             used: max(0, UsageParsing.number(premium["overage_count"]) ?? 0),
-                                             limit: nil, unit: "credits"))
-            }
         }
         for (key, label) in [("chat", "Chat"), ("completions", "Completions")] {
             if let used = usedFraction(snapshots?[key] as? [String: Any]) {
@@ -284,17 +276,10 @@ enum CopilotUsageMapper {
             }
         }
 
-        if windows.isEmpty {
-            // Token-billed business seats have no per-seat allowance; show the seat's own credits when present.
-            guard body["token_based_billing"] as? Bool == true else {
-                return snapshots == nil && body["copilot_plan"] == nil ? .unreadable : .noQuota(plan: plan)
-            }
-            if let used = UsageParsing.number(premium?["credits_used"]), used > 0 {
-                balances.append(UsageBalance(id: "credits", label: "Credits", remaining: nil, used: used, limit: nil,
-                                             unit: "credits"))
-            }
+        guard !windows.isEmpty else {
+            return snapshots == nil && body["copilot_plan"] == nil ? .unreadable : .noQuota(plan: plan)
         }
-        return .mapped(Mapped(plan: plan, windows: windows, balances: balances))
+        return .mapped(Mapped(plan: plan, windows: windows))
     }
 
     /// Copilot Free reports `copilot_plan: "individual"` with `access_type_sku: "free_limited_copilot"`: say "Free".

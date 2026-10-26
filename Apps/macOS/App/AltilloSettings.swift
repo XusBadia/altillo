@@ -299,7 +299,7 @@ final class AltilloSettings {
     /// What the alert evaluator needs, from the choices above.
     var usageAlertConfiguration: UsageAlertConfiguration {
         UsageAlertConfiguration(thresholds: usageAlertThresholds, limitReached: true,
-                                refilled: usageAlertsWhenRefilled, runningOutEarly: true)
+                                refilled: usageAlertsWhenRefilled)
     }
 
     static let defaultUsageAlertThresholds = [80, 95]

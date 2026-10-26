@@ -24,13 +24,12 @@
       "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
     },
     "core": {
-      "label": "Núcleo compartido (pace y alertas)",
+      "label": "N\u00facleo compartido (alertas de cuota)",
       "altillo_files": [
         "Packages/AltilloKit/Sources/AltilloCore/Usage.swift",
         "Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift"
       ],
       "upstream_paths": [
-        "Sources/OpenUsage/Support/Pace.swift",
         "Sources/OpenUsage/Support/PaceNotificationLogic.swift",
         "Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift"
       ],
@@ -60,19 +59,6 @@
         "Sources/OpenUsage/Providers/Copilot/CopilotAuthStore.swift",
         "Sources/OpenUsage/Providers/Copilot/CopilotUsageClient.swift",
         "Sources/OpenUsage/Providers/Copilot/CopilotUsageMapper.swift"
-      ],
-      "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
-    },
-    "openrouter": {
-      "label": "OpenRouter",
-      "altillo_files": [
-        "Packages/AltilloKit/Sources/AltilloUsage/OpenRouterCollector.swift"
-      ],
-      "upstream_paths": [
-        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterAuthStore.swift",
-        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterUsageClient.swift",
-        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterUsageMapper.swift",
-        "Sources/OpenUsage/Providers/OpenRouter/OpenRouterProvider.swift"
       ],
       "last_reviewed_sha": "4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4"
     },

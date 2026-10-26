@@ -60,8 +60,6 @@ struct CopilotMapperTests {
         #expect(mapped.windows[0].resetsAt == iso("2026-10-01T00:00:00Z"))
         #expect(mapped.windows[0].duration == TimeInterval(30 * 86400)) // September
         #expect(abs(mapped.windows[1].used - 0.05) < 1e-9)
-        #expect(mapped.balances == [UsageBalance(id: "extra-usage", label: "Extra usage", remaining: nil, used: 4,
-                                                 limit: nil, unit: "credits")])
     }
 
     @Test func mapsLegacyFreePlan() throws {
@@ -86,18 +84,10 @@ struct CopilotMapperTests {
         #expect(mapped.windows[0].used == 0.125)
         #expect(mapped.windows[1].used == 0)
         #expect(mapped.windows[0].resetsAt == iso("2026-10-01T00:00:00Z"))
-        #expect(mapped.balances.isEmpty)
     }
 
-    @Test func businessSeatShowsOwnCredits() throws {
-        guard case .mapped(let mapped) = CopilotUsageMapper.map(Data(CopilotFixtures.businessSeat.utf8)) else {
-            Issue.record("expected a mapping")
-            return
-        }
-        #expect(mapped.plan == "Business")
-        #expect(mapped.windows.isEmpty)
-        #expect(mapped.balances == [UsageBalance(id: "credits", label: "Credits", remaining: nil, used: 12.5,
-                                                 limit: nil, unit: "credits")])
+    @Test func businessSeatWithoutFiniteQuotasIsNotMapped() {
+        #expect(CopilotUsageMapper.map(Data(CopilotFixtures.businessSeat.utf8)) == .noQuota(plan: "Business"))
     }
 
     @Test func emptyAndUnknownShapes() {
@@ -192,6 +182,21 @@ struct CopilotCollectorTests {
         #expect(request.value(forHTTPHeaderField: "Authorization") == "token gho_test")
         #expect(request.value(forHTTPHeaderField: "Editor-Version") == "vscode/1.96.2")
         #expect(request.value(forHTTPHeaderField: "X-Github-Api-Version") == "2025-04-01")
+    }
+
+    @Test func authenticatedSeatWithoutFiniteQuotaClearsPreviousReadings() async {
+        let transport = RoutedTransport([("copilot_internal/user",
+                                          .response(status: 200, body: CopilotFixtures.businessSeat))])
+        let previous = ProviderUsage(id: .copilot, displayName: "Copilot", plan: "Pro", windows: [
+            UsageWindow(id: "premium", kind: .monthly, label: "Credits", used: 0.9,
+                        resetsAt: nil, duration: nil),
+        ], fetchedAt: referenceNow.addingTimeInterval(-600))
+        let usage = await CopilotCollector(tokens: FixedTokens(lookup: token), transport: transport)
+            .fetch(previous: previous, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(usage.problemDetail == nil)
+        #expect(usage.windows.isEmpty)
+        #expect(usage.fetchedAt == referenceNow)
     }
 
     @Test func failures() async {

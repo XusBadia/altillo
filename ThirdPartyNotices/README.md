@@ -36,10 +36,10 @@ back to the source.
 
 | Source project | License | What was reused | Where in Altillo | PR / commit |
 |---|---|---|---|---|
-| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Claude usage mapping (windows, `limits[]` weekly_scoped entries, extra usage in cents, plan formatting, `Retry-After` parsing), keychain lookup order / `CLAUDE_CONFIG_DIR` service suffix / hex-encoded value fallback | `Packages/AltilloKit/Sources/AltilloUsage/ClaudeCollector.swift`, `ClaudeCredentials.swift` | phase 3 (usage collectors) |
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Claude usage mapping (windows, `limits[]` weekly_scoped entries, extra usage in cents (removed on 2026-10-26), plan formatting, `Retry-After` parsing), keychain lookup order / `CLAUDE_CONFIG_DIR` service suffix / hex-encoded value fallback | `Packages/AltilloKit/Sources/AltilloUsage/ClaudeCollector.swift`, `ClaudeCredentials.swift` | phase 3 (usage collectors) |
 | [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Codex window classification by duration, plan naming, `wham/usage` mapping | `Packages/AltilloKit/Sources/AltilloUsage/CodexCollector.swift` | phase 3 |
 | [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Alert rules from `MobileQuotaNotificationEvaluator` and `PaceNotificationLogic` (baseline, once per window, highest crossed threshold, reset jitter tolerance, inferred reset) | `Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift` | phase 3 |
-| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Pace projection (`UsagePace`) | `Packages/AltilloKit/Sources/AltilloCore/Usage.swift` | 2c906af |
+| [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Pace projection (`UsagePace`), removed on 2026-10-26 | `Packages/AltilloKit/Sources/AltilloCore/Usage.swift` | 2c906af |
 | [ai-limits](https://github.com/XusBadia/ai-limits) (© 2026 Xus Badia) | MIT | `codex app-server` JSON-RPC handshake and rate-limit result mapping | `Packages/AltilloKit/Sources/AltilloUsage/CodexAppServer.swift`, `CodexCollector.swift` | phase 3 |
 
 | [OpenUsage](https://github.com/robinebers/openusage) (© 2026 Robin Ebers) | MIT | Provider knowledge for Cursor (SQLite/keychain credentials, Connect RPC + REST usage mapping), GitHub Copilot (token sources, `copilot_internal/user` quota mapping), OpenRouter and Z.ai (key locations, credits/quota mapping), Grok (billing/settings mapping), Gemini/Antigravity (language-server discovery, quota summary mapping), Devin (credentials, `GetUserStatus` mapping) and OpenCode (Go usage mapping); shared key-file and parsing helpers | `Packages/AltilloKit/Sources/AltilloUsage/{Cursor*,Copilot*,OpenRouter*,ZAI*,Grok*,Gemini*,Devin*,OpenCode*}.swift`, `ProviderSupport+Group1.swift`, `ProviderSupport+Group2.swift` | independence round (24-09-2026), fork commit 87c3d2d |
@@ -58,4 +58,4 @@ Planned reuse (per [PLAN.md](../PLAN.md)), to be filled in as it lands:
 - [DynamicNotchKit](https://github.com/MrKai77/DynamicNotchKit) (MIT) — notch
   window/shape reference.
 - [OpenUsage](https://github.com/robinebers/openusage) (MIT) — provider
-  mappers, pacing calculation, alert thresholds.
+  mappers and alert thresholds.

@@ -5,8 +5,7 @@ import Testing
 struct UsageAlertTests {
     let start = Date(timeIntervalSince1970: 1_790_157_600)
     let reset = Date(timeIntervalSince1970: 1_790_157_600 + 4 * 3600)
-    /// Pace alerts off unless a test wants them, so threshold tests stay about thresholds.
-    let noPace = UsageAlertConfiguration(runningOutEarly: false)
+    let configuration = UsageAlertConfiguration()
 
     func provider(_ used: Double, resetsAt: Date?, problem: UsageProblem? = nil, duration: TimeInterval? = 5 * 3600)
         -> ProviderUsage {
@@ -23,7 +22,7 @@ struct UsageAlertTests {
         var result: [[UsageAlertEvent.Kind]] = []
         for (index, reading) in readings.enumerated() {
             let now = times?[index] ?? start.addingTimeInterval(TimeInterval(index) * 60)
-            let step = UsageAlertEvaluator.evaluate([reading], previous: state, configuration: configuration ?? noPace,
+            let step = UsageAlertEvaluator.evaluate([reading], previous: state, configuration: configuration ?? self.configuration,
                                                     now: now)
             state = step.state
             result.append(step.events.map(\.kind))
@@ -89,20 +88,20 @@ struct UsageAlertTests {
     @Test func refillIsQuietWhenNothingWasAlerted() {
         let next = reset.addingTimeInterval(5 * 3600)
         #expect(run([provider(0.3, resetsAt: reset), provider(0.02, resetsAt: next)]) == [[], []])
-        let off = UsageAlertConfiguration(refilled: false, runningOutEarly: false)
+        let off = UsageAlertConfiguration(refilled: false)
         #expect(run([provider(0.9, resetsAt: reset), provider(0.02, resetsAt: next)], configuration: off) == [[], []])
     }
 
     @Test func problemsFreezeState() {
         var state = UsageAlertEvaluator.evaluate([provider(0.5, resetsAt: reset)], previous: UsageAlertState(),
-                                                 configuration: noPace, now: start).state
+                                                 configuration: configuration, now: start).state
         let stale = UsageAlertEvaluator.evaluate([provider(0.99, resetsAt: reset, problem: .sessionExpired)],
-                                                 previous: state, configuration: noPace, now: start)
+                                                 previous: state, configuration: configuration, now: start)
         #expect(stale.events.isEmpty)
         #expect(stale.state == state)
         state = stale.state
         let fresh = UsageAlertEvaluator.evaluate([provider(0.9, resetsAt: reset)], previous: state,
-                                                 configuration: noPace, now: start)
+                                                 configuration: configuration, now: start)
         #expect(fresh.events.map(\.kind) == [.threshold(80)])
         #expect(fresh.events.first?.windowID == "session")
         #expect(fresh.events.first?.provider == .claude)
@@ -110,10 +109,9 @@ struct UsageAlertTests {
 
     @Test func newlyEnabledThresholdsAlreadyPassedStayQuiet() {
         var state = UsageAlertEvaluator.evaluate([provider(0.6, resetsAt: reset)], previous: UsageAlertState(),
-                                                 configuration: UsageAlertConfiguration(thresholds: [80],
-                                                                                        runningOutEarly: false),
+                                                 configuration: UsageAlertConfiguration(thresholds: [80]),
                                                  now: start).state
-        let enabled = UsageAlertConfiguration(thresholds: [50, 80], runningOutEarly: false)
+        let enabled = UsageAlertConfiguration(thresholds: [50, 80])
         let step = UsageAlertEvaluator.evaluate([provider(0.65, resetsAt: reset)], previous: state,
                                                 configuration: enabled, now: start)
         #expect(step.events.isEmpty)
@@ -123,25 +121,14 @@ struct UsageAlertTests {
         #expect(later.events.map(\.kind) == [.threshold(80)])
     }
 
-    @Test func runningOutEarlyFiresOnceBeforeTheReset() {
-        // A 5 h window with 4 h left: 10 % after 1 h is fine, 50 % after 1 h 5 min runs out early.
-        let calm = provider(0.1, resetsAt: reset)
-        let hot = provider(0.5, resetsAt: reset)
-        let hotter = provider(0.6, resetsAt: reset)
-        let times = [start, start.addingTimeInterval(300), start.addingTimeInterval(600)]
-        let steps = run([calm, hot, hotter], configuration: UsageAlertConfiguration(), at: times)
-        #expect(steps.count == 3)
-        #expect(steps[0].isEmpty)
-        guard steps[1].count == 1, case .runningOutEarly(let runsOutAt) = steps[1][0] else {
-            Issue.record("expected runningOutEarly, got \(steps[1])")
-            return
-        }
-        #expect(runsOutAt < reset)
-        #expect(steps[2].isEmpty)
+    @Test func earlyBurstBelowThresholdDoesNotPredictExhaustion() {
+        let steps = run([provider(0.1, resetsAt: reset), provider(0.5, resetsAt: reset),
+                         provider(0.6, resetsAt: reset)])
+        #expect(steps == [[], [], []])
     }
 
     @Test func ignoresInvalidThresholds() {
-        let odd = UsageAlertConfiguration(thresholds: [0, 100, 150, 90], runningOutEarly: false)
+        let odd = UsageAlertConfiguration(thresholds: [0, 100, 150, 90])
         #expect(run([provider(0.5, resetsAt: reset), provider(0.95, resetsAt: reset)], configuration: odd)
             == [[], [.threshold(90)]])
     }

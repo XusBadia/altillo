@@ -3,7 +3,7 @@ import Foundation
 
 // Cursor usage from Cursor's own dashboard API, with Cursor's own sign-in (read-only, never refreshed).
 //
-// Endpoints, headers, plan/team/enterprise rules, on-demand and credit maths adapted from openusage (MIT),
+// Endpoints, headers, plan/team/enterprise rules and quota percentages adapted from openusage (MIT),
 // Sources/OpenUsage/Providers/Cursor/{CursorUsageClient,CursorProvider,CursorUsageMapper,CursorUsageSummaryMapper}.swift
 // @87c3d2db465a5eb6c6dd2c2453c55cd82141a76e.
 
@@ -11,21 +11,15 @@ extension UsageProviderID {
     public static let cursor = UsageProviderID(rawValue: "cursor")
 }
 
-/// Reads Cursor's monthly plan usage (total, Cursor models, other models), request allowance on request-based
-/// plans, the Grok Bot allowance, on-demand spend and prepaid credits.
-///
-/// Windows: `total` (monthly, "Month"), `auto` ("Cursor models"), `api` ("Other models"), `requests` (monthly,
-/// request-based plans), `grok-bot` (other). Balances: `on-demand` (USD spent against the on-demand limit),
-/// `credits` (USD of credit grants + prepaid balance left).
+/// Reads Cursor's reported plan-quota percentages, request allowance and Grok Bot allowance.
+/// Monetary balances and spending-derived meters are deliberately excluded.
 public struct CursorCollector: UsageCollector {
     static let base = URL(string: "https://api2.cursor.sh/aiserver.v1.DashboardService/")!
     public static let usageURL = base.appendingPathComponent("GetCurrentPeriodUsage")
     public static let planURL = base.appendingPathComponent("GetPlanInfo")
-    public static let creditsURL = base.appendingPathComponent("GetCreditGrantsBalance")
     public static let grokBotURL = base.appendingPathComponent("GetSandUsageStatus")
     public static let restUsageURL = URL(string: "https://cursor.com/api/usage")!
     public static let usageSummaryURL = URL(string: "https://cursor.com/api/usage-summary")!
-    public static let stripeURL = URL(string: "https://cursor.com/api/auth/stripe")!
 
     public let providerID: UsageProviderID = .cursor
     public let displayName = "Cursor"
@@ -87,9 +81,7 @@ public struct CursorCollector: UsageCollector {
 
         // Optional extras, in parallel; any of them failing just leaves its part out.
         async let planReply = optional(connectRequest(Self.planURL, credential), now: now)
-        async let grantsReply = optional(connectRequest(Self.creditsURL, credential), now: now)
         async let grokReply = optional(connectRequest(Self.grokBotURL, credential), now: now)
-        async let stripeReply = optional(cookieRequest(Self.stripeURL, credential), now: now)
 
         let planInfo = await planReply
         let planName = (planInfo?["planInfo"] as? [String: Any]).flatMap { UsageParsing.string($0["planName"]) }
@@ -100,7 +92,7 @@ public struct CursorCollector: UsageCollector {
                            previous: previous, plan: plan, now: now)
         }
 
-        var mapped = CursorUsageMapper.mapPlanUsage(usage, planName: planName)
+        var mapped = CursorUsageMapper.mapPlanUsage(usage)
         if mapped == nil || CursorUsageMapper.prefersDashboardSummary(usage, planName: planName,
                                                                       planInfoMissing: planInfo == nil) {
             // Team/enterprise and request-based accounts: the dashboard's REST endpoints carry the real numbers.
@@ -114,19 +106,17 @@ public struct CursorCollector: UsageCollector {
                 }
             }
         }
-        guard var result = mapped else {
+        if let grok = await grokReply, let window = CursorUsageMapper.grokBotWindow(grok) {
+            if mapped == nil { mapped = CursorUsageMapper.Mapped(windows: []) }
+            mapped?.windows.append(window)
+        }
+        guard let result = mapped else {
             return failure(.unexpectedResponse("Cursor usage response changed shape"), detail: nil,
                            previous: previous, plan: plan, now: now)
         }
 
-        if let grok = await grokReply, let window = CursorUsageMapper.grokBotWindow(grok) {
-            result.windows.append(window)
-        }
-        if let credits = CursorUsageMapper.credits(grants: await grantsReply, stripe: await stripeReply) {
-            result.balances.append(credits)
-        }
         return ProviderUsage(id: providerID, displayName: displayName, plan: plan,
-                             windows: result.windows.sortedForDisplay(), balances: result.balances, fetchedAt: now)
+                             windows: result.windows.sortedForDisplay(), fetchedAt: now)
     }
 
     // MARK: - Requests
@@ -171,7 +161,6 @@ public struct CursorCollector: UsageCollector {
 enum CursorUsageMapper {
     struct Mapped: Equatable {
         var windows: [UsageWindow]
-        var balances: [UsageBalance]
     }
 
     static let defaultCycle: TimeInterval = 30 * 86400
@@ -184,48 +173,25 @@ enum CursorUsageMapper {
 
     // MARK: GetCurrentPeriodUsage
 
-    /// Nil when the response has no usable plan meter (no `planUsage`, or neither a limit nor a percentage).
-    static func mapPlanUsage(_ usage: [String: Any], planName: String?) -> Mapped? {
+    /// Only percentages reported by the API qualify; currency limits never become quotas.
+    static func mapPlanUsage(_ usage: [String: Any]) -> Mapped? {
         guard usage["enabled"] as? Bool != false, let planUsage = usage["planUsage"] as? [String: Any] else {
             return nil
         }
-        let limit = UsageParsing.number(planUsage["limit"])
-        let totalPercent = UsageParsing.number(planUsage["totalPercentUsed"])
-        guard limit != nil || totalPercent != nil else { return nil }
-
         let (resetsAt, duration) = cycle(start: UsageParsing.date(usage["billingCycleStart"]),
                                          end: UsageParsing.date(usage["billingCycleEnd"]))
-        let spendLimit = usage["spendLimitUsage"] as? [String: Any]
-        let normalizedPlan = planName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
-        let isTeam = normalizedPlan == "team" || isTeamByShape(spendLimit)
+        let windows = percentageWindows(planUsage, resetsAt: resetsAt, duration: duration)
+        return windows.isEmpty ? nil : Mapped(windows: windows)
+    }
 
-        let usedCents = UsageParsing.number(planUsage["totalSpend"])
-            ?? ((limit ?? 0) - (UsageParsing.number(planUsage["remaining"]) ?? 0))
-        let used: Double
-        if isTeam {
-            guard let limit, limit > 0 else { return nil }
-            used = max(0, usedCents) / limit
-        } else if let totalPercent {
-            used = Group1Support.fraction(percent: totalPercent)
-        } else if let limit, limit > 0 {
-            used = max(0, usedCents) / limit
-        } else {
-            used = 0
+    private static func percentageWindows(_ bucket: [String: Any], resetsAt: Date?, duration: TimeInterval)
+        -> [UsageWindow] {
+        [("totalPercentUsed", "total", "Month"), ("autoPercentUsed", "auto", "Cursor models"),
+         ("apiPercentUsed", "api", "Other models")].compactMap { key, id, label in
+            guard let percent = UsageParsing.number(bucket[key]), percent >= 0 else { return nil }
+            return UsageWindow(id: id, kind: .monthly, label: label,
+                               used: Group1Support.fraction(percent: percent), resetsAt: resetsAt, duration: duration)
         }
-
-        var windows = [UsageWindow(id: "total", kind: .monthly, label: "Month", used: used, resetsAt: resetsAt,
-                                   duration: duration)]
-        for (key, id, label) in [("autoPercentUsed", "auto", "Cursor models"), ("apiPercentUsed", "api", "Other models")] {
-            if let percent = UsageParsing.number(planUsage[key]) {
-                windows.append(UsageWindow(id: id, kind: .monthly, label: label,
-                                           used: Group1Support.fraction(percent: percent), resetsAt: resetsAt,
-                                           duration: duration))
-            }
-        }
-
-        var balances: [UsageBalance] = []
-        if let spendLimit, let onDemand = onDemandBalance(spendLimit) { balances.append(onDemand) }
-        return Mapped(windows: windows, balances: balances)
     }
 
     /// Team/enterprise accounts whose `planUsage` is missing or has no limit: prefer the dashboard's REST numbers.
@@ -242,29 +208,6 @@ enum CursorUsageMapper {
     private static func isTeamByShape(_ spendLimit: [String: Any]?) -> Bool {
         (spendLimit?["limitType"] as? String)?.lowercased() == "team"
             || (UsageParsing.number(spendLimit?["pooledLimit"]) ?? 0) > 0
-    }
-
-    /// On-demand spend (cents in the API) as a USD balance.
-    static func onDemandBalance(_ spendLimit: [String: Any]) -> UsageBalance? {
-        let limitCents = UsageParsing.number(spendLimit["individualLimit"])
-            ?? UsageParsing.number(spendLimit["pooledLimit"]) ?? 0
-        let remainingCents = UsageParsing.number(spendLimit["individualRemaining"])
-            ?? UsageParsing.number(spendLimit["pooledRemaining"]) ?? 0
-        let reported = ["individualUsed", "pooledUsed", "totalSpend"].compactMap { UsageParsing.number(spendLimit[$0]) }
-        let spentCents: Double
-        if let positive = reported.first(where: { $0 > 0 }) {
-            spentCents = positive
-        } else {
-            let inferred = max(0, limitCents - remainingCents)
-            spentCents = inferred > 0 ? inferred : max(0, reported.first ?? 0)
-        }
-        if limitCents > 0 {
-            return UsageBalance(id: "on-demand", label: "On-demand", remaining: max(0, limitCents - spentCents) / 100,
-                                used: spentCents / 100, limit: limitCents / 100, unit: "USD")
-        }
-        guard spentCents > 0 else { return nil }
-        return UsageBalance(id: "on-demand", label: "On-demand", remaining: nil, used: spentCents / 100, limit: nil,
-                            unit: "USD")
     }
 
     // MARK: Extras
@@ -285,102 +228,37 @@ enum CursorUsageMapper {
                            duration: duration)
     }
 
-    /// Credit grants plus a prepaid Stripe balance (negative `customerBalance`), in USD left.
-    static func credits(grants: [String: Any]?, stripe: [String: Any]?) -> UsageBalance? {
-        var totalCents = 0.0
-        var usedCents = 0.0
-        if grants?["hasCreditGrants"] as? Bool == true, let total = UsageParsing.number(grants?["totalCents"]),
-           total > 0 {
-            totalCents += total
-            usedCents += max(0, UsageParsing.number(grants?["usedCents"]) ?? 0)
-        }
-        if let balance = UsageParsing.number(stripe?["customerBalance"]), balance < 0 {
-            totalCents += abs(balance)
-        }
-        guard totalCents > 0 else { return nil }
-        return UsageBalance(id: "credits", label: "Credits", remaining: max(0, totalCents - usedCents) / 100,
-                            used: usedCents / 100, limit: totalCents / 100, unit: "USD")
-    }
-
     // MARK: Dashboard REST (team / enterprise / request-based)
 
     /// `cursor.com/api/usage-summary` + `cursor.com/api/usage`. Nil when neither carries anything usable.
     static func mapDashboard(summary: [String: Any]?, requests: [String: Any]?) -> Mapped? {
-        let (resetsAt, duration) = dashboardCycle(summary: summary, requests: requests)
+        let (resetsAt, duration) = dashboardCycle(summary: summary)
         let individual = summary?["individualUsage"] as? [String: Any]
-        let team = summary?["teamUsage"] as? [String: Any]
         let planBucket = individual?["plan"] as? [String: Any]
         var windows: [UsageWindow] = []
 
-        // The request allowance, when the plan has one, is the dashboard's included cap.
-        if let gpt4 = requests?["gpt-4"] as? [String: Any], let max = UsageParsing.number(gpt4["maxRequestUsage"]),
-           max > 0 {
-            let count = UsageParsing.number(gpt4["numRequests"]) ?? UsageParsing.number(gpt4["numRequestsTotal"]) ?? 0
-            windows.append(UsageWindow(id: "requests", kind: .monthly, label: "Requests", used: Swift.max(0, count) / max,
+        if let gpt4 = requests?["gpt-4"] as? [String: Any],
+           let limit = UsageParsing.number(gpt4["maxRequestUsage"]), limit > 0,
+           let count = UsageParsing.number(gpt4["numRequests"]) ?? UsageParsing.number(gpt4["numRequestsTotal"]),
+           count >= 0 {
+            windows.append(UsageWindow(id: "requests", kind: .monthly, label: "Requests", used: count / limit,
                                        resetsAt: resetsAt, duration: duration))
-        } else {
-            let limitType = (summary?["limitType"] as? String)?.lowercased()
-            var total: Double?
-            if limitType == "team", let pooled = dollarMeter(team?["pooled"]) {
-                total = pooled.used / pooled.limit
-            } else if let percent = UsageParsing.number(planBucket?["totalPercentUsed"]) {
-                total = Group1Support.fraction(percent: percent)
-            } else if let overall = dollarMeter(individual?["overall"]) {
-                total = overall.used / overall.limit
-            } else if let pooled = dollarMeter(team?["pooled"]) {
-                total = pooled.used / pooled.limit
-            }
-            if let total {
-                windows.append(UsageWindow(id: "total", kind: .monthly, label: "Month", used: total,
-                                           resetsAt: resetsAt, duration: duration))
-            }
         }
-        for (key, id, label) in [("autoPercentUsed", "auto", "Cursor models"), ("apiPercentUsed", "api", "Other models")] {
-            if let percent = UsageParsing.number(planBucket?[key]) {
-                windows.append(UsageWindow(id: id, kind: .monthly, label: label,
-                                           used: Group1Support.fraction(percent: percent), resetsAt: resetsAt,
-                                           duration: duration))
-            }
+        if let planBucket {
+            let percentages = percentageWindows(planBucket, resetsAt: resetsAt, duration: duration)
+            let hasRequests = !windows.isEmpty
+            windows += percentages.filter { !hasRequests || $0.id != "total" }
         }
-
-        var balances: [UsageBalance] = []
-        if let onDemand = onDemandBucket(individual?["onDemand"]) ?? onDemandBucket(team?["onDemand"]) {
-            balances.append(onDemand)
-        }
-        guard !windows.isEmpty || !balances.isEmpty else { return nil }
-        return Mapped(windows: windows, balances: balances)
+        guard !windows.isEmpty else { return nil }
+        return Mapped(windows: windows)
     }
 
-    private static func onDemandBucket(_ value: Any?) -> UsageBalance? {
-        guard let bucket = value as? [String: Any], bucket["enabled"] as? Bool != false else { return nil }
-        if let meter = dollarMeter(bucket) {
-            return UsageBalance(id: "on-demand", label: "On-demand", remaining: max(0, meter.limit - meter.used) / 100,
-                                used: meter.used / 100, limit: meter.limit / 100, unit: "USD")
-        }
-        if let used = UsageParsing.number(bucket["used"]), used > 0 {
-            return UsageBalance(id: "on-demand", label: "On-demand", remaining: nil, used: used / 100, limit: nil,
-                                unit: "USD")
-        }
-        return nil
-    }
-
-    /// Cents used/limit of an enabled bucket with a positive limit.
-    private static func dollarMeter(_ value: Any?) -> (used: Double, limit: Double)? {
-        guard let bucket = value as? [String: Any], bucket["enabled"] as? Bool != false,
-              let limit = UsageParsing.number(bucket["limit"]), limit > 0 else { return nil }
-        let reported = UsageParsing.number(bucket["used"])
-        let inferred = max(0, limit - (UsageParsing.number(bucket["remaining"]) ?? limit))
-        let used = reported.flatMap { $0 > 0 ? $0 : nil } ?? inferred
-        return (max(0, used), limit)
-    }
-
-    private static func dashboardCycle(summary: [String: Any]?, requests: [String: Any]?)
+    private static func dashboardCycle(summary: [String: Any]?)
         -> (resetsAt: Date?, duration: TimeInterval) {
         let start = UsageParsing.date(summary?["billingCycleStart"])
         let end = UsageParsing.date(summary?["billingCycleEnd"])
         if let start, let end, end > start { return (end, end.timeIntervalSince(start)) }
-        let monthStart = UsageParsing.date(requests?["startOfMonth"])
-        return (monthStart?.addingTimeInterval(defaultCycle), defaultCycle)
+        return (end, defaultCycle)
     }
 
     /// Billing cycle bounds arrive as epoch milliseconds (numbers or strings).

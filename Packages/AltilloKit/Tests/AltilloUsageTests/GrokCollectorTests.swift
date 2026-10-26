@@ -49,7 +49,7 @@ enum GrokFixtures {
     "billingPeriodEnd":"2026-07-07T21:36:52.140114+00:00"}}
     """
 
-    /// Proto-JSON drops zero values: no percent at all means 0 %.
+    /// Missing quota percentages must not be invented as zero usage.
     static let creditsZero = """
     {"config":{"currentPeriod":{"type":"USAGE_PERIOD_TYPE_WEEKLY","start":"2026-09-24T06:45:30.300431+00:00",\
     "end":"2026-10-01T06:45:30.300431+00:00"},"onDemandCap":{"val":0},"onDemandUsed":{"val":0},\
@@ -77,15 +77,16 @@ struct GrokMapperTests {
         let reset = try #require(week.resetsAt)
         #expect(abs(reset.timeIntervalSince(iso("2026-07-07T21:36:52Z")) - 0.140114) < 1e-5)
         #expect(abs((week.duration ?? 0) - 7 * 86400) < 1e-3)
-        #expect(mapped.balances.isEmpty) // pay-as-you-go disabled, no prepaid balance
     }
 
-    @Test func absentPercentMeansZero() throws {
-        let mapped = try #require(GrokUsageMapper.map(Data(GrokFixtures.creditsZero.utf8)))
+    @Test func absentPercentIsUnknownAndExplicitZeroIsValid() throws {
+        #expect(GrokUsageMapper.map(Data(GrokFixtures.creditsZero.utf8)) == nil)
+        let explicitZero = GrokFixtures.credits.replacingOccurrences(of: "99.0", with: "0")
+        let mapped = try #require(GrokUsageMapper.map(Data(explicitZero.utf8)))
         #expect(mapped.windows.map(\.used) == [0])
     }
 
-    @Test func mapsMonthlyPeriodsAndBalances() throws {
+    @Test func mapsMonthlyQuotaAndIgnoresCreditFields() throws {
         let body = """
         {"config":{"creditUsagePercent":"42.5","currentPeriod":{"type":"USAGE_PERIOD_TYPE_MONTHLY",
           "start":"2026-09-01T00:00:00Z","end":"2026-10-01T00:00:00Z"},
@@ -96,11 +97,6 @@ struct GrokMapperTests {
         #expect(mapped.windows[0].kind == .monthly)
         #expect(mapped.windows[0].used == 0.425)
         #expect(abs((mapped.windows[0].duration ?? 0) - 30 * 86400) < 1e-3)
-        #expect(mapped.balances == [
-            UsageBalance(id: "pay-as-you-go", label: "Pay as you go", remaining: 2200, used: 300, limit: 2500,
-                         unit: "credits"),
-            UsageBalance(id: "prepaid", label: "Prepaid", remaining: 12, used: nil, limit: nil, unit: "credits"),
-        ])
     }
 
     @Test func rejectsDriftedShapes() {
@@ -108,7 +104,8 @@ struct GrokMapperTests {
         let backwards = GrokFixtures.credits.replacingOccurrences(of: "2026-07-07T21", with: "2026-06-01T21")
         let badCap = GrokFixtures.credits.replacingOccurrences(of: #""onDemandCap":{"val":0}"#,
                                                                with: #""onDemandCap":7"#)
-        for body in [badPercent, backwards, badCap, #"{"config":{}}"#, "[]", "nope"] {
+        #expect(GrokUsageMapper.map(Data(badCap.utf8)) != nil)
+        for body in [badPercent, backwards, #"{"config":{}}"#, "[]", "nope"] {
             #expect(GrokUsageMapper.map(Data(body.utf8)) == nil)
         }
     }

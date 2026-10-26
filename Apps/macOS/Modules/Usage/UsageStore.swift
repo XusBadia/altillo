@@ -154,7 +154,7 @@ final class UsageStore {
 
     /// How old the numbers on screen are (the oldest of them). The refresh in flight is `isRefreshing`.
     func freshness(now: Date = .now) -> Freshness {
-        let dated = providers.filter { !$0.windows.isEmpty || !$0.balances.isEmpty }
+        let dated = providers.filter { !$0.windows.isEmpty }
         guard let oldest = dated.map(\.fetchedAt).min() else { return .nothing }
         return now.timeIntervalSince(oldest) > Self.staleAfter ? .stale(since: oldest) : .upToDate(since: oldest)
     }
@@ -467,7 +467,7 @@ final class UsageStore {
 /// A deliberately small, local-only record of headline usage. It contains no credentials, plans, balances or
 /// problem details: just enough to draw a trend. Samples share a timestamp and keep one value per provider.
 struct UsageHistory: Codable, Equatable, Sendable {
-    static let schema = "altillo.usage-history.v1"
+    static let schema = "altillo.usage-history.v2"
     static let retention: TimeInterval = 30 * 24 * 60 * 60
     static let bucket: TimeInterval = 60 * 60
 
@@ -619,16 +619,15 @@ private final class ResumeOnce<T: Sendable>: @unchecked Sendable {
 // MARK: - Stale-while-revalidate (pure)
 
 enum UsageMerge {
-    /// A failed read keeps the last good numbers (limits and balances) and when they were read; a good one replaces
+    /// A failed read keeps the last good numbers (quotas) and when they were read; a good one replaces
     /// them.
     static func merge(_ fresh: ProviderUsage, previous: ProviderUsage?) -> ProviderUsage {
-        guard fresh.problem != nil, let previous, !previous.windows.isEmpty || !previous.balances.isEmpty else {
+        guard fresh.problem != nil, let previous, !previous.windows.isEmpty else {
             return fresh
         }
         var kept = fresh
-        if fresh.windows.isEmpty && fresh.balances.isEmpty {
+        if fresh.windows.isEmpty {
             kept.windows = previous.windows
-            kept.balances = previous.balances
         }
         kept.plan = fresh.plan ?? previous.plan
         kept.fetchedAt = previous.fetchedAt

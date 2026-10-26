@@ -27,7 +27,7 @@ public enum UsageCollectors {
     public static func all() -> [any UsageCollector] {
         [
             ClaudeCollector(), CodexCollector(), CursorCollector(), CopilotCollector(), GeminiCollector(),
-            GrokCollector(), OpenRouterCollector(), ZAICollector(), DevinCollector(), OpenCodeCollector(),
+            GrokCollector(), ZAICollector(), DevinCollector(), OpenCodeCollector(),
         ]
     }
 }

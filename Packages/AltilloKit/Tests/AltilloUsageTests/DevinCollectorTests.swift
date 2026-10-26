@@ -26,7 +26,7 @@ struct FixedSQLite: SQLiteValueReading {
 }
 
 struct DevinMapperTests {
-    @Test func mapsQuotasAndOverageBalance() throws {
+    @Test func mapsQuotasAndResetDates() throws {
         let mapped = try #require(DevinUsageMapper.map(Data(DevinFixtures.userStatus.utf8)))
         #expect(mapped.plan == "Max")
         #expect(mapped.windows.map(\.id) == ["weekly", "daily"])
@@ -37,15 +37,12 @@ struct DevinMapperTests {
         #expect(mapped.windows[1].used == 0)
         #expect(mapped.windows[1].label == "Day")
         #expect(mapped.windows[1].duration == TimeInterval(86400))
-        #expect(mapped.balances == [UsageBalance(id: "extra-usage", label: "Extra usage", remaining: 964.22,
-                                                 used: nil, limit: nil, unit: "USD")])
     }
 
     @Test func hiddenDailyQuotaStaysHidden() throws {
         let mapped = try #require(DevinUsageMapper.map(Data(DevinFixtures.hiddenDaily.utf8)))
         #expect(mapped.windows.map(\.id) == ["weekly"])
         #expect(mapped.windows[0].used == 0.25)
-        #expect(mapped.balances.isEmpty)
 
         let onlyDaily = #"{"userStatus":{"planStatus":{"planInfo":{"hideDailyQuota":true},"dailyQuotaRemainingPercent":30}}}"#
         let fallback = try #require(DevinUsageMapper.map(Data(onlyDaily.utf8)))
@@ -54,9 +51,9 @@ struct DevinMapperTests {
         #expect(fallback.plan == nil)
     }
 
-    @Test func zeroBalanceIsARealZeroAndEmptyStatusIsNil() throws {
+    @Test func balanceOnlyAndEmptyStatusHaveNoQuotas() throws {
         let zero = #"{"userStatus":{"planStatus":{"overageBalanceMicros":"0"}}}"#
-        #expect(try #require(DevinUsageMapper.map(Data(zero.utf8))).balances.first?.remaining == 0)
+        #expect(DevinUsageMapper.map(Data(zero.utf8)) == nil)
         #expect(DevinUsageMapper.map(Data(#"{"userStatus":{"planStatus":{}}}"#.utf8)) == nil)
         #expect(DevinUsageMapper.map(Data("{}".utf8)) == nil)
     }
@@ -204,6 +201,6 @@ struct DevinCollectorTests {
         let down = await collector(FakeTransport([.failure(.timedOut)]), toml: #"windsurf_api_key = "k""#)
             .fetch(previous: good, now: referenceNow)
         #expect(down.problem == .unreachable("Timed out"))
-        #expect(down.balances == good.balances)
+        #expect(down.windows == good.windows)
     }
 }

@@ -1001,7 +1001,7 @@
 .an-ring.is-warning { color: var(--an-mustard); }
 .an-ring.is-critical { color: var(--an-tomato); }
 
-/* A limit's bar (DesvanBar) on a plank track, with the even-pace notch. */
+/* A limit's quota bar (DesvanBar) on a plank track. */
 .an-bar {
   position: relative;
   display: block;
@@ -1024,20 +1024,6 @@
 }
 .an-bar.is-warning { --an-bar-tint: var(--an-mustard); }
 .an-bar.is-critical { --an-bar-tint: var(--an-tomato); }
-.an-bar::after {
-  /* the pace notch: a 7×4 triangle over a 1.5×9 stem */
-  content: "";
-  position: absolute;
-  left: calc(var(--pace) * 100% - 3.5px);
-  top: -2.5px;
-  width: 7px;
-  height: 13px;
-  background:
-    linear-gradient(var(--an-paper), var(--an-paper)) 50% 4px / 1.5px 9px no-repeat,
-    conic-gradient(from -30deg at 50% 100%, var(--an-paper) 0 60deg, transparent 60deg) 0 0 / 7px 4px no-repeat;
-  filter: drop-shadow(0 0 0.75px rgb(0 0 0 / 0.7));
-}
-.an-bar--nopace::after { content: none; }
 
 /* ==========================================================================
    AGENTS (DesvanAgentsView)

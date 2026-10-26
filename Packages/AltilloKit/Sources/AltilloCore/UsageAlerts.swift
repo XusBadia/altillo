@@ -5,7 +5,7 @@ import Foundation
 //
 // Adapted from openusage (https://github.com/robinebers/openusage, MIT, © 2026 Robin Ebers):
 // `MobileQuotaNotificationEvaluator` (thresholds, limit reached, baseline, once per window, highest crossed only)
-// and `PaceNotificationLogic` (reset-jitter tolerance, "will run out" edge). See ThirdPartyNotices/README.md.
+// with reset-jitter tolerance. See ThirdPartyNotices/README.md.
 
 /// Which alerts to raise. Plain data so the app can persist it with the user's settings.
 public struct UsageAlertConfiguration: Hashable, Codable, Sendable {
@@ -15,15 +15,11 @@ public struct UsageAlertConfiguration: Hashable, Codable, Sendable {
     public var limitReached: Bool
     /// Alert when a window that had reached a threshold refills.
     public var refilled: Bool
-    /// Alert when the current pace runs out before the reset.
-    public var runningOutEarly: Bool
 
-    public init(thresholds: [Int] = [80, 95], limitReached: Bool = true, refilled: Bool = true,
-                runningOutEarly: Bool = true) {
+    public init(thresholds: [Int] = [80, 95], limitReached: Bool = true, refilled: Bool = true) {
         self.thresholds = thresholds
         self.limitReached = limitReached
         self.refilled = refilled
-        self.runningOutEarly = runningOutEarly
     }
 
     public static let `default` = UsageAlertConfiguration()
@@ -40,8 +36,6 @@ public struct UsageAlertEvent: Hashable, Codable, Sendable {
         case limitReached
         /// A window that had reached an alert threshold (or its limit) started over.
         case refilled
-        /// At the current rate the window runs out at `runsOutAt`, before it resets.
-        case runningOutEarly(runsOutAt: Date)
     }
 
     public var provider: UsageProviderID
@@ -70,7 +64,6 @@ public struct UsageAlertState: Hashable, Codable, Sendable {
         /// Thresholds that were configured last time, so newly enabled ones already passed don't fire late.
         public var configuredThresholds: Set<Int>
         public var limitReachedDelivered: Bool
-        public var runningOutDelivered: Bool
     }
 
     /// Keyed by "provider|window".
@@ -83,7 +76,7 @@ public struct UsageAlertState: Hashable, Codable, Sendable {
 
 /// Pure alert logic. Rules:
 /// - The first observation of a window is a baseline: recorded, never fired (no alert storm at launch).
-/// - Each threshold, "limit reached" and "running out early" fire at most once per window.
+/// - Each threshold and "limit reached" fire at most once per window.
 /// - A new window is detected when `resetsAt` moves later by more than 1 s (providers jitter by milliseconds), when
 ///   usage drops by at least 0.5, or when the previous reset time has passed and the provider reports none yet
 ///   (Claude's session before the next first message). It re-arms everything and may fire `refilled`.
@@ -116,14 +109,13 @@ public enum UsageAlertEvaluator {
             }
             for window in provider.windows {
                 let key = "\(provider.id.rawValue)|\(window.id)"
-                let pace = UsagePace.evaluate(window, now: now)
                 func event(_ kind: UsageAlertEvent.Kind) -> UsageAlertEvent {
                     UsageAlertEvent(provider: provider.id, providerName: provider.displayName, windowID: window.id,
                                     windowLabel: window.label, kind: kind)
                 }
 
                 guard var observation = previous.observations[key] else {
-                    next.observations[key] = baseline(window, pace: pace, thresholds: thresholds)
+                    next.observations[key] = baseline(window, thresholds: thresholds)
                     continue
                 }
 
@@ -134,7 +126,7 @@ public enum UsageAlertEvaluator {
                         events.append(event(.refilled))
                     }
                     // Like the first reading, the first reading of a new window is a baseline.
-                    next.observations[key] = baseline(window, pace: pace, thresholds: thresholds)
+                    next.observations[key] = baseline(window, thresholds: thresholds)
                     continue
                 }
 
@@ -152,11 +144,6 @@ public enum UsageAlertEvaluator {
                 } else if let highest = crossed.max() {
                     events.append(event(.threshold(highest)))
                     observation.deliveredThresholds.formUnion(crossed)
-                }
-
-                if case .behind(let runsOutAt?) = pace, window.used < 1, !observation.runningOutDelivered {
-                    if configuration.runningOutEarly { events.append(event(.runningOutEarly(runsOutAt: runsOutAt))) }
-                    observation.runningOutDelivered = true
                 }
 
                 observation.configuredThresholds = thresholds
@@ -180,17 +167,14 @@ public enum UsageAlertEvaluator {
         return false
     }
 
-    private static func baseline(_ window: UsageWindow, pace: UsagePace, thresholds: Set<Int>)
+    private static func baseline(_ window: UsageWindow, thresholds: Set<Int>)
         -> UsageAlertState.Observation {
-        var runningOut = false
-        if case .behind = pace { runningOut = true }
         return UsageAlertState.Observation(
             resetsAt: window.resetsAt,
             used: window.used,
             deliveredThresholds: thresholds.filter { window.used >= Double($0) / 100 },
             configuredThresholds: thresholds,
-            limitReachedDelivered: window.used >= 1,
-            runningOutDelivered: runningOut
+            limitReachedDelivered: window.used >= 1
         )
     }
 }
