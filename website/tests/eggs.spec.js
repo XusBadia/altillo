@@ -33,10 +33,24 @@ for (const L of LOCALES) {
       const rows = page.locator(".egg-drawer__item");
       expect(await rows.count()).toBeGreaterThan(8);
       const hints = (await page.locator(".egg-drawer__hint").allTextContents()).join(" ");
-      expect(hints).toContain(L.code === "es" ? "Quédate cerca de la luz." : "Linger by the light.");
+      expect(hints).toContain(L.mothHint);
       await page.keyboard.press("Escape");
       await expect(drawer).toBeHidden();
       await expect(page.locator("html")).not.toHaveClass(/egg-has-drawer/);
     });
   });
 }
+
+test.describe("ca easter eggs, in Catalan", () => {
+  test("“golfes” also turns the lights off, and the drawer speaks Catalan", async ({ page }) => {
+    await gotoPage(page, "/ca/");
+    await waitForEggs(page);
+    await page.locator("body").click({ position: { x: 5, y: 5 } });
+    await page.keyboard.type("golfes");
+    await expect(page.locator("html")).toHaveClass(/is-night/);
+    await page.keyboard.press("?");
+    await expect(page.locator(".egg-drawer")).toContainText("El calaix secret");
+    const hints = (await page.locator(".egg-drawer__hint").allTextContents()).join(" ");
+    expect(hints).toContain("Truca-hi tres vegades");
+  });
+});

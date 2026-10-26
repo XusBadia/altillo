@@ -151,6 +151,7 @@ final class NotchCoordinator {
         }
         input.start()
         dragDetector.start()
+        observeDropTargetGeometry()
         installKeyMonitor()
         installScrollMonitor()
         observeSettings()
@@ -520,7 +521,7 @@ final class NotchCoordinator {
             }
         }
         if let panel = window?.panel {
-            panel.ignoresMouseEvents = !state.isInteractive
+            window?.updateMouseEventHandling(state: state, pointer: NSEvent.mouseLocation)
             panel.allowsKey = state == .open
             if state != .open { panel.relinquishKey() }
         }
@@ -616,6 +617,9 @@ final class NotchCoordinator {
         // "Hide" over a full-screen app: not even a drag brings the notch.
         let takesDrops = !isQuietOverFullScreen || model.settings.fullScreenBehaviour.takesDropsOverFullScreen
         send(.dragMoved(near: takesDrops && (nearNotch || overOpenNotch)))
+        // This must run on every move, including moves that keep the state unchanged. The keep-open margin
+        // can leave the notch expanded while the pointer is already over a Finder destination behind it.
+        window.updateMouseEventHandling(state: model.state, pointer: point)
         // "Only when you drag something": the notch shows up as the drag comes close.
         updatePanelVisibility()
     }
@@ -980,6 +984,22 @@ final class NotchCoordinator {
     }
 
     // MARK: - Settings
+
+    /// SwiftUI reports the expanded silhouette after the state changes. Recheck routing even if the user
+    /// holds the pointer still while the target grows underneath it.
+    private func observeDropTargetGeometry() {
+        withObservationTracking {
+            _ = (model.visibleShapeSize, model.visibleShapeOffset)
+        } onChange: { [weak self] in
+            Task { @MainActor [weak self] in
+                guard let self, self.isStarted else { return }
+                self.observeDropTargetGeometry()
+            }
+        }
+        if model.state == .dropTarget {
+            window?.updateMouseEventHandling(state: model.state, pointer: NSEvent.mouseLocation)
+        }
+    }
 
     /// Observation callbacks fire once, so re-arm after every change.
     private func observeSettings() {

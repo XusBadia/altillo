@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ca">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#10100f" />
+    <meta name="description" content="Què desa Altillo al teu Mac, quan es connecta a internet i quines dades no recull mai." />
+    <link rel="canonical" href="https://altillo.app/ca/privadesa/" />
+    <link rel="alternate" hreflang="en" href="https://altillo.app/privacy/" />
+    <link rel="alternate" hreflang="es" href="https://altillo.app/es/privacidad/" />
+    <link rel="alternate" hreflang="ca" href="https://altillo.app/ca/privadesa/" />
+    <link rel="alternate" hreflang="x-default" href="https://altillo.app/privacy/" />
+    <link rel="icon" href="/altillo-icon.png" type="image/png" />
+    <link rel="stylesheet" href="/src/privacy.css" />
+    <title>Privadesa — Altillo</title>
+  </head>
+  <body>
+    <header class="shell">
+      <a class="brand" href="/ca/"><img src="/altillo-icon.png" alt="" />altillo</a>
+      <nav class="languages" aria-label="Idioma"><a href="/privacy/" hreflang="en" lang="en">EN</a><a href="/es/privacidad/" hreflang="es" lang="es">ES</a><a href="/ca/privadesa/" aria-current="page">CA</a></nav>
+    </header>
+    <main class="shell">
+      <p class="eyebrow">Política de privadesa</p>
+      <h1>Les teves coses es queden al teu Mac.</h1>
+      <p class="lede">Altillo no té analítica, publicitat ni telemetria. No ens envia els teus fitxers, el calendari, el porta-retalls, la imatge de la càmera, les sessions d’agents, les converses de Pregunta ni les credencials.</p>
+      <p class="updated">Versió 1.1 · en vigor des del 3 d’octubre de 2026</p>
+
+      <section><h2>Què es queda en local</h2><p>Altillo desa la configuració a les preferències de macOS i el contingut que li demanes que recordi a la seva carpeta d’Application Support. Pot incloure còpies del prestatge, notes i el seu historial, temporitzadors, l’historial opcional del porta-retalls, elements desats de Pregunta, lectures de consum i registres d’instal·lació de hooks. L’accés al calendari, al contingut multimèdia i a la càmera fa servir permisos de macOS i es queda al dispositiu. Quan esborres un element dins d’Altillo se n’elimina la còpia d’Altillo; tu mantens el control dels originals.</p></section>
+      <section><h2>Calaix i icones de la barra de menús</h2><p>El Calaix necessita permís d’Accessibilitat per llistar les icones de la barra de menús i obrir-ne els menús. La gravació de pantalla és opcional: amb aquest permís, Altillo captura només la barra de menús per mostrar les icones reals en lloc de les de les apps. Desa les imatges retallades de les icones al teu Mac, a <code>~/Library/Application Support/Altillo/MenuBarGlyphs</code>; no desa la imatge completa de la barra ni puja les captures. Les icones amagades fan servir l’última imatge desada. La memòria cau no caduca automàticament i s’hi queda fins que una captura nova substitueixi la imatge o esborris aquella carpeta. Sense gravació de pantalla, el Calaix continua funcionant amb icones d’apps i símbols del sistema.</p></section>
+      <section>
+        <h2>Consultes de consum d’IA</h2>
+        <p>Quan les actives, Altillo llegeix la credencial que ja desa l’app o la CLI del proveïdor i la presenta únicament a aquest mateix proveïdor per demanar els límits d’ús. Altillo no renova, no reescriu ni conserva cap altra còpia d’aquestes credencials. Fa servir sessions efímeres sense galetes persistents ni memòria cau al disc.</p>
+        <div class="destinations"><table>
+          <thead><tr><th>Eina</th><th>Destinació de xarxa</th><th>Què s’envia</th></tr></thead>
+          <tbody>
+            <tr><td>Claude Code</td><td><code>api.anthropic.com</code></td><td>El testimoni de Claude i una petició de consum de només lectura.</td></tr>
+            <tr><td>Codex</td><td>Primer, l’app-server local; si no respon, <code>chatgpt.com</code></td><td>No surt cap credencial si respon el servidor local. L’alternativa envia el testimoni de Codex i, si n’hi ha, l’identificador de compte de ChatGPT.</td></tr>
+            <tr><td>Cursor</td><td><code>api2.cursor.sh</code>, <code>cursor.com</code></td><td>El testimoni o les galetes de la sessió de Cursor i peticions de consum de només lectura.</td></tr>
+            <tr><td>GitHub Copilot</td><td><code>api.github.com</code></td><td>El testimoni de GitHub/Copilot i una petició de consum de només lectura.</td></tr>
+            <tr><td>Gemini / Antigravity</td><td>Primer, el servidor de llenguatge local; si no respon, <code>daily-cloudcode-pa.googleapis.com</code> o <code>cloudcode-pa.googleapis.com</code></td><td>Les peticions de loopback es queden al Mac. L’alternativa envia el testimoni de Google i una petició de consum buida.</td></tr>
+            <tr><td>Grok</td><td><code>cli-chat-proxy.grok.com</code></td><td>El testimoni de la CLI de Grok i peticions de facturació i configuració de només lectura.</td></tr>
+            <tr><td>OpenRouter</td><td><code>openrouter.ai</code></td><td>La clau API d’OpenRouter i peticions de crèdits i de clau de només lectura.</td></tr>
+            <tr><td>Z.ai</td><td><code>api.z.ai</code></td><td>La clau API de Z.ai i peticions de quota i subscripció de només lectura.</td></tr>
+            <tr><td>Devin / Windsurf</td><td>El servidor HTTPS desat per Windsurf o <code>server.codeium.com</code></td><td>La clau API de Windsurf i les metadades de client necessàries per demanar el consum.</td></tr>
+            <tr><td>OpenCode Go</td><td><code>opencode.ai</code></td><td>La clau d’OpenCode Go i una petició de consum de només lectura.</td></tr>
+          </tbody>
+        </table></div>
+        <p>Aquests proveïdors reben la petició sota les seves pròpies condicions de privadesa. Altillo no en rep res.</p>
+      </section>
+      <section><h2>Pregunta i consultes web</h2><p>Pregunta funciona al dispositiu per defecte. L’accés al web està desactivat fins que el permets per a una pregunta o a la Configuració. Llavors es pot enviar una cerca breu derivada de la pregunta a DuckDuckGo, amb Bing com a alternativa; els llocs de les consultes meteorològiques s’envien a Open-Meteo; i la Viquipèdia es pot fer servir com a referència alternativa. Les pàgines triades pel cercador es poden consultar per preparar la resposta. Les peticions fan servir sessions efímeres, sense cap compte d’Altillo ni galetes publicitàries. Aquests serveis reben la petició i apliquen les seves pròpies polítiques.</p></section>
+      <section><h2>Agents i integracions locals</h2><p>Els hooks dels agents es comuniquen amb Altillo mitjançant un sòcol Unix local. Altillo mostra les sol·licituds de permís i transmet només la teva decisió explícita; no aprova mai res automàticament. La integració amb OpenCode es pot connectar al seu servidor local al teu Mac. La configuració i les còpies de seguretat es queden a Application Support, i «Prepara la desinstal·lació» mostra cada canvi abans d’aplicar-lo.</p></section>
+      <section><h2>Música i lletres</h2><p>Sona llegeix la sessió multimèdia que ja hi ha disponible al teu Mac i pot baixar la caràtula des de l’URL que faciliti l’app multimèdia activa. Les lletres estan desactivades fins que prems «Carrega la lletra». Aquesta acció envia a LRCLIB el títol, l’artista, l’àlbum i la durada de la cançó actual per trobar-ne la lletra, mitjançant una sessió efímera sense galetes ni compte d’Altillo. No es puja cap àudio ni la teva biblioteca musical.</p></section>
+      <section><h2>Actualitzacions, enllaços i diagnòstics</h2><p>Cercar actualitzacions consulta el canal signat de Sparkle d’Altillo a GitHub Pages; baixar-les contacta amb GitHub Releases. Obrir GitHub, Aurio, una reunió o qualsevol altre enllaç extern et porta a aquell servei al navegador. Els registres de les versions publicades es queden al teu Mac i ometen credencials, el text de les preguntes, el contingut del porta-retalls i els camins complets dels fitxers. «Copia el diagnòstic segur» genera un text local només amb la versió d’Altillo, la de macOS, l’arquitectura i l’estat dels hooks; no es puja res automàticament.</p></section>
+      <section><h2>Què recollim</h2><p>Com que Altillo no té compte, analítica ni cap servidor de telemetria, no rebem ni conservem dades personals per l’ús normal de l’app. Si contactes amb nosaltres o obres una incidència a GitHub, la informació que decideixis aportar la tractarà aquell servei i es conservarà mentre calgui per respondre o mantenir el projecte.</p></section>
+      <section><h2>El teu control</h2><ul><li>Desactiva cada mòdul o permís de macOS des de la Configuració d’Altillo o la Configuració del Sistema.</li><li>Desactiva quan vulguis les consultes web i l’historial opcional del porta-retalls.</li><li>Fes servir «Prepara la desinstal·lació» abans d’esborrar l’app per retirar de manera segura els hooks propietat d’Altillo.</li><li>Esborra les dades d’Altillo a Application Support per eliminar-ne l’estat local desat.</li><li>Esborra <code>~/Library/Application Support/Altillo/MenuBarGlyphs</code> per eliminar les icones de la barra desades a la memòria cau.</li></ul></section>
+      <section><h2>Preguntes</h2><p>Actualitzarem aquesta política quan canviïn els fluxos de dades del producte. El repositori és públic perquè se’n pugui inspeccionar la implementació.</p><a class="contact" href="https://github.com/XusBadia/altillo/issues/new?template=bug_report.yml">Contacta’ns a GitHub</a></section>
+    </main>
+    <footer class="shell"><span>Altillo · codi obert amb llicència MIT</span><a href="/ca/">Torna a Altillo</a></footer>
+  </body>
+</html>

@@ -11,8 +11,8 @@ public enum NotchState: String, Sendable, CaseIterable {
     /// Fully open, showing the active tab.
     case open
 
-    /// Whether the panel must receive mouse events in this state.
-    public var isInteractive: Bool { self != .idle }
+    /// A distant drag only arms the notch; it must keep passing through to the user's destination.
+    public var isInteractive: Bool { self != .idle && self != .dragArmed }
 }
 
 /// Inputs to the state machine. Timing (dwell, grace periods) lives in the caller, which reports elapsed timers as events.

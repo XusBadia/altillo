@@ -2,8 +2,8 @@ import CoreGraphics
 
 enum NotchLayout {
     /// Fixed size of the transparent panel. Every state must fit inside it (plus room for the shadow): the widest
-    /// open notch (760) with the Drawer and the tallest section is ≈ 430 pt. Hit-testing follows the drawn shape,
-    /// so the empty rest of the panel never gets in the way.
+    /// open notch (760) with the Drawer and the tallest section is ≈ 430 pt. View hit-testing follows the drawn
+    /// shape; drag routing also needs window-level pass-through outside it (NotchWindowController).
     static let panelSize = CGSize(width: 780, height: 480)
     /// A drag closer than this to the notch turns `dragArmed` into `dropTarget`.
     static let dropActivationDistance: CGFloat = 150

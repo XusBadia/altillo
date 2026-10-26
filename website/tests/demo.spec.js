@@ -20,6 +20,20 @@ for (const L of LOCALES) {
       await expect(page.locator("#demo .an-tab.is-active")).toContainText(L.tab.usage);
     });
 
+    test("Ask answers typed questions in the page's language", async ({ page }) => {
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await gotoPage(page, L.path);
+      await waitForDemo(page);
+      await page.evaluate(() => window.altilloDemo.show("ask"));
+      for (const [q, a] of L.ask) {
+        const input = page.locator('#demo input[name="q"]');
+        await expect(input).toBeEnabled();
+        await input.fill(q);
+        await input.press("Enter");
+        await expect(page.locator("#demo .an-answer").last()).toContainText(a);
+      }
+    });
+
     test("the usage panel shows a row per provider with its percent and bar", async ({ page }) => {
       await gotoPage(page, L.path);
       const checkRows = async (rows) => {
