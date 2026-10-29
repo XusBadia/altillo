@@ -116,13 +116,14 @@ final class MenuBarConcealer: MenuBarConcealing {
         let succeeded = await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
             outcome.withLock { $0 = continuation }
             let timeout = Task {
-                try? await Task.sleep(for: Self.activationTimeout)
+                do { try await Task.sleep(for: Self.activationTimeout) }
+                catch { return }
                 outcome.withLock { $0.take() }?.resume(returning: false)
             }
             activate(target, Self.activateSelector, configuration) { error in
                 if let error { Self.log.error("concealer: activation failed \(error.localizedDescription, privacy: .public)") }
-                timeout.cancel()
                 outcome.withLock { $0.take() }?.resume(returning: error == nil)
+                timeout.cancel()
             }
         }
         // A newer call may have replaced or released this assertion while macOS answered.

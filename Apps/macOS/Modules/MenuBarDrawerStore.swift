@@ -43,6 +43,14 @@ final class MenuBarDrawerStore: NSObject {
     var menuBarEntries: [MenuBarEntry] { entries.filter { !isInDrawer($0) } }
     var isPerformingMenuBarInteraction: Bool { activationTask != nil || menuSessionTask != nil }
 
+    var supportDiagnostics: DrawerSupportDiagnostics {
+        DrawerSupportDiagnostics(enabled: enabled, canHide: support.hiding,
+                                 accessibilityTrusted: AXIsProcessTrusted(), hidesIcons: hidesDrawerIcons,
+                                 peeking: isPeeking, concealing: isConcealing, assertionActive: concealer.isActive,
+                                 selectedApps: membership.bundleIDs.count, catalogItems: entries.count,
+                                 interactionActive: isPerformingMenuBarInteraction, hasProblem: problem != nil)
+    }
+
     func isInDrawer(_ entry: MenuBarEntry) -> Bool { membership.contains(entry.application.bundleID) }
 
     /// macOS keeps its own items (clock, Wi‑Fi, Control Center…) in the menu bar.
@@ -411,6 +419,9 @@ final class MenuBarDrawerStore: NSObject {
             return
         }
         let previous = concealTask
+        // Only the newest request may commit state. Keep awaiting the previous call so macOS is never
+        // activated concurrently, but cancel it (and thus every earlier request) before replacing it.
+        previous?.cancel()
         concealTask = Task { [weak self] in
             await previous?.value
             guard let self, !Task.isCancelled, self.wantsConcealment else { return }
@@ -838,15 +849,20 @@ final class MenuBarDrawerStore: NSObject {
                 opened = clicked ? await waitUntilPresented(session) : false
                 Self.log.debug("path=fold+click clicked=\(clicked) opened=\(opened)")
             }
-            if !opened, target?.isReachable != true {
+            if !opened {
+                // Some icons perform an immediate action or bring an existing window forward. A confirmed
+                // Accessibility action doesn't need to create a new panel to have succeeded.
+                if case .performed = outcome {
+                    endRevealForMenu()
+                    return
+                }
                 problem = if case .unavailable = outcome {
                     String(localized: "This app doesn't expose a menu that Altillo can open.")
-                } else if target == nil {
-                    // Drawn where no click reaches it (macOS's overflow «, behind the camera), and no answer to the press.
-                    String(localized: "This app didn't open its menu from Altillo. Try it from the menu bar.")
-                } else {
+                } else if case .notDrawn = target {
                     // Never drawn: usually an icon turned off in System Settings.
                     String(localized: "This app didn't open its menu. Check that its icon is allowed in System Settings › Menu Bar.")
+                } else {
+                    String(localized: "This app didn't open its menu from Altillo. Try it from the menu bar.")
                 }
                 endRevealForMenu()
                 return
@@ -904,10 +920,6 @@ final class MenuBarDrawerStore: NSObject {
         case notDrawn
         /// Drawn, but behind the open notch: reachable only once the notch folds.
         case underNotch(CGRect)
-
-        var isReachable: Bool {
-            if case .notDrawn = self { false } else { true }
-        }
     }
 
     /// Where a click reaches `entry`'s icon, or nil when it can't be clicked where it's drawn (behind the camera
@@ -948,7 +960,7 @@ final class MenuBarDrawerStore: NSObject {
         let top = primary.frame.maxY
         return NSScreen.screens.contains { screen in
             let bounds = DrawerGeometry.accessibilityFrame(screen.frame, primaryScreenHeight: top)
-            return bounds.contains(CGPoint(x: frame.midX, y: frame.midY)) && frame.minY - bounds.minY < 40
+            return MenuBarItemClicker.isInMenuBar(frame, screenBounds: bounds)
         }
     }
 

@@ -12,7 +12,7 @@ enum MenuBarItemClicker {
         let top = primary.frame.maxY
         return NSScreen.screens.contains { screen in
             let bounds = DrawerGeometry.accessibilityFrame(screen.frame, primaryScreenHeight: top)
-            guard bounds.contains(frame) else { return false }
+            guard isInMenuBar(frame, screenBounds: bounds) else { return false }
             let sides = [screen.auxiliaryTopLeftArea, screen.auxiliaryTopRightArea].compactMap { $0 }
             guard !sides.isEmpty else { return true }
             return sides.contains { area in
@@ -20,6 +20,13 @@ enum MenuBarItemClicker {
                 return frame.minX >= visible.minX - 1 && frame.maxX <= visible.maxX + 1
             }
         }
+    }
+
+    /// MenuBarAgent parks hidden status items elsewhere on screen. Their positive size alone doesn't
+    /// make them click targets: never send a status-item click into an app or the desktop below the bar.
+    static func isInMenuBar(_ frame: CGRect, screenBounds: CGRect) -> Bool {
+        frame.width > 0 && frame.height > 0 && screenBounds.contains(frame)
+            && frame.minY - screenBounds.minY < 40
     }
 
     /// True while Altillo's own synthetic click is in flight, so it isn't mistaken for the user's.

@@ -101,6 +101,17 @@ struct DrawerTests {
             == CGRect(x: -1_280, y: 0, width: 22, height: 24))
     }
 
+    @Test func parkedHiddenIconsAreNeverClickTargets() {
+        let screen = CGRect(x: 0, y: 0, width: 1_728, height: 1_117)
+        #expect(MenuBarItemClicker.isInMenuBar(CGRect(x: 1_400, y: 3, width: 24, height: 24), screenBounds: screen))
+        #expect(!MenuBarItemClicker.isInMenuBar(CGRect(x: 0, y: 1_080, width: 24, height: 24), screenBounds: screen))
+        #expect(!MenuBarItemClicker.isInMenuBar(CGRect(x: 100, y: 200, width: 24, height: 24), screenBounds: screen))
+        #expect(!MenuBarItemClicker.isInMenuBar(CGRect(x: -10, y: 3, width: 24, height: 24), screenBounds: screen))
+        let secondary = CGRect(x: -1_920, y: -200, width: 1_920, height: 1_080)
+        #expect(MenuBarItemClicker.isInMenuBar(CGRect(x: -100, y: -197, width: 24, height: 24), screenBounds: secondary))
+        #expect(!MenuBarItemClicker.isInMenuBar(CGRect(x: -100, y: 800, width: 24, height: 24), screenBounds: secondary))
+    }
+
     // MARK: - Capabilities per macOS version
 
     @Test func macOS26ListsAndOpensIconsWithoutHiding() {
@@ -416,7 +427,8 @@ struct DrawerTests {
         #expect(list.bundleIDs == ["com.a", "com.b"])
     }
 
-    @Test func peekingWhileMacOSIsStillAnsweringLeavesEverythingShown() async {
+    @Test(arguments: [false, true])
+    func peekingWhileMacOSIsStillAnsweringLeavesEverythingShown(queuesAnotherChange: Bool) async {
         let storage = Self.makeDefaults()
         defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
         storage.defaults.set(true, forKey: "drawer.enabled")
@@ -427,6 +439,11 @@ struct DrawerTests {
         store.setCatalogForTesting([app], hasAccess: true)
         store.move(app, toDrawer: true)
         while !concealer.isParked { await Task.yield() }
+
+        if queuesAnotherChange {
+            // Slack's request is still in flight when Telegram joins. Peek must cancel both requests.
+            store.move(Self.item("com.a"), toDrawer: true)
+        }
 
         store.setPeeking(true)
         concealer.finish()
