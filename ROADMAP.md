@@ -77,9 +77,13 @@ y el diccionario de Mail permite recibir el evento y leer contenido. El
 Mail sobre un mensaje sintético importado, el transporte nativo, código y
 magic link en una tarjeta temporal y apertura del mismo mensaje en Mail.
 La candidata 0.13.0 ya integra la tarjeta en Altillo, con activación opcional,
-filtros y preparación local de scripts probados desde la interfaz real. Falta
-cerrar la llegada nueva por red y la publicación. La regla se crea y se retira
-manualmente desde Ajustes de Mail; Altillo conserva las reglas del usuario.
+filtros y preparación local de scripts probados desde la interfaz real. La
+llegada nueva por red ya mostró la tarjeta y abrió el original, sin aplicar
+reglas manualmente ni inyectar el transporte. Falta validar y publicar el
+artefacto final con las últimas correcciones. La preparación comprueba archivos
+locales y una entrega real confirma recepción; no se consultan las reglas de
+Mail. La regla y los dos scripts se retiran manualmente; Altillo los conserva
+al desconectar.
 MailKit sigue siendo una alternativa si ese paso no ofrece una UX fiable.
 
 La investigación debe cerrar recepción real, permisos, instalación y retirada,
@@ -125,7 +129,7 @@ El estado por defecto de las filas es **Pendiente**.
 
 | ID | Prioridad y tamaño | Iniciativa y primera entrega | Dependencia o criterio de cierre | Inspiración |
 | --- | --- | --- | --- | --- |
-| R01 | Alta · M | **Correo en el notch — En curso (0.13.0).** Módulo opcional integrado, scripts guiados, filtros y acciones efímeras; guía en [Correo](docs/correo.md). [Prueba inicial](docs/spikes/mail-bridge.md). | Cerrar la validación de llegada por red y CI, firmar/notarizar y comprobar el artefacto antes de publicar. | GotEmail; prueba local |
+| R01 | Alta · M | **Correo en el notch — En curso (0.13.0).** Módulo opcional integrado, scripts guiados, filtros y acciones efímeras; guía en [Correo](docs/correo.md). [Prueba inicial](docs/spikes/mail-bridge.md). | Recepción por red y apertura del original validadas; repetir el recorrido sobre el artefacto final sin consultas externas a reglas, cerrar tests/CI y firma/notarización antes de publicar. | GotEmail; prueba local |
 | R02 | Alta · S | **Catalán.** Traducir con IA app, onboarding, ajustes y paquetes compartidos. | Validar variables, plurales, terminología y tamaños; ampliar el validador de idiomas. | Decisión de Xus |
 | R03 | Alta · M | **Francés, alemán e italiano juntos.** Una entrega conjunta con traducción por IA y revisión de las pantallas principales. | No separar los tres en lanzamientos artificiales; revisar especialmente textos largos e interpolaciones. | Decisión de Xus |
 | R07 | Media · M | **Vista breve y resumen de correo.** Ver un extracto y pedir un resumen on-device desde el aviso. | Depende de R01; consentimiento explícito para procesar contenido; probar límites de idioma y longitud. | Idea Altillo |

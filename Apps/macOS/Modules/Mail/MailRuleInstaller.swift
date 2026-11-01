@@ -4,21 +4,21 @@ import Darwin
 import Foundation
 import Observation
 
-/// Owns Altillo's two generated scripts. Every user-created Mail rule is preserved for manual removal.
+/// Owns Altillo's generated scripts. Preparation checks stay local: cross-process rule queries can
+/// wedge Mail's Apple Event receiver on macOS 27. A real delivery confirms reception in the UI.
+/// Rules and scripts are preserved for manual removal; file ownership does not prove a rule is unlinked.
 @MainActor
 @Observable
 final class MailRuleInstaller {
     enum Status: String, Sendable {
-        case notPrepared, prepared, configured, changed, unavailable, manualRemovalRequired
+        case notPrepared, prepared, changed, manualRemovalRequired
 
         var title: String {
             switch self {
             case .notPrepared: String(localized: "Mail setup hasn't started.")
             case .prepared: String(localized: "Scripts are ready. Add the rule in Apple Mail.")
-            case .configured: String(localized: "Apple Mail's rule is connected.")
             case .changed: String(localized: "Mail setup was changed. Your files have been left untouched.")
-            case .unavailable: String(localized: "Open Apple Mail to check its rule.")
-            case .manualRemovalRequired: String(localized: "Remove rules that use Altillo Mail in Apple Mail Settings, then try again. Your scripts have been kept.")
+            case .manualRemovalRequired: String(localized: "Reception is off. Remove the Altillo Mail rule in Apple Mail Settings. Its scripts have been kept for manual removal.")
             }
         }
     }
@@ -56,7 +56,7 @@ final class MailRuleInstaller {
         var bridge: String
     }
 
-    enum Failure: Error, Equatable { case unsafeDirectory, missingResources, missingHelper, changedFiles, invalidManifest, compilerFailed, inspectionTimedOut }
+    enum Failure: Error, Equatable { case unsafeDirectory, missingResources, missingHelper, changedFiles, invalidManifest, compilerFailed }
 
     private(set) var status: Status = .notPrepared
     private(set) var problem: String?
@@ -66,15 +66,12 @@ final class MailRuleInstaller {
     @ObservationIgnored private let paths: Paths
     @ObservationIgnored private let templates: Templates?
     @ObservationIgnored private let compiler: @Sendable (URL, URL) throws -> Void
-    @ObservationIgnored private let runScript: @MainActor (String) async throws -> String
 
     init(paths: Paths = .live, templates: Templates? = nil,
-         compiler: @escaping @Sendable (URL, URL) throws -> Void = MailRuleInstaller.compile,
-         runScript: @escaping @MainActor (String) async throws -> String = { try await MailRuleInstaller.runInspection($0) }) {
+         compiler: @escaping @Sendable (URL, URL) throws -> Void = MailRuleInstaller.compile) {
         self.paths = paths
         self.templates = templates
         self.compiler = compiler
-        self.runScript = runScript
     }
 
     func prepare() async {
@@ -95,47 +92,27 @@ final class MailRuleInstaller {
         }
     }
 
+    /// Checks our files only. It deliberately sends no Apple Events to Mail.
     func refresh() async {
         guard !isWorking else { return }
-        isWorking = true
         problem = nil
-        defer { isWorking = false }
         do {
-            guard try Self.verifyOwnedFiles(paths: paths) != nil else { status = .notPrepared; return }
-            let answer = try await runScript(Self.inspectionScript(paths: paths, remove: false))
-            switch answer {
-            case "configured": status = .configured
-            case "absent": status = .prepared
-            case "closed": status = .unavailable
-            default: status = .changed
-            }
+            status = try Self.verifyOwnedFiles(paths: paths) == true ? .prepared : .notPrepared
         } catch {
-            status = error is AppleScriptRunner.Failure || (error as? Failure) == .inspectionTimedOut ? .unavailable : .changed
+            status = .changed
             problem = Self.explanation(error)
         }
     }
 
+    /// Reception is stopped by the caller. Retain scripts because we cannot safely prove that no rule
+    /// still references them without querying Mail's potentially stalled Apple Event receiver.
     func uninstall() async {
         guard !isWorking else { return }
-        isWorking = true
         problem = nil
-        defer { isWorking = false }
         do {
-            guard try Self.verifyOwnedFiles(paths: paths, allowMissing: true) != nil else { status = .notPrepared; return }
-            let answer = try await runScript(Self.inspectionScript(paths: paths, remove: true))
-            guard answer == "absent" else {
-                status = answer == "closed" ? .unavailable : .manualRemovalRequired
-                problem = String(localized: "Remove rules that use Altillo Mail in Apple Mail Settings, then try again. Your scripts have been kept.")
-                return
-            }
-            // Recheck after the Apple Event: don't delete a file that changed while Mail was answering.
-            _ = try Self.verifyOwnedFiles(paths: paths, allowMissing: true)
-            for file in [paths.handler, paths.bridge, paths.manifest] where FileManager.default.fileExists(atPath: file.path) {
-                try FileManager.default.removeItem(at: file)
-            }
-            status = .notPrepared
+            status = try Self.verifyOwnedFiles(paths: paths, allowMissing: true) == true ? .manualRemovalRequired : .notPrepared
         } catch {
-            status = error is AppleScriptRunner.Failure || (error as? Failure) == .inspectionTimedOut ? .unavailable : .changed
+            status = .changed
             problem = Self.explanation(error)
         }
     }
@@ -239,72 +216,6 @@ final class MailRuleInstaller {
         }
     }
 
-    /// Bound the whole process, including permission/app lookup before AppleScript's own timeout begins.
-    nonisolated static func runInspection(_ source: String, timeout: Duration = .seconds(12)) async throws -> String {
-        try await withThrowingTaskGroup(of: String.self) { group in
-            group.addTask { try await AppleScriptRunner.run(source) }
-            group.addTask {
-                try await Task.sleep(for: timeout)
-                throw Failure.inspectionTimedOut
-            }
-            defer { group.cancelAll() }
-            guard let result = try await group.next() else { throw Failure.inspectionTimedOut }
-            return result
-        }
-    }
-
-    nonisolated static func inspectionScript(paths: Paths, remove: Bool) -> String {
-        if remove {
-            // Mail's public rule dictionary cannot expose every possible action. Do not infer ownership from
-            // a name/condition and delete a user-created rule; preserve even renamed references to our scripts.
-            return """
-            if not (application id "com.apple.mail" is running) then return "closed"
-            with timeout of 5 seconds
-                tell application id "com.apple.mail"
-                    repeat with candidate in every rule
-                        if name of candidate is \(quote(ruleName)) then return "present"
-                        try
-                            set attachedPath to POSIX path of (run script of candidate)
-                            if attachedPath is \(quote(paths.handler.path)) or attachedPath is \(quote(paths.bridge.path)) then return "present"
-                        end try
-                    end repeat
-                    return "absent"
-                end tell
-            end timeout
-            """
-        }
-        return """
-        if not (application id "com.apple.mail" is running) then return "closed"
-        with timeout of 5 seconds
-            tell application id "com.apple.mail"
-                -- Filter names locally: Mail can stall resolving an Apple Event `whose` predicate.
-                set ruleNames to get name of every rule
-                set candidateIndex to 0
-                set matchCount to 0
-                repeat with ruleIndex from 1 to count of ruleNames
-                    if item ruleIndex of ruleNames is \(quote(ruleName)) then
-                        set candidateIndex to ruleIndex
-                        set matchCount to matchCount + 1
-                    end if
-                end repeat
-                if matchCount is 0 then return "absent"
-                if matchCount is not 1 then return "changed"
-                set candidate to rule candidateIndex
-                try
-                    set attachedPath to POSIX path of (run script of candidate)
-                    if attachedPath is not \(quote(paths.handler.path)) then return "changed"
-                    if (count of rule conditions of candidate) is not 1 then return "changed"
-                    if rule type of first rule condition of candidate is not matches every message then return "changed"
-                    if not (enabled of candidate) then return "changed"
-                    return "configured"
-                on error
-                    return "changed"
-                end try
-            end tell
-        end timeout
-        """
-    }
-
     nonisolated private static func bundledTemplates() throws -> Templates {
         guard let handler = Bundle.main.url(forResource: resourceNames[0], withExtension: "txt"),
               let bridge = Bundle.main.url(forResource: resourceNames[1], withExtension: "txt") else { throw Failure.missingResources }
@@ -326,12 +237,6 @@ final class MailRuleInstaller {
 
     private static func explanation(_ error: Error) -> String {
         switch error {
-        case Failure.inspectionTimedOut:
-            String(localized: "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.")
-        case AppleScriptRunner.Failure.failed(let message) where message.contains("(-1712)"):
-            String(localized: "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.")
-        case AppleScriptRunner.Failure.notAuthorised:
-            String(localized: "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again.")
         case Failure.changedFiles, Failure.invalidManifest:
             String(localized: "The Mail scripts were changed or aren't owned by Altillo. They have been left untouched.")
         case Failure.missingHelper, Failure.missingResources:

@@ -2,33 +2,52 @@
 
 Fecha: 1 de noviembre de 2026. Esta ficha registra pruebas, no una publicación.
 
-## Evidencia local
+## Recorrido real confirmado
 
-- Suite macOS inicial: 890 pruebas, 68 suites, sin fallos. Resultado en el `.xcresult` de la ruta estable de BuildCache de Altillo.
-- Suite AltilloKit completa: sin fallos, incluida la validación de entradas, límites, sockets privados, timeouts y deduplicación de Mail. Se repitió tras endurecer enlaces y caducidad de identificadores.
-- Web: 252 pruebas pasan, 36 omisiones declaradas por la suite en sus cuatro proyectos; sin reintentos ni pruebas exclusivas. Build de producción correcto. Playwright necesitó instalar sus navegadores locales antes de ejecutar la suite.
-- Dependencias web: actualización del lockfile a Vite corregido; `npm audit fix` termina con cero vulnerabilidades.
+- La cuenta Google conecta por IMAP/SMTP; Connection Doctor también confirma iCloud.
+- Se envió un mensaje sintético desde la cuenta iCloud a `altillo@badia.me`, con el marcador `clean-host-06`. Gmail lo confirmó en Inbox y Mail lo descargó mediante **Obtener correo nuevo**. Esta acción solicita recepción normal por red; no aplica reglas a mensajes anteriores.
+- La regla de QA, limitada a un asunto sintético, ejecutó el handler automáticamente. El mensaje apareció en el notch con su asunto, el código sintético `482913` y el botón **Abrir en Mail**. Este botón abrió el original del mismo mensaje.
+- No se aplicaron reglas manualmente ni se inyectó el socket en este recorrido. Mail se había reiniciado y no se habían ejecutado consultas externas a sus reglas antes de recibir el mensaje.
+- Segunda prueba real con el marcador `settings-fixed-07`: se reinició Mail para cargar el handler final y se abrieron **Ajustes → Correo** y **Comprobar archivos de scripts** antes del arribo. Un nuevo envío iCloud → `altillo@badia.me` quedó en Inbox de Gmail y la configuración de Altillo mostró **Apple Mail ha entregado un mensaje nuevo a Altillo**. Tampoco se aplicaron reglas manualmente ni se inyectó el socket.
+- Estas pruebas confirman recepción y apertura; no acreditan que una regla de usuario cubra todos los mensajes, ni la cobertura de otras cuentas.
+
+## Fallos encontrados y cambios finales
+
+Las consultas externas a las reglas agotaban el tiempo de espera (`-1712`), incluso con **Altillo → Mail** activado por autorización expresa del usuario, candidata firmada con Developer ID y reinicios de Mail. Existencia y versión respondían, pero no acreditaban lectura funcional de propiedades. Una muestra de proceso observó esperas de Apple Events en `designatedCodeRequirementsCacheQueue`; no se da por confirmada la causa interna de macOS.
+
+La candidata final elimina las consultas externas del instalador. La preparación solo verifica archivos locales. La llegada de un mensaje válido confirma recepción durante la sesión activa, sin afirmar que las condiciones de la regla sean correctas. Desconectar detiene el receptor y borra la memoria, pero conserva siempre scripts y reglas para su retirada manual. Esta integración ya no necesita el permiso **Altillo → Mail**. No se concedieron permisos a Terminal, Finder ni otros emisores.
+
+El handler también descartaba toda la entrega si el cuerpo faltaba o fallaba su lectura. Ahora cuerpo y cuenta son opcionales: se conservan remitente, asunto e identificador, y solo se reconocen acciones en el texto disponible. Los tests nuevos ejecutan el handler compilado con objetos sintéticos locales para cubrir esos casos. El lote deja de iniciar mensajes al alcanzar cinco segundos; la operación en curso conserva sus límites de tiempo.
+
+Los diagnósticos temporales solo registraron etiquetas, estado y longitud de respuesta, nunca contenido de correo, y se retiraron del código y scripts instalados. No se borraron reglas ni mensajes adicionales. Al cerrar la QA quedaron apagados la regla y el módulo de prueba, y se restauraron las preferencias temporales de arranque. Se verificó en la interfaz la desconexión y el aviso de conservación de scripts; los dos archivos y el manifiesto permanecen presentes.
+
+## Verificación del código final
+
+- Suite macOS: **900 pruebas en 70 suites, sin fallos**, en la candidata final.
+- Handler focal: **5 tests y 7 casos pasan** después de añadir el límite de cinco segundos por lote.
+- Localización extraída: **0 de 1521 cadenas sin español**.
 - Puertas de publicación: todos los casos de `script/release-gates-test.sh` pasan.
-- Recursos reales: los dos templates `.txt` y el helper ejecutable están en el bundle de desarrollo.
-- Interfaz real: Mail aparece apagado por defecto; activación, preparación de ambos scripts compilados, estado vacío, entrega por el helper embebido, tarjeta con remitente/asunto, código `482913`, dominio `example.invalid`, botón de copia y limpieza verificados con contenido sintético. El helper termina con código 0 y no imprime contenido.
-- La prueba previa del host Mail (regla aplicada a mensaje sintético importado y apertura del original) está en [el spike](../spikes/mail-bridge.md). Sus tres buzones de prueba se retiraron con permiso del usuario.
 
-- Suite macOS final tras las correcciones: **898 pruebas en 69 suites, sin fallos**. Localización extraída final: **0 de 1517 cadenas sin español**.
-- Pruebas focales posteriores del instalador: **13 pasan** en la suite completa final, incluida compilación real de ambas inspecciones contra el diccionario público de Mail y cancelación de un script que espera 30 segundos; la inspección completa tiene un límite de 12 segundos.
+## Evidencia anterior conservada
 
-## Permisos comprobados en macOS
+Estos resultados corresponden a revisiones previas a la retirada final de consultas; no sustituyen la validación del último código.
 
-Ajustes del Sistema → Privacidad y seguridad → Automatización muestra **Altillo → Mail activado**, después de la autorización expresa del usuario. Se verificó el interruptor encendido. La cuenta Google también conecta; son controles distintos. No se concedieron permisos adicionales a Terminal, Finder ni otros emisores.
-
-El instalador ahora distingue un fallo de conexión/automatización de archivos modificados, explica el permiso también en errores de timeout y conserva los scripts. Las **14 pruebas focales del instalador pasan**, incluida la comprobación de que el error no expone detalles del script ni acusa cambios de archivos. La suite macOS completa anterior suma 898 pruebas; CI del commit 62c01ed pasó sus seis checks.
+- Suite macOS: **898 pruebas en 69 suites, sin fallos**. Localización extraída: **0 de 1517 cadenas sin español**.
+- Suite AltilloKit completa: sin fallos, incluida validación de entradas, límites, sockets privados, timeouts y deduplicación. Se repitió tras endurecer enlaces y caducidad de identificadores.
+- Instalador anterior: 14 pruebas focales pasan. Sus pruebas de inspección de reglas pertenecían a la implementación que ahora se retira.
+- Web: **252 pruebas pasan**, 36 omisiones declaradas en cuatro proyectos; sin reintentos ni pruebas exclusivas. Build de producción correcto.
+- Dependencias web: lockfile actualizado a Vite corregido; auditoría con cero vulnerabilidades.
+- Puertas de publicación: todos los casos de `script/release-gates-test.sh` pasan.
+- Interfaz inicial: Mail apagado por defecto, preparación de scripts, entrega por helper embebido, tarjeta, copia de código y limpieza verificadas con contenido sintético.
+- El [spike](../spikes/mail-bridge.md) verificó la regla aplicada a un mensaje importado y apertura del original. Sus tres buzones se retiraron con permiso del usuario.
+- CI de `62c01ed`: seis checks correctos, incluido iOS. El último push documental fue `19ec458`; se requiere CI del SHA definitivo de código.
+- Una candidata previa a los últimos cambios del instalador y su DMG superaron firma Developer ID y notarización. El artefacto final debe regenerarse y comprobarse; no se ha publicado 0.13.0.
 
 ## Cierre requerido antes de publicar
-- **Reconexión confirmada:** después de la intervención del usuario, Connection Doctor confirma conexión e inicio de sesión correctos de Google por IMAP/SMTP, además de iCloud. La sincronización inicial terminó; el fallo persistió después.
-- **Entrega al servidor confirmada:** Chrome/Gmail muestra en Inbox un mensaje sintético enviado desde la cuenta iCloud configurada. Los envíos desde Gmail al propio alias no mostraron etiqueta Inbox; se usó otra cuenta para comprobar una entrada real. Mail también muestra el mensaje sintético descargado.
-- **Pendiente:** confirmar entrega automática de ese mensaje nuevo al notch, sin aplicar reglas manualmente ni inyectar el socket. La tarjeta no apareció durante la revisión de la sincronización inicial. No se da por validado el flujo completo por comprobar solo Gmail/Mail.
-- Inspección de reglas: incluso con el permiso activo, al lanzar la candidata desde Finder y tras reiniciar Mail sin consultas pendientes, las lecturas de reglas siguen agotando el tiempo de espera (`-1712`). Las comprobaciones escalares de existencia y versión responden, pero no acreditan que funcione la lectura de propiedades. Una muestra de proceso observa esperas de Apple Events en `designatedCodeRequirementsCacheQueue`; esto es evidencia del bloqueo, no una causa raíz confirmada. Los diagnósticos solo registraron etiquetas, estado y longitud de respuesta, nunca contenido de correo, y se retiraron del código y de los scripts instalados. Los scripts originales conservan sus hashes. La preferencia temporal de arranque se restauró. La consulta de producción mantiene su límite de 12 segundos y conserva los archivos ante el fallo.
-- Los mensajes y la regla temporal se conservan para la siguiente comprobación; la regla de QA y el módulo Mail quedan apagados al cerrar la prueba. El permiso Altillo → Mail permanece activado según lo autorizado. No se borraron reglas ni mensajes adicionales.
-- CI de 62c01ed: seis checks correctos, incluido el build de iOS; repetir sobre cualquier cambio posterior de código.
-- Archive firmado, notarización de app y DMG, smoke del artefacto final y comprobación de appcast/descarga públicos.
 
-El módulo permanece beta opcional. La regla se crea y se retira en Mail; Altillo solo elimina sus scripts propios sin cambios cuando ninguna regla los referencia. No se envían códigos o enlaces sintéticos a sitios externos durante la revisión.
+- Repetir una llegada real sobre el artefacto final, después de abrir su configuración, y verificar desconexión, limpieza y conservación de scripts.
+- CI completa del SHA definitivo.
+- Regenerar archive firmado y DMG, notarizar ambos y ejecutar el smoke del artefacto final.
+- Tras publicar, comprobar appcast y descarga públicos. Los posts están preparados como borradores; no anuncian una publicación ya realizada.
+
+El módulo permanece beta opcional. No se envían códigos o enlaces sintéticos a sitios externos durante la revisión.

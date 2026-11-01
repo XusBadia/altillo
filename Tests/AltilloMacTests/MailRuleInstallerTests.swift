@@ -59,74 +59,66 @@ struct MailRuleInstallerTests {
         #expect(!FileManager.default.fileExists(atPath: paths.manifest.path))
     }
 
-    @Test func prepareAndRefreshOnlyInspectMailAfterOwnedScriptsExist() async throws {
+    @Test func prepareAndRefreshValidateOnlyTheTemporaryOwnedFiles() async throws {
         let (root, paths) = try makePaths()
         defer { try? FileManager.default.removeItem(at: root) }
-        var inspections = 0
-        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler, runScript: { _ in
-            inspections += 1
-            return "configured"
-        })
+        // The entire installation is under a fresh temporary directory. Refresh requires no real Mail setup.
+        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler)
         await installer.refresh()
-        #expect(installer.status == .notPrepared && inspections == 0)
+        #expect(installer.status == .notPrepared)
         await installer.prepare()
-        #expect(installer.status == .prepared && inspections == 0)
+        #expect(installer.status == .prepared)
         #expect(try MailRuleInstaller.verifyOwnedFiles(paths: paths) == true)
+        let manifest = try Data(contentsOf: paths.manifest)
         await installer.refresh()
-        #expect(installer.status == .configured && inspections == 1)
+        #expect(installer.status == .prepared)
         #expect(!installer.isWorking && installer.problem == nil)
+        #expect(try Data(contentsOf: paths.manifest) == manifest)
     }
 
-    @Test func changedScriptPreventsInspectionAndRemoval() async throws {
+    @Test func changedScriptIsReportedWithoutChangingItDuringRefreshOrRemoval() async throws {
         let (root, paths) = try makePaths()
         defer { try? FileManager.default.removeItem(at: root) }
-        var events = 0
-        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler, runScript: { _ in
-            events += 1
-            return "absent"
-        })
+        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler)
         await installer.prepare()
         let changed = Data("user changed this".utf8)
         try changed.write(to: paths.handler)
+        await installer.refresh()
+        #expect(installer.status == .changed)
+        #expect(try Data(contentsOf: paths.handler) == changed)
         await installer.uninstall()
-        #expect(installer.status == .changed && events == 0)
+        #expect(installer.status == .changed)
         #expect(try Data(contentsOf: paths.handler) == changed)
         #expect(FileManager.default.fileExists(atPath: paths.bridge.path))
+        #expect(FileManager.default.fileExists(atPath: paths.manifest.path))
     }
 
-    @Test func uninstallOnlyRemovesOwnedFilesAfterMailConfirmsNoRuleReferencesThem() async throws {
+    @Test func uninstallPreservesEveryOwnedFileAndUnrelatedScriptsForManualRemoval() async throws {
         let (root, paths) = try makePaths()
         defer { try? FileManager.default.removeItem(at: root) }
-        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler, runScript: { source in
-            #expect(source.contains(MailRuleInstaller.quote(paths.handler.path)))
-            #expect(source.contains(MailRuleInstaller.quote(paths.bridge.path)))
-            #expect(!source.contains("delete candidate"))
-            return "absent"
-        })
+        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler)
         await installer.prepare()
         let unrelated = paths.scriptsDirectory.appendingPathComponent("Unrelated.scpt")
         try Data("keep".utf8).write(to: unrelated)
-        await installer.uninstall()
-        #expect(installer.status == .notPrepared)
-        #expect(!FileManager.default.fileExists(atPath: paths.handler.path))
-        #expect(!FileManager.default.fileExists(atPath: paths.bridge.path))
-        #expect(!FileManager.default.fileExists(atPath: paths.manifest.path))
-        #expect(try String(contentsOf: unrelated, encoding: .utf8) == "keep")
-    }
-
-    @Test func anExistingOrRenamedMailRuleIsNeverRemovedAndKeepsItsScripts() async throws {
-        let (root, paths) = try makePaths()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler, runScript: { source in
-            #expect(source.contains("repeat with candidate in every rule"))
-            #expect(!source.contains("delete "))
-            return "present"
-        })
-        await installer.prepare()
+        let files = [paths.handler, paths.bridge, paths.manifest, unrelated]
+        let before = try files.map { try Data(contentsOf: $0) }
         await installer.uninstall()
         #expect(installer.status == .manualRemovalRequired)
-        #expect(installer.problem != nil)
+        #expect(installer.problem == nil)
+        #expect(!installer.isWorking)
+        #expect(try files.map { try Data(contentsOf: $0) } == before)
         #expect(try MailRuleInstaller.verifyOwnedFiles(paths: paths) == true)
+    }
+
+    @Test func uninstallWithoutAnInstallationDoesNotCreateFilesOrRequireManualRemoval() async throws {
+        let (root, paths) = try makePaths()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler)
+        await installer.uninstall()
+        #expect(installer.status == .notPrepared)
+        #expect(installer.problem == nil)
+        #expect(!FileManager.default.fileExists(atPath: paths.scriptsDirectory.path))
+        #expect(!FileManager.default.fileExists(atPath: paths.manifest.path))
     }
 
     @Test func compilationFailurePreservesPreviousOwnedInstallation() throws {
@@ -170,55 +162,4 @@ struct MailRuleInstallerTests {
         #expect(throws: MailRuleInstaller.Failure.self) { try MailRuleInstaller.verifyOwnedFiles(paths: paths) }
         #expect(FileManager.default.fileExists(atPath: paths.handler.path))
     }
-    @Test func automationDenialExplainsHowToReconnectWithoutChangingFiles() async throws {
-        let (root, paths) = try makePaths()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler,
-                                          runScript: { _ in throw AppleScriptRunner.Failure.notAuthorised })
-        await installer.prepare()
-        await installer.refresh()
-        #expect(installer.status == .unavailable)
-        #expect(installer.problem == String(localized: "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again."))
-        #expect(try MailRuleInstaller.verifyOwnedFiles(paths: paths) == true)
-    }
-
-    @Test func inspectionDeadlineTerminatesAStalledScript() async throws {
-        let clock = ContinuousClock()
-        let start = clock.now
-        await #expect(throws: MailRuleInstaller.Failure.inspectionTimedOut) {
-            _ = try await MailRuleInstaller.runInspection("delay 30\nreturn 1", timeout: .milliseconds(100))
-        }
-        #expect(start.duration(to: clock.now) < .seconds(3))
-    }
-
-    @Test func inspectionScriptsCompileAgainstThePublicMailDictionary() throws {
-        let (root, paths) = try makePaths()
-        defer { try? FileManager.default.removeItem(at: root) }
-        for removing in [false, true] {
-            let source = root.appendingPathComponent("inspection.applescript")
-            let output = root.appendingPathComponent("inspection.scpt")
-            try MailRuleInstaller.inspectionScript(paths: paths, remove: removing).write(to: source, atomically: true, encoding: .utf8)
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/osacompile")
-            process.arguments = ["-o", output.path, source.path]
-            process.standardOutput = FileHandle.nullDevice
-            process.standardError = FileHandle.nullDevice
-            try process.run()
-            process.waitUntilExit()
-            #expect(process.terminationStatus == 0)
-        }
-    }
-
-    @Test func mailTimeoutDoesNotBlameChangedFilesOrExposeScriptErrorContent() async throws {
-        let (root, paths) = try makePaths()
-        defer { try? FileManager.default.removeItem(at: root) }
-        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler,
-                                          runScript: { _ in throw AppleScriptRunner.Failure.failed("private script detail (-1712)") })
-        await installer.prepare()
-        await installer.refresh()
-        #expect(installer.status == .unavailable)
-        #expect(installer.problem?.contains("private script detail") == false)
-        #expect(try MailRuleInstaller.verifyOwnedFiles(paths: paths) == true)
-    }
-
 }

@@ -1,6 +1,70 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "After removing the rule, use Show scripts to remove Altillo Mail.scpt and Altillo Mail Bridge.scpt. Leave other scripts untouched.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After removing the rule, use Show scripts to remove Altillo Mail.scpt and Altillo Mail Bridge.scpt. Leave other scripts untouched."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tras retirar la regla, pulsa Mostrar scripts para retirar Altillo Mail.scpt y Altillo Mail Bridge.scpt. Conserva los demás scripts."
+          }
+        }
+      }
+    },
+    "Check script files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check script files"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar archivos de scripts"
+          }
+        }
+      }
+    },
+    "Apple Mail delivered a new message to Altillo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail delivered a new message to Altillo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail ha entregado un mensaje nuevo a Altillo."
+          }
+        }
+      }
+    },
+    "Reception is off. Remove the Altillo Mail rule in Apple Mail Settings. Its scripts have been kept for manual removal.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reception is off. Remove the Altillo Mail rule in Apple Mail Settings. Its scripts have been kept for manual removal."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La recepción está desactivada. Retira la regla Altillo Mail en los ajustes de Apple Mail. Sus scripts se conservan para que los retires manualmente."
+          }
+        }
+      }
+    },
     "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.": {
       "localizations": {
         "en": {

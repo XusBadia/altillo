@@ -7,8 +7,9 @@ using terms from application "Mail"
 	on perform mail action with messages incomingMessages for rule matchedRule
 		-- Bound a large import/sync batch. This integration is for recent arrivals, not mailbox history.
 		set processedCount to 0
+		set batchDeadline to (current date) + 5
 		repeat with incomingMessage in incomingMessages
-			if processedCount ≥ 20 then exit repeat
+			if processedCount ≥ 20 or (current date) ≥ batchDeadline then exit repeat
 			set processedCount to processedCount + 1
 			try
 				set targetMessage to contents of incomingMessage
@@ -25,15 +26,25 @@ using terms from application "Mail"
 						tell application id "com.apple.mail"
 							set identifierText to message id of targetMessage
 							set senderText to sender of targetMessage
-							set rawBody to content of targetMessage
-							set accountText to ""
-							try
-								set accountText to name of account of mailbox of targetMessage as text
-							end try
 						end tell
 					end timeout
-					if identifierText is not missing value and senderText is not missing value and rawBody is not missing value then
-						my deliver(identifierText as text, senderText as text, subjectText, rawBody as text, accountText, ageSeconds)
+					if identifierText is not missing value and senderText is not missing value then
+						-- IMAP can deliver metadata before the body is available. Keep the new-mail card useful.
+						set bodyText to ""
+						try
+							with timeout of 2 seconds
+								tell application id "com.apple.mail" to set rawBody to content of targetMessage
+							end timeout
+							if rawBody is not missing value then set bodyText to rawBody as text
+						end try
+						set accountText to ""
+						try
+							with timeout of 2 seconds
+								tell application id "com.apple.mail" to set rawAccount to name of account of mailbox of targetMessage
+							end timeout
+							if rawAccount is not missing value then set accountText to rawAccount as text
+						end try
+						my deliver(identifierText as text, senderText as text, subjectText, bodyText, accountText, ageSeconds)
 					end if
 				end if
 			end try

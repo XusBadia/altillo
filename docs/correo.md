@@ -17,13 +17,12 @@ aprovecha las cuentas que ya tienes allí y no inicia sesión en ellas.
    El nombre del script auxiliar «Altillo Mail Bridge» también puede aparecer;
    elige «Altillo Mail».
 5. Al guardar, elige **No aplicar** a los mensajes anteriores.
-6. Vuelve a Altillo y pulsa **Comprobar regla de Mail**. Debe indicar que la
-   regla está conectada. Los mensajes posteriores aparecerán en Correo.
-   Para comprobar las reglas y retirar los scripts, macOS necesita el permiso
-   **Altillo → Mail** en Ajustes del Sistema → Privacidad y seguridad →
-   Automatización. El diálogo de macOS permite concederlo o rechazarlo.
-   Si Mail no responde, comprueba también ese permiso; Altillo conserva los
-   scripts y las reglas mientras no pueda verificar su estado.
+6. Espera un mensaje nuevo. Cuando llega a la sección Correo, Altillo confirma
+   **Apple Mail ha entregado un mensaje nuevo a Altillo**. Esa confirmación dura
+   solo durante la sesión activa; no certifica las condiciones de tu regla.
+   **Comprobar archivos de scripts** verifica únicamente la preparación local.
+   Altillo no consulta las reglas de Mail ni necesita el permiso de Automatización
+   **Altillo → Mail** para esta integración.
 
 Puedes indicar direcciones completas o nombres de cuentas separados por comas
 en los filtros de Altillo. Déjalos vacíos para mostrar todos los mensajes nuevos.
@@ -44,22 +43,28 @@ Los filtros se aplican después de la entrega local, no en el servidor de correo
   Si hay varios candidatos, Altillo omite la acción. Comprueba el dominio;
   reconocer un enlace no verifica la identidad del remitente.
 - La beta usa el principio del cuerpo del mensaje y limita el tamaño del evento
-  y los lotes de entrega. Puede omitir códigos posteriores, mensajes aún no
-  descargados o partes de una entrega masiva. Usa **Abrir en Mail** en esos casos.
+  y los lotes de entrega. Puede omitir códigos posteriores o aún no descargados,
+  y partes de una entrega masiva. Si el cuerpo aún no está disponible,
+  muestra el remitente y asunto; solo ofrece acciones reconocidas en el texto
+  disponible. Usa **Abrir en Mail** en esos casos.
 - Los avisos respetan la política de pantalla completa y no interrumpen un
   arrastre o el notch abierto. El mensaje puede estar disponible en su sección
   aunque no haya aparecido un aviso.
 
 ## Desconectar y desinstalar
 
-Desactivar la sección detiene el receptor y borra sus mensajes. Antes de
-eliminar Altillo, desactiva Correo y retira la regla **Altillo Mail** de
-Mail → Ajustes → Reglas. Después pulsa **Eliminar la conexión de Correo de
-Altillo** con Mail abierto. Altillo conserva las reglas creadas por el usuario;
-solo retira sus scripts cuando ya no están vinculados a una regla. Si has
-modificado los scripts, los conserva para que puedas revisarlos.
+Desactivar la sección detiene el receptor y borra sus mensajes. **Eliminar la
+conexión de Correo de Altillo** también detiene la recepción y conserva tanto
+los scripts como las reglas para su retirada manual: no consulta Mail ni intenta
+eliminar archivos que una regla podría seguir usando.
 
-Si vuelves a una versión anterior a 0.13.0, retira primero la conexión. Si ya
-has hecho el rollback, elimina manualmente solo la regla **Altillo Mail** de
-Mail → Ajustes → Reglas y sus dos scripts de la carpeta que muestra Mail.
-No borres otros scripts ni las reglas de tus cuentas.
+Antes de eliminar Altillo o volver a una versión anterior a 0.13.0:
+
+1. Desactiva Correo y retira la regla **Altillo Mail** de Mail → Ajustes → Reglas.
+   Si has creado más reglas que ejecutan el script, retíralas también.
+2. En la configuración de Correo de Altillo, pulsa **Mostrar scripts**. Retira
+   manualmente solo **Altillo Mail.scpt** y **Altillo Mail Bridge.scpt**, una vez
+   que ninguna regla los use. No borres otros scripts ni las reglas de tus cuentas.
+
+Si ya has hecho el rollback, abre desde Mail su carpeta de scripts y sigue los
+mismos pasos. Los mensajes de Altillo solo estaban en memoria.
