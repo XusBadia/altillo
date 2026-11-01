@@ -1,0 +1,63 @@
+use AppleScript version "2.7"
+use framework "Foundation"
+use scripting additions
+property helperPath : "__HELPER_PATH__"
+property socketPath : "__SOCKET_PATH__"
+
+on shortText(inputText, maximumLength)
+	if (length of inputText) > maximumLength then return text 1 thru maximumLength of inputText
+	return inputText
+end shortText
+
+on run arguments
+	if (count of arguments) is not 6 then return false
+	if not (current application's NSFileManager's defaultManager()'s fileExistsAtPath:socketPath) as boolean then return false
+	if not (current application's NSFileManager's defaultManager()'s isExecutableFileAtPath:helperPath) as boolean then return false
+	-- All mail data is local to this handler, never a saved script property or process argument.
+	set payload to current application's NSMutableDictionary's dictionary()
+	payload's setObject:1 forKey:"version"
+	payload's setObject:(item 1 of arguments) forKey:"messageID"
+	payload's setObject:(my shortText(item 2 of arguments, 200)) forKey:"sender"
+	payload's setObject:(my shortText(item 3 of arguments, 250)) forKey:"subject"
+	payload's setObject:(my shortText(item 4 of arguments, 1024)) forKey:"body"
+	payload's setObject:(my shortText(item 5 of arguments, 200)) forKey:"account"
+	set timestamp to (current application's NSDate's timeIntervalSinceReferenceDate()) + 978307200 - (item 6 of arguments)
+	payload's setObject:timestamp forKey:"receivedAt"
+	set {jsonData, jsonError} to current application's NSJSONSerialization's dataWithJSONObject:payload options:0 |error|:(reference)
+	if jsonData is missing value then return false
+	if (jsonData's |length|() as integer) > 8192 then
+		payload's setObject:(my shortText(item 4 of arguments, 256)) forKey:"body"
+		set {jsonData, jsonError} to current application's NSJSONSerialization's dataWithJSONObject:payload options:0 |error|:(reference)
+		if jsonData is missing value then return false
+		if (jsonData's |length|() as integer) > 8192 then return false
+	end if
+	set inputPipe to current application's NSPipe's pipe()
+	set writer to inputPipe's fileHandleForWriting()
+	set task to current application's NSTask's alloc()'s init()
+	task's setLaunchPath:helperPath
+	task's setArguments:{"--socket", socketPath}
+	task's setStandardInput:inputPipe
+	task's setStandardOutput:(current application's NSFileHandle's fileHandleWithNullDevice())
+	task's setStandardError:(current application's NSFileHandle's fileHandleWithNullDevice())
+	set {launched, launchError} to task's launchAndReturnError:(reference)
+	if not (launched as boolean) then return false
+	try
+		writer's writeData:jsonData
+		writer's closeFile()
+		set deadline to (current date) + 3
+		repeat while (task's isRunning() as boolean)
+			if (current date) ≥ deadline then
+				task's terminate()
+				return false
+			end if
+			delay 0.05
+		end repeat
+		return (task's terminationStatus() as integer) = 0
+	on error
+		try
+			writer's closeFile()
+		end try
+		if task's isRunning() as boolean then task's terminate()
+		return false
+	end try
+end run

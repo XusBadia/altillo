@@ -1,0 +1,30 @@
+{
+  "account": "@XusBadia",
+  "platform": "x",
+  "status": "draft",
+  "text": "Altillo 0.13.0: correo en el notch.\n\nPuedes ver mensajes nuevos de Apple Mail y copiar códigos de acceso reconocidos. Beta opcional, con configuración manual y mensajes en memoria durante 5 minutos.\n\nhttps://altillo.app",
+  "visual_path": null,
+  "visual_kind": null,
+  "alt_text": null,
+  "sources": [
+    "docs/releases/0.13.0.md",
+    "docs/correo.md",
+    "promo/launch/PROFILES.md"
+  ],
+  "claim_notes": "Anuncio preparado para después de publicar 0.13.0. No publicar antes de verificar release y appcast públicos. Beta opcional, configuración manual y Apple Mail abierto. Sin afirmar compatibilidad directa con Gmail/Outlook.",
+  "image_prompt": null,
+  "review": {
+    "directness": 9,
+    "rhythm": 8,
+    "trust": 9,
+    "authenticity": 8,
+    "density": 9,
+    "total": 43,
+    "visual_result": "Texto autosuficiente; no requiere visual.",
+    "dedup": "Nuevo anuncio R01, distinto al lanzamiento 0.10.6 del registro local; no verificación de cola viva."
+  },
+  "authorization": "Usuario pide crear posts para esta update; se guardan como borradores.",
+  "scheduled_at": null,
+  "transport_id": null,
+  "public_url": null
+}

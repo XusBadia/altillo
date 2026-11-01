@@ -1,0 +1,46 @@
+-- Keep message resolution in plain AppleScript; only pass scalar values to the Foundation bridge.
+use AppleScript version "2.7"
+use scripting additions
+property bridgeScriptPath : "__BRIDGE_PATH__"
+
+using terms from application "Mail"
+	on perform mail action with messages incomingMessages for rule matchedRule
+		-- Bound a large import/sync batch. This integration is for recent arrivals, not mailbox history.
+		set processedCount to 0
+		repeat with incomingMessage in incomingMessages
+			if processedCount ≥ 20 then exit repeat
+			set processedCount to processedCount + 1
+			try
+				set targetMessage to contents of incomingMessage
+				with timeout of 2 seconds
+					tell application id "com.apple.mail"
+						set receivedTime to date received of targetMessage
+						set rawSubject to get subject of targetMessage
+					end tell
+				end timeout
+				set ageSeconds to (current date) - receivedTime
+				if ageSeconds ≥ -30 and ageSeconds < 300 and rawSubject is not missing value then
+					set subjectText to rawSubject as text
+					with timeout of 2 seconds
+						tell application id "com.apple.mail"
+							set identifierText to message id of targetMessage
+							set senderText to sender of targetMessage
+							set rawBody to content of targetMessage
+							set accountText to ""
+							try
+								set accountText to name of account of mailbox of targetMessage as text
+							end try
+						end tell
+					end timeout
+					if identifierText is not missing value and senderText is not missing value and rawBody is not missing value then
+						my deliver(identifierText as text, senderText as text, subjectText, rawBody as text, accountText, ageSeconds)
+					end if
+				end if
+			end try
+		end repeat
+	end perform mail action with messages
+end using terms from
+
+on deliver(identifierText, senderText, subjectText, bodyText, accountText, ageSeconds)
+	return run script (POSIX file bridgeScriptPath) with parameters {identifierText, senderText, subjectText, bodyText, accountText, ageSeconds}
+end deliver

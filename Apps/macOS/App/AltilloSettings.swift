@@ -201,6 +201,17 @@ final class AltilloSettings {
         didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
     }
 
+    // Mail content never goes into UserDefaults; only explicit filters and alert preferences.
+    var alertsForMail: Bool {
+        didSet { defaults.set(alertsForMail, forKey: Key.alertsForMail) }
+    }
+    var mailAllowedSenders: String {
+        didSet { defaults.set(mailAllowedSenders, forKey: Key.mailAllowedSenders) }
+    }
+    var mailAllowedAccounts: String {
+        didSet { defaults.set(mailAllowedAccounts, forKey: Key.mailAllowedAccounts) }
+    }
+
     // MARK: Home (docs/casa.md)
 
     /// The Home Assistant server, nil until the user connects one. Its token lives in the Keychain, never here.
@@ -362,6 +373,9 @@ final class AltilloSettings {
         static let homeDoorbellTrigger = "homeDoorbellTrigger"
         static let homeDoorbellCamera = "homeDoorbellCamera"
         static let alertsForHome = "alertsForHome"
+        static let alertsForMail = "alertsForMail"
+        static let mailAllowedSenders = "mailAllowedSenders"
+        static let mailAllowedAccounts = "mailAllowedAccounts"
     }
 
     /// Modules every version before the assistant knew about. A stored list without `knownModules` comes from
@@ -432,6 +446,9 @@ final class AltilloSettings {
         homeDoorbellTrigger = defaults.string(forKey: Key.homeDoorbellTrigger)
         homeDoorbellCamera = defaults.string(forKey: Key.homeDoorbellCamera)
         alertsForHome = defaults.object(forKey: Key.alertsForHome) as? Bool ?? true
+        alertsForMail = defaults.object(forKey: Key.alertsForMail) as? Bool ?? true
+        mailAllowedSenders = defaults.string(forKey: Key.mailAllowedSenders) ?? ""
+        mailAllowedAccounts = defaults.string(forKey: Key.mailAllowedAccounts) ?? ""
     }
 
     /// Applies a starting point (PLAN §4): which sections, in which order, and what the ears show. Everything

@@ -2,7 +2,7 @@ import Foundation
 
 /// A section of the open notch. The shelf is always present; the rest are opt-in and reorderable (PLAN §4).
 enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
-    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts, reminders, keepAwake, home
+    case shelf, assistant, usage, agents, calendar, mirror, nowPlaying, timer, note, clipboard, shortcuts, reminders, keepAwake, home, mail
 
     var id: Self { self }
 
@@ -23,6 +23,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .reminders: String(localized: "Reminders")
         case .keepAwake: String(localized: "Keep Awake")
         case .home: String(localized: "Home")
+        case .mail: String(localized: "Mail")
         }
     }
 
@@ -42,6 +43,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .reminders: "checklist"
         case .keepAwake: "cup.and.heat.waves"
         case .home: "lightswitch.on"
+        case .mail: "envelope"
         }
     }
 
@@ -62,6 +64,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
         case .reminders: String(localized: "What's due today and next, with a quick way to mark it done.")
         case .keepAwake: String(localized: "Keep your Mac awake for a while, only when you ask.")
         case .home: String(localized: "Your Home Assistant lights, blinds and scenes, one click away.")
+        case .mail: String(localized: "New Apple Mail messages, sign-in codes and links, kept briefly on this Mac.")
         }
     }
 
@@ -72,7 +75,7 @@ enum NotchModule: String, CaseIterable, Identifiable, Codable, Sendable {
     /// update, so the tab strip stays calm. The user adds them from edit mode or Settings.
     var isOptIn: Bool {
         switch self {
-        case .timer, .note, .clipboard, .shortcuts, .reminders, .keepAwake, .home: true
+        case .timer, .note, .clipboard, .shortcuts, .reminders, .keepAwake, .home, .mail: true
         default: false
         }
     }

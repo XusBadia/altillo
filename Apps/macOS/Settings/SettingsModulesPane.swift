@@ -95,6 +95,7 @@ struct SettingsSectionPane: View {
     var clipboard: ClipboardStore?
     /// The Home section's store (nil in previews).
     var home: HomeStore?
+    var mail: MailStore?
 
     var body: some View {
         SettingsPane(title: LocalizedStringKey(tab.title), subtitle: detail) {
@@ -117,6 +118,7 @@ struct SettingsSectionPane: View {
                     case .home:
                         if let home { SettingsCard { SettingsHomeGroup(settings: settings, store: home) } }
                     case .agents: SettingsCard { SettingsAgentsGroup(settings: settings) }
+                    case .mail: SettingsCard { SettingsMailGroup(settings: settings, store: mail) }
                     case .assistant, .shelf: SettingsSectionBehaviourOptions(settings: settings, tab: tab)
                     default: EmptyView()
                     }
@@ -134,6 +136,7 @@ struct SettingsSectionPane: View {
         case .usage: "Providers, limits and alerts."
         case .clipboard: "Shortcut, pasting, what's kept and apps left out."
         case .home: "Home Assistant, favourites and the doorbell."
+        case .mail: "Apple Mail setup, message filters and private sign-in actions."
         case .agents: "Connections, replies and permission timing."
         case .assistant: "Keyboard shortcut and web search."
         case .shelf: "Choose what stays on the shelf and for how long."

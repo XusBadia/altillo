@@ -33,6 +33,13 @@ codesign --verify --deep --strict --verbose=2 "$APP_PATH"
 spctl --assess --type execute --verbose=2 "$APP_PATH"
 
 echo "==> checking embedded signed code"
+for helper in altillo-hook altillo-mail; do
+  [[ -x "$APP_PATH/Contents/MacOS/$helper" ]] || { echo "Missing helper: $helper" >&2; exit 1; }
+  codesign --verify --strict --verbose=2 "$APP_PATH/Contents/MacOS/$helper"
+done
+for resource in AltilloMailRule.txt AltilloMailBridge.txt; do
+  [[ -f "$APP_PATH/Contents/Resources/$resource" ]] || { echo "Missing Mail resource: $resource" >&2; exit 1; }
+done
 while IFS= read -r -d '' item; do
   codesign --verify --strict --verbose=2 "$item"
 done < <(find "$APP_PATH/Contents" \( -name '*.framework' -o -name '*.xpc' -o -name '*.appex' \) -print0)

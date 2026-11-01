@@ -1,0 +1,30 @@
+{
+  "account": "https://www.linkedin.com/in/xusbadia/",
+  "platform": "linkedin",
+  "status": "draft",
+  "text": "He añadido correo a Altillo, la app que convierte el notch del Mac en un espacio útil.\n\nEn la versión 0.13.0 puedes ver el remitente y el asunto de mensajes nuevos de Apple Mail, abrir el original y copiar un código de acceso cuando Altillo reconoce uno.\n\nSale como beta opcional. Tienes que activarla y crear una regla en Apple Mail, que debe seguir abierto. Los mensajes duran cinco minutos en memoria y se borran al desactivar Correo, bloquear el Mac o ponerlo en reposo.\n\nPuedes actualizar desde Altillo → Buscar actualizaciones o descargarla en https://altillo.app\n\nLa guía de configuración está en https://github.com/XusBadia/altillo/blob/main/docs/correo.md",
+  "visual_path": null,
+  "visual_kind": null,
+  "alt_text": null,
+  "sources": [
+    "docs/releases/0.13.0.md",
+    "docs/correo.md",
+    "promo/launch/PROFILES.md"
+  ],
+  "claim_notes": "Anuncio preparado para después de publicar 0.13.0. No publicar antes de verificar release y appcast públicos. Beta opcional, configuración manual y Apple Mail abierto. Sin afirmar compatibilidad directa con Gmail/Outlook.",
+  "image_prompt": null,
+  "review": {
+    "directness": 9,
+    "rhythm": 8,
+    "trust": 9,
+    "authenticity": 8,
+    "density": 9,
+    "total": 43,
+    "visual_result": "Texto autosuficiente; no requiere visual.",
+    "dedup": "Nuevo anuncio R01, distinto al lanzamiento 0.10.6 del registro local; no verificación de cola viva."
+  },
+  "authorization": "Usuario pide crear posts para esta update; se guardan como borradores.",
+  "scheduled_at": null,
+  "transport_id": null,
+  "public_url": null
+}

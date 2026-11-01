@@ -11,6 +11,7 @@ let package = Package(
         .library(name: "AltilloUsage", targets: ["AltilloUsage"]),
         .library(name: "AltilloAgents", targets: ["AltilloAgents"]),
         .library(name: "AltilloHome", targets: ["AltilloHome"]),
+        .library(name: "AltilloMail", targets: ["AltilloMail"]),
     ],
     targets: [
         .target(name: "AltilloCore"),
@@ -21,10 +22,13 @@ let package = Package(
         .target(name: "AltilloAgents", dependencies: ["AltilloCore"]),
         // Home section (docs/casa.md): the shared vocabulary and the Home Assistant WebSocket client.
         .target(name: "AltilloHome", resources: [.process("Resources")]),
+        // Read-only Apple Mail events and a bounded local bridge. Message content is never persisted.
+        .target(name: "AltilloMail", dependencies: ["AltilloAgents"]),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),
         .testTarget(name: "AltilloUsageTests", dependencies: ["AltilloUsage"]),
         .testTarget(name: "AltilloDesignTests", dependencies: ["AltilloDesign"]),
         .testTarget(name: "AltilloHomeTests", dependencies: ["AltilloHome"]),
         .testTarget(name: "AltilloAgentsTests", dependencies: ["AltilloAgents"], resources: [.copy("Fixtures")]),
+        .testTarget(name: "AltilloMailTests", dependencies: ["AltilloMail", "AltilloAgents"]),
     ]
 )

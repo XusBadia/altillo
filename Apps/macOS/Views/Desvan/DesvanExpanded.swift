@@ -188,6 +188,7 @@ struct DesvanExpandedFace: View {
             case .reminders: DesvanRemindersView(model: model)
             case .keepAwake: DesvanKeepAwakeView(model: model)
             case .home: DesvanHomeView(model: model)
+            case .mail: DesvanMailView(model: model)
             }
         }
     }
@@ -577,7 +578,7 @@ private struct DesvanHeaderAccessory: View {
                 case .usage: usage
                 case .agents: agents
                 case .assistant, .calendar, .mirror, .nowPlaying, .timer, .note, .clipboard, .shortcuts, .reminders,
-                     .keepAwake, .home:
+                     .keepAwake, .home, .mail:
                     EmptyView()
                 }
             }

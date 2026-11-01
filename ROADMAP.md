@@ -28,8 +28,8 @@ hipótesis que iremos validando.
    crear otros roadmaps que dupliquen prioridades y estados.
 
 Estados: **Pendiente**, **En investigación**, **En curso**, **Bloqueado: motivo**,
-**Hecho** y **Descartado: motivo**. R01 está **En investigación**, con un
-prototipo local probado; las demás iniciativas siguen **Pendientes**. Anotar
+**Hecho** y **Descartado: motivo**. R01 está **En curso**, con un
+módulo integrado pendiente de cerrar validación y publicación; las demás iniciativas siguen **Pendientes**. Anotar
 los cambios de estado y su evidencia en la fila correspondiente.
 
 ## Dirección de producto
@@ -50,7 +50,7 @@ una interfaz tranquila.
 Correo e idiomas mantienen la prioridad destacada por Xus. Después, estas
 son las candidatas recomendadas para elegir entre sesiones:
 
-1. **R01 Correo:** comprobar recepción real desde Apple Mail.
+1. **R01 Correo:** validar y publicar la beta opcional integrada en 0.13.0.
 2. **R02 y R03 Idiomas:** catalán y lote francés/alemán/italiano con IA.
 3. **R04 y R19 Archivos listos para enviar:** ZIP y reducción de imágenes.
 4. **R26 Pegado en secuencia:** un flujo completo y fácil de demostrar.
@@ -70,14 +70,16 @@ Inspiración: [tweet de GotEmail](https://x.com/uaghazadae/status/21165071333446
 El caso de uso es enterarte de un correo importante o usar un código de acceso
 sin ir a buscarlo a la bandeja.
 
-La primera vía a probar es una regla de Apple Mail que ejecuta AppleScript.
+La primera implementación usa una regla de Apple Mail que ejecuta AppleScript.
 [Apple documenta esa automatización](https://support.apple.com/guide/mail/automate-mail-tasks-mlhlp1120/mac)
 y el diccionario de Mail permite recibir el evento y leer contenido. El
 [spike de R01](docs/spikes/mail-bridge.md) ya verifica la regla ejecutada por
 Mail sobre un mensaje sintético importado, el transporte nativo, código y
 magic link en una tarjeta temporal y apertura del mismo mensaje en Mail.
-La tarjeta aún no está integrada en Altillo. Falta probar llegada nueva real
-y cerrar alta/baja: el piloto requiere crear la regla desde Ajustes de Mail.
+La candidata 0.13.0 ya integra la tarjeta en Altillo, con activación opcional,
+filtros y preparación local de scripts probados desde la interfaz real. Falta
+cerrar la llegada nueva por red y la publicación. La regla se crea y se retira
+manualmente desde Ajustes de Mail; Altillo conserva las reglas del usuario.
 MailKit sigue siendo una alternativa si ese paso no ofrece una UX fiable.
 
 La investigación debe cerrar recepción real, permisos, instalación y retirada,
@@ -123,7 +125,7 @@ El estado por defecto de las filas es **Pendiente**.
 
 | ID | Prioridad y tamaño | Iniciativa y primera entrega | Dependencia o criterio de cierre | Inspiración |
 | --- | --- | --- | --- | --- |
-| R01 | Alta · M | **Correo en el notch — En investigación.** Puente y tarjeta experimental probados con una regla de Mail sobre un mensaje sintético importado. [Evidencia y reproducción](docs/spikes/mail-bridge.md). | Siguiente: llegada nueva por red, instalación manual guiada e integración opt-in en el notch real; la feature no está terminada. | GotEmail; prueba local |
+| R01 | Alta · M | **Correo en el notch — En curso (0.13.0).** Módulo opcional integrado, scripts guiados, filtros y acciones efímeras; guía en [Correo](docs/correo.md). [Prueba inicial](docs/spikes/mail-bridge.md). | Cerrar la validación de llegada por red y CI, firmar/notarizar y comprobar el artefacto antes de publicar. | GotEmail; prueba local |
 | R02 | Alta · S | **Catalán.** Traducir con IA app, onboarding, ajustes y paquetes compartidos. | Validar variables, plurales, terminología y tamaños; ampliar el validador de idiomas. | Decisión de Xus |
 | R03 | Alta · M | **Francés, alemán e italiano juntos.** Una entrega conjunta con traducción por IA y revisión de las pantallas principales. | No separar los tres en lanzamientos artificiales; revisar especialmente textos largos e interpolaciones. | Decisión de Xus |
 | R07 | Media · M | **Vista breve y resumen de correo.** Ver un extracto y pedir un resumen on-device desde el aviso. | Depende de R01; consentimiento explícito para procesar contenido; probar límites de idioma y longitud. | Idea Altillo |
