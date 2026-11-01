@@ -1,0 +1,174 @@
+Snippets | Raycast Manual (https://manual.raycast.com/snippets)
+citeturn13view1 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://manual.raycast.com/snippets","lineno":null}); Total lines: 317
+L0: 【0†Skip to content】
+L1: 
+L2: 【1†Manual】【2†Extensions API†developers.raycast.com】
+L3: 
+L4: [Input: Search Raycast Manual...]
+L5: 
+L6: 【1†Manual】【2†Extensions API†developers.raycast.com】
+L7: 
+L8: Search Manual`⌘``K``Ctrl``K`
+L9: 
+L10: 【1†Manual】【2†Extensions API†developers.raycast.com】
+L11: 
+L12:   * 【3†Basics】
+L13: 
+L14:     * 【3†Quickstart】
+L15:     * 【4†Search Bar】
+L16:     * 【5†Action Panel】
+L17:     * 【6†Command Aliases & Hotkeys】
+L18:     * 【7†Keyboard Shortcuts】
+L19:     * 【8†Import & Export】
+L20:     * 【9†Settings】
+L21:     * 【10†New in Raycast v2】
+L22:   * 【11†Core Features】
+L23:     * 【11†Snippets】
+L24:     * 【12†Quicklinks】
+L25:     * 【13†Clipboard History】
+L26:     * 【14†Notes】
+L27:     * 【15†Focus】
+L28:     * 【16†File Search】
+L29:     * 【17†Applications】
+L30:     * 【18†Extensions】
+L31:     * 【19†Translate】
+L32:     * 【20†Emoji & Symbols】
+L33:     * 【21†Calendar】
+L34:     * 【22†Calculator】
+L35:     * 【23†Screenshots】
+L36:     * 【24†Window Management】
+L37:     * 【25†Navigation】
+L38:   * 【26†Power Features】
+L39:     * 【26†Hyper Key】
+L40:     * 【27†Cloud Sync】
+L41:     * 【28†Dynamic Placeholders】
+L42:     * 【29†System Commands】
+L43:     * 【30†Script Commands】
+L44:     * 【31†Themes】
+L45:     * 【32†Auto Quit】
+L46:     * 【33†Run】
+L47:     * 【34†Games】
+L48:   * 【35†AI】
+L49:     * 【36†Quick AI】
+L50:     * 【37†AI Chat】
+L51:     * 【38†Dictation】
+L52:     * 【39†Screen Awareness】
+L53:     * 【40†AI Commands】
+L54:     * 【41†AI Extensions】
+L55:     * 【42†Automations】
+L56:     * 【43†Agents】
+L57:     * 【44†MCP】
+L58:     * 【45†Skills】
+L59:     * 【46†Projects】
+L60:     * 【47†Personalization】
+L61:     * 【48†AI Credits】
+L62:     * 【49†Local Models】
+L63:     * 【50†Extension Models】
+L64:     * 【51†Custom Providers】
+L65:     * 【52†Bring Your Own Key】
+L66:     * 【53†Bring Your Own Subscription】
+L67:     * 【54†Raycast AI Privacy & Security】
+L68:   * 【55†iOS】
+L69:     * 【56†Keyboard New】
+L70:     * 【57†Widgets & Controls】
+L71:     * 【58†Apple Shortcuts】
+L72:     * 【59†Share Extension】
+L73:   * 【60†Account】
+L74: 
+L75:     * 【60†Account Management】
+L76:     * 【61†Billing】
+L77:     * 【62†Teams & Enterprise】
+L78: 
+L79:       * 【63†Quickstart with Teams】
+L80:       * 【64†Roles & Permissions】
+L81:       * 【65†Shared Features】
+L82:       * 【66†Enterprise】
+L83:         * 【67†Quickstart with Enterprise】
+L84:         * 【68†MDM Deployment】
+L85:         * Identity & Access Management
+L86:           * 【69†SAML Single Sign-On (SSO)】
+L87:           * 【70†SCIM Provisioning】
+L88:           * 【71†Domain Capture】
+L89:           * 【72†MDM Sign-In Enforcement】
+L90:         * Admin Controls
+L91:           * 【73†2FA Enforcement】
+L92:           * 【74†Cloud Sync Control】
+L93:           * 【75†Dictation Control】
+L94:           * 【76†Invitations Control】
+L95:           * 【77†Private Extension Publishing】
+L96:           * 【78†Clipboard History Control】
+L97:           * 【79†IP Allow-List】
+L98:         * AI Control Centre
+L99:           * 【80†Organization-Wide AI Toggle】
+L100:           * 【81†AI Memory Control】
+L101:           * 【82†Screen Awareness Control】
+L102:           * 【83†AI Feedback Control】
+L103:           * 【84†AI Provider Allow-List】
+L104:           * 【85†Custom API Keys (BYOK)】
+L105:           * 【86†Custom Provider Configuration】
+L106:         * 【87†Extensions Allow-List】
+L107:         * 【88†Security & Compliance】
+L108:   * 【89†Troubleshooting】
+L109:   * 【90†Community Guidelines】
+L110:   * 【91†Extensions Guidelines】
+L111:   * 【92†Contact Support】
+L112: 
+L113: Core Features
+L114: # Snippets
+L115: 
+L116: Snippets let you store frequently used text and insert it anywhere on your computer with just a few keystrokes. Whether it's email templates, code blocks, addresses, or emoji sequences, Snippets save you from typing the same things over and over. In v2, Snippets gain support for tagging and a new `{calculator}` 【28†dynamic placeholder】.
+L117: 
+L118: 【93†Snippets in Raycast†www.youtube-nocookie.com】
+L119: Open Snippets by searching for "Search Snippets" or "Create Snippet" in 【4†Root Search】, or assign a hotkey for instant access.
+L120: ## Creating a Snippet
+L121: 
+L122: To create a new Snippet:
+L123:   1. Open Raycast and search for Create Snippet
+L124:   2. Enter the text you want to save in the Snippet Text field. This can be plain text, formatted content, code, or any text you type repeatedly.
+L125:   3. Give your Snippet a Name so you can find it later.
+L126:   4. Optionally assign a Keyword to enable auto-expansion (see below).
+L127:   5. Optionally add Tags to organize your Snippets into groups.
+L128:   6. If you're in a Raycast team, choose an Organization to decide whether the Snippet is personal or shared with your organization.
+L129: Snippet text has a maximum length of 65K characters. This limit exists for performance reasons — in practice, most Snippets are well within this range.
+L130: ## Keywords & Auto-Expansion
+L131: 
+L132: Keywords are the real power behind Snippets. When you assign a keyword to a Snippet, typing that keyword in any application automatically replaces it with the full Snippet text. This works everywhere: in your browser, code editor, email client, chat apps, and more.
+L133: ### How Auto-Expansion Works
+L134: 
+L135:   1. Assign a keyword to your Snippet (e.g., `!email`, `;;addr`, `/sig`)
+L136:   2. Type the keyword in any text field on your computer
+L137:   3. Raycast automatically replaces the keyword with your Snippet text
+L138: 
+L139: Choose keywords that are unlikely to be typed accidentally. Prefixes like `!`, `;;`, or `//` work well. For example, `!thanks` is safer than just `thanks`.
+L140: ### Auto-Expansion Settings
+L141: 
+L142: You can enable or disable auto-expansion globally in Settings → Snippets. When disabled, Snippets still work — you just need to search for them in Raycast and paste manually instead of using keyword triggers.
+L143: ### Keyword Character Reference
+L144: 
+L145: Not all characters can be used in keywords. Raycast uses certain characters as word-boundary delimiters, which means they will trigger expansion rather than become part of the keyword itself.
+L146: 
+L147: Characters that cannot be used in keywords:
+L148:   * Backtick: ```
+L149:   * Quotation marks: single quote `'`, double quote `"`, and their curly/smart variants `' ' " "`
+L150:   * Whitespace: spaces, tabs, and newlines
+L151:   * Other delimiters: some additional punctuation characters act as word boundaries and will trigger expansion instead of being included in the keyword
+L152: 
+L153: Characters that can be used in keywords:
+L154:   * Letters: all Unicode letters (Latin, Cyrillic, CJK, etc.)
+L155:   * Numbers: `0–9`
+L156:   * Hyphen & underscore: `-` and `_`
+L157:   * Math symbols: such as `+ = < >`
+L158:   * Currency symbols: `$ € £ ¥` and others
+L159:   * Most punctuation: including `! ; / . , @ # ~ &` (except the restricted characters listed above)
+L160: 
+L161: Keywords like `!email`, `;;addr`, `/sig`, and `$price` are all valid. Keywords like `my email` (contains a space) or `it's` (contains an apostrophe) are not, because the space and quote act as delimiters.
+L162: ## Searching & Managing Snippets
+L163: 
+L164: The Search Snippets command gives you a central view of all your Snippets. From here you can:
+L165: 
+L166:   * Search by name, keyword, or content
+L167:   * Filter by tag to quickly narrow down your collection
+L168:   * Copy a Snippet to your clipboard
+L169:   * Paste a Snippet directly into the active application
+L170:   * Pin frequently used Snippets to the top of the list
+L171:   * Edit, duplicate, or delete Snippets

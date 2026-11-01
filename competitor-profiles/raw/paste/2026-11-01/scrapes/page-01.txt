@@ -1,0 +1,71 @@
+Using Paste Stack — Paste Help (https://pasteapp.io/help/using-paste-stack)
+citeturn10view4 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://pasteapp.io/help/using-paste-stack","lineno":null}); Total lines: 69
+L0: [Input]
+L1: 
+L2: Use Cases
+L3: 
+L4: 【0†Everyone】【1†Developers】【2†Designers】【3†Content & Marketing】
+L5: 
+L6: Resources
+L7: 
+L8: 【4†Help】【5†Blog】【6†Contact】
+L9: 
+L10: 【7†Updates】
+L11: 
+L12: 【8†For Teams】
+L13: 
+L14: 【9†Pricing】
+L15: 
+L16: 【10†Try for free】
+L17: 
+L18: 【11†Paste】
+L19: 
+L20: 【12†Use Cases】
+L21: 
+L22: 【0†Everyone】【1†Developers】【2†Designers】【3†Content & Marketing】
+L23: 
+L24: 【4†Help】【5†Blog】【7†Updates】【8†For Teams】【9†Pricing】
+L25: 
+L26: 【10†Try for free】
+L27: # Using Paste Stack
+L28: 
+L29: Paste Stack is an incredibly useful way to copy and paste across multiple apps on your Mac. It comes in handy when you need to copy and paste a set of items from one place to another in a specific order — for instance, if you need to assemble an article out of many different pieces from different notes. Whenever you need to compile something in a specific order, Paste Stack is your best bet.
+L30: 
+L31: 【13†Image】
+L32: Paste Stack is essentially a temporary ad hoc pinboard. Using it is simple: Activate it with the Shift-Command-C keyboard shortcut, and everything you copy will get into the stack in order.
+L33: 
+L34: When you’re done copying, you can paste the items using the Command-V shortcut and they will be placed in order from top to bottom. You can also change the direction of the stack by clicking on the arrows button.
+L35: Re-used items will automatically disappear from the stack. You can remove items that you don’t need using the context menu’s Delete option or simply by swiping with two fingers to the left.
+L36: ## Learn more
+L37: 
+L38:   * 【14†Quick Paste with numbered shortcuts】
+L39:   * 【15†Keyboard shortcuts】
+L40:   * 【16†Paste directly to other applications】
+L41: 
+L42: ### Product
+L43: 
+L44:   * 【10†Download】
+L45:   * 【9†Pricing】
+L46:   * 【8†Paste for Teams】
+L47:   * 【7†What's New】
+L48:   * 【17†Suggest a Feature】
+L49:   * 【18†Beta】
+L50: 
+L51: ### Resources
+L52: 
+L53:   * 【19†MCP & AI Tools】
+L54:   * 【4†Help】
+L55:   * 【5†Blog】
+L56:   * 【20†Affiliate Program】
+L57:   * 【21†Media Kit】
+L58: 
+L59: ### More
+L60: 
+L61:   * 【22†About】
+L62:   * 【6†Contact】
+L63:   * 【23†Jobs†pasteapp.craft.me】
+L64:   * 【24†Terms of Use】
+L65:   * 【25†Privacy Policy】
+L66: ### Follow us
+L67: 
+L68: © 2026 Paste Team ApS. All rights reserved.All trademarks are the property of their respective owners.

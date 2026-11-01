@@ -1,0 +1,190 @@
+GitHub - TheBoredTeam/boring.notch: TheBoringNotch: Not so boring notch That Rocks 🎸🎶 · GitHub (https://github.com/TheBoredTeam/boring.notch)
+citeturn9view3 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://github.com/TheBoredTeam/boring.notch","lineno":null}); Total lines: 376
+L0: 【0†Skip to content】
+L1: ## Navigation Menu
+L2: 
+L3:   * Products
+L4: 
+L5:     *       * 【1†GitHub Repository hosting, code review, and collaboration】
+L6:       * 【2†Copilot AI coding agent for tasks, projects and automated work】
+L7: 
+L8:     * Build & Ship
+L9:       * 【3†Actions CI/CD and automation】
+L10:       * 【4†Code Quality Quality analysis, fixes, and enforcement】
+L11:       * 【5†Codespaces Cloud development environments】
+L12:     * Secure
+L13:       * 【6†Code Security Vulnerability detection and remediation】
+L14:       * 【7†Secret Protection Secret scanning and leak prevention】
+L15: 
+L16: 【8†All Features】
+L17: 
+L18:   * Developers
+L19: 
+L20:     * Learn
+L21:       * 【9†Documentation†docs.github.com】
+L22:       * 【10†Training†learn.github.com】
+L23:       * 【11†Certifications†learn.github.com】
+L24: 
+L25:     * Build
+L26:       * 【12†Build with Copilot】
+L27:       * 【13†Customize Copilot†docs.github.com】
+L28:       * 【14†Integrations】
+L29:     * Explore
+L30:       * 【15†Trending repos】
+L31:       * 【16†GitHub Sponsors】
+L32:       * 【17†Events】
+L33: 
+L34:     *       * 【18†Changelog Your source for the latest features, improvements, and fixes across GitHub products, all in one place.†github.blog】
+L35: 
+L36:   * Businesses
+L37: 
+L38:     * By Stage
+L39:       * 【19†Enterprises】
+L40:       * 【20†Team】
+L41:       * 【21†Startups】
+L42:       * 【22†Nonprofits】
+L43:     * By Industry
+L44:       * 【23†Healthcare】
+L45:       * 【24†Financial services】
+L46:       * 【25†Manufacturing】
+L47:       * 【26†Government】
+L48:       * 【27†See all industries】
+L49: 
+L50:     * Evaluate GitHub
+L51:       * 【28†Why GitHub】
+L52:       * 【29†Customer Stories】
+L53:       * 【30†Business insights】
+L54:       * 【31†Trust Center】
+L55: 
+L56:     * Add-ons
+L57:       * 【32†GitHub Advanced Security Enterprise-grade code security】
+L58:       * 【33†Copilot for business Enterprise-grade AI features】
+L59:       * 【34†Premium Support Enterprise-grade 24/7 support】
+L60:   * Resources
+L61: 
+L62:     * Learn & Connect
+L63:       * 【9†Documentation†docs.github.com】
+L64:       * 【35†Resource center】
+L65:       * 【36†Blog†github.blog】
+L66:       * 【17†Events & webinars】
+L67:       * 【37†Community Forum】
+L68:       * 【29†Customer Stories】
+L69:       * 【14†Integrations】
+L70: 
+L71:     * Support
+L72:       * 【38†Customer support†help.github.com】
+L73:       * 【10†Training†learn.github.com】
+L74:       * 【39†GitHub Status†www.githubstatus.com】
+L75: 
+L76:     * Company
+L77:       * 【40†About】
+L78:       * 【41†Partners】
+L79:       * 【18†Changelog†github.blog】
+L80:     *       * 【42†GitHub Universe The event for developers, by developers — talks, workshops, and what’s next for GitHub.†githubuniverse.com】
+L81: 
+L82:   * 【43†Pricing】
+L83: 
+L84: Search`/`
+L85: 
+L86: 【44†Sign in】
+L87: 
+L88: 【45†Sign up】
+L89: 
+L90: Appearance settings
+L91: 
+L92: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L93: 
+L94:   1. 【46†TheBoredTeam】
+L95:   2. 【47†boring.notch】
+L96: ## Repository navigation
+L97: 
+L98:   *   * 【47†Code】
+L99:   * 【48†Issues 260 (260)】
+L100:   * 【49†Pull requests 156 (156)】
+L101:   * 【50†Actions】
+L102:   * 【51†Security and quality】
+L103:   * 【52†Insights】
+L104: 
+L105: More items
+L106: 
+L107: 【53†Image: TheBoredTeam†avatars.githubusercontent.com】
+L108: 
+L109: 【47†boring.notch】
+L110: 
+L111: Public
+L112: 
+L113:   * Sponsor
+L114:   * 【54†Notifications】You must be signed in to change notification settings
+L115:   * 【54†Fork 1.2k (1.2k)】
+L116:   * 【54†Star 11.2k (11.2k)】You must be signed in to star a repository
+L117: ## About
+L118: 
+L119: TheBoringNotch: Not so boring notch That Rocks 🎸🎶
+L120: 
+L121: 【55†theboring.name/†theboring.name】
+L122: 
+L123: ### Resources
+L124: 
+L125: 【56†Readme】
+L126: 
+L127: 【57†GPL-3.0 license】
+L128: 
+L129: ### Contributing
+L130: 
+L131: 【58†Contributing】
+L132: 
+L133: ### Security policy
+L134: 
+L135: 【59†Security policy】
+L136: 
+L137: 【60†Activity】
+L138: 
+L139: 【61†Custom properties】
+L140: 
+L141: ### Stars
+L142: 
+L143: 11.2k stars
+L144: 
+L145: ### Watchers
+L146: 
+L147: 55 watching
+L148: 
+L149: ### Forks
+L150: 
+L151: 【62†1.2k forks】
+L152: 
+L153: 【63†Report repository】
+L154: 
+L155: main
+L156: 
+L157: 【64†Branches】【65†Tags】
+L158: 
+L159: [Input: Go to file]
+L160: 
+L161: Go to file
+L162: 
+L163: Code
+L164: 
+L165: Open more actions menu
+L166: 
+L167: ## Latest commit
+L168: 
+L169: 
+L170: 
+L171: ## History
+L172: 
+L173: 1,329 Commits
+L174: ## Folders and files
+L175: Name  | Name  | Last commit message  | Last commit date
+L176: --- | --- | --- | ---
+L177: 【66†.devcontainer】  | 【66†.devcontainer】  |    |
+L178: 【67†.github】  | 【67†.github】  |    |
+L179: 【68†BoringNotchXPCHelper】  | 【68†BoringNotchXPCHelper】  |    |
+L180: 【69†Configuration/dmg】  | 【69†Configuration/dmg】  |    |
+L181: 【70†boringNotch.xcodeproj】  | 【70†boringNotch.xcodeproj】  |    |
+L182: 【71†boringNotch】  | 【71†boringNotch】  |    |
+L183: 【72†mediaremote-adapter】  | 【72†mediaremote-adapter】  |    |
+L184: 【73†updater】  | 【73†updater】  |    |
+L185: 【74†.gitignore】  | 【74†.gitignore】  |    |
+L186: 【75†CONTRIBUTING.md】  | 【75†CONTRIBUTING.md】  |    |
+L187: 【76†LICENSE】  | 【76†LICENSE】  |    |

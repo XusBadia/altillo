@@ -1,0 +1,167 @@
+Changelog: What's New in Seam for Mac (https://getseam.app/changelog)
+citeturn9view4 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://getseam.app/changelog","lineno":null}); Total lines: 1927
+L0: 【0†Skip to main content】
+L1: 
+L2: 【1†seam】
+L3: 
+L4: # Changelog
+L5: 
+L6: What's new in seam
+L7: 
+L8: ## 1.18.14
+L9: 
+L10: · Weekly Updates October 2026
+L11: 
+L12: ### Improvements
+L13: 
+L14:   * Updates - Seam now checks for a new version once a week instead of every day, and Check for Updates still looks right away
+L15: 
+L16: ### Fixes
+L17: 
+L18:   * Minor bug fixes and reliability improvements
+L19: 
+L20: ## 1.18.13
+L21: 
+L22: · Safe Drop October 2026
+L23: 
+L24: ### Fixes
+L25: 
+L26:   * Dropzones - Dragging a stashed file into another app no longer quits Seam
+L27: 
+L28: ## 1.18.12
+L29: 
+L30: · Same Pace October 2026
+L31: ### Improvements
+L32: 
+L33:   * Island motion - Content inside the island now settles at the same pace it did before 1.18, to match the shape
+L34: 
+L35: ## 1.18.11
+L36: 
+L37: · Bounce Back October 2026
+L38: 
+L39: ### Improvements
+L40: 
+L41:   * Island motion - The island opens with its bounce again, and its content fades in at an easier pace, the way it moved before 1.18
+L42: 
+L43: ## 1.18.10
+L44: 
+L45: · Out of the Way October 2026
+L46: ### Features
+L47: 
+L48:   * Follow the app in front - Bring Spotify, Music, Calendar or a coding agent's app forward and the island shows it. Turn it off in Settings, General
+L49:   * Gemini CLI - Seam shows Gemini CLI's progress beside your other coding agents
+L50: ### Improvements
+L51: 
+L52:   * Menu bar - The notch shrinks to fit around your menu bar icons, so it never covers them or blocks a click
+L53:   * Coding agents - Agents you install after Seam connect on their own, and Settings says plainly when one can't share its usage
+L54:   * Weather - The last forecast stays on screen when you go offline, and an old one says how old it is
+L55: 
+L56: ### Fixes
+L57: 
+L58:   * Minor bug fixes and reliability improvements
+L59: 
+L60: ## 1.18.9
+L61: 
+L62: · Easier to Reach, Harder to Lose October 2026
+L63: ### Improvements
+L64:   * VoiceOver - Every control on the island has a name, and swipe-only actions like skipping a track are now VoiceOver actions too
+L65:   * Reduce Motion - The visualizer, voice orb, waveform and scrolling titles hold still when Reduce Motion is on
+L66:   * Voice - Removing a replacement, a learned word or a language shows Undo for a few seconds
+L67:   * Flow - Stopping a session asks for a second click, so a stray tap can't end it
+L68:   * Readability - Text colours are easier to read in light mode, and numbers no longer shift width as they count
+L69:   * License - Smoother activation from the license prompt
+L70: ### Fixes
+L71: 
+L72:   * Minor bug fixes and reliability improvements
+L73: 
+L74: ## 1.18.8
+L75: 
+L76: · Fits Every Language October 2026
+L77: 
+L78: ### Improvements
+L79: 
+L80:   * Calendar - Time left and "All day" read in your language, and long event titles stay on one line
+L81:   * Weather - A long city name no longer pushes the forecast out of place
+L82:   * Music - A track with no artist shows "Unknown Artist" instead of a blank line
+L83:   * Devices - Long device names keep the model at the end in view
+L84:   * Battery - Percentages follow your region's format
+L85: ### Fixes
+L86: 
+L87:   * Minor bug fixes and reliability improvements
+L88: 
+L89: ## 1.18.7
+L90: 
+L91: · opencode Usage Is Back October 2026
+L92: 
+L93: ### Improvements
+L94: 
+L95:   * Code - opencode usage and OpenCode Go limits show again on opencode 2
+L96:   * Focus - The On and Off label now shows in German and French
+L97:   * Dropzones - Drag animations follow Reduce Motion, and new files slide into the stack
+L98:   * Code - Usage and Insights numbers use your region's decimal separator
+L99: 
+L100: ### Fixes
+L101: 
+L102:   * Minor bug fixes and reliability improvements
+L103: ## 1.18.6
+L104: 
+L105: · Steadier Now Playing October 2026
+L106: 
+L107: ### Fixes
+L108: 
+L109:   * Music - Seam no longer quits when a track's length isn't known yet
+L110: 
+L111: ## 1.18.5
+L112: 
+L113: · Steadier Battery Alerts October 2026
+L114: 
+L115: ### Fixes
+L116: 
+L117:   * Battery - The charging alert now clears on its own when you plug into a display
+L118: 
+L119: ## 1.18.4
+L120: 
+L121: · Reliability Update October 2026
+L122: 
+L123: ### Fixes
+L124: 
+L125:   * Minor bug fixes and reliability improvements
+L126: 
+L127: ## 1.18.3
+L128: 
+L129: · Steadier Now Playing October 2026
+L130: ### Fixes
+L131: 
+L132:   * Now Playing - Keeps showing what's playing without dropping out
+L133: 
+L134: ## 1.18.2
+L135: 
+L136: · Reliability Update October 2026
+L137: 
+L138: ### Fixes
+L139: 
+L140:   * Updates - More reliable updates
+L141:   * Minor bug fixes and reliability improvements
+L142: 
+L143: ## 1.18.1
+L144: 
+L145: · Ready for opencode 2.0 October 2026
+L146: 
+L147: ### Improvements
+L148: 
+L149:   * Code - Works with opencode 2.0, and keeps working with earlier versions
+L150:   * Settings - Step sliders now fill all the way to the last step
+L151:   * Uses less energy while caffeinated or with Focus on
+L152: ### Fixes
+L153: 
+L154:   * Minor bug fixes and stability improvements
+L155: 
+L156: ## 1.18.0
+L157: 
+L158: · Smoother, Sharper Island October 2026
+L159: 
+L160: ### Features
+L161: 
+L162:   * Haptics - Feel a light tap when the island opens, when volume or brightness hits its limit, and when a file lands in Dropzones
+L163:   * Light wallpapers - A thin outline keeps the island easy to see on bright backgrounds
+L164:   * Music - Apple Music covers look sharper

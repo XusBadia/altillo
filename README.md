@@ -34,7 +34,8 @@
 </p>
 
 > 🇪🇸 Este README está en inglés para llegar a más gente. El [plan de desarrollo](PLAN.md)
-> y la [guía de desarrollo](docs/desarrollo.md) están en español.
+> y la [guía de desarrollo](docs/desarrollo.md) están en español. El [roadmap](ROADMAP.md)
+> recoge las próximas prioridades y su estado, sin fechas fijas.
 
 Actively developed and used daily, with signed, notarized releases and automatic
 updates. Altillo is still pre-1.0, so expect some rough edges and occasional

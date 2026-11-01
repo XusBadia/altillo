@@ -1,0 +1,141 @@
+(https://raw.githubusercontent.com/TheBoredTeam/boring.notch/main/README.md)
+citeturn14view0 [wordlim: 200] Crawled: today; Content type: text/plain; Source: open({"ref_id":"https://raw.githubusercontent.com/TheBoredTeam/boring.notch/main/README.md","lineno":null}); Total lines: 177
+L0: <h1 align="center">
+L1:   <br>
+L2:   <a href="http://theboring.name"><img src="https://framerusercontent.com/images/RFK4vs0kn8pRMuOO58JeyoemXA.png?scale-down-to=256" alt="Boring Notch" width="150"></a>
+L3:   <br>
+L4:   Boring Notch
+L5:   <br>
+L6: </h1>
+L7: 
+L8: <p align="center">
+L9:   <a title="Crowdin" target="_blank" href="https://crowdin.com/project/boring-notch"><img src="https://badges.crowdin.net/boring-notch/localized.svg"></a>
+L10:   <img src="https://github.com/TheBoredTeam/boring.notch/actions/workflows/cicd.yml/badge.svg" alt="TheBoringNotch Build & Test" style="margin-right: 10px;" />
+L11:   <a href="https://discord.gg/c8JXA7qrPm">
+L12:     <img src="https://dcbadge.limes.pink/api/server/https://discord.gg/c8JXA7qrPm?style=flat" alt="Discord Badge" />
+L13:   </a>
+L14:   <a href="https://www.ko-fi.com/alexander5015">
+L15:     <img src="https://srv-cdn.himpfen.io/badges/kofi/kofi-flat.svg" alt="Ko-Fi" />
+L16:   </a>
+L17: </p>
+L18: <p align="center">
+L19:   <a href="https://trendshift.io/repositories/14815?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-14815" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/14815" alt="TheBoredTeam%2Fboring.notch |    Trendshift" width="250" height="55"/></a>
+L20: </p>
+L21: <!--Welcome to **Boring.Notch**, the coolest way to make your MacBook's notch the star of the show! Forget about those boring status bars—our notch turns into a dynamic music control center, complete with a snazzy visualizer and all the music controls you need. It's like having a mini concert right at the top of your screen! -->
+L22: Say hello to **Boring Notch**, the coolest way to make your MacBook’s notch the star of the show! Say goodbye to boring status bars: with Boring Notch, your notch transforms into a dynamic music control center, complete with a vibrant visualizer and all the essential music controls you need. But that’s just the start! Boring Notch also offers calendar integration, a handy file shelf with AirDrop support, a complete MacOS HUD replacement and more!
+L23: <p align="center">
+L24:   <img src="https://github.com/user-attachments/assets/2d5f69c1-6e7b-4bc2-a6f1-bb9e27cf88a8" alt="Demo GIF" />
+L25: </p>
+L26: <!--https://github.com/user-attachments/assets/19b87973-4b3a-4853-b532-7e82d1d6b040-->
+L27: ---
+L28: <!--## Table of Contents
+L29: - [Installation](#installation)
+L30: - [Usage](#usage)
+L31: - [Roadmap](#-roadmap)
+L32: - [Building from Source](#building-from-source)
+L33: - [Contributing](#-contributing)
+L34: - [Join our Discord Server](#join-our-discord-server)
+L35: - [Star History](#star-history)
+L36: - [Buy us a coffee!](#buy-us-a-coffee)
+L37: - [Acknowledgments](#-acknowledgments)-->
+L38: ## Installation
+L39: 
+L40: **System Requirements:**
+L41: - macOS **14 Sonoma** or later
+L42: - Apple Silicon or Intel Mac
+L43: 
+L44: ---
+L45: ### Option 1: Download and Install Manually
+L46: 
+L47: <a href="https://github.com/TheBoredTeam/boring.notch/releases/latest/download/boringNotch.dmg" target="_self"><img width="200" src="https://github.com/user-attachments/assets/e3179be1-8416-4b8a-b417-743e1ecc67d6" alt="Download for macOS" /></a>
+L48: 
+L49: Once downloaded, open the `.dmg` and move **Boring Notch** to your `/Applications` folder.
+L50: > [!IMPORTANT]
+L51: > We don't have an Apple Developer account (yet 👀), so macOS will warn you that Boring Notch is from an unidentified developer on first launch. This is expected behavior.
+L52: >
+L53: > You'll need to bypass this before the app will open. You only need to do this once. Use one of the methods below.
+L54: 
+L55: ---
+L56: #### Recommended: Terminal (Always Works)
+L57: 
+L58: This is the quickest and easiest method. It only requires a single command and works consistently for all users. System Settings can sometimes fail and won't work for non-admin users.
+L59: 
+L60: After moving Boring Notch to your Applications folder, run:
+L61: 
+L62: ```bash
+L63: xattr -dr com.apple.quarantine "/Applications/Boring Notch.app"
+L64: ```
+L65: 
+L66: Then open the app normally.
+L67: 
+L68: ---
+L69: #### Alternative: System Settings
+L70: 
+L71: > [!NOTE]
+L72: > This method doesn't work for all users. If this doesn't work, use the Terminal method above.
+L73: 
+L74: 1. Try to open the app — you'll see a security warning.
+L75: 2. Click **OK** to dismiss it.
+L76: 3. Open **System Settings** > **Privacy & Security**.
+L77: 4. Scroll to the bottom and click **Open Anyway** next to the Boring Notch warning.
+L78: 5. Confirm if prompted.
+L79: 
+L80: ---
+L81: ### Option 2: Install via Homebrew
+L82: 
+L83: You can also install using [Homebrew](https://brew.sh). The Homebrew installation automatically bypasses the macOS security warning described above.
+L84: 
+L85: ```bash
+L86: brew install --cask TheBoredTeam/boring-notch/boring-notch
+L87: ```
+L88: ## Usage
+L89: 
+L90: - Launch the app, and voilà—your notch is now the coolest part of your screen.
+L91: - Hover over the notch to see it expand and reveal all its secrets.
+L92: - Use the controls to manage your music like a rockstar.
+L93: - Click the star in your menu bar to customize your notch to your heart's content.
+L94: ## 📋 Roadmap
+L95: - [x] Playback live activity 🎧
+L96: - [x] Calendar integration 📆
+L97: - [x] Reminders integration ☑️
+L98: - [x] Mirror 📷
+L99: - [x] Charging indicator and current percentage 🔋
+L100: - [x] Customizable gesture control 👆🏻
+L101: - [x] Shelf functionality with AirDrop 📚
+L102: - [x] Notch sizing customization, finetuning on different display sizes 🖥️
+L103: - [x] System HUD replacements (volume, brightness, backlight) 🎚️💡⌨️
+L104: - [ ] Bluetooth Live Activity (connect/disconnect for bluetooth devices)
+L105: - [ ] Weather integration ⛅️
+L106: - [ ] Customizable Layout options 🛠️
+L107: - [ ] Lock Screen Widgets 🔒
+L108: - [ ] Extension system 🧩
+L109: - [ ] Notifications (under consideration) 🔔
+L110: <!-- - [ ] Clipboard history manager 📌 `Extension` -->
+L111: <!-- - [ ] Download indicator of different browsers (Safari, Chromium browsers, Firefox) 🌍 `Extension`-->
+L112: <!-- - [ ] Customizable function buttons 🎛️ -->
+L113: <!-- - [ ] App switcher 🪄 -->
+L114: <!-- ## 🧩 Extensions
+L115: > [!NOTE]
+L116: > We’re hard at work on some awesome extensions! Stay tuned, and we’ll keep you updated as soon as they’re released. -->
+L117: ## Building from Source
+L118: 
+L119: ### Prerequisites
+L120: 
+L121: - **macOS 15.6 or later**
+L122: - **Xcode 26 or later**
+L123: 
+L124: ### Installation
+L125: 
+L126: 1. **Clone the Repository**:
+L127:    ```bash
+L128:    git clone https://github.com/TheBoredTeam/boring.notch.git
+L129:    cd boring.notch
+L130:    ```
+L131: 
+L132: 2. **Open the Project in Xcode**:
+L133:    ```bash
+L134:    open boringNotch.xcodeproj
+L135:    ```
+L136: 
+L137: 3. **Build and Run**:
+L138:     - Click the "Run" button or press `Cmd + R`. Watch the magic unfold!

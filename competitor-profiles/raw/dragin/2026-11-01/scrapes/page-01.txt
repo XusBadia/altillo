@@ -1,0 +1,85 @@
+Dragin — Smart Drag & Drop for macOS (https://getdragin.com/)
+citeturn10view1 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://getdragin.com/","lineno":null}); Total lines: 114
+L0: 【0†Dragin】
+L1: 
+L2: #
+L3: 
+L4: Drag. Drop.
+L5: 
+L6: Done.
+L7: 
+L8: A macOS menu bar app that catches what you drag. Shake your mouse mid-drag to open a floating shelf, drop anything on it, and keep moving.
+L9: 
+L10: 【1†Download for Mac†apps.apple.com】【2†See features】
+L11: 
+L12: One-time purchase · Fully offline · macOS Tahoe 26 · Apple Silicon
+L13: 
+L14: A Shelf Anywhere
+L15: ### A shelf when you need it
+L16: 
+L17: While dragging any file, image, or text, shake your mouse left-right and a floating shelf appears right at your cursor — no keyboard shortcuts to remember, no menu diving. On supported Macs, drag into the notch drop zone to stash items without breaking stride. Prefer to start fresh? Hit ⌘N or create one from the menu bar. You can even drop files directly onto the menu bar icon to add them instantly.
+L18: 
+L19: 【3†Image: Dragin floating shelf appearing mid-drag on macOS】
+L20: AI-Powered Renaming
+L21: ### Rename files with on-device AI
+L22: Dragin sees what's in your images. Using on-device Apple Intelligence and the Vision framework, it analyzes screenshots and photos to generate descriptive filenames based on actual content — capturing app names from UI screenshots, reading visible text, recognizing objects and scenes, and pulling date and location metadata from photos. Rename individually, batch-process a whole shelf with one click, or optionally rename the originals on disk automatically. No cloud required.
+L23: 【4†Image: Dragin AI-powered file renaming using Apple Intelligence on macOS】
+L24: 
+L25: Image Tools
+L26: ### Optimize and convert images
+L27: 
+L28: Optimize JPEG, PNG, TIFF, WebP, and SVG files, or convert between formats with a single menu action. Perfect for squeezing photos before sharing, generating web-ready assets, or standardizing formats across a project. Watch the progress indicator as Dragin processes each file, then drag the results straight into your design app, email, or file system.
+L29: 
+L30: 【5†Image: Dragin batch converting and optimizing images on macOS】
+L31: 
+L32: Universal Content
+L33: ### Files, folders, text, URLs, SVG
+L34: 
+L35: One shelf handles everything. Drag files and folders from Finder, floating screenshot thumbnails before they're saved, images from browsers, text snippets, web URLs, and SVG code straight from dev tools. Drag anything back out to Finder, browsers, editors, or design tools at any time. Right-click any item to copy, reveal in Finder, remove, or convert it on the spot.
+L36: 
+L37: 【6†Image: Dragin shelf holding files, folders, screenshots, URLs, and SVG from any macOS app】
+L38: ## Built in.
+L39: Ready to go.
+L40: 
+L41: Every detail you'd want, already there.
+L42: 
+L43: ### Multiple Shelves
+L44: 
+L45: Run several shelves at once — one for files you're moving, another for reference images, a third for clipboard history. Each floats independently above all windows.
+L46: 
+L47: ### Clipboard History
+L48: 
+L49: A dedicated clipboard shelf keeps your most recent copies always at hand. Paste clipboard content directly onto a shelf and pull it out whenever you need it.
+L50: ### Notch Drop Zone
+L51: 
+L52: On supported Macs, drag items into the Dynamic Island notch to stash them on a shelf without losing focus on whatever you're working in.
+L53: 
+L54: ### Shelf Transparency
+L55: 
+L56: Make the shelf barely-there or fully solid — a slider sets the exact opacity you want.
+L57: 
+L58: ### Keyboard & Accessibility
+L59: 
+L60: Shortcuts for every core action — ⌘N to create a shelf, ⌘, for settings, and more. Full VoiceOver support for screen reader users.
+L61: ### Menu Bar App
+L62: 
+L63: Runs quietly from the menu bar. See every open shelf and its item count at a glance — create new ones or drop files straight onto the icon.
+L64: 
+L65: ## Privacy
+L66: by design.
+L67: 
+L68: No accounts. No cloud. No exceptions.
+L69: 
+L70: ### No accounts
+L71: 
+L72: No sign-up, no login, no cloud sync. Open the app and start using it.
+L73: 
+L74: ### Stays on your Mac
+L75: 
+L76: Shelf content never leaves your device. No telemetry, no analytics, no tracking of any kind.
+L77: ### Sandboxed
+L78: 
+L79: Only accesses files you explicitly drag in or grant access to. Strict App Sandbox with user-selected file access only.
+L80: 
+L81: ### On-device AI
+L82:

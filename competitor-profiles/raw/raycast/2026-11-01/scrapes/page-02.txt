@@ -1,0 +1,168 @@
+Clipboard History | Raycast Manual (https://manual.raycast.com/clipboard-history)
+citeturn14view1 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://manual.raycast.com/clipboard-history","lineno":119}); Total lines: 229
+L23:     * 【11†Snippets】
+L24:     * 【12†Quicklinks】
+L25:     * 【13†Clipboard History】
+L26:     * 【14†Notes】
+L27:     * 【15†Focus】
+L28:     * 【16†File Search】
+L29:     * 【17†Applications】
+L30:     * 【18†Extensions】
+L31:     * 【19†Translate】
+L32:     * 【20†Emoji & Symbols】
+L33:     * 【21†Calendar】
+L34:     * 【22†Calculator】
+L35:     * 【23†Screenshots】
+L36:     * 【24†Window Management】
+L37:     * 【25†Navigation】
+L38:   * 【26†Power Features】
+L39:     * 【26†Hyper Key】
+L40:     * 【27†Cloud Sync】
+L41:     * 【28†Dynamic Placeholders】
+L42:     * 【29†System Commands】
+L43:     * 【30†Script Commands】
+L44:     * 【31†Themes】
+L45:     * 【32†Auto Quit】
+L46:     * 【33†Run】
+L47:     * 【34†Games】
+L48:   * 【35†AI】
+L49:     * 【36†Quick AI】
+L50:     * 【37†AI Chat】
+L51:     * 【38†Dictation】
+L52:     * 【39†Screen Awareness】
+L53:     * 【40†AI Commands】
+L54:     * 【41†AI Extensions】
+L55:     * 【42†Automations】
+L56:     * 【43†Agents】
+L57:     * 【44†MCP】
+L58:     * 【45†Skills】
+L59:     * 【46†Projects】
+L60:     * 【47†Personalization】
+L61:     * 【48†AI Credits】
+L62:     * 【49†Local Models】
+L63:     * 【50†Extension Models】
+L64:     * 【51†Custom Providers】
+L65:     * 【52†Bring Your Own Key】
+L66:     * 【53†Bring Your Own Subscription】
+L67:     * 【54†Raycast AI Privacy & Security】
+L68:   * 【55†iOS】
+L69:     * 【56†Keyboard New】
+L70:     * 【57†Widgets & Controls】
+L71:     * 【58†Apple Shortcuts】
+L72:     * 【59†Share Extension】
+L73:   * 【60†Account】
+L74: 
+L75:     * 【60†Account Management】
+L76:     * 【61†Billing】
+L77:     * 【62†Teams & Enterprise】
+L78: 
+L79:       * 【63†Quickstart with Teams】
+L80:       * 【64†Roles & Permissions】
+L81:       * 【65†Shared Features】
+L82:       * 【66†Enterprise】
+L83:         * 【67†Quickstart with Enterprise】
+L84:         * 【68†MDM Deployment】
+L85:         * Identity & Access Management
+L86:           * 【69†SAML Single Sign-On (SSO)】
+L87:           * 【70†SCIM Provisioning】
+L88:           * 【71†Domain Capture】
+L89:           * 【72†MDM Sign-In Enforcement】
+L90:         * Admin Controls
+L91:           * 【73†2FA Enforcement】
+L92:           * 【74†Cloud Sync Control】
+L93:           * 【75†Dictation Control】
+L94:           * 【76†Invitations Control】
+L95:           * 【77†Private Extension Publishing】
+L96:           * 【78†Clipboard History Control】
+L97:           * 【79†IP Allow-List】
+L98:         * AI Control Centre
+L99:           * 【80†Organization-Wide AI Toggle】
+L100:           * 【81†AI Memory Control】
+L101:           * 【82†Screen Awareness Control】
+L102:           * 【83†AI Feedback Control】
+L103:           * 【84†AI Provider Allow-List】
+L104:           * 【85†Custom API Keys (BYOK)】
+L105:           * 【86†Custom Provider Configuration】
+L106:         * 【87†Extensions Allow-List】
+L107:         * 【88†Security & Compliance】
+L108:   * 【89†Troubleshooting】
+L109:   * 【90†Community Guidelines】
+L110:   * 【91†Extensions Guidelines】
+L111:   * 【92†Contact Support】
+L112: 
+L113: Core Features
+L114: # Clipboard History
+L115: 
+L116: 【93†More with Pro†raycast.com】
+L117: 
+L118: Ever had the situation that you wanted to find something that you copied earlier? Raycast has a built-in Clipboard History for that. The command keeps track of all copied text, images, files, links, emails, and even colors.
+L119: To access it, find the Clipboard History command in 【4†Root Search】. We recommend setting a custom Alias or Hotkey through the Shortcuts or Clipboard History tab in Settings (`⌘``,` / `Ctrl``,`) in order to have direct access at all times.
+L120: 
+L121: 【94†Clipboard History in Raycast†www.youtube-nocookie.com】
+L122:   * Raycast saves every original format you copied. Use Paste as… to switch between rich text, plain text, RTF, HTML, and any other format the source provided, so what you paste always matches what you copied.
+L123:   * When you copy multiple files or pieces of content at once, they're grouped together as a single clipboard entry instead of being split apart.
+L124:   * Rename clipboard entries to make them easier to find later.
+L125:   * Enable Prefer pasting as plain text in settings to automatically strip rich formatting on every paste.
+L126:   * Use Copy Text from QR Code to extract the encoded text or link from a QR code in an image in your history.
+L127: ## Actions
+L128: 
+L129: Within the Clipboard History command, you can search through your entries by name, or hit `⌘``P` / `Ctrl``P` to filter them by type: Text, Images, Files, Links, Emails, or Colors.
+L130: 
+L131: With a clipboard entry highlighted, you can either hit `↵` to paste it into your active input field, or hit `⌘``K` / `Ctrl``K` to access additional options in the 【5†Action Panel】, such as:
+L132:   * Paste as Plain Text: strip formatting before pasting
+L133:   * Paste as PNG: paste an image entry that was only copied as TIFF as a PNG instead
+L134:   * Copy to Clipboard (`⌘``↵` / `Ctrl``↵`)
+L135:   * Share…: send the entry through your system's share options, for text, links, email addresses, images, and multiple files
+L136:   * Copy Text from Image: extract text from a screenshot or photo via on-device text recognition
+L137:   * Copy Text from QR Code: extract the encoded text or link from a QR code in an image
+L138:   * Send to AI Chat: open a new 【37†AI Chat】 with the entry as context (or Attach to AI Chat for files and images)
+L139:   * Edit Content: make quick edits to text, links, or colors before pasting
+L140:   * Save as Snippet: turn a frequently used entry into a 【11†Raycast Snippet】
+L141:   * Rename Entry (`⌘``E` / `Ctrl``E`)
+L142:   * Pin Entry (`⌘``.` / `Ctrl``.`)
+L143:   * Delete Entry (`⌘``X` / `Ctrl``X`)
+L144:   * Delete Entries…: bulk-delete by time window (last 5, 15, or 30 minutes, or last 1 or 24 hours) (`⇧``⌘``X` / `Ctrl``Shift``X`)
+L145:   * Delete All Entries (`⇧``⌘``X` / `Ctrl``Shift``X`)
+L146: ## Settings
+L147: 
+L148: Open Settings (`⌘``,` / `Ctrl``,`) and select Clipboard History from the sidebar to configure how Raycast records, retains, and pastes your clipboard items. Use the toggle in the top-right corner to enable or disable Clipboard History entirely.
+L149: ### History
+L150: 
+L151: Keep history for: Choose how long Raycast retains each clipboard item before it's deleted. Options include:
+L152: 
+L153:   * 1 Day
+L154:   * 1 Week
+L155:   * 1 Month
+L156:   * 3 Months
+L157:   * 6 Months (Pro)
+L158:   * 1 Year (Pro)
+L159:   * Unlimited (Pro)
+L160: 
+L161: 【95†Image: Keep history for options】
+L162: 
+L163: On Raycast Pro? Longer retention isn't enabled automatically. Open Settings → Clipboard History → Keep history for and pick Unlimited (or 6 Months / 1 Year) to use it.
+L164: ### Text Recognition
+L165:   * Text Recognition: When enabled, Raycast automatically extracts text from images you copy so they can be searched alongside regular text entries. Helpful for quickly grabbing text from screenshots without an OCR step.
+L166:   * Recognition Mode: Choose between faster processing or more accurate text extraction:
+L167:     * Fast: Lower CPU usage, suitable for most everyday screenshots.
+L168:     * Accurate: Better recognition for small text, mixed fonts, or low-contrast images, at the cost of higher CPU usage.
+L169: 【96†Image: Recognition Mode options】
+L170: ### Universal Clipboard
+L171: 
+L172: With Universal Clipboard, you can copy on your iPhone, iPad, or another Mac and paste on this Mac. By default, Raycast saves these items to Clipboard History only after you paste them.
+L173:   * Save Universal Clipboard Items Immediately: When enabled, items copied on your other Apple devices are saved to Clipboard History as soon as they arrive, even if you never paste them. Raycast saves their text, links, and one image format per item. Large items such as photos can take time to download. The setting is off by default and stored locally, so it doesn't sync to your other Macs.
+L174: ### Disabled Applications
+L175: 
+L176: Add applications where clipboard changes should not be recorded. Common examples like Passwords and Keychain Access are included to prevent sensitive values from ending up in your history. Click the + button to add more, for example password managers or banking apps.
+L177: ### Commands
+L178: 
+L179: Assign aliases and hotkeys to the Clipboard History commands you use most:
+L180: 
+L181:   * Clipboard History: Open the searchable history list to paste a previous item. Expand the command to access these options:
+L182:     * Primary Action: Choose what pressing Return does on a selected entry. Paste to Active App inserts the item into the focused app, while Copy to Clipboard puts it back at the top of your clipboard.
+L183:     * Prefer pasting as plain text: When enabled, pasting prioritizes plain text over restoring the original copied formats.
+L184:     * Show visual information for links: When enabled, social card images and favicons are fetched and displayed for link entries, making them easier to identify at a glance.
+L185:     * Update history after action: When enabled, clipboard items are moved to the top of the list after a copy or paste action, so your most recently used items stay easy to find. 【97†Image: Clipboard History commands settings】
+L186:   * Paste Sequentially: Paste multiple clipboard items one after another in sequence. Each time you run it, Raycast pastes the next item back through your history (most recent first, then the one before it), advancing a cursor as it goes. The cursor resets automatically once the Sequence Timeout elapses or your most recent clipboard item changes. Expand the command to access these options:
+L187:     * Sequence Timeout: How long Raycast waits between pastes before resetting the sequence. The default selection of 30 Seconds works well for filling out forms across fields.
+L188:     * Add a new line after pasting text: When enabled, Raycast inserts a line break after each pasted item, useful for pasting lists or filling multi-line text areas. 【98†Image: Paste Sequentially settings】
