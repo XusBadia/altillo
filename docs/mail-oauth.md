@@ -17,6 +17,8 @@ Las credenciales usan el Data Protection Keychain privado de esta app, no sincro
 
 ## Google: aplicación de escritorio
 
+Estado local (1 noviembre 2026): proyecto `altillo-513418`, Gmail API habilitada y cliente **Altillo macOS** creado. OAuth permanece en **Testing**, con `xus@badia.me` como único usuario de pruebas y scopes `openid`, `userinfo.email` y `gmail.modify` guardados. Xus autorizó la aceptación de la política de datos. El identificador público está en la configuración local ignorada; no se usa un secreto. Esto todavía no acredita consentimiento del buzón ni verificación para producción.
+
 1. Crear o usar un proyecto del distribuidor en Google Cloud y habilitar **Gmail API**. Configurar Google Auth Platform: nombre, soporte, audiencia, dominio verificado, web y política de privacidad públicas.
 2. Registrar un cliente OAuth de tipo **Desktop app**, no Web ni iOS. Copiar su client ID a `ALTILLO_GOOGLE_MAIL_CLIENT_ID`.
 3. Declarar exactamente los scopes que solicita el adaptador: `openid`, `email`, `https://www.googleapis.com/auth/gmail.modify`. Identifican la cuenta, permiten leer/gestionar correo y enviar. No se solicita `profile` ni `https://mail.google.com/`; no hay borrado permanente.
