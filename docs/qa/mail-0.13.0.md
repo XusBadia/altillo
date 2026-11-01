@@ -13,13 +13,15 @@ Fecha: 1 de noviembre de 2026. Esta ficha registra pruebas, no una publicación.
 - Interfaz real: Mail aparece apagado por defecto; activación, preparación de ambos scripts compilados, estado vacío, entrega por el helper embebido, tarjeta con remitente/asunto, código `482913`, dominio `example.invalid`, botón de copia y limpieza verificados con contenido sintético. El helper termina con código 0 y no imprime contenido.
 - La prueba previa del host Mail (regla aplicada a mensaje sintético importado y apertura del original) está en [el spike](../spikes/mail-bridge.md). Sus tres buzones de prueba se retiraron con permiso del usuario.
 
-- Suite macOS final tras las correcciones: **895 pruebas en 69 suites, sin fallos**. Localización extraída final: **0 de 1517 cadenas sin español**.
-- Pruebas focales posteriores del instalador: **12 pasan**, incluida cancelación de un script que espera 30 segundos; la inspección completa tiene un límite de 12 segundos.
+- Suite macOS final tras las correcciones: **898 pruebas en 69 suites, sin fallos**. Localización extraída final: **0 de 1517 cadenas sin español**.
+- Pruebas focales posteriores del instalador: **13 pasan** en la suite completa final, incluida compilación real de ambas inspecciones contra el diccionario público de Mail y cancelación de un script que espera 30 segundos; la inspección completa tiene un límite de 12 segundos.
 
 ## Cierre requerido antes de publicar
-- **Bloqueo de entorno:** enviado un único mensaje sintético a la dirección propia autorizada mediante Gmail; Mail devuelve cero resultados para su identificador. Connection Doctor informa fallo de inicio de sesión IMAP y SMTP para Google, y la cuenta configurada aparece Offline. iCloud conecta. La llegada nueva por red sigue sin validar. Es necesario recuperar la sesión Google de Mail antes de dar esta etapa por pasada.
-- La inspección real de reglas devolvió un error genérico; se añadió límite de proceso y ayuda para denegación de automatización. Hay que revalidarla con Mail conectado antes de publicar.
-- La regla temporal queda desactivada y el módulo Mail vuelve a estar apagado; sus scripts se conservan mientras la regla los referencia. No se borran reglas mediante automatización.
+- **Reconexión confirmada:** después de la intervención del usuario, Connection Doctor confirma conexión e inicio de sesión correctos de Google por IMAP/SMTP, además de iCloud. Mail sigue una sincronización inicial de miles de mensajes.
+- **Entrega al servidor confirmada:** Chrome/Gmail muestra en Inbox un mensaje sintético enviado desde la cuenta iCloud configurada. Los envíos desde Gmail al propio alias no mostraron etiqueta Inbox; se usó otra cuenta para comprobar una entrada real. Mail también muestra el mensaje sintético descargado.
+- **Pendiente:** confirmar entrega automática de ese mensaje nuevo al notch, sin aplicar reglas manualmente ni inyectar el socket. La tarjeta no apareció durante la revisión de la sincronización inicial. No se da por validado el flujo completo por comprobar solo Gmail/Mail.
+- Inspección de reglas: el diagnóstico temporal mostró únicamente el código `-1712` (timeout), sin datos de correo. Se retiró ese diagnóstico. La consulta ahora filtra nombres localmente y ambos AppleScripts de inspección se compilan en tests. El timeout ofrece una explicación y conserva scripts; falta verificar el estado conectado en Mail sin bloqueo.
+- Los mensajes y reglas temporales se conservan para la siguiente comprobación; no se borran reglas mediante automatización.
 - CI completa del SHA definitivo, incluido el build de iOS.
 - Archive firmado, notarización de app y DMG, smoke del artefacto final y comprobación de appcast/descarga públicos.
 

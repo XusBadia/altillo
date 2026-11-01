@@ -191,4 +191,22 @@ struct MailRuleInstallerTests {
         #expect(start.duration(to: clock.now) < .seconds(3))
     }
 
+    @Test func inspectionScriptsCompileAgainstThePublicMailDictionary() throws {
+        let (root, paths) = try makePaths()
+        defer { try? FileManager.default.removeItem(at: root) }
+        for removing in [false, true] {
+            let source = root.appendingPathComponent("inspection.applescript")
+            let output = root.appendingPathComponent("inspection.scpt")
+            try MailRuleInstaller.inspectionScript(paths: paths, remove: removing).write(to: source, atomically: true, encoding: .utf8)
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/osacompile")
+            process.arguments = ["-o", output.path, source.path]
+            process.standardOutput = FileHandle.nullDevice
+            process.standardError = FileHandle.nullDevice
+            try process.run()
+            process.waitUntilExit()
+            #expect(process.terminationStatus == 0)
+        }
+    }
+
 }

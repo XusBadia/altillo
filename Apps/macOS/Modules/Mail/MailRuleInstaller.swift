@@ -277,10 +277,19 @@ final class MailRuleInstaller {
         if not (application id "com.apple.mail" is running) then return "closed"
         with timeout of 5 seconds
             tell application id "com.apple.mail"
-                set candidates to every rule whose name is \(quote(ruleName))
-                if (count of candidates) is 0 then return "absent"
-                if (count of candidates) is not 1 then return "changed"
-                set candidate to item 1 of candidates
+                -- Filter names locally: Mail can stall resolving an Apple Event `whose` predicate.
+                set ruleNames to get name of every rule
+                set candidateIndex to 0
+                set matchCount to 0
+                repeat with ruleIndex from 1 to count of ruleNames
+                    if item ruleIndex of ruleNames is \(quote(ruleName)) then
+                        set candidateIndex to ruleIndex
+                        set matchCount to matchCount + 1
+                    end if
+                end repeat
+                if matchCount is 0 then return "absent"
+                if matchCount is not 1 then return "changed"
+                set candidate to rule candidateIndex
                 try
                     set attachedPath to POSIX path of (run script of candidate)
                     if attachedPath is not \(quote(paths.handler.path)) then return "changed"
@@ -318,6 +327,8 @@ final class MailRuleInstaller {
     private static func explanation(_ error: Error) -> String {
         switch error {
         case Failure.inspectionTimedOut:
+            String(localized: "Apple Mail's rule check timed out. Open Mail, finish any permission dialog and try again. Your scripts have been kept.")
+        case AppleScriptRunner.Failure.failed(let message) where message.contains("(-1712)"):
             String(localized: "Apple Mail's rule check timed out. Open Mail, finish any permission dialog and try again. Your scripts have been kept.")
         case AppleScriptRunner.Failure.notAuthorised:
             String(localized: "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again.")
