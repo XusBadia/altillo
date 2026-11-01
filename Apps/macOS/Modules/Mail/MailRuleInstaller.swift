@@ -110,7 +110,7 @@ final class MailRuleInstaller {
             default: status = .changed
             }
         } catch {
-            status = .changed
+            status = error is AppleScriptRunner.Failure || (error as? Failure) == .inspectionTimedOut ? .unavailable : .changed
             problem = Self.explanation(error)
         }
     }
@@ -135,7 +135,7 @@ final class MailRuleInstaller {
             }
             status = .notPrepared
         } catch {
-            status = .changed
+            status = error is AppleScriptRunner.Failure || (error as? Failure) == .inspectionTimedOut ? .unavailable : .changed
             problem = Self.explanation(error)
         }
     }
@@ -327,9 +327,9 @@ final class MailRuleInstaller {
     private static func explanation(_ error: Error) -> String {
         switch error {
         case Failure.inspectionTimedOut:
-            String(localized: "Apple Mail's rule check timed out. Open Mail, finish any permission dialog and try again. Your scripts have been kept.")
+            String(localized: "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.")
         case AppleScriptRunner.Failure.failed(let message) where message.contains("(-1712)"):
-            String(localized: "Apple Mail's rule check timed out. Open Mail, finish any permission dialog and try again. Your scripts have been kept.")
+            String(localized: "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.")
         case AppleScriptRunner.Failure.notAuthorised:
             String(localized: "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again.")
         case Failure.changedFiles, Failure.invalidManifest:

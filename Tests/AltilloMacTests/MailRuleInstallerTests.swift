@@ -177,7 +177,7 @@ struct MailRuleInstallerTests {
                                           runScript: { _ in throw AppleScriptRunner.Failure.notAuthorised })
         await installer.prepare()
         await installer.refresh()
-        #expect(installer.status == .changed)
+        #expect(installer.status == .unavailable)
         #expect(installer.problem == String(localized: "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again."))
         #expect(try MailRuleInstaller.verifyOwnedFiles(paths: paths) == true)
     }
@@ -207,6 +207,18 @@ struct MailRuleInstallerTests {
             process.waitUntilExit()
             #expect(process.terminationStatus == 0)
         }
+    }
+
+    @Test func mailTimeoutDoesNotBlameChangedFilesOrExposeScriptErrorContent() async throws {
+        let (root, paths) = try makePaths()
+        defer { try? FileManager.default.removeItem(at: root) }
+        let installer = MailRuleInstaller(paths: paths, templates: templates, compiler: copyCompiler,
+                                          runScript: { _ in throw AppleScriptRunner.Failure.failed("private script detail (-1712)") })
+        await installer.prepare()
+        await installer.refresh()
+        #expect(installer.status == .unavailable)
+        #expect(installer.problem?.contains("private script detail") == false)
+        #expect(try MailRuleInstaller.verifyOwnedFiles(paths: paths) == true)
     }
 
 }

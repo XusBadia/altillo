@@ -16,6 +16,12 @@ Fecha: 1 de noviembre de 2026. Esta ficha registra pruebas, no una publicación.
 - Suite macOS final tras las correcciones: **898 pruebas en 69 suites, sin fallos**. Localización extraída final: **0 de 1517 cadenas sin español**.
 - Pruebas focales posteriores del instalador: **13 pasan** en la suite completa final, incluida compilación real de ambas inspecciones contra el diccionario público de Mail y cancelación de un script que espera 30 segundos; la inspección completa tiene un límite de 12 segundos.
 
+## Permisos comprobados en macOS
+
+Ajustes del Sistema → Privacidad y seguridad → Automatización muestra **Altillo → Mail desactivado**. Activarlo amplía acceso a Mail y requiere confirmación del usuario; no se ha cambiado ese permiso durante la prueba. La cuenta Google ya conecta: ese inicio de sesión y el permiso de automatización de Altillo son controles distintos.
+
+El instalador ahora distingue un fallo de conexión/automatización de archivos modificados, explica el permiso también en errores de timeout y conserva los scripts. Las **14 pruebas focales del instalador pasan**, incluida la comprobación de que el error no expone detalles del script ni acusa cambios de archivos. La suite macOS completa anterior suma 898 pruebas; CI del commit abdf7a0 pasó sus seis checks.
+
 ## Cierre requerido antes de publicar
 - **Reconexión confirmada:** después de la intervención del usuario, Connection Doctor confirma conexión e inicio de sesión correctos de Google por IMAP/SMTP, además de iCloud. Mail sigue una sincronización inicial de miles de mensajes.
 - **Entrega al servidor confirmada:** Chrome/Gmail muestra en Inbox un mensaje sintético enviado desde la cuenta iCloud configurada. Los envíos desde Gmail al propio alias no mostraron etiqueta Inbox; se usó otra cuenta para comprobar una entrada real. Mail también muestra el mensaje sintético descargado.

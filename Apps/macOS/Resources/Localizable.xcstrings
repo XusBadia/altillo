@@ -1,18 +1,18 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "Apple Mail's rule check timed out. Open Mail, finish any permission dialog and try again. Your scripts have been kept.": {
+    "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apple Mail's rule check timed out. Open Mail, finish any permission dialog and try again. Your scripts have been kept."
+            "value": "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se ha agotado el tiempo para comprobar la regla. Abre Mail, resuelve cualquier diálogo de permisos y vuelve a intentarlo. Tus scripts se han conservado."
+            "value": "Mail no ha respondido. Comprueba que está abierto y que Altillo puede controlarlo en Ajustes del Sistema → Privacidad y seguridad → Automatización. Vuelve a intentarlo. Tus scripts se han conservado."
           }
         }
       }

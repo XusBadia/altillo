@@ -19,6 +19,11 @@ aprovecha las cuentas que ya tienes allí y no inicia sesión en ellas.
 5. Al guardar, elige **No aplicar** a los mensajes anteriores.
 6. Vuelve a Altillo y pulsa **Comprobar regla de Mail**. Debe indicar que la
    regla está conectada. Los mensajes posteriores aparecerán en Correo.
+   Para comprobar las reglas y retirar los scripts, macOS necesita el permiso
+   **Altillo → Mail** en Ajustes del Sistema → Privacidad y seguridad →
+   Automatización. El diálogo de macOS permite concederlo o rechazarlo.
+   Si Mail no responde, comprueba también ese permiso; Altillo conserva los
+   scripts y las reglas mientras no pueda verificar su estado.
 
 Puedes indicar direcciones completas o nombres de cuentas separados por comas
 en los filtros de Altillo. Déjalos vacíos para mostrar todos los mensajes nuevos.
