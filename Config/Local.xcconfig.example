@@ -9,3 +9,10 @@ ALTILLO_MAC_SIGN_IDENTITY = Apple Development
 // "//" — build it with $(ALTILLO_XC_SLASH) (defined in Shared.xcconfig) instead, as below.
 // ALTILLO_SPARKLE_FEED_URL = https:$(ALTILLO_XC_SLASH)$(ALTILLO_XC_SLASH)example.github.io/altillo/appcast.xml
 // ALTILLO_SPARKLE_PUBLIC_KEY = <EdDSA public key from `generate_keys --account altillo`>
+
+// Direct mail account authorization (public client IDs; see docs/correo.md).
+// ALTILLO_GOOGLE_MAIL_CLIENT_ID = your-desktop-client.apps.googleusercontent.com
+// ALTILLO_MICROSOFT_MAIL_CLIENT_ID = your-entra-public-client-uuid
+// Required with real mail clients: a Developer ID (or development) profile for your exact App ID.
+// ALTILLO_MAC_ENTITLEMENTS = Apps/macOS/App/Altillo.provisioned.entitlements
+// ALTILLO_MAC_PROVISIONING_PROFILE = Altillo Developer ID

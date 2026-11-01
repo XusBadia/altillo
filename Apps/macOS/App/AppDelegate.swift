@@ -5,6 +5,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let coordinator = NotchCoordinator()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Hosted tests construct their own stores. Starting live services here would read the
+        // person's Keychain, install hooks and connect accounts before the test bundle runs.
+        guard !OnboardingLaunch.isTestHost(ProcessInfo.processInfo.environment) else { return }
         SettingsWindowController.model = coordinator.model
         // Installed agent hooks call a stable path in Application Support; point it at this copy of the app.
         AgentHookInstaller.refreshStableHookPath()

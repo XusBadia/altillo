@@ -25606,6 +25606,958 @@
     "Your reminders are clear. Ask Altillo whenever you want to add one." : {
       "extractionState" : "manual",
       "localizations" : { "en" : { "stringUnit" : { "state" : "translated", "value" : "Your reminders are clear. Ask Altillo whenever you want to add one." } }, "es" : { "stringUnit" : { "state" : "translated", "value" : "No tienes recordatorios pendientes. Pide a Altillo que añada uno cuando quieras." } } }
+    },
+    "Account connection isn't available in this build yet." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account connection isn't available in this build yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La conexión de cuentas aún no está disponible en esta versión."
+          }
+        }
+      }
+    },
+    "Account connection was cancelled." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account connection was cancelled."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se ha cancelado la conexión de la cuenta."
+          }
+        }
+      }
+    },
+    "Access was declined or blocked by your organization. Check its account permissions." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access was declined or blocked by your organization. Check its account permissions."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu organización ha rechazado o bloqueado el acceso. Comprueba los permisos de la cuenta."
+          }
+        }
+      }
+    },
+    "Your mail session has expired. Reconnect this account." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your mail session has expired. Reconnect this account."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu sesión de correo ha caducado. Vuelve a conectar esta cuenta."
+          }
+        }
+      }
+    },
+    "Choose the same account when reconnecting. Add a different account separately." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose the same account when reconnecting. Add a different account separately."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige la misma cuenta al volver a conectar. Añade cualquier otra cuenta por separado."
+          }
+        }
+      }
+    },
+    "Altillo couldn't update this account in Keychain. Please try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo couldn't update this account in Keychain. Please try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo no ha podido actualizar esta cuenta en el Llavero. Vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "This message is no longer available in your inbox." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message is no longer available in your inbox."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este mensaje ya no está disponible en tu bandeja de entrada."
+          }
+        }
+      }
+    },
+    "This message is too large to read here. Open the original with your provider." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message is too large to read here. Open the original with your provider."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este mensaje es demasiado grande para leerlo aquí. Abre el original en tu proveedor de correo."
+          }
+        }
+      }
+    },
+    "Your mail provider asked Altillo to wait. It will retry automatically." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your mail provider asked Altillo to wait. It will retry automatically."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu proveedor de correo ha pedido a Altillo que espere. Lo intentará de nuevo automáticamente."
+          }
+        }
+      }
+    },
+    "Mail couldn't connect. Check your internet connection and try again." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail couldn't connect. Check your internet connection and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido conectar al correo. Comprueba tu conexión a internet y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "Back to messages" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a los mensajes"
+          }
+        }
+      }
+    },
+    "Mail account" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuenta de correo"
+          }
+        }
+      }
+    },
+    "All accounts" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "All accounts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todas las cuentas"
+          }
+        }
+      }
+    },
+    "Choose mail account" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose mail account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elegir cuenta de correo"
+          }
+        }
+      }
+    },
+    "Refresh mail" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar correo"
+          }
+        }
+      }
+    },
+    "Connect your email account" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect your email account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta tu cuenta de correo"
+          }
+        }
+      }
+    },
+    "Read Google or Microsoft mail in Altillo, with your account's permission." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read Google or Microsoft mail in Altillo, with your account's permission."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lee tu correo de Google o Microsoft en Altillo con el permiso de tu cuenta."
+          }
+        }
+      }
+    },
+    "Mail is paused" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail is paused"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El correo está en pausa"
+          }
+        }
+      }
+    },
+    "Enable Mail in Settings to refresh your inbox." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enable Mail in Settings to refresh your inbox."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa Correo en Ajustes para actualizar tu bandeja de entrada."
+          }
+        }
+      }
+    },
+    "Offline. Messages already loaded in this session are still available." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline. Messages already loaded in this session are still available."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión. Los mensajes cargados en esta sesión siguen disponibles."
+          }
+        }
+      }
+    },
+    "Reconnect your account in Settings" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect your account in Settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a conectar tu cuenta en Ajustes"
+          }
+        }
+      }
+    },
+    "Loading your inbox…" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading your inbox…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando tu bandeja de entrada…"
+          }
+        }
+      }
+    },
+    "No recent messages" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No recent messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay mensajes recientes"
+          }
+        }
+      }
+    },
+    "Your first sync loads recent mail quietly. Only new arrivals show a glance." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your first sync loads recent mail quietly. Only new arrivals show a glance."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La primera sincronización carga el correo reciente sin avisos. Solo los mensajes nuevos muestran un vistazo."
+          }
+        }
+      }
+    },
+    "(No subject)" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(No subject)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "(Sin asunto)"
+          }
+        }
+      }
+    },
+    "Open sign-in link" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open sign-in link"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlace de acceso"
+          }
+        }
+      }
+    },
+    "Open original" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open original"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir original"
+          }
+        }
+      }
+    },
+    "This message was shortened. Open the original to read all of it." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message was shortened. Open the original to read all of it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este mensaje se ha acortado. Abre el original para leerlo completo."
+          }
+        }
+      }
+    },
+    "Reading here leaves the message's read status unchanged." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading here leaves the message's read status unchanged."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leer aquí no cambia el estado de lectura del mensaje."
+          }
+        }
+      }
+    },
+    "Connect an account" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect an account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar una cuenta"
+          }
+        }
+      }
+    },
+    "Mail accounts" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail accounts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuentas de correo"
+          }
+        }
+      }
+    },
+    "Connect your account to read recent mail directly in Altillo." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect your account to read recent mail directly in Altillo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta tu cuenta para leer el correo reciente directamente en Altillo."
+          }
+        }
+      }
+    },
+    "Mail source" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail source"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Origen del correo"
+          }
+        }
+      }
+    },
+    "Connected accounts" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected accounts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuentas conectadas"
+          }
+        }
+      }
+    },
+    "Apple Mail compatibility" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail compatibility"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibilidad con Apple Mail"
+          }
+        }
+      }
+    },
+    "Connect an account above before switching from Apple Mail." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect an account above before switching from Apple Mail."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta una cuenta arriba antes de cambiar desde Apple Mail."
+          }
+        }
+      }
+    },
+    "Apple Mail is your current source. Connected accounts stay ready until you choose to switch." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail is your current source. Connected accounts stay ready until you choose to switch."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail es el origen actual. Las cuentas conectadas seguirán listas hasta que decidas cambiar."
+          }
+        }
+      }
+    },
+    "Recent inbox messages stay in memory while this Mac is unlocked. Locking, sleeping or disabling Mail clears them. Credentials stay in Keychain." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent inbox messages stay in memory while this Mac is unlocked. Locking, sleeping or disabling Mail clears them. Credentials stay in Keychain."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los mensajes recientes permanecen en memoria mientras este Mac está desbloqueado. Se borran al bloquearlo, entrar en reposo o desactivar Correo. Las credenciales se guardan en el Llavero."
+          }
+        }
+      }
+    },
+    "Altillo connects directly to your provider. Reading here does not mark mail as read, and content is never sent to Ask." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo connects directly to your provider. Reading here does not mark mail as read, and content is never sent to Ask."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo se conecta directamente a tu proveedor. Leer aquí no marca el correo como leído y el contenido nunca se envía a Pregunta."
+          }
+        }
+      }
+    },
+    "Only new messages show a glance. Loading your existing inbox is silent." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only new messages show a glance. Loading your existing inbox is silent."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Solo los mensajes nuevos muestran un vistazo. Tu bandeja de entrada se carga sin avisos."
+          }
+        }
+      }
+    },
+    "Glance filters" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glance filters"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtros de los vistazos"
+          }
+        }
+      }
+    },
+    "These filters choose which new messages show a glance. Your connected inbox still shows all recent messages." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These filters choose which new messages show a glance. Your connected inbox still shows all recent messages."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estos filtros eligen qué mensajes nuevos muestran un vistazo. Tu bandeja conectada sigue mostrando todos los mensajes recientes."
+          }
+        }
+      }
+    },
+    "Pause mail" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pause mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pausar correo"
+          }
+        }
+      }
+    },
+    "Add Google or Microsoft to see your inbox here. Apple Mail can stay closed." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Google or Microsoft to see your inbox here. Apple Mail can stay closed."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade Google o Microsoft para ver tu bandeja de entrada aquí. Apple Mail puede permanecer cerrado."
+          }
+        }
+      }
+    },
+    "Reconnect" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a conectar"
+          }
+        }
+      }
+    },
+    "Disconnecting removes this account and its credentials from Altillo. You can manage the provider's own permissions on its account website." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnecting removes this account and its credentials from Altillo. You can manage the provider's own permissions on its account website."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al desconectar se eliminan de Altillo esta cuenta y sus credenciales. Puedes gestionar los permisos del proveedor en la web de tu cuenta."
+          }
+        }
+      }
+    },
+    "Connecting your account…" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecting your account…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectando tu cuenta…"
+          }
+        }
+      }
+    },
+    "Connect Google" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Google"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar Google"
+          }
+        }
+      }
+    },
+    "Connect Microsoft" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Microsoft"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar Microsoft"
+          }
+        }
+      }
+    },
+    "Your provider opens its own sign-in screen. Altillo requests read access only." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your provider opens its own sign-in screen. Altillo requests read access only."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu proveedor abre su propia pantalla de acceso. Altillo solo solicita permiso de lectura."
+          }
+        }
+      }
+    },
+    "Resume mail" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resume mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reanudar correo"
+          }
+        }
+      }
+    },
+    "Offline" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offline"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin conexión"
+          }
+        }
+      }
+    },
+    "Reconnect this account" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reconnect this account"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a conectar esta cuenta"
+          }
+        }
+      }
+    },
+    "Access is blocked" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Access is blocked"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El acceso está bloqueado"
+          }
+        }
+      }
+    },
+    "Waiting for your mail provider" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for your mail provider"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando a tu proveedor de correo"
+          }
+        }
+      }
+    },
+    "Connected accounts, your inbox and private sign-in actions." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected accounts, your inbox and private sign-in actions."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuentas conectadas, tu bandeja de entrada y acciones privadas de acceso."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

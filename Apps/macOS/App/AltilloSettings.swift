@@ -201,6 +201,10 @@ final class AltilloSettings {
         didSet { defaults.set(usageAlertsWhenRefilled, forKey: Key.usageAlertsWhenRefilled) }
     }
 
+    var mailConnectionMode: MailConnectionMode {
+        didSet { defaults.set(mailConnectionMode.rawValue, forKey: Key.mailConnectionMode) }
+    }
+
     // Mail content never goes into UserDefaults; only explicit filters and alert preferences.
     var alertsForMail: Bool {
         didSet { defaults.set(alertsForMail, forKey: Key.alertsForMail) }
@@ -374,6 +378,7 @@ final class AltilloSettings {
         static let homeDoorbellCamera = "homeDoorbellCamera"
         static let alertsForHome = "alertsForHome"
         static let alertsForMail = "alertsForMail"
+        static let mailConnectionMode = "mailConnectionMode"
         static let mailAllowedSenders = "mailAllowedSenders"
         static let mailAllowedAccounts = "mailAllowedAccounts"
     }
@@ -447,6 +452,10 @@ final class AltilloSettings {
         homeDoorbellCamera = defaults.string(forKey: Key.homeDoorbellCamera)
         alertsForHome = defaults.object(forKey: Key.alertsForHome) as? Bool ?? true
         alertsForMail = defaults.object(forKey: Key.alertsForMail) as? Bool ?? true
+        let resolvedMailMode = defaults.string(forKey: Key.mailConnectionMode).flatMap(MailConnectionMode.init(rawValue:))
+            ?? (stored?.contains(.mail) == true ? .appleMail : .direct)
+        mailConnectionMode = resolvedMailMode
+        defaults.set(resolvedMailMode.rawValue, forKey: Key.mailConnectionMode)
         mailAllowedSenders = defaults.string(forKey: Key.mailAllowedSenders) ?? ""
         mailAllowedAccounts = defaults.string(forKey: Key.mailAllowedAccounts) ?? ""
     }

@@ -208,6 +208,11 @@ xcodebuild archive \
   ALTILLO_SPARKLE_FEED_URL="$FEED_URL" \
   ALTILLO_SPARKLE_PUBLIC_KEY="$SPARKLE_PUBLIC_KEY"
 
+# A real mail client must have a private Data Protection Keychain identity before export.
+MAIL_SIGNING_ARGS=()
+if [ "$PUBLISH" = 1 ]; then MAIL_SIGNING_ARGS+=(--require-clients); fi
+MAIL_SIGNING_METADATA="$(python3 "$ROOT_DIR/script/check-mail-signing.py" "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "${MAIL_SIGNING_ARGS[@]}")"
+
 # Every user-facing string ships in Spanish too. ALTILLO_ALLOW_UNTRANSLATED=1 skips this (a hotfix, say).
 echo "==> checking Spanish strings"
 if ! "$ROOT_DIR/script/check-localization.py" "$DERIVED_DATA_PATH"; then
@@ -232,6 +237,12 @@ cat > "$EXPORT_OPTIONS" <<PLIST
 </plist>
 PLIST
 
+if [ -n "$MAIL_SIGNING_METADATA" ]; then
+  IFS=$'\t' read -r MAIL_BUNDLE_ID MAIL_PROFILE_UUID <<< "$MAIL_SIGNING_METADATA"
+  /usr/libexec/PlistBuddy -c 'Add :provisioningProfiles dict' "$EXPORT_OPTIONS"
+  /usr/libexec/PlistBuddy -c "Add :provisioningProfiles:$MAIL_BUNDLE_ID string $MAIL_PROFILE_UUID" "$EXPORT_OPTIONS"
+fi
+
 echo "==> exporting $APP_PATH"
 rm -rf "$DIST_DIR/export" "$APP_PATH"
 xcodebuild -exportArchive \
@@ -239,6 +250,7 @@ xcodebuild -exportArchive \
   -exportPath "$DIST_DIR/export" \
   -exportOptionsPlist "$EXPORT_OPTIONS"
 mv "$DIST_DIR/export/$APP_NAME.app" "$APP_PATH"
+python3 "$ROOT_DIR/script/check-mail-signing.py" "$APP_PATH" "${MAIL_SIGNING_ARGS[@]}" >/dev/null
 rmdir "$DIST_DIR/export" 2>/dev/null || rm -rf "$DIST_DIR/export"
 
 # The archive itself (a full copy of build products + dSYMs + Info.plist) isn't needed once exported —

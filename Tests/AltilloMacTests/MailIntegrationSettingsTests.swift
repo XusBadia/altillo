@@ -18,6 +18,7 @@ struct MailIntegrationSettingsTests {
         #expect(NotchModule.mail.isOptIn)
         #expect(!AltilloSettings.defaultModules.contains(.mail))
         #expect(!settings.isEnabled(.mail))
+        #expect(settings.mailConnectionMode == .direct)
         #expect(settings.mailAllowedSenders.isEmpty && settings.mailAllowedAccounts.isEmpty)
     }
 
@@ -58,5 +59,17 @@ struct MailIntegrationSettingsTests {
         #expect(restored.mailAllowedAccounts == "Work\nPersonal")
         restored.setEnabled(.mail, false)
         #expect(!AltilloSettings(defaults: defaults).isEnabled(.mail))
+    }
+
+    @Test func existingMailUsersKeepAppleMailUntilExplicitSwitch() {
+        let (name, defaults) = makeDefaults()
+        defer { defaults.removePersistentDomain(forName: name) }
+        defaults.set(["shelf", "mail"], forKey: "modules")
+        let settings = AltilloSettings(defaults: defaults)
+        #expect(settings.mailConnectionMode == .appleMail)
+        settings.mailConnectionMode = .direct
+        #expect(AltilloSettings(defaults: defaults).mailConnectionMode == .direct)
+        settings.setEnabled(.mail, false)
+        #expect(AltilloSettings(defaults: defaults).mailConnectionMode == .direct)
     }
 }

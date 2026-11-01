@@ -136,7 +136,7 @@ struct SettingsSectionPane: View {
         case .usage: "Providers, limits and alerts."
         case .clipboard: "Shortcut, pasting, what's kept and apps left out."
         case .home: "Home Assistant, favourites and the doorbell."
-        case .mail: "Apple Mail setup, message filters and private sign-in actions."
+        case .mail: "Connected accounts, your inbox and private sign-in actions."
         case .agents: "Connections, replies and permission timing."
         case .assistant: "Keyboard shortcut and web search."
         case .shelf: "Choose what stays on the shelf and for how long."

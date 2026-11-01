@@ -14,4 +14,13 @@ ALTILLO_XC_SLASH = /
 ALTILLO_SPARKLE_FEED_URL =
 ALTILLO_SPARKLE_PUBLIC_KEY =
 
+// Public OAuth client identifiers, supplied by the official release configuration.
+// No provider client secrets belong in a desktop binary.
+ALTILLO_GOOGLE_MAIL_CLIENT_ID =
+ALTILLO_MICROSOFT_MAIL_CLIENT_ID =
+// The private Data Protection Keychain requires an authorized application identifier.
+// Provisioned builds override both values; ad-hoc CI keeps the original entitlements.
+ALTILLO_MAC_ENTITLEMENTS = Apps/macOS/App/Altillo.entitlements
+ALTILLO_MAC_PROVISIONING_PROFILE =
+
 #include? "Local.xcconfig"

@@ -63,6 +63,8 @@ breaking changes.
 | **Keep Awake** | Keep your Mac awake for 30 minutes, one hour, two hours or until you stop it. The display may still turn off; the setting resets on relaunch. |
 | **Drawer** | Keep rarely used menu bar icons above Altillo's navigation and open their menus there. On macOS 27, their icons leave the menu bar entirely. Requires Accessibility; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md). |
 
+Direct Google and Microsoft accounts are **in development (R61), unreleased**: a recent Inbox and local reader without Apple Mail. Provider registration, real OAuth QA and distribution checks remain pending. [Plan](docs/plans/mail-native-accounts.md) · [OAuth setup for distributors](docs/mail-oauth.md).
+
 Built with Swift 6 for macOS 26+. iPhone, iPad, widget and Live Activity targets
 are groundwork only; the mobile companion is not shipped yet. See [PLAN.md](PLAN.md)
 for the module design, roadmap and open decisions.

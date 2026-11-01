@@ -130,12 +130,41 @@ jobs:
       # dev build — CI writes the one values file that isn't a secret by itself (the actual signing
       # material comes from the imported certificate and the notary/Sparkle secrets below).
       - name: Write Config/Local.xcconfig
+        env:
+          GOOGLE_MAIL_CLIENT_ID: ${{ vars.ALTILLO_GOOGLE_MAIL_CLIENT_ID }}
+          MICROSOFT_MAIL_CLIENT_ID: ${{ vars.ALTILLO_MICROSOFT_MAIL_CLIENT_ID }}
+          MAIL_PROFILE_BASE64: ${{ secrets.ALTILLO_MAC_PROVISIONING_PROFILE_BASE64 }}
         run: |
           cat > Config/Local.xcconfig <<'EOF'
           ALTILLO_TEAM = 9L2TD7KVV9
           ALTILLO_BUNDLE_PREFIX = me.badia.altillo
           ALTILLO_MAC_SIGN_IDENTITY = Developer ID Application
           EOF
+          python3 - <<'PY'
+          import base64, os, pathlib, plistlib, re, subprocess
+          google = os.environ['GOOGLE_MAIL_CLIENT_ID']
+          microsoft = os.environ['MICROSOFT_MAIL_CLIENT_ID']
+          if not re.fullmatch(r'[0-9]+-[A-Za-z0-9_-]+\.apps\.googleusercontent\.com', google):
+              raise SystemExit('Configure the registered Google desktop client ID before releasing.')
+          if not re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', microsoft):
+              raise SystemExit('Configure the registered Microsoft native client ID before releasing.')
+          profile_data = base64.b64decode(os.environ['MAIL_PROFILE_BASE64'], validate=True)
+          directory = pathlib.Path.home() / 'Library/Developer/Xcode/UserData/Provisioning Profiles'
+          directory.mkdir(parents=True, exist_ok=True)
+          temporary = directory / 'altillo-release.provisionprofile'
+          temporary.write_bytes(profile_data)
+          temporary.chmod(0o600)
+          profile = plistlib.loads(subprocess.check_output(['security', 'cms', '-D', '-i', str(temporary)]))
+          profile_id = profile['UUID']
+          if not re.fullmatch(r'[0-9A-Fa-f-]{36}', profile_id):
+              raise SystemExit('Invalid provisioning profile UUID.')
+          temporary.rename(directory / (profile_id + '.provisionprofile'))
+          with open('Config/Local.xcconfig', 'a') as configuration:
+              configuration.write('\nALTILLO_GOOGLE_MAIL_CLIENT_ID = ' + google)
+              configuration.write('\nALTILLO_MICROSOFT_MAIL_CLIENT_ID = ' + microsoft)
+              configuration.write('\nALTILLO_MAC_ENTITLEMENTS = Apps/macOS/App/Altillo.provisioned.entitlements')
+              configuration.write('\nALTILLO_MAC_PROVISIONING_PROFILE = ' + profile_id + '\n')
+          PY
 
       - name: Build, sign, notarize, package, and publish
         env:
