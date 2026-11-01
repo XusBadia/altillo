@@ -16,3 +16,7 @@ ALTILLO_MAC_SIGN_IDENTITY = Apple Development
 // Required with real mail clients: a Developer ID (or development) profile for your exact App ID.
 // ALTILLO_MAC_ENTITLEMENTS = Apps/macOS/App/Altillo.provisioned.entitlements
 // ALTILLO_MAC_PROVISIONING_PROFILE = Altillo Developer ID
+// To keep a separate Apple Development setup for Debug, provision only Release:
+// ALTILLO_MAC_SIGN_IDENTITY[config=Release] = Developer ID Application
+// ALTILLO_MAC_ENTITLEMENTS[config=Release] = Apps/macOS/App/Altillo.provisioned.entitlements
+// ALTILLO_MAC_PROVISIONING_PROFILE[config=Release] = your-developer-id-profile-uuid

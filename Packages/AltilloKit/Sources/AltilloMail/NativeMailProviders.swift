@@ -1,10 +1,10 @@
 import Foundation
 
-/// Gmail readonly: an initial Inbox window followed by history changes. No attachments or write endpoints.
+/// Gmail: an initial Inbox window followed by history changes and explicit message operations.
 public struct GoogleNativeMailProvider: NativeMailProvider {
     public let account: NativeMailAccount
-    private let api: NativeMailAPI
-    private static let base = "https://gmail.googleapis.com/gmail/v1/users/me"
+    let api: NativeMailAPI
+    static let base = "https://gmail.googleapis.com/gmail/v1/users/me"
 
     public init(account: NativeMailAccount, token: @escaping NativeMailTokenLoader,
                 transport: any NativeMailTransport = URLSessionNativeMailTransport()) {
@@ -92,7 +92,7 @@ public struct GoogleNativeMailProvider: NativeMailProvider {
         let url = try nativeMailURL(Self.base + "/messages/" + escaped, query: [
             .init(name: "format", value: "metadata"),
             .init(name: "metadataHeaders", value: "From"), .init(name: "metadataHeaders", value: "Subject"),
-            .init(name: "metadataHeaders", value: "Message-ID")
+            .init(name: "metadataHeaders", value: "Message-ID"), .init(name: "metadataHeaders", value: "Reply-To")
         ])
         let data: Data
         do { data = try await api.get(url, byteLimit: 262_144) }
@@ -112,7 +112,8 @@ public struct GoogleNativeMailProvider: NativeMailProvider {
                      preview: NativeMailText.bounded(NativeMailText.decodeEntities(message.snippet ?? ""), utf8Limit: 2_048),
                      receivedAt: Date(timeIntervalSince1970: milliseconds / 1_000),
                      isUnread: message.labelIds?.contains("UNREAD") == true, webURL: components.url,
-                     rfcMessageID: header("Message-ID").map { NativeMailText.bounded($0, utf8Limit: 1_024) })
+                     rfcMessageID: header("Message-ID").map { NativeMailText.bounded($0, utf8Limit: 1_024) },
+                     replyTo: header("Reply-To").map { NativeMailText.decodeHeader($0) })
     }
 
     private static func validHistoryID(_ value: String?) -> Bool {
@@ -164,8 +165,8 @@ public struct GoogleNativeMailProvider: NativeMailProvider {
 /// establish Graph delta state. Repeated snapshots still track removals, read status and new arrivals.
 public struct MicrosoftNativeMailProvider: NativeMailProvider {
     public let account: NativeMailAccount
-    private let api: NativeMailAPI
-    private static let base = "https://graph.microsoft.com/v1.0"
+    let api: NativeMailAPI
+    static let base = "https://graph.microsoft.com/v1.0"
     private static let prefer = "IdType=\"ImmutableId\", outlook.body-content-type=\"text\""
 
     public init(account: NativeMailAccount, token: @escaping NativeMailTokenLoader,
@@ -187,7 +188,7 @@ public struct MicrosoftNativeMailProvider: NativeMailProvider {
     private func snapshot() async throws -> NativeMailPage {
         let initial = try nativeMailURL(Self.base + "/me/mailFolders/inbox/messages", query: [
             .init(name: "$top", value: "50"), .init(name: "$orderby", value: "receivedDateTime desc"),
-            .init(name: "$select", value: "id,subject,from,sender,bodyPreview,receivedDateTime,isRead,webLink,internetMessageId")
+            .init(name: "$select", value: "id,subject,from,sender,bodyPreview,receivedDateTime,isRead,webLink,internetMessageId,replyTo")
         ])
         var next: URL? = initial, messages: [NativeMailSummary] = [], seen = Set<String>(), pages = 0
         while let url = next, messages.count < 50 {
@@ -242,7 +243,8 @@ public struct MicrosoftNativeMailProvider: NativeMailProvider {
                      subject: NativeMailText.bounded(message.subject ?? "", utf8Limit: 1_024),
                      preview: NativeMailText.bounded(message.bodyPreview ?? "", utf8Limit: 2_048),
                      receivedAt: receivedAt, isUnread: message.isRead == false, webURL: webURL,
-                     rfcMessageID: message.internetMessageId.map { NativeMailText.bounded($0, utf8Limit: 1_024) })
+                     rfcMessageID: message.internetMessageId.map { NativeMailText.bounded($0, utf8Limit: 1_024) },
+                     replyTo: message.replyTo?.compactMap { $0.emailAddress?.address }.first.map { NativeMailText.bounded($0, utf8Limit: 1_024) })
     }
 
     private static func isSafeWebLink(_ url: URL) -> Bool {
@@ -271,6 +273,7 @@ public enum NativeMailIdentityResolver {
             let profile = try nativeMailDecode(GmailProfile.self, from: await api.get(try nativeMailURL("https://gmail.googleapis.com/gmail/v1/users/me/profile")))
             guard !user.sub.isEmpty, user.sub.count <= 512, let email = profile.emailAddress, validAddress(email), user.emailVerified != false else { throw NativeMailFailure.invalidResponse }
             return .init(remoteID: user.sub, address: email, displayName: NativeMailText.bounded(user.name ?? "", utf8Limit: 256))
+        case .icloud, .imap: throw NativeMailFailure.unsupportedOperation
         case .microsoft:
             let url = try nativeMailURL("https://graph.microsoft.com/v1.0/me", query: [.init(name: "$select", value: "id,mail,userPrincipalName,displayName")])
             let user = try nativeMailDecode(GraphIdentity.self, from: await api.get(url))
@@ -313,6 +316,7 @@ private struct GraphPage: Decodable {
 }
 private struct GraphMessage: Decodable {
     let id: String; let subject: String?; let from: Address?; let sender: Address?; let bodyPreview: String?
+    let replyTo: [Address]?
     let receivedDateTime: String?; let isRead: Bool?; let webLink: String?; let internetMessageId: String?; let body: Body?
     struct Address: Decodable { let emailAddress: Email? }
     struct Email: Decodable { let name: String?; let address: String? }

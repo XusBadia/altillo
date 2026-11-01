@@ -1,24 +1,42 @@
 # Correo en Altillo
 
-**Versión publicada 0.13.0:** usa el puente opcional de Apple Mail descrito más abajo. **R61 en desarrollo, todavía sin publicar:** incorpora conexión directa de Google y Microsoft. Las pruebas sintéticas no acreditan aún OAuth con cuentas reales ni una actualización distribuida.
+**Versión publicada 0.13.0:** usa el puente opcional de Apple Mail descrito más abajo. **R61 en desarrollo, todavía sin publicar:** incorpora Google, Microsoft, iCloud e IMAP con lectura, envío y gestión. Las pruebas sintéticas no acreditan aún OAuth con cuentas reales ni una actualización distribuida.
 
 ## Cuentas directas: desarrollo de R61
 
-La nueva configuración ofrece cuentas Google y Microsoft mediante autorización del proveedor, sin configurar Apple Mail ni introducir tu contraseña en Altillo. Solo aparecen los proveedores cuyos registros OAuth ha configurado el distribuidor. La [guía OAuth](mail-oauth.md) es para quien desarrolla/distribuye Altillo, no un requisito para cada usuario.
+Google y Microsoft se conectan mediante la autorización del proveedor; iCloud y otro IMAP mediante los datos de servidor y una contraseña específica cuando esté disponible. No requieren Apple Mail. Solo aparecen los conectores OAuth configurados por el distribuidor; la [guía OAuth](mail-oauth.md) es para desarrollar/distribuir Altillo, no un trámite para cada usuario.
 
-El alcance implementado es de **lectura**: últimos 50 mensajes de Inbox por cuenta, vista conjunta/selector, lector de texto, refrescar, reconectar, desconectar y acciones de código/enlace. Leer no marca el mensaje como leído en el servidor. No incluye envío, respuestas, archivo, borrado, adjuntos, búsqueda, iCloud ni IMAP genérico.
+El alcance ampliado aprobado incluye los últimos 50 mensajes de Inbox por cuenta, vista conjunta/selector, lector de texto, **redactar/enviar y responder**, Cc/Cco, adjuntos y acciones de **leído/no leído, archivar y trasladar a Papelera**. Abrir el lector no marca automáticamente como leído. Papelera pide confirmación y no borra permanentemente; la retención posterior depende del proveedor. Búsqueda, todas las carpetas, conversaciones completas, IA y sincronización entre dispositivos quedan para otra ampliación.
 
-- Google utiliza Gmail API (`gmail.readonly`) y un historial incremental; Microsoft utiliza Graph (`User.Read` y `Mail.Read`) y refresca los 50 mensajes más recientes. No se descarga el histórico completo del buzón.
-- Las consultas van directamente al proveedor, sin backend de correo de Altillo. Se refresca periódicamente mientras Altillo está ejecutándose; no es push instantáneo.
-- La bandeja y los cuerpos viven en RAM durante la sesión desbloqueada: 50 resúmenes por cuenta, cuerpos bajo demanda de hasta 1 MiB y caché compartida de hasta 10 MiB. Los cuerpos pueden aparecer truncados. Hasta dos llegadas por ciclo obtienen cuerpo automáticamente para reconocer acciones; las demás muestran metadatos.
-- HTML se convierte a texto sin navegador, imágenes ni recursos remotos. El contenido no se envía a Pregunta ni se guarda como archivo de correo. Abrir el original o un enlace sí abre el navegador tras una acción explícita.
-- Los avisos duran cinco minutos; esa caducidad no elimina la bandeja de la sesión. Bloquear, dormir o desactivar limpia ambos y cancela las consultas. No hay archivo offline tras reiniciar. La carga inicial, desbloqueo y recuperación no generan avisos históricos.
-- Credenciales e identidad de cuenta se conservan en el Keychain privado de este Mac. Pausar conserva la conexión. **Desconectar** elimina su estado/credenciales locales; no afirma revocar el permiso remoto. Puedes revocarlo además en el portal del proveedor.
-- Los filtros controlan qué llegadas avisan, sin esconder mensajes de la bandeja. Copiar código conserva la exclusión del historial de Clipboard de Altillo.
+### Conectar una cuenta
 
-El puente y las cuentas directas son fuentes mutuamente excluyentes. Puedes preparar cuentas sin activar esa fuente y elegirla explícitamente; cambiar de fuente conserva scripts/reglas para poder volver. No se consultan ni borran reglas de Mail. Para retirar el puente, sigue la limpieza manual al final.
+- **Google:** consentimiento en el navegador; Gmail API solicita `gmail.modify` (restringido) y `gmail.send` (sensible), además de identidad. Una cuenta del prototipo de lectura necesita reconectar para ampliar permisos.
+- **Microsoft:** consentimiento mediante MSAL; permisos delegados `User.Read`, `Mail.ReadWrite` y `Mail.Send`. Una organización puede bloquearlo o exigir autorización administrativa.
+- **iCloud:** activar 2FA y generar una **contraseña específica de aplicación** en Apple Account → Inicio de sesión y seguridad. No introducir la contraseña principal. La app prepara `imap.mail.me.com:993` (TLS) y `smtp.mail.me.com:587` (STARTTLS); usa tu dirección completa y el usuario que indique el proveedor. [Instrucciones de Apple](https://support.apple.com/en-us/102654).
+- **Otro IMAP:** proporcionar dirección, usuario, hosts y puertos IMAP/SMTP y contraseña/app password del proveedor. IMAP requiere TLS; SMTP admite TLS implícito o STARTTLS obligatorio. Si el proveedor solo permite OAuth, usar su conector dedicado si existe: una contraseña no lo sustituye. No se promete compatibilidad con todos los servidores ni sus carpetas especiales.
 
-Pendientes antes de distribuir: registros propios del distribuidor, revisión de Google aplicable, prueba OAuth/renovación real, firma/Keychain de la app instalada y QA. [Plan y límites](plans/mail-native-accounts.md) · [Firma](native-mail-signing.md).
+Las credenciales permanecen en el Keychain privado de este Mac. iCloud/IMAP no dependen de los client IDs Google/Microsoft, pero sí de una app correctamente firmada y autorizada para Keychain. No hay servidor de correo de Altillo que custodie la contraseña.
+
+### Enviar y descargar adjuntos
+
+Elegir cuenta, destinatarios y contenido y pulsar Enviar es una acción explícita. Se permiten hasta **18 MiB de adjuntos en total por composición**, y **25 MiB para el mensaje MIME completo**, contando cuerpo y expansión base64. Graph utiliza borradores/subidas por partes cuando hacen falta. El proveedor o destinatario puede imponer límites adicionales.
+
+Un éxito indica aceptación por el proveedor, no entrega garantizada. Si Altillo dice que **el envío es incierto**, comprueba Enviados y, si es necesario, consulta al destinatario antes de repetir. No hay reenvío automático. Para iCloud/IMAP, **Guardar una copia en Enviados mediante IMAP** está activado por defecto; desactívalo si tu servidor saliente ya guarda los mensajes, para evitar duplicados. Después de la aceptación SMTP se intenta guardar la copia con el mismo identificador. Si solo falla esa copia, Altillo indica que el mensaje se ha enviado y que **no debes reenviarlo**. Graph puede dejar un borrador sin enviar cuando falla una subida. Esas copias son datos del proveedor, no se eliminan al cerrar el compositor o desconectar.
+
+Los adjuntos recibidos se descargan solo a petición, hasta **20 MiB** cada uno. Elige la ruta de guardado; el archivo es persistente y no desaparece al bloquear, dormir o desconectar. Altillo no descarga ni abre automáticamente adjuntos.
+
+### Datos de la sesión
+
+- Comunicación directa con el proveedor y refresco periódico mientras Altillo está abierto; no es push instantáneo. Google usa historial; Graph e IMAP refrescan la ventana reciente de 50 mensajes. No se descarga todo el histórico.
+- La bandeja y los cuerpos viven en RAM durante la sesión desbloqueada: 50 resúmenes por cuenta, cuerpo de hasta 1 MiB y caché compartida de 10 MiB. Hasta dos llegadas por ciclo obtienen cuerpo automáticamente para códigos/enlaces. El compositor permanece local en memoria hasta las acciones de envío, que pueden crear borradores en el proveedor.
+- HTML se convierte a texto sin navegador, imágenes ni recursos remotos. El contenido no va a Pregunta ni se guarda como archivo local de correo. Abrir un original/enlace abre el navegador tras tu acción. Enviar sí comunica el contenido y los adjuntos al proveedor y destinatarios.
+- Los avisos duran cinco minutos; esa caducidad no elimina la bandeja de la sesión. Bloquear, dormir o desactivar limpia bandeja, lector y compositor y cancela red. No hay correo offline tras reiniciar. La carga inicial y recuperación no generan avisos históricos. Los archivos guardados por ti y los mensajes/borradores del proveedor siguen existiendo.
+- Pausar conserva la cuenta. **Desconectar** elimina estado/credenciales locales, sin afirmar revocación remota: revoca también desde el portal Google/Microsoft, contraseñas específicas de Apple o administración del servidor si lo deseas.
+- Los filtros controlan avisos, sin esconder mensajes de la bandeja. Copiar código conserva la exclusión del historial de Clipboard de Altillo.
+
+Puente y cuentas directas son fuentes mutuamente excluyentes. Preparar cuentas no elimina scripts/reglas; elige explícitamente la fuente y puedes volver al puente. No se consultan ni borran reglas de Mail. Para retirarlo, sigue la limpieza manual al final.
+
+Pendientes antes de distribuir: registros/revisión OAuth, perfil y Keychain de producción, QA real de cada proveedor y validación de toda la ampliación. La baseline anterior de 1.386 pruebas solo cubre la entrega de lectura. [Plan y evidencia](plans/mail-native-accounts.md) · [Firma](native-mail-signing.md).
 
 ## Apple Mail: beta publicada en 0.13.0
 

@@ -137,6 +137,7 @@ targets:
         COMBINE_HIDPI_IMAGES: YES
       configs:
         Release:
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
           # Internal review windows and spike tools must never enter a distributable binary.
           EXCLUDED_SOURCE_FILE_NAMES: SpikeLog.swift
     scheme:

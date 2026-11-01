@@ -405,6 +405,9 @@ struct UsageStoreTests {
 
         let clock = FakeUsageClock(now: start.addingTimeInterval(60))
         let store = makeStore([], clock: clock, archive: archive)
+        // This test checks restoration, not polling. An empty automatic refresh could race the
+        // separate writer below and overwrite the same history file with the restored sample.
+        store.setSectionEnabled(false)
         store.start()
         defer { store.stop() }
         #expect(store.snapshot == legacy)
@@ -422,6 +425,7 @@ struct UsageStoreTests {
         #expect(!json.contains("problemDetail"))
 
         let relaunched = makeStore([], clock: clock, archive: archive)
+        relaunched.setSectionEnabled(false)
         relaunched.start()
         defer { relaunched.stop() }
         #expect(relaunched.trend(for: .claude).last?.used == 0.7)

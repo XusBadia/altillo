@@ -1,7 +1,7 @@
 import Foundation
 
 public enum NativeMailService: String, Codable, CaseIterable, Sendable {
-    case google, microsoft
+    case google, microsoft, icloud, imap
 }
 
 /// Only account identity is persistent. Never add message content or credentials to this model.
@@ -43,10 +43,12 @@ public struct NativeMailSummary: Identifiable, Equatable, Sendable {
     public let isUnread: Bool
     public let webURL: URL?
     public let rfcMessageID: String?
+    public let replyTo: String?
     public init(key: NativeMailMessageKey, sender: String, subject: String, preview: String = "", receivedAt: Date,
-                isUnread: Bool = false, webURL: URL? = nil, rfcMessageID: String? = nil) {
+                isUnread: Bool = false, webURL: URL? = nil, rfcMessageID: String? = nil, replyTo: String? = nil) {
         self.key = key; self.sender = sender; self.subject = subject; self.preview = preview
         self.receivedAt = receivedAt; self.isUnread = isUnread; self.webURL = webURL; self.rfcMessageID = rfcMessageID
+        self.replyTo = replyTo
     }
 }
 
@@ -79,6 +81,7 @@ public struct NativeMailPage: Sendable {
 public enum NativeMailFailure: Error, Equatable, Sendable {
     case unauthorized, forbidden, unavailable, invalidResponse, cursorExpired, messageMissing, contentTooLarge
     case rateLimited(TimeInterval)
+    case invalidDraft, unsupportedOperation, deliveryUncertain
 }
 
 public typealias NativeMailTokenLoader = @Sendable (_ forceRefresh: Bool) async throws -> String
@@ -88,6 +91,21 @@ public protocol NativeMailProvider: Sendable {
     func bootstrap(pageToken: String?) async throws -> NativeMailPage
     func changes(cursor: String, pageToken: String?) async throws -> NativeMailPage
     func fetchContent(for key: NativeMailMessageKey) async throws -> NativeMailContent
+    func send(_ draft: NativeMailDraft) async throws -> NativeMailSendReceipt
+    func setRead(_ isRead: Bool, for key: NativeMailMessageKey) async throws
+    func archive(_ key: NativeMailMessageKey) async throws
+    func trash(_ key: NativeMailMessageKey) async throws
+    func attachments(for key: NativeMailMessageKey) async throws -> [NativeMailAttachment]
+    func download(_ attachment: NativeMailAttachment) async throws -> Data
+}
+
+public extension NativeMailProvider {
+    func send(_ draft: NativeMailDraft) async throws -> NativeMailSendReceipt { throw NativeMailFailure.unsupportedOperation }
+    func setRead(_ isRead: Bool, for key: NativeMailMessageKey) async throws { throw NativeMailFailure.unsupportedOperation }
+    func archive(_ key: NativeMailMessageKey) async throws { throw NativeMailFailure.unsupportedOperation }
+    func trash(_ key: NativeMailMessageKey) async throws { throw NativeMailFailure.unsupportedOperation }
+    func attachments(for key: NativeMailMessageKey) async throws -> [NativeMailAttachment] { [] }
+    func download(_ attachment: NativeMailAttachment) async throws -> Data { throw NativeMailFailure.unsupportedOperation }
 }
 
 public struct NativeMailHTTPResponse: Sendable {

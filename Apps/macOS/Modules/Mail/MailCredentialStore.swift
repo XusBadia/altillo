@@ -7,6 +7,16 @@ struct MailCredentialRecord: Codable, Equatable, Sendable {
     let account: NativeMailAccount
     let googleState: Data?
     let microsoftAccountID: String?
+    var serverCredentials: NativeMailServerCredentials? = nil
+    var authorizationVersion: Int? = nil
+
+    var hasCredential: Bool {
+        switch account.service {
+        case .google: googleState != nil
+        case .microsoft: microsoftAccountID != nil
+        case .icloud, .imap: serverCredentials != nil
+        }
+    }
 }
 
 protocol MailCredentialBackend: Sendable {
@@ -33,7 +43,7 @@ final class MailCredentialStore: @unchecked Sendable {
                       let record = try? JSONDecoder().decode(MailCredentialRecord.self, from: data),
                       record.version == 1, !record.account.remoteID.isEmpty,
                       !record.account.address.isEmpty,
-                      (record.account.service == .google ? record.googleState != nil : record.microsoftAccountID != nil)
+                      record.hasCredential
                 else { throw MailAuthFailure.credentialStorage }
                 return record
             }

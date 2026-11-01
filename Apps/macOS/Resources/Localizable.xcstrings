@@ -1,6 +1,982 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "The attachment couldn't be saved. Choose another location and try again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The attachment couldn't be saved. Choose another location and try again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido guardar el adjunto. Elige otra ubicación y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "Message sent, but a copy couldn't be saved to Sent. Don't resend it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message sent, but a copy couldn't be saved to Sent. Don't resend it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensaje enviado, pero no se ha podido guardar una copia en Enviados. No lo reenvíes."
+          }
+        }
+      }
+    },
+    "Save a copy in Sent using IMAP": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save a copy in Sent using IMAP"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar una copia en Enviados mediante IMAP"
+          }
+        }
+      }
+    },
+    "Turn this off if your outgoing server already saves sent messages.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn this off if your outgoing server already saves sent messages."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desactiva esta opción si tu servidor saliente ya guarda los mensajes enviados."
+          }
+        }
+      }
+    },
+    "Account name": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account name"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombre de la cuenta"
+          }
+        }
+      }
+    },
+    "Add Google, Microsoft, iCloud or an IMAP account. Apple Mail can stay closed.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add Google, Microsoft, iCloud or an IMAP account. Apple Mail can stay closed."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade Google, Microsoft, iCloud o una cuenta IMAP. Apple Mail puede permanecer cerrado."
+          }
+        }
+      }
+    },
+    "Altillo connects directly to your provider. Reading does not change read status until you choose it. Content is never sent to Ask.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo connects directly to your provider. Reading does not change read status until you choose it. Content is never sent to Ask."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo se conecta directamente a tu proveedor. Leer no marca el mensaje como leído hasta que lo elijas. El contenido nunca se envía a Pregunta."
+          }
+        }
+      }
+    },
+    "App-specific password": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "App-specific password"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña específica de aplicación"
+          }
+        }
+      }
+    },
+    "Archive": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archive"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Archivar"
+          }
+        }
+      }
+    },
+    "Attach files…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attach files…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjuntar archivos…"
+          }
+        }
+      }
+    },
+    "Attachment saved.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attachment saved."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjunto guardado."
+          }
+        }
+      }
+    },
+    "Attachments: up to 18 MB total. Drafts are cleared when Mail is paused or this Mac locks.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attachments: up to 18 MB total. Drafts are cleared when Mail is paused or this Mac locks."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adjuntos: hasta 18 MB en total. Los borradores se borran al pausar Correo o bloquear este Mac."
+          }
+        }
+      }
+    },
+    "Bcc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bcc"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cco"
+          }
+        }
+      }
+    },
+    "Cc": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cc"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cc"
+          }
+        }
+      }
+    },
+    "Check the recipient addresses and attachment names before sending.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the recipient addresses and attachment names before sending."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprueba las direcciones de los destinatarios y los nombres de los adjuntos antes de enviar."
+          }
+        }
+      }
+    },
+    "Checking incoming and outgoing mail…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking incoming and outgoing mail…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando el correo entrante y saliente…"
+          }
+        }
+      }
+    },
+    "Compose message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compose message"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redactar mensaje"
+          }
+        }
+      }
+    },
+    "Connect Google, Microsoft, iCloud or an IMAP account to read and send mail in Altillo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Google, Microsoft, iCloud or an IMAP account to read and send mail in Altillo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Google, Microsoft, iCloud o una cuenta IMAP para leer y enviar correo en Altillo."
+          }
+        }
+      }
+    },
+    "Connect IMAP and SMTP": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect IMAP and SMTP"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar IMAP y SMTP"
+          }
+        }
+      }
+    },
+    "Connect iCloud": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect iCloud"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar iCloud"
+          }
+        }
+      }
+    },
+    "Connect iCloud Mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect iCloud Mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar iCloud Mail"
+          }
+        }
+      }
+    },
+    "Create an app-specific password": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create an app-specific password"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Crear una contraseña específica de aplicación"
+          }
+        }
+      }
+    },
+    "Discard draft": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard draft"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar borrador"
+          }
+        }
+      }
+    },
+    "Discard this unsent message?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this unsent message?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Descartar este mensaje sin enviar?"
+          }
+        }
+      }
+    },
+    "Email address": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Email address"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dirección de correo"
+          }
+        }
+      }
+    },
+    "From": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De"
+          }
+        }
+      }
+    },
+    "Google and Microsoft open their own sign-in screen. Altillo requests permission to read, manage and send mail.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google and Microsoft open their own sign-in screen. Altillo requests permission to read, manage and send mail."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Google y Microsoft abren su propia pantalla de inicio de sesión. Altillo solicita permiso para leer, gestionar y enviar correo."
+          }
+        }
+      }
+    },
+    "IMAP port": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IMAP port"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puerto IMAP"
+          }
+        }
+      }
+    },
+    "IMAP server": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IMAP server"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidor IMAP"
+          }
+        }
+      }
+    },
+    "Incoming mail always uses TLS. Outgoing mail requires TLS or STARTTLS. Use Google or Microsoft sign-in for those providers.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Incoming mail always uses TLS. Outgoing mail requires TLS or STARTTLS. Use Google or Microsoft sign-in for those providers."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El correo entrante siempre usa TLS. El saliente requiere TLS o STARTTLS. Para Google o Microsoft, usa su inicio de sesión."
+          }
+        }
+      }
+    },
+    "Keep editing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep editing"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguir editando"
+          }
+        }
+      }
+    },
+    "Login username": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Login username"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usuario de inicio de sesión"
+          }
+        }
+      }
+    },
+    "Mark as read": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as read"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar como leído"
+          }
+        }
+      }
+    },
+    "Mark as unread": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mark as unread"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Marcar como no leído"
+          }
+        }
+      }
+    },
+    "Message body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message body"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cuerpo del mensaje"
+          }
+        }
+      }
+    },
+    "Message updated.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message updated."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensaje actualizado."
+          }
+        }
+      }
+    },
+    "Move this message to Trash?": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move this message to Trash?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Trasladar este mensaje a la Papelera?"
+          }
+        }
+      }
+    },
+    "Move to Trash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Move to Trash"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trasladar a la Papelera"
+          }
+        }
+      }
+    },
+    "New message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New message"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nuevo mensaje"
+          }
+        }
+      }
+    },
+    "Other mail account…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other mail account…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otra cuenta de correo…"
+          }
+        }
+      }
+    },
+    "Outgoing encryption": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outgoing encryption"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cifrado de salida"
+          }
+        }
+      }
+    },
+    "Password or app password": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Password or app password"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Contraseña o contraseña de aplicación"
+          }
+        }
+      }
+    },
+    "Read, send and manage your mail directly in Altillo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read, send and manage your mail directly in Altillo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lee, envía y gestiona tu correo directamente en Altillo."
+          }
+        }
+      }
+    },
+    "Remove attachment": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove attachment"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar adjunto"
+          }
+        }
+      }
+    },
+    "Reply": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reply"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Responder"
+          }
+        }
+      }
+    },
+    "SMTP port": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SMTP port"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puerto SMTP"
+          }
+        }
+      }
+    },
+    "SMTP server": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SMTP server"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidor SMTP"
+          }
+        }
+      }
+    },
+    "STARTTLS (usually 587)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "STARTTLS (usually 587)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "STARTTLS (normalmente 587)"
+          }
+        }
+      }
+    },
+    "Save attachment…": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save attachment…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar adjunto…"
+          }
+        }
+      }
+    },
+    "Saved attachments stay in the location you choose. Sent messages and server drafts stay with your provider.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved attachments stay in the location you choose. Sent messages and server drafts stay with your provider."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los adjuntos guardados permanecen en la ubicación que elijas. Los mensajes enviados y borradores del servidor permanecen en tu proveedor."
+          }
+        }
+      }
+    },
+    "Send": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enviar"
+          }
+        }
+      }
+    },
+    "Subject": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subject"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asunto"
+          }
+        }
+      }
+    },
+    "TLS (usually 465)": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TLS (usually 465)"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TLS (normalmente 465)"
+          }
+        }
+      }
+    },
+    "The server may have accepted this message. Check Sent before trying again to avoid sending it twice.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server may have accepted this message. Check Sent before trying again to avoid sending it twice."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Puede que el servidor haya aceptado este mensaje. Comprueba Enviados antes de intentarlo de nuevo para evitar enviarlo dos veces."
+          }
+        }
+      }
+    },
+    "This message or attachment exceeds Altillo's size limit.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message or attachment exceeds Altillo's size limit."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este mensaje o adjunto supera el límite de tamaño de Altillo."
+          }
+        }
+      }
+    },
+    "This server doesn't support that action. Open your provider to finish it.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This server doesn't support that action. Open your provider to finish it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este servidor no admite esa acción. Abre tu proveedor para completarla."
+          }
+        }
+      }
+    },
+    "To": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Para"
+          }
+        }
+      }
+    },
+    "Use an app-specific password from your Apple Account. Your normal Apple Account password won't work here.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use an app-specific password from your Apple Account. Your normal Apple Account password won't work here."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa una contraseña específica de aplicación de tu cuenta de Apple. La contraseña habitual de tu cuenta no sirve aquí."
+          }
+        }
+      }
+    },
+    "Your mail provider asked Altillo to wait. Try again later.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your mail provider asked Altillo to wait. Try again later."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu proveedor de correo ha pedido a Altillo que espere. Inténtalo de nuevo más tarde."
+          }
+        }
+      }
+    },
+    "Your provider accepted the message for sending.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your provider accepted the message for sending."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu proveedor ha aceptado el mensaje para enviarlo."
+          }
+        }
+      }
+    },
+    "iCloud's incoming and outgoing servers are configured for you. For a custom domain, use your iCloud login as the username.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iCloud's incoming and outgoing servers are configured for you. For a custom domain, use your iCloud login as the username."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los servidores entrante y saliente de iCloud ya están configurados. Para un dominio personalizado, usa tu usuario de iCloud para iniciar sesión."
+          }
+        }
+      }
+    },
     "After removing the rule, use Show scripts to remove Altillo Mail.scpt and Altillo Mail Bridge.scpt. Leave other scripts untouched.": {
       "localizations": {
         "en": {

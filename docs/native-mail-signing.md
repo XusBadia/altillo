@@ -1,6 +1,6 @@
 # Signing native mail account builds
 
-Reviewed 1 November 2026. The native Google credential vault selects the macOS Data Protection
+Reviewed 1 November 2026. The native credential vault (Google authorization state, Microsoft account references, and iCloud/IMAP server credentials) selects the macOS Data Protection
 Keychain with `kSecUseDataProtectionKeychain = true`, `kSecAttrSynchronizable = false`, and
 `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`. The latter accessibility setting requires the Data
 Protection implementation on macOS. Dropping that selection to make an unprovisioned build work would
@@ -36,18 +36,26 @@ private cache group, as documented by `MSALCacheConfig.h` in release 2.17.0; the
 duplicate Microsoft tokens into its own vault. A shared MSAL cache/SSO group is not needed here.
 [MSAL cache configuration](https://github.com/AzureAD/microsoft-authentication-library-for-objc/blob/2.17.0/MSAL/src/public/configuration/publicClientApplication/cache/MSALCacheConfig.h).
 
-## Local state inspected
+## Local state inspected and configured
 
 The installed official application has bundle ID `me.badia.altillo`, team `9L2TD7KVV9`, and Developer
 ID signing. Its current signature has the existing four permissions and no application identifier.
-No Altillo macOS profile, nor a suitable macOS wildcard profile, was present in either standard local
-profile directory during this review.
+Initially no Altillo macOS profile, nor a suitable macOS wildcard profile, was present locally.
 
 The account already has an unrelated macOS Developer ID profile for another explicit App ID. That
 establishes that Developer ID provisioning has been used with this account; that unrelated profile
 does not authorize Altillo and must not be copied into it. Other discovered profiles were for iOS.
-Only profile metadata was inspected; no private keys or credentials were read and no Apple account
-registrations or profiles were created or changed.
+The existing App ID `me.badia.altillo` was then found through the account's App Store Connect API.
+Created **Altillo Developer ID Native Mail**, UUID `1f3026de-69ef-45e8-9722-b2f8c79a7b82`, using the
+existing Developer ID certificate whose SHA-1 is `B97D44DCB76A1388E5B560073688EECFA8935F83`.
+It is installed under `~/Library/Developer/Xcode/UserData/Provisioning Profiles/` and expires on
+1 February 2027. No new signing key, shared Keychain group or unrelated App ID was created.
+
+Local Release settings select this profile and Developer ID; Debug keeps its existing Apple
+Development setup. The provisioned Release build passes strict signature, profile App ID/team and
+certificate checks and has no debugger entitlement. A small signed QA executable using the exact
+Release entitlements successfully added/read/deleted an isolated synthetic Data Protection Keychain
+item with `WhenUnlockedThisDeviceOnly`; it never enumerated real credentials.
 
 ## Production Developer ID build
 
@@ -82,6 +90,9 @@ registrations or profiles were created or changed.
    ```
 
    Installing a profile alone does not select these settings.
+   If Debug uses a different signing identity, use the `[config=Release]` variants shown in
+   `Config/Local.xcconfig.example`. A Developer ID profile cannot authorize an Apple Development
+   certificate; development OAuth needs its own matching development profile.
 4. Archive with the existing hardened runtime and embed the profile at
    `Altillo.app/Contents/embedded.provisionprofile`. For manual archive export, add an ExportOptions
    mapping matching the actual release App ID:
@@ -106,8 +117,9 @@ registrations or profiles were created or changed.
    release logs: print only the metadata needed for that check. The profile must authorize this
    exact application identifier, have the macOS platform, and support Developer ID distribution to
    all devices. Inspect the final exported app, since export may change the archive's signature.
-6. Run a signed integration test that creates, reads and removes a synthetic record using a fresh
-   isolated service name; never enumerate or delete a person's mail credentials for this test.
+6. Run `python3 script/check-mail-keychain.py <exported-app> <signing-identity>` to create, read and
+   remove a synthetic record using a fresh isolated service name. The release script runs this
+   automatically for provisioned builds. It never enumerates or deletes a person's mail credentials.
    Keychain success must precede real OAuth QA. Notarize/package only after the signed test passes.
 
 [Apple TN3125: provisioning and profile location](https://developer.apple.com/documentation/technotes/tn3125-inside-code-signing-provisioning-profiles),
@@ -138,4 +150,13 @@ registration available.
 The release workflow installs `ALTILLO_MAC_PROVISIONING_PROFILE_BASE64` from GitHub secrets and reads
 the two public client IDs from repository variables `ALTILLO_GOOGLE_MAIL_CLIENT_ID` and
 `ALTILLO_MICROSOFT_MAIL_CLIENT_ID`. It selects the profile only for the main application target.
-These external values have not been configured by this implementation.
+The local profile is configured. The GitHub release secrets/public OAuth variables have not been
+configured by this implementation; production Google/Microsoft client registration remains separate.
+
+## Expanded account scope and validation
+
+R61 now includes explicit send/reply, read/archive/trash actions, attachments, and iCloud/IMAP over TLS. This does not relax signing or Keychain requirements: server passwords/app passwords must use the same private, non-synchronizing vault. iCloud/IMAP do not require Google/Microsoft client IDs, but an ad-hoc build still cannot prove production credential access. The current distribution gate continues to require both OAuth registrations for the complete release.
+
+Google authorization version 2 uses gmail.modify and gmail.send; Microsoft uses User.Read, Mail.ReadWrite and Mail.Send. Reauthorization, provider approval and real TLS/SMTP/IMAP checks are separate from signing. The previous 465 package + 921 macOS tests are a read-only baseline, not validation of these new operations. Consult [OAuth and server setup](mail-oauth.md) and [the plan](plans/mail-native-accounts.md) for the remaining acceptance checks.
+
+Downloaded attachments saved to a user-selected path persist outside the in-memory mail cache. Sent messages, recipients' copies and provider-side drafts also persist under the provider's policies. Locking or deleting local credentials does not delete those files/messages. A valid signature does not prove send acceptance, final delivery, or safe handling of an uncertain send.

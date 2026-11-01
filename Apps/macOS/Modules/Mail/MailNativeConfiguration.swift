@@ -25,8 +25,20 @@ struct MailNativeConfiguration: Sendable {
     }
 
     var availableServices: [NativeMailService] {
-        NativeMailService.allCases.filter { $0 == .google ? googleClientID != nil : microsoftClientID != nil }
+        NativeMailService.allCases.filter {
+            switch $0 {
+            case .google: googleClientID != nil
+            case .microsoft: microsoftClientID != nil
+            case .icloud, .imap: true
+            }
+        }
     }
+
+    static let authorizationVersion = 2
+    // gmail.modify also authorizes messages.send; requesting gmail.send again is redundant.
+    static let googleScopes = ["openid", "email", "https://www.googleapis.com/auth/gmail.modify"]
+    // MSAL itself supplies openid/profile/offline_access.
+    static let microsoftScopes = ["User.Read", "Mail.ReadWrite", "Mail.Send"]
 
     var microsoftRedirectURI: String { "msauth.\(bundleIdentifier)://auth" }
 

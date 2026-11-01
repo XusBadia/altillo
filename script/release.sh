@@ -251,6 +251,9 @@ xcodebuild -exportArchive \
   -exportOptionsPlist "$EXPORT_OPTIONS"
 mv "$DIST_DIR/export/$APP_NAME.app" "$APP_PATH"
 python3 "$ROOT_DIR/script/check-mail-signing.py" "$APP_PATH" "${MAIL_SIGNING_ARGS[@]}" >/dev/null
+if [ -n "$MAIL_SIGNING_METADATA" ]; then
+  python3 "$ROOT_DIR/script/check-mail-keychain.py" "$APP_PATH" "$SIGN_IDENTITY"
+fi
 rmdir "$DIST_DIR/export" 2>/dev/null || rm -rf "$DIST_DIR/export"
 
 # The archive itself (a full copy of build products + dSYMs + Info.plist) isn't needed once exported —

@@ -4,16 +4,22 @@ import SwiftUI
 
 struct DesvanNativeMailView: View {
     @Bindable var controller: NativeMailController
+    @State private var messageToTrash: NativeMailSummary?
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                if controller.selectedMessage != nil {
+                if controller.selectedMessage != nil, !controller.isComposing {
                     Button { controller.closeReader() } label: { Image(systemName: "chevron.left") }
                         .accessibilityLabel("Back to messages")
                 }
                 Text("Mail").font(Desvan.Typeface.rounded(12, weight: .semibold))
                 Spacer()
+                if !controller.isComposing {
+                    Button { controller.startCompose() } label: { Image(systemName: "square.and.pencil") }
+                        .disabled(controller.isPaused || controller.accounts.isEmpty)
+                        .accessibilityLabel("Compose message")
+                }
                 if !controller.accounts.isEmpty, controller.selectedMessage == nil {
                     Menu {
                         Picker("Mail account", selection: $controller.selectedAccountID) {
@@ -36,9 +42,16 @@ struct DesvanNativeMailView: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(Desvan.Palette.paperSecondary)
-            if let message = controller.selectedMessage { reader(message) }
+            if let status = controller.actionStatus {
+                Text(status).font(.system(size: 10)).foregroundStyle(Desvan.Palette.paperSecondary)
+            }
+            if let problem = controller.problem {
+                Text(problem).font(.system(size: 11)).foregroundStyle(Desvan.Palette.paperSecondary)
+            }
+            if controller.isComposing { NativeMailComposerView(controller: controller) }
+            else if let message = controller.selectedMessage { reader(message) }
             else if controller.accounts.isEmpty {
-                empty("Connect your email account", detail: "Read Google or Microsoft mail in Altillo, with your account's permission.")
+                empty("Connect your email account", detail: "Connect Google, Microsoft, iCloud or an IMAP account to read and send mail in Altillo.")
             } else if controller.isPaused {
                 empty("Mail is paused", detail: "Enable Mail in Settings to refresh your inbox.")
             } else {
@@ -79,6 +92,12 @@ struct DesvanNativeMailView: View {
         .desvanCard(radius: 16)
         .onAppear { controller.isInboxVisible = true }
         .onDisappear { controller.isInboxVisible = false }
+        .confirmationDialog("Move this message to Trash?", isPresented: Binding(get: { messageToTrash != nil }, set: { if !$0 { messageToTrash = nil } })) {
+            if let message = messageToTrash {
+                Button("Move to Trash", role: .destructive) { messageToTrash = nil; Task { await controller.perform(.trash, on: message) } }
+            }
+            Button("Cancel", role: .cancel) { messageToTrash = nil }
+        }
     }
 
     private func row(_ message: NativeMailSummary) -> some View {
@@ -114,6 +133,18 @@ struct DesvanNativeMailView: View {
             Text(verbatim: message.sender).font(.system(size: 11)).textSelection(.enabled)
             Text(message.receivedAt, format: .dateTime.day().month().hour().minute())
                 .font(.system(size: 10)).foregroundStyle(Desvan.Palette.paperSecondary)
+            HStack(spacing: 12) {
+                Button("Reply") { controller.startCompose(replyingTo: message) }
+                Button(message.isUnread ? String(localized: "Mark as read") : String(localized: "Mark as unread")) {
+                    Task { await controller.perform(.read(message.isUnread), on: message) }
+                }
+                Button("Archive") { Task { await controller.perform(.archive, on: message) } }
+                Button { messageToTrash = message } label: { Image(systemName: "trash") }
+                    .accessibilityLabel("Move to Trash")
+                if controller.isMutating { ProgressView().controlSize(.mini) }
+            }
+            .font(.system(size: 11)).buttonStyle(.plain)
+            .disabled(controller.isPaused || controller.isMutating || controller.isSending || controller.isRefreshing)
             TimelineView(.periodic(from: .now, by: 30)) { _ in
                 HStack(spacing: 8) {
                     if let envelope = controller.actionEnvelope(for: message) {
@@ -146,6 +177,21 @@ struct DesvanNativeMailView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
             .scrollBounceBehavior(.basedOnSize)
+            if !controller.selectedAttachments.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack {
+                        ForEach(controller.selectedAttachments) { attachment in
+                            Button { controller.saveAttachment(attachment) } label: {
+                                Label(attachment.filename, systemImage: "arrow.down.doc").lineLimit(1)
+                            }
+                            .disabled(controller.downloadingAttachmentID != nil || controller.isMutating)
+                            .help("Save attachment…")
+                        }
+                    }
+                    .font(.system(size: 11)).buttonStyle(.plain)
+                }
+                if controller.downloadingAttachmentID != nil { ProgressView().controlSize(.mini) }
+            }
             if controller.selectedContent?.isTruncated == true {
                 Text("This message was shortened. Open the original to read all of it.")
                     .font(.system(size: 10)).foregroundStyle(Desvan.Palette.paperSecondary)

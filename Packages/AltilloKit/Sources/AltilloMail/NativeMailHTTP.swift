@@ -23,7 +23,7 @@ public struct URLSessionNativeMailTransport: NativeMailTransport {
     }
 
     public func send(_ request: URLRequest, byteLimit: Int) async throws -> NativeMailHTTPResponse {
-        guard byteLimit > 0, byteLimit <= 4_194_304 else { throw NativeMailFailure.contentTooLarge }
+        guard byteLimit > 0, byteLimit <= 32 * 1_048_576 else { throw NativeMailFailure.contentTooLarge }
         do {
             let (bytes, response) = try await session.bytes(for: request)
             defer { bytes.task.cancel() }
@@ -52,6 +52,12 @@ struct NativeMailAPI: Sendable {
     let allowedHosts: Set<String>
 
     func get(_ url: URL, byteLimit: Int = 2_097_152, headers: [String: String] = [:], notFound: NativeMailFailure = .messageMissing) async throws -> Data {
+        try await request(url, method: "GET", byteLimit: byteLimit, headers: headers, notFound: notFound)
+    }
+
+    func request(_ url: URL, method: String, body: Data? = nil, contentType: String = "application/json",
+                 byteLimit: Int = 2_097_152, headers: [String: String] = [:],
+                 notFound: NativeMailFailure = .messageMissing, isSend: Bool = false) async throws -> Data {
         guard Self.isSafe(url, hosts: allowedHosts) else { throw NativeMailFailure.invalidResponse }
         for force in [false, true] {
             try Task.checkCancellation()
@@ -62,16 +68,17 @@ struct NativeMailAPI: Sendable {
             catch { throw NativeMailFailure.unauthorized }
             guard !accessToken.isEmpty, !accessToken.contains("\r"), !accessToken.contains("\n") else { throw NativeMailFailure.unauthorized }
             var request = URLRequest(url: url, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: 20)
-            request.httpMethod = "GET"
+            request.httpMethod = method
+            request.httpBody = body
+            if body != nil { request.setValue(contentType, forHTTPHeaderField: "Content-Type") }
             request.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization")
             request.setValue("application/json", forHTTPHeaderField: "Accept")
             for (name, value) in headers { request.setValue(value, forHTTPHeaderField: name) }
             let response: NativeMailHTTPResponse
             do { response = try await transport.send(request, byteLimit: byteLimit) }
-            catch is CancellationError { throw CancellationError() }
-            catch let error as NativeMailFailure { throw error }
-            catch { throw NativeMailFailure.unavailable }
-            guard response.data.count <= byteLimit else { throw NativeMailFailure.contentTooLarge }
+            catch is CancellationError { if isSend { throw NativeMailFailure.deliveryUncertain }; throw CancellationError() }
+            catch { if isSend { throw NativeMailFailure.deliveryUncertain }; throw (error as? NativeMailFailure ?? .unavailable) }
+            guard response.data.count <= byteLimit else { throw isSend ? NativeMailFailure.deliveryUncertain : .contentTooLarge }
             switch response.status {
             case 200...299: return response.data
             case 401 where !force: continue
@@ -81,7 +88,9 @@ struct NativeMailAPI: Sendable {
             case 429:
                 let retry = response.headers.first { $0.key.lowercased() == "retry-after" }?.value
                 throw NativeMailFailure.rateLimited(Self.retryDelay(retry))
-            case 500...599: throw NativeMailFailure.unavailable
+            case 400 where isSend: throw NativeMailFailure.invalidDraft
+            case 300...399 where isSend: throw NativeMailFailure.deliveryUncertain
+            case 408, 500...599: throw isSend ? NativeMailFailure.deliveryUncertain : .unavailable
             default: throw NativeMailFailure.invalidResponse
             }
         }

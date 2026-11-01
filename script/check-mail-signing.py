@@ -6,6 +6,7 @@ import plistlib
 import re
 import subprocess
 import sys
+import tempfile
 
 
 def check(app: pathlib.Path, require_clients: bool = False) -> tuple[str, str] | None:
@@ -26,7 +27,9 @@ def check(app: pathlib.Path, require_clients: bool = False) -> tuple[str, str] |
     profile = plistlib.loads(subprocess.check_output(
         ["security", "cms", "-D", "-i", str(profile_path)], stderr=subprocess.DEVNULL))
     signed = plistlib.loads(subprocess.check_output(
-        ["codesign", "-d", "--entitlements", "-", str(app)], stderr=subprocess.DEVNULL))
+        ["codesign", "-d", "--entitlements", "-", "--xml", str(app)], stderr=subprocess.DEVNULL))
+    if signed.get("com.apple.security.get-task-allow"):
+        raise ValueError("A distributable mail build must not allow debugger attachment.")
     identifier = signed.get("com.apple.application-identifier", "")
     authorized = profile.get("Entitlements", {}).get("com.apple.application-identifier")
     if not identifier or identifier != authorized or not identifier.endswith("." + info["CFBundleIdentifier"]):
@@ -38,6 +41,16 @@ def check(app: pathlib.Path, require_clients: bool = False) -> tuple[str, str] |
     if not profile.get("ProvisionsAllDevices"):
         raise ValueError("A public release requires a Developer ID distribution profile.")
     subprocess.run(["codesign", "--verify", "--deep", "--strict", str(app)], check=True)
+    signature = subprocess.run(["codesign", "-dv", str(app)], capture_output=True, text=True, check=True)
+    team = re.search(r"^TeamIdentifier=(.+)$", signature.stderr, re.MULTILINE)
+    if not team or team.group(1) not in profile.get("TeamIdentifier", []):
+        raise ValueError("The signing team must match the embedded profile.")
+    with tempfile.TemporaryDirectory(prefix="altillo-mail-certificate-") as directory:
+        prefix = pathlib.Path(directory) / "certificate"
+        subprocess.run(["codesign", "-d", "--extract-certificates=" + str(prefix), str(app)],
+                       check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if pathlib.Path(str(prefix) + "0").read_bytes() not in profile.get("DeveloperCertificates", []):
+            raise ValueError("The signing certificate is not authorized by the embedded profile.")
     return info["CFBundleIdentifier"], profile["UUID"]
 
 

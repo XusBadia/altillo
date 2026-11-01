@@ -7,10 +7,16 @@ struct SettingsMailGroup: View {
     var store: MailStore?
     @State private var installer = MailRuleInstaller()
     @State private var needsAccountBeforeSwitching = false
+    @State private var serverSetup: ServerSetup?
+    private struct ServerSetup: Identifiable {
+        let id = UUID()
+        let service: NativeMailService
+        var account: NativeMailAccount?
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
-            SettingsGroupHeading(title: "Mail accounts", detail: "Connect your account to read recent mail directly in Altillo.")
+            SettingsGroupHeading(title: "Mail accounts", detail: "Read, send and manage your mail directly in Altillo.")
             if let native = store?.native { accounts(native) }
             SettingsCardDivider()
             Picker("Mail source", selection: Binding(get: { settings.mailConnectionMode }, set: { mode in
@@ -33,7 +39,8 @@ struct SettingsMailGroup: View {
                 legacySetup
             } else {
                 Text("Recent inbox messages stay in memory while this Mac is unlocked. Locking, sleeping or disabling Mail clears them. Credentials stay in Keychain.").settingsHint()
-                Text("Altillo connects directly to your provider. Reading here does not mark mail as read, and content is never sent to Ask.").settingsHint()
+                Text("Altillo connects directly to your provider. Reading does not change read status until you choose it. Content is never sent to Ask.").settingsHint()
+                Text("Saved attachments stay in the location you choose. Sent messages and server drafts stay with your provider.").settingsHint()
             }
             SettingsCardDivider()
             SettingsToggleRow("Show new-mail glances", isOn: $settings.alertsForMail)
@@ -67,11 +74,18 @@ struct SettingsMailGroup: View {
             store?.native?.loadAccounts()
             await installer.refresh()
         }
+        .sheet(item: $serverSetup) { setup in
+            if let native = store?.native {
+                ServerMailSettingsForm(native: native, service: setup.service, replacing: setup.account) {
+                    if settings.mailConnectionMode == .direct { settings.setEnabled(.mail, true) }
+                }
+            }
+        }
     }
 
     @ViewBuilder private func accounts(_ native: NativeMailController) -> some View {
         if native.accounts.isEmpty {
-            Text("Add Google or Microsoft to see your inbox here. Apple Mail can stay closed.").settingsHint()
+            Text("Add Google, Microsoft, iCloud or an IMAP account. Apple Mail can stay closed.").settingsHint()
         } else {
             ForEach(native.accounts) { account in
                 HStack(alignment: .top, spacing: 10) {
@@ -83,7 +97,11 @@ struct SettingsMailGroup: View {
                     }
                     Spacer(minLength: 4)
                     if native.states[account.id] == .reconnect || native.states[account.id] == .denied || native.states[account.id] == .offline {
-                        Button("Reconnect") { Task { await native.connect(account.service, replacing: account) } }
+                        Button("Reconnect") {
+                            if account.service == .icloud || account.service == .imap {
+                                serverSetup = ServerSetup(service: account.service, account: account)
+                            } else { Task { await native.connect(account.service, replacing: account) } }
+                        }
                     }
                     Button("Disconnect") { Task { await native.disconnect(account) } }
                 }
@@ -105,8 +123,10 @@ struct SettingsMailGroup: View {
                 if native.availableServices.contains(.microsoft) {
                     Button("Connect Microsoft") { Task { await add(.microsoft, to: native) } }
                 }
+                Button("Connect iCloud") { serverSetup = ServerSetup(service: .icloud) }
+                Button("Other mail account…") { serverSetup = ServerSetup(service: .imap) }
             }
-            Text("Your provider opens its own sign-in screen. Altillo requests read access only.").settingsHint()
+            Text("Google and Microsoft open their own sign-in screen. Altillo requests permission to read, manage and send mail.").settingsHint()
         } else {
             Text("Account connection isn't available in this build yet.").settingsHint()
         }
