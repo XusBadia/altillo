@@ -1,6 +1,9 @@
 # Anuncios de Altillo 0.13.0
 
-Borradores para usar después de comprobar la publicación de la versión.
+La versión 0.13.0 y el appcast público se verificaron el 1 de noviembre de 2026. Los dos textos están guardados como borradores nativos en las cuentas indicadas; no están publicados ni programados.
+
+- X: texto completo confirmado en los [borradores de @XusBadia](https://x.com/compose/post/unsent/drafts).
+- LinkedIn: el perfil personal confirmó «Draft successfully saved»; se retoma desde [crear publicación](https://www.linkedin.com/sharing/compose).
 
 ## X · @XusBadia
 

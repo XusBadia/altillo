@@ -11,7 +11,7 @@
     "docs/correo.md",
     "promo/launch/PROFILES.md"
   ],
-  "claim_notes": "Anuncio preparado para después de publicar 0.13.0. No publicar antes de verificar release y appcast públicos. Beta opcional, configuración manual y Apple Mail abierto. Sin afirmar compatibilidad directa con Gmail/Outlook.",
+  "claim_notes": "Release 0.13.0 y appcast públicos verificados el 1 de noviembre de 2026. Beta opcional con regla manual y Apple Mail abierto. Borrador nativo guardado; no publicado ni programado.",
   "image_prompt": null,
   "review": {
     "directness": 9,
@@ -26,5 +26,10 @@
   "authorization": "Usuario pide crear posts para esta update; se guardan como borradores.",
   "scheduled_at": null,
   "transport_id": null,
-  "public_url": null
+  "public_url": null,
+  "native_draft_confirmed": true,
+  "native_draft_url": "https://www.linkedin.com/sharing/compose",
+  "confirmation": "Draft successfully saved.",
+  "native_draft_recorded_at": "2026-11-01T12:23:49.605728+01:00",
+  "release_url": "https://github.com/XusBadia/altillo/releases/tag/v0.13.0"
 }

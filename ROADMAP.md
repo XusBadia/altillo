@@ -28,9 +28,9 @@ hipótesis que iremos validando.
    crear otros roadmaps que dupliquen prioridades y estados.
 
 Estados: **Pendiente**, **En investigación**, **En curso**, **Bloqueado: motivo**,
-**Hecho** y **Descartado: motivo**. R01 está **En curso**, con un
-módulo integrado pendiente de cerrar validación y publicación; las demás iniciativas siguen **Pendientes**. Anotar
-los cambios de estado y su evidencia en la fila correspondiente.
+**Hecho** y **Descartado: motivo**. R01 está **Hecho**, publicado en 0.13.0;
+las demás iniciativas siguen **Pendientes**. Anotar los cambios de estado y su
+evidencia en la fila correspondiente.
 
 ## Dirección de producto
 
@@ -50,8 +50,8 @@ una interfaz tranquila.
 Correo e idiomas mantienen la prioridad destacada por Xus. Después, estas
 son las candidatas recomendadas para elegir entre sesiones:
 
-1. **R01 Correo:** validar y publicar la beta opcional integrada en 0.13.0.
-2. **R02 y R03 Idiomas:** catalán y lote francés/alemán/italiano con IA.
+1. **R01 Correo — Hecho:** beta opcional publicada en [0.13.0](https://github.com/XusBadia/altillo/releases/tag/v0.13.0); [validación](docs/qa/mail-0.13.0.md).
+2. **R02 y R03 Idiomas — Pendientes:** catalán y lote francés/alemán/italiano con IA, candidatos para la siguiente sesión.
 3. **R04 y R19 Archivos listos para enviar:** ZIP y reducción de imágenes.
 4. **R26 Pegado en secuencia:** un flujo completo y fácil de demostrar.
 5. **R12 y R33 Agentes:** proyectos y bandeja de peticiones pendientes.
@@ -76,20 +76,18 @@ y el diccionario de Mail permite recibir el evento y leer contenido. El
 [spike de R01](docs/spikes/mail-bridge.md) ya verifica la regla ejecutada por
 Mail sobre un mensaje sintético importado, el transporte nativo, código y
 magic link en una tarjeta temporal y apertura del mismo mensaje en Mail.
-La candidata 0.13.0 ya integra la tarjeta en Altillo, con activación opcional,
-filtros y preparación local de scripts probados desde la interfaz real. La
-llegada nueva por red ya mostró la tarjeta y abrió el original, sin aplicar
-reglas manualmente ni inyectar el transporte. Falta validar y publicar el
-artefacto final con las últimas correcciones. La preparación comprueba archivos
-locales y una entrega real confirma recepción; no se consultan las reglas de
-Mail. La regla y los dos scripts se retiran manualmente; Altillo los conserva
-al desconectar.
-MailKit sigue siendo una alternativa si ese paso no ofrece una UX fiable.
+**R01 está hecho y publicado en [0.13.0](https://github.com/XusBadia/altillo/releases/tag/v0.13.0).**
+Integra la tarjeta en Altillo con activación opcional, filtros y preparación
+local de scripts. La llegada nueva por red mostró la tarjeta, reconoció el
+código y abrió el original, sin aplicar reglas manualmente ni inyectar el
+transporte. La [ficha de validación](docs/qa/mail-0.13.0.md) recoge las pruebas,
+CI, firma, notarización y comprobaciones públicas del artefacto.
 
-La investigación debe cerrar recepción real, permisos, instalación y retirada,
-deduplicación y apertura del mensaje. Si la vía falla, registrar el bloqueo y
-elegir otra antes de prometer compatibilidad. No leer bases privadas de Mail
-ni asumir acceso a las notificaciones de otras apps.
+La preparación comprueba archivos locales y una entrega real confirma
+recepción; no se consultan las reglas de Mail. La regla y los dos scripts se
+retiran manualmente; Altillo los conserva al desconectar. MailKit queda como
+alternativa para futuras iteraciones si la configuración manual lo requiere.
+No se leen bases privadas de Mail ni notificaciones de otras apps.
 
 Primera entrega funcional:
 
@@ -129,9 +127,9 @@ El estado por defecto de las filas es **Pendiente**.
 
 | ID | Prioridad y tamaño | Iniciativa y primera entrega | Dependencia o criterio de cierre | Inspiración |
 | --- | --- | --- | --- | --- |
-| R01 | Alta · M | **Correo en el notch — En curso (0.13.0).** Módulo opcional integrado, scripts guiados, filtros y acciones efímeras; guía en [Correo](docs/correo.md). [Prueba inicial](docs/spikes/mail-bridge.md). | Recepción por red y apertura del original validadas; repetir el recorrido sobre el artefacto final sin consultas externas a reglas, cerrar tests/CI y firma/notarización antes de publicar. | GotEmail; prueba local |
-| R02 | Alta · S | **Catalán.** Traducir con IA app, onboarding, ajustes y paquetes compartidos. | Validar variables, plurales, terminología y tamaños; ampliar el validador de idiomas. | Decisión de Xus |
-| R03 | Alta · M | **Francés, alemán e italiano juntos.** Una entrega conjunta con traducción por IA y revisión de las pantallas principales. | No separar los tres en lanzamientos artificiales; revisar especialmente textos largos e interpolaciones. | Decisión de Xus |
+| R01 | Alta · M | **Correo en el notch — Hecho, publicado en [0.13.0](https://github.com/XusBadia/altillo/releases/tag/v0.13.0).** Módulo opcional, scripts guiados, filtros y acciones efímeras; [guía](docs/correo.md). | Recepción real, apertura del original y desconexión verificadas; 900 pruebas, CI, firma/notarización y descarga/appcasts públicos correctos. [Validación](docs/qa/mail-0.13.0.md). | GotEmail; prueba local |
+| R02 | Alta · S | **Catalán — Pendiente.** Traducir con IA app, onboarding, ajustes y paquetes compartidos. | Validar variables, plurales, terminología y tamaños; ampliar el validador de idiomas. | Decisión de Xus |
+| R03 | Alta · M | **Francés, alemán e italiano juntos — Pendiente.** Una entrega conjunta con traducción por IA y revisión de las pantallas principales. | No separar los tres en lanzamientos artificiales; revisar especialmente textos largos e interpolaciones. | Decisión de Xus |
 | R07 | Media · M | **Vista breve y resumen de correo.** Ver un extracto y pedir un resumen on-device desde el aviso. | Depende de R01; consentimiento explícito para procesar contenido; probar límites de idioma y longitud. | Idea Altillo |
 | R08 | Explorar · L | **Gmail y Outlook directos.** Recibir avisos sin tener Apple Mail abierto, empezando por un proveedor. | Resolver OAuth, permisos, recepción, revocación y coste operativo antes de implementar. | Idea Altillo |
 | R14 | Explorar · M | **Siguientes lotes de idiomas.** Portugués y después japonés u otros según solicitudes. | La IA acelera traducción; validar composición, fechas, fuentes y, si procede, escritura de derecha a izquierda. | NotchNook; solicitudes |
