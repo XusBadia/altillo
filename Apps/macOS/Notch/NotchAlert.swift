@@ -22,6 +22,8 @@ struct NotchAlert: Identifiable, Equatable, Sendable {
         case timer
         /// Someone rang the doorbell (docs/casa.md); the peek carries the camera's picture.
         case home
+        /// New message delivered by the explicitly configured Apple Mail rule.
+        case mail
     }
 
     let id = UUID()

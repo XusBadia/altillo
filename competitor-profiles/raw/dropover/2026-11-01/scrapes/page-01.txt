@@ -1,0 +1,95 @@
+Dropover — Instant Actions (https://dropoverapp.com/kb/instant-actions)
+citeturn10view0 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://dropoverapp.com/kb/instant-actions","lineno":null}); Total lines: 93
+L0: 【0†Dropover】
+L1: 
+L2: # Instant Actions
+L3: 
+L4: Instant Actions let you perform actions on dragged content right away, without dropping it onto a shelf first.
+L5: 
+L6: While dragging content, hover over the lightning bolt below the shelf to reveal Instant Actions. Drop the content onto the action you want to run (for example, AirDrop or Messages). If you change your mind, simply drag away from the lightning bolt to cancel.
+L7: 
+L8: 【1†Image】 Instant Actions appear when you hover over the Instant Action button below the shelf.
+L9: #### Customizing Instant Actions
+L10: 
+L11: By default, the shelf shows 4 actions: AirDrop, Messages, Mail, and Create Dropover Link. You can customize up to 6 different actions in Settings.
+L12: 
+L13: 【2†Image: Screenshot of Instant Action settings in Dropover】
+L14:   * Add a new action. Click “Add New…” at the bottom and select the desired action.
+L15:   * Delete an action. If you have more than 4 actions, hover over an action and click “Delete” to remove it.
+L16:   * Re-ordering actions. Drag the action using the drag indicator to rearrange the order.
+L17:   * Assign a custom icon. For supported actions, click the icon (highlighted in blue) to customize its symbol.
+L18: Note: Only file actions allow their icon to be customized. Other actions, such as default share actions or cloud upload actions cannot be customized.
+L19: # Available Instant Actions
+L20: 
+L21: ###### Share actions
+L22: 
+L23: Built-in system share actions.
+L24: 
+L25:   * AirDrop
+L26:   * Messages
+L27:   * Mail
+L28:   * Shortcuts
+L29: 
+L30: ###### Cloud actions
+L31: 
+L32: Uploads to the dragged content to the cloud service and copies the link to clipboard. Only configured cloud services will appear.
+L33: 
+L34:   * Copy Dropover Cloud Link
+L35:   * Copy iCloud Link
+L36:   * Copy Dropbox Link
+L37:   * Copy Google Drive Link
+L38:   * Copy Microsoft OneDrive Link
+L39:   * Copy AWS S3 Link
+L40:   * Copy Imgur Link (only for images)
+L41: ###### Image actions
+L42: 
+L43: Performs image specific operations on the dragged content. These actions require the dragged content to exclusively contain image files.
+L44: 
+L45:   * Resize
+L46:   * Convert Format
+L47:   * Compress
+L48:   * Remove Metadata
+L49:   * Stitch (requires at least two images)
+L50:   * Extract Text
+L51:   * Create PDF
+L52: 
+L53: ###### Text actions
+L54: 
+L55: Performs text specific operations on the dragged content. These actions require the dragged content to contain at least 1 text file
+L56: 
+L57:   * Copy Text Content
+L58: ###### General actions
+L59: 
+L60: Actions that can be invoked with any kind of content.
+L61: 
+L62:   * Create ZIP Archive
+L63:   * Copy to
+L64:   * Move to
+L65:   * Rename
+L66:   * Copy Path
+L67:   * Move to Trash
+L68: ###### Other actions
+L69: 
+L70:   * Custom Actions (user defined)
+L71:   * Custom Scripts (used defined)
+L72: 
+L73: Last updated: Dec 14 2025
+L74: 
+L75: Dropover Effortless Drag & Drop on your Mac
+L76: 
+L77:   * Product
+L78:   * 【0†Overview】
+L79:   * 【3†Download†itunes.apple.com】
+L80: 
+L81: * Discover
+L82: * 【4†What's New】
+L83: * 【5†Tips】
+L84: * 【6†TestFlight】
+L85: 
+L86: * Support
+L87: * 【7†FAQ】
+L88: * 【8†Contact】
+L89: * 【9†Privacy policy】
+L90: * 【10†Dropover Cloud Terms】
+L91: 
+L92: Tappable Software © 2026

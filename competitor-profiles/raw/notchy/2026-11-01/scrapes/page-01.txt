@@ -1,0 +1,169 @@
+What's New in Notchy — 2026 Feature Highlights (https://notchy.dev/whats-new/)
+citeturn9view5 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://notchy.dev/whats-new/","lineno":null}); Total lines: 174
+L0: 【0†Notchy】
+L1: 
+L2: 【1†Try Free】
+L3: 
+L4: Now on v2.0.2
+L5: 
+L6: # What’s new in Notchy
+L7: 
+L8: The features worth knowing about, in plain language. For the full build-by-build record — every fix, every version — 【2†see the changelog】.
+L9: 
+L10: 【3†Image: Playback speed for video in your browser shown in the Notchy island】
+L11: 
+L12: Since 1.0.100
+L13: ## Playback speed for video in your browser
+L14: 
+L15: Slow a lecture down or push a tutorial to 1.5× straight from the now-playing island, for video in Chrome, Brave, Edge, Vivaldi and Safari — no extension, no fiddling with the page.
+L16: 
+L17: 【4†Read more →】
+L18: 
+L19: 【5†Image: True full-screen lock-screen lyrics shown in the Notchy island】
+L20: 
+L21: Since 1.0.100
+L22: ## True full-screen lock-screen lyrics
+L23: 
+L24: Lyrics scroll full-screen on the macOS lock screen with transport controls, so a locked Mac becomes a now-playing display you can still skip tracks from.
+L25: 
+L26: 【6†Read more →】
+L27: 
+L28: v1.0.100
+L29: 
+L30: Since 1.0.100
+L31: ## AI usage, in the order you care about
+L32: 
+L33: Choose which provider sections appear in the AI Usage tab and how they're ordered — rate-limit windows, tokens, cost and pace projections for Claude Code, Codex, Cursor, Copilot and 35+ providers.
+L34: 
+L35: 【7†Read more →】
+L36: 
+L37: 【8†Image: A panel sized to fit your screen shown in the Notchy island】
+L38: 
+L39: Since 1.0.100
+L40: ## A panel sized to fit your screen
+L41: 
+L42: Set the expanded island's width and height with live preview, from compact to extra-roomy — the notch stops being one fixed size for every Mac.
+L43: 
+L44: 【9†Read more →】
+L45: 
+L46: 【10†Image: The shelf holds still while you drag shown in the Notchy island】
+L47: 
+L48: Since 1.0.106
+L49: ## The shelf holds still while you drag
+L50: 
+L51: Dragging a file onto the notch holds it open until you drop, instead of flickering shut mid-gesture, and the panel closes properly after a drop or a removal.
+L52: 
+L53: 【11†Read more →】
+L54: 
+L55: v1.0.108
+L56: 
+L57: Since 1.0.108
+L58: ## Permissions that actually ask
+L59: 
+L60: Camera and Reminders raise the real macOS prompt rather than dumping you in System Settings, and “Ask me again” clears a stale answer so macOS can prompt once more. If a prompt still can't appear, Notchy says why.
+L61: 
+L62: 【1†Read more →】
+L63: 
+L64: 【12†Image: Terminal you can type in, in place shown in the Notchy island】
+L65: 
+L66: Since 1.0.107
+L67: ## Terminal you can type in, in place
+L68: 
+L69: The Terminal tab takes keystrokes without popping out into its own window first — a real VT100 shell inside the island.
+L70: 
+L71: 【13†Read more →】
+L72: 
+L73: Latest release: v2.0.2 — An unread count beside the notch, Back and Forward in Settings, and a Send Feedback window, plus a fix for Notification Center and steadier Bluetooth..
+L74: 
+L75: 【1†Try Free for 7 Days】【14†Try the live demo】
+L76: ## Help with this feature
+L77: 
+L78: 【0†Notchy】
+L79: 
+L80: Dynamic Island for your Mac. Built natively for Mac.
+L81: 
+L82: 【1†Try Free for 7 Days】【15†Buy Notchy】
+L83: 
+L84: 【16†@thenotchyapp†x.com】Contact (support@notchy.dev)
+L85: 
+L86: ## Product
+L87: 
+L88:   * 【17†All features】
+L89:   * 【18†Face Unlock】
+L90:   * 【19†Pricing】
+L91:   * 【1†Download】
+L92:   * 【14†Live demo】
+L93:   * 【20†What’s new】
+L94:   * 【2†Changelog】
+L95:   * 【21†Roadmap】
+L96: ## Compare
+L97: 
+L98:   * 【22†All alternatives】
+L99:   * 【23†Best Mac notch apps】
+L100:   * 【24†vs NotchNook】
+L101:   * 【25†vs Boring Notch】
+L102:   * 【26†vs Alcove】
+L103:   * 【27†vs Atoll】
+L104:   * 【28†vs DynamicLake】
+L105:   * 【29†vs MediaMate】
+L106: ## Resources
+L107: 
+L108:   * 【30†Help center】
+L109:   * 【31†FAQs】
+L110:   * 【32†Blog】
+L111:   * 【33†Reviews】
+L112:   * 【34†Hall of Fame】
+L113:   * 【35†About】
+L114:   * 【36†Press】
+L115:   * 【37†Contact】
+L116:   * 【38†Uninstall】
+L117:   * 【39†العربية】
+L118:   * 【40†Deutsch】
+L119:   * 【41†Español】
+L120:   * 【42†Français】
+L121:   * 【43†Bahasa Indonesia】
+L122:   * 【44†日本語】
+L123:   * 【45†Nederlands】
+L124:   * 【46†Português (Brasil)】
+L125:   * 【47†Русский】
+L126:   * 【48†Türkçe】
+L127:   * 【49†Tiếng Việt】
+L128:   * 【50†简体中文】
+L129:   * 【51†繁體中文】
+L130:   * 【52†Čeština】
+L131:   * 【53†Dansk】
+L132:   * 【54†Italiano】
+L133:   * 【55†한국어】
+L134:   * 【56†Polski】
+L135:   * 【57†Svenska】
+L136:   * 【58†ไทย】
+L137:   * 【59†Українська】
+L138:   * 【60†Български】
+L139:   * 【61†বাংলা】
+L140:   * 【62†Ελληνικά】
+L141:   * 【63†فارسی】
+L142:   * 【64†Suomi】
+L143:   * 【65†עברית】
+L144:   * 【66†Hrvatski】
+L145:   * 【67†Magyar】
+L146:   * 【68†Norsk bokmål】
+L147:   * 【69†Română】
+L148:   * 【70†Srpski】
+L149:   * 【71†Azərbaycan dili】
+L150:   * 【72†Eesti】
+L151:   * 【73†Íslenska】
+L152:   * 【74†ქართული】
+L153:   * 【75†ភាសាខ្មែរ】
+L154:   * 【76†Lietuvių】
+L155:   * 【77†Latviešu】
+L156:   * 【78†Македонски】
+L157:   * 【79†မြန်မာဘာသာ】
+L158:   * 【80†Slovenščina】
+L159:   * 【81†Shqip】
+L160: 【82†Privacy policy】[Button: Privacy settings]【83†Terms】【84†Accessibility】
+L161: 
+L162: © 2026 Notchy. Not affiliated with, endorsed by, or sponsored by Apple Inc. Apple, Mac, AirPods, Apple Music, and Dynamic Island are trademarks of Apple Inc.
+L163: 
+L164: Designed & developed by 【85†Vishva Variya†vishvavariya.com】
+L165: 
+L166: Ask

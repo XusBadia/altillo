@@ -1,0 +1,278 @@
+Dynamic Island for Mac: Live MacBook Notch Hub | NotchBay (https://notchbay.com/)
+citeturn11view0 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://notchbay.com/","lineno":null}); Total lines: 276
+L0: 【0†Notch Bay】
+L1: 
+L2: 【1†Features】 【2†Blogs】 【3†Pricing】
+L3: 
+L4: 【4†Download】
+L5: 
+L6: 【0†Notch Bay】
+L7: 
+L8: 【1†Features】 【2†Blogs】 【3†Pricing】 【4†Download for macOS】
+L9: 
+L10: Dynamic Island Rebuilt
+L11: # Your MacBook notch,
+L12: finally a Dynamic Island.
+L13: 
+L14: NotchBay is a Dynamic Island-style hub for the Mac: live activities for music, calendar, calls and AirPods, a clipboard tray for everything you copy, and on-device dictation that types into any app. Nothing leaves your Mac.
+L15: 
+L16: 【4†Download for macOS】 【5†See it live】
+L17: 
+L18: 【6†P†www.producthunt.com】
+L19: 
+L20: Finder  File  Edit  View  Go 9:41 AM
+L21: 
+L22: 【7†Image】 【8†Image】 【9†Image】 【10†Image】 【11†Image】 【12†Image】
+L23: 
+L24: 【13†Image: NotchBay】
+L25: The best part of your Mac was hiding in plain sight. NotchBay puts it to work.
+L26: 
+L27: No subscription ·No Electron ·No fake notch ·On-device transcription ·Zoom & Meet controls ·Clipboard OCR ·Lock-screen presence ·
+L28: 
+L29: Everything, one glance up
+L30: ## Live activities that
+L31: actually live.
+L32: 
+L33: Music, Safari, the Tray, Claude, meetings, dictation, timers: one island becomes whatever matters, then gets out of the way.
+L34: 
+L35: Music Meetings Apps System
+L36: ### And a hundred things you’ll never think about again.
+L37: 
+L38: On for a second. Then gone.
+L39: 
+L40: ⇪ Caps On☾ Focus↓ 24.7 MB⚡ 80%
+L41: 
+L42: 【14†Image】【15†Image】Privacy focused
+L43: 
+L44: About Notch Bay
+L45: 
+L46: The notch isn’t a flaw to hide: it’s the point. Since the first build, everything runs on your Mac: dictation, OCR, the Tray. No accounts, and nothing phones home.
+L47: 
+L48: Drawn to the hardware: chip and card geometry measured on real Macs, springs tuned like Apple’s, down to the point.
+L49: 
+L50: 【16†Image】Focus On
+L51: 
+L52: [Input] Focus
+L53: 
+L54: Music 9:41
+L55: Lives in your notch
+L56: 
+L57: 15
+L58: 
+L59: Live activities
+L60: 
+L61: Everything the notch can catch, from now-playing to call controls, processed on your Mac.
+L62: 
+L63: System & status 8
+L64: 
+L65: Files & sharing 4
+L66: 
+L67: Calls & voice 3
+L68: 
+L69: 0
+L70: #### Accounts. Servers. Analytics.
+L71: 
+L72: Everything happens on your Mac. The optional Drive share uses your own Google account, we never see a byte.
+L73: 
+L74: 60
+L75: 
+L76: #### Clips in the Tray
+L77: 
+L78: Your latest 60 copies and captures, OCR’d and searchable. Pinned clips stay forever.
+L79: 
+L80: 1×
+L81: 
+L82: #### One purchase
+L83: 
+L84: Buy once, your key arrives by email, and it unlocks one Mac for good. No subscription.
+L85: 
+L86: The Tray
+L87: ### Copy anything.
+L88: Find it in one keystroke.
+L89: 
+L90: Text, links, colors, files and every screenshot land here, auto-tagged and OCR'd. Your last 60 clips, one keystroke away.
+L91: 
+L92: Tray
+L93: 
+L94: Transcribe
+L95: 
+L96: ### Speak. It types.
+L97: Anywhere.
+L98: 
+L99: Hit ⌥⌘M, talk, and finished phrases type into whatever field has focus. On-device, offline, no per-minute anything.
+L100: 
+L101: Transcribe
+L102: 
+L103: Meetings
+L104: ### Mute Zoom
+L105: from anywhere.
+L106: 
+L107: Live timer, mute, camera and leave for Zoom and Google Meet. Your next call joins in one click, right from the notch.
+L108: 
+L109: Meeting
+L110: 
+L111: App skins
+L112: 
+L113: ## It knows what you're in.
+L114: And dresses for it.
+L115: 
+L116: The frontmost app takes over the island: its identity on the left, its live state on the right.
+L117: 
+L118: ### Browsers
+L119: 
+L120: Tab identity with back, forward and page controls, right where your eyes are.
+L121: 
+L122: 【9†Image】Safari 【17†Image】Chrome Arc 【18†Image】Brave 【19†Image】Comet
+L123: ### AI tools
+L124: 
+L125: Session state and token burn while Claude Code or Codex works, even from the background. Claude plan limits included.
+L126: 
+L127: 【20†Image】Claude Code 【21†Image】Codex
+L128: 
+L129: ### Meetings
+L130: 
+L131: A live call timer with mute, camera and leave: for Zoom and Google Meet, without hunting for the window.
+L132: 
+L133: 【22†Image】Zoom Google Meet Teams Soon
+L134: 
+L135: How it works
+L136: 
+L137: ## Open it once.
+L138: It does the rest.
+L139: 
+L140:   1. 01.
+L141: ### One app. One launch.
+L142: 
+L143: NotchBay is a single native Swift app: no account, no setup wizard, no Electron. Open it once and a Dynamic Island settles in around your MacBook’s notch. That’s the whole setup.
+L144: 
+L145:   2. 02.
+L146: 
+L147: ### Nothing you didn’t allow.
+L148: 
+L149: Each feature asks for its own macOS permission the first time you use it: the microphone for dictation, your calendar for the next meeting, media for what’s playing. Grant what you want, skip the rest. It all runs on your Mac; no accounts, no cloud.
+L150: 
+L151:   3. 03.
+L152: ### Your day, in the notch.
+L153: 
+L154: Play a song, join a Zoom or Google Meet call, copy a link, and each one becomes a live activity above the keyboard. Glance to check it, hover to peek, click to expand. Your clipboard, calls and AirPods, right where your eyes already are.
+L155: 
+L156:   4. 04.
+L157: 
+L158: ### Then it disappears.
+L159: 
+L160: When nothing needs you, the island goes quiet: a slim black sliver shaped like the notch it lives in. Status flashes surface for a second, then fade. You stop noticing it’s running. That’s the point.
+L161: 
+L162: FAQ
+L163: ## Asked, answered.
+L164: 
+L165: Is there a Dynamic Island for Mac?
+L166: 
+L167: Not natively, macOS doesn't ship one. NotchBay brings a Dynamic Island for macOS (often searched as "Mac OS") to the MacBook notch: live activities for music, calendar, calls and AirPods, plus a clipboard tray and on-device dictation. For the full landscape, including free options, read our 【23†macOS Dynamic Island guide】.
+L168: 
+L169: Does it work on Macs without a notch, or on external displays?
+L170: Yes. On notchless Macs and external displays NotchBay runs as a floating island at the top of the screen, it never draws a fake notch over your display.
+L171: 
+L172: Is NotchBay a subscription?
+L173: 
+L174: No. NotchBay is a one-time purchase with every update included. Buy once on the site, your license key arrives by email, and it unlocks one Mac for good.
+L175: 
+L176: Can it really control Zoom and Google Meet?
+L177: 
+L178: Yes: mute, stop video, or leave the call straight from the notch, with a live timer, even while you're working in another app.
+L179: What does the Tray keep?
+L180: 
+L181: Whatever you copy: text, links, colors, images, files, plus screenshots and screen recordings as you take them, auto-tagged by type. It holds your latest 60 clips (pin what matters and it never expires), and screenshots are OCR'd so the text inside them is searchable.
+L182: 
+L183: Is it private and safe to install?
+L184: Yes. NotchBay is signed with an Apple Developer ID and notarized by Apple. Your content stays on your Mac: no accounts, and clips, transcripts and events are never uploaded. Each permission (calendar, microphone, screen recording) is requested only when you turn on the feature that needs it, and dictation uses Apple's on-device speech engine, so audio never leaves your Mac. The app sends one anonymous install check-in (a random id, app version and license state) with no personal data.
+L185: 
+L186: Pricing
+L187: ## One price.
+L188: Yours forever.
+L189: 
+L190: Lifetime
+L191: 
+L192: $19 one-time
+L193: 
+L194: Limited Drop
+L195: 
+L196: For Mac users who'd rather own their tools than rent them. One price, every feature, all on your own Mac.
+L197: 
+L198: 【4†Get Notch Bay】
+L199: 
+L200:   * 60-clip tray with OCR search
+L201:   * On-device live transcription
+L202:   * Zoom & Google Meet controls
+L203:   * Camera & mic privacy indicators
+L204:   * No accounts, no cloud
+L205: 
+L206: One-time purchase, updates included · One Mac, lifetime
+L207: 
+L208: or get it free 【24†Post a clip, get it free】
+L209: A short clip on X or an Instagram Reel — we verify the post and email you a free license.
+L210: 
+L211: 【25†Image】
+L212: ## Look up.
+L213: It's all right there.
+L214: 
+L215: 【4†Download for macOS】
+L216: 
+L217: 【0†Notch Bay】
+L218: 
+L219: The notch, put to work
+L220: 
+L221: Everything the notch can catch — live activities, calls, your clipboard, dictation — right where your eyes already are.
+L222: 
+L223: Have an idea? Say hi! hello@thedeepflux.com
+L224: 
+L225: #### Product
+L226: 
+L227:   * 【1†Features】
+L228:   * 【26†The Tray】
+L229:   * 【27†App skins】
+L230:   * 【3†Pricing】
+L231:   * 【28†Live demo】
+L232: 
+L233: #### Answers
+L234: 
+L235:   * 【2†Blog】
+L236:   * 【29†MacBook notch sizes】
+L237:   * 【30†Mac apps】
+L238:   * 【31†FAQ】
+L239: #### Compare
+L240: 
+L241:   * 【32†vs boring.notch】
+L242:   * 【33†vs NotchNook】
+L243: 
+L244: © 2026 【34†Ossian design lab†ossiandesignlab.com】
+L245: 
+L246: Notch Bay
+L247: 
+L248: 【13†Image】Notch Bay 【35†Image: NotchBay】
+L249: 
+L250: ### Where should we send your setup notes?
+L251: 
+L252: Your download starts as soon as you continue. We’ll email the setup steps and let you know when big updates ship.
+L253: 
+L254: [Input: you@example.com] [Input] [Button: Download for macOS]
+L255: 
+L256: No spam. One-click unsubscribe in every email.
+L257: 
+L258: 【13†Image】Notch Bay
+L259: 
+L260: 【36†Image: NotchBay】
+L261: ### Join the waiting list
+L262: 
+L263: Leave your email and we’ll let you know when big NotchBay updates ship. No spam, ever.
+L264: 
+L265: [Input: <!--email_off-->you@example.com<!--email_on-->] [Input] [Button: Join the list]
+L266: 
+L267: One email at launch. Your address stays private.
+L268: 
+L269: 【36†Image】
+L270: 
+L271: ### You’re on the list.
+L272: 
+L273: Your spot in line#1,435
+L274: 
+L275: We’ll email you at launch. Thanks for the early support.

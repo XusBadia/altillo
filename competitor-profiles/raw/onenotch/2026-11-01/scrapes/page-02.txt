@@ -1,0 +1,156 @@
+OneNotch — MacBook Notch App, Clipboard & Media Controls (https://www.tryonenotch.com/)
+citeturn10view2 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://www.tryonenotch.com/","lineno":null}); Total lines: 476
+L0: 【0†OneNotch】
+L1: 
+L2: 【1†Updates】
+L3: 
+L4: 【2†Features】
+L5: 
+L6: 【3†Guide】
+L7: 
+L8: 【4†Pricing】
+L9: 
+L10: 【5†Compare】
+L11: 
+L12: 【6†Feedback】
+L13: 
+L14: en
+L15: 
+L16: 【7†Download】
+L17: 
+L18: 【8†Image】
+L19: 
+L20: 【9†Image】
+L21: 
+L22: 【10†Image】
+L23: 
+L24: 【11†Image】
+L25: 
+L26: 【12†Image】
+L27: 
+L28: 【13†Image】OneNotch
+L29: 
+L30: # Small n o t c h.
+L31: Big possibilities.
+L32: 
+L33: Your music. What you just copied. What's coming up.
+L34: OneNotch puts what you need right where you can see it.
+L35: 
+L36: Free forever
+L37: 
+L38: 【7†Download for Mac】
+L39: 
+L40: Pay once, use forever·macOS 15+·Built for Apple Silicon
+L41: ## Everything you copy.
+L42: Right in your notch.
+L43: 
+L44: Search text, links, images or code, organize favorites into boards, then paste with one click.
+L45: 
+L46: Pin items into boards and sort them your way. Lock a private board and open it with Touch ID or its passcode.
+L47: 
+L48: Type @image, @link, @text and more to narrow your clipboard instantly, or just type a word: it even finds the text inside your screenshots.
+L49: 
+L50: 【12†Image】
+L51: 
+L52: Hover the Copied toast to pin, translate or delete what you just copied, without opening anything.
+L53: 【12†Image】
+L54: 
+L55: Double-press Command to collect a stack, then use ⌘V to paste every item in order.
+L56: 
+L57: 【12†Image】
+L58: 
+L59: AI agents can find what you copied. Ask Claude Code, Cursor or Codex for “the link I copied days ago” and they search your clipboard history through MCP, locally on your Mac.
+L60: 
+L61: Right-click a clip to name it, then find it by that name. Resize an image or convert its format in one click.
+L62: ## Clipboard. A place for everything you copy.
+L63: 
+L64:   * ### History
+L65: 
+L66: Everything you copy waits under the notch: text, images, links, colors, files and videos, each with the app it came from and when.
+L67: 
+L68: 【14†Learn more】
+L69: 
+L70: Please send the design back before Thursday.【15†Image】12 min. ago 47 bytes
+L71: 
+L72: 【16†Image】IMG【17†Image】9 min. ago 142 KB
+L73: #F4C95D【18†Image】5 min. ago 7 bytes
+L74: 
+L75: I’m confirming our demo this Friday at 10:00 AM.【19†Image】Just now 49 bytes
+L76: 
+L77: Shortcuts⇧⌘V opens the notch · ⌘1–⌘9 copy in a keystroke
+L78: 
+L79:   * ### Search
+L80: 
+L81: Type a few letters; accents and case don’t matter. Add @image, @link or @chrome to filter by type or by app.
+L82: 
+L83: 【20†Learn more】
+L84: 
+L85: @
+L86: 
+L87: Text Link Image Color File【19†Image】Google Chrome【18†Image】Figma
+L88: 
+L89: Filters@text @link @image @color @file @video @app-name
+L90: 
+L91:   * ### Right-Click Menu
+L92: Each kind of clip gets its own commands: transform text, translate, copy text from an image, annotate, jump back to the source.
+L93: 
+L94: 【21†Learn more】
+L95: 
+L96: Copy Copy as Plain Text Transform Edit…Translate Search Google for “demo”Open Link: northstar.studio Copy Code: 482913 Go to Source Copy Link to Highlight Move to Board Delete Delete All
+L97: 
+L98: Normalize Whitespace UPPERCASE lowercase Sort Lines Remove Duplicate Lines MD5 Hash
+L99: 
+L100: Transforms 15 of them, from UPPERCASE to JSON and Base64
+L101: 
+L102:   * ### Clipboard Panel
+L103: ⇧⌘C opens your history right next to the pointer, in any app. Search, move with the arrow keys, press Return to paste.
+L104: 
+L105: 【22†Learn more】
+L106: 
+L107: OneNotch· 48 Copies
+L108: 
+L109: All Pin7 Work12
+L110: 
+L111: 【19†Image】I’m confirming our demo this Friday at 10:00 AM.Google Chrome · Just now
+L112: 
+L113: 【23†Image】Mac - Apple Safari · 5 min. ago
+L114: #F4C95D Figma · 12 min. ago
+L115: 
+L116: Shortcut⇧⌘C · or open it from the menu bar
+L117: 
+L118:   * ### Boards
+L119: 
+L120: Drag a clip onto a board to keep it for good. Name it, give it an icon, and open any board in one click.
+L121: 
+L122: 【24†Learn more】
+L123: 
+L124: Pin 7 Work 12 Personal
+L125: 
+L126: #B565E8【18†Image】9 min. ago 7 bytes
+L127: 
+L128: #FF645F【18†Image】3 min. ago 7 bytes
+L129: 
+L130: 【25†Image】 Figma Community【18†Image】figma.com
+L131: 
+L132: hello@northstar.studio【15†Image】20 min. ago 22 bytes
+L133: #F4C95D【18†Image】12 min. ago 7 bytes
+L134: 
+L135: Switch boards Tab in the Clipboard Panel
+L136: 
+L137:   * ### Copy Stack
+L138: 
+L139: Double-tap ⌘, then copy several things in a row. Each ⌘V then pastes the next one, in the order you copied them.
+L140: 
+L141: 【26†Learn more】
+L142: 
+L143: Press ⌘V to paste in order (3)
+L144: 
+L145: 1 hello@northstar.studio Notes · 1 min. ago
+L146: 
+L147: 2 OneNotch demo · Friday at 10:00 AM Notes · Just now
+L148: 
+L149: 3 I’m confirming our demo this Friday at 10:00 AM.Notes · Just now
+L150: 
+L151: Shortcut Double-tap ⌘ · needs Accessibility
+L152: 
+L153:   * ### Locked Boards

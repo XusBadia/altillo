@@ -55,6 +55,7 @@ final class NotchModel {
     let shortcuts = ShortcutsStore()
     let reminders = RemindersStore()
     let keepAwake = KeepAwakeStore()
+    let mail = MailStore()
     let drawer = MenuBarDrawerStore.shared
     /// Home (docs/casa.md): connected only while its section is on, with the notch closed too.
     let home: HomeStore

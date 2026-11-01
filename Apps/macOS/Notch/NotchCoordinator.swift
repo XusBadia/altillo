@@ -36,6 +36,8 @@ final class NotchCoordinator {
     ))
     private var observers: [NSObjectProtocol] = []
     private var pendingTimers: [TimerKind: Task<Void, Never>] = [:]
+    /// Only an identifier, so copied sender/subject can be revoked when the transient Mail envelope goes away.
+    private var mailAlertMessageID: String?
     private var droppedDuringCurrentDrag = false
     /// A successful addition takes the next generic opening to the shelf, even if another section was last used.
     private var hasRecentShelfAddition = false
@@ -154,6 +156,15 @@ final class NotchCoordinator {
         observeDropTargetGeometry()
         installKeyMonitor()
         installScrollMonitor()
+        model.mail.onMessage = { [weak self] message in
+            guard let self, self.model.settings.alertsForMail else { return }
+            let alert = NotchAlert(source: .mail, symbol: "envelope.fill", title: message.subject,
+                                  detail: message.sender, trailing: String(localized: "New mail"),
+                                  module: .mail, duration: .seconds(6))
+            self.post(alert)
+            if self.model.alert?.id == alert.id { self.mailAlertMessageID = message.messageID }
+        }
+        model.mail.onRevocation = { [weak self] messageID in self?.revokeMailAlert(messageID) }
         observeSettings()
         // AI usage: last numbers from disk at once, then its own 5-minute rhythm (paused while the Mac sleeps).
         model.usage.postAlert = { [weak self] alert in self?.post(alert) }
@@ -237,6 +248,7 @@ final class NotchCoordinator {
         model.agentHub.stop()
         model.timers.stop()
         model.keepAwake.stop()
+        model.mail.stop()
         input.stop()
         dragDetector.stop()
         model.drawer.stop()
@@ -864,6 +876,7 @@ final class NotchCoordinator {
         moveLiveForAttention()
         // Over a full-screen app the notch keeps quiet unless the user asked for it as usual.
         guard !isQuietOverFullScreen else { return }
+        mailAlertMessageID = nil
         withAnimation(.openNotch) { model.alert = alert }
         announce(alert)
         if machine.state == .idle { send(.alert) }
@@ -884,6 +897,20 @@ final class NotchCoordinator {
         guard model.alert != nil else { return }
         send(.alertExpired)
         // Still under the pointer: it stays until the pointer leaves (and then closes like any peek).
+    }
+
+    private func revokeMailAlert(_ messageID: String?) {
+        guard MailAlertRetention.revoke(alert: &model.alert, trackedMessageID: &mailAlertMessageID,
+                                        revokedMessageID: messageID) else { return }
+        cancel(.alert)
+        // Ordinary alert expiry preserves a hovered peek. Privacy revocation must close it immediately.
+        if machine.state == .peek {
+            cancel(.hoverIntent)
+            cancel(.hoverSustained)
+            indicatorTarget = nil
+            machine = NotchStateMachine(opensOnHover: model.settings.opensOnHover)
+            apply()
+        }
     }
 
     // MARK: - Edit mode
@@ -1013,6 +1040,7 @@ final class NotchCoordinator {
             _ = (settings.displayMode, settings.fullScreenBehaviour)
             _ = settings.usageDisabledProviders
             _ = settings.alertsForHome
+            _ = (settings.alertsForMail, settings.mailAllowedSenders, settings.mailAllowedAccounts)
             _ = model.calendar.access
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
@@ -1051,6 +1079,9 @@ final class NotchCoordinator {
         model.usage.providersMayHaveChanged()
         // Putting the section away is an explicit stop and must immediately release the power assertion.
         model.keepAwake.setModuleEnabled(settings.modules.contains(.keepAwake))
+        model.mail.configure(senders: settings.mailAllowedSenders, accounts: settings.mailAllowedAccounts)
+        model.mail.update(enabled: settings.modules.contains(.mail))
+        if !settings.modules.contains(.mail), model.alert?.source == .mail { expireAlert() }
         // Home stays connected while its section is on, closed notch included: the ear and the doorbell need it.
         model.home.setModuleEnabled(settings.modules.contains(.home))
         // Which ears say "What matters now" decides whether the house's ear timer is worth running.
@@ -1279,5 +1310,19 @@ extension Animation {
 
     @MainActor static var closeNotch: Animation {
         Tokens.Motion.close(reduceMotion: NSWorkspace.shared.accessibilityDisplayShouldReduceMotion)
+    }
+}
+
+/// Presentation revocation is independent of envelope storage and must never dismiss another alert source.
+enum MailAlertRetention {
+    static func revoke(alert: inout NotchAlert?, trackedMessageID: inout String?, revokedMessageID: String?) -> Bool {
+        guard alert?.source == .mail,
+              revokedMessageID == nil || trackedMessageID == revokedMessageID else {
+            if revokedMessageID == nil || trackedMessageID == revokedMessageID { trackedMessageID = nil }
+            return false
+        }
+        alert = nil
+        trackedMessageID = nil
+        return true
     }
 }

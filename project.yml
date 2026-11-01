@@ -16,7 +16,7 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: $(ALTILLO_TEAM)
-    MARKETING_VERSION: 0.12.1
+    MARKETING_VERSION: 0.13.0
     CURRENT_PROJECT_VERSION: 1
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
@@ -36,7 +36,13 @@ targets:
     type: application
     platform: macOS
     sources:
-      - Apps/macOS
+      - path: Apps/macOS
+        excludes:
+          - Modules/Mail/Resources
+      - path: Apps/macOS/Modules/Mail/Resources/AltilloMailRule.txt
+        buildPhase: resources
+      - path: Apps/macOS/Modules/Mail/Resources/AltilloMailBridge.txt
+        buildPhase: resources
       - Apps/Shared/Assets.xcassets
       - Apps/Shared/AppIcon.icon
     dependencies:
@@ -50,6 +56,13 @@ targets:
         product: AltilloAgents
       - package: AltilloKit
         product: AltilloHome
+      - package: AltilloKit
+        product: AltilloMail
+      - target: altillo-mail
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook
@@ -91,7 +104,7 @@ targets:
         INFOPLIST_KEY_NSHumanReadableCopyright: © 2026 Xus Badia. MIT License.
         INFOPLIST_KEY_NSCameraUsageDescription: The mirror shows the Mac's camera inside the notch. The image never leaves your Mac.
         INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription: The calendar shows your next event in the notch. Events never leave your Mac.
-        INFOPLIST_KEY_NSAppleEventsUsageDescription: Altillo asks Music and Spotify what is playing so it can show it in the notch and tell you when you ask.
+        INFOPLIST_KEY_NSAppleEventsUsageDescription: Altillo uses Music and Spotify for playback.
         INFOPLIST_KEY_NSRemindersFullAccessUsageDescription: Altillo shows and completes your reminders, and Ask can add the ones you request. Your reminders never leave your Mac.
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Ask listens only while you dictate a question, and only on this Mac. Nothing is recorded.
         INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Ask turns what you dictate into text on this Mac. Your voice never leaves it.
@@ -173,6 +186,23 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).hook
         PRODUCT_NAME: altillo-hook
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Manual
+        CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
+        SKIP_INSTALL: YES
+
+  altillo-mail:
+    type: tool
+    platform: macOS
+    sources:
+      - Apps/MailBridge
+    dependencies:
+      - package: AltilloKit
+        product: AltilloMail
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(ALTILLO_BUNDLE_PREFIX).mail
+        PRODUCT_NAME: altillo-mail
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)

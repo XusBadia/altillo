@@ -1,5 +1,8 @@
 # Altillo: plan de desarrollo
 
+Para las prioridades actuales y el seguimiento entre sesiones, consultar el
+[roadmap de producto](ROADMAP.md). Este plan conserva la arquitectura y las fases históricas.
+
 Estado de lanzamiento, 03-10-2026: **0.10.0 pública, firmada y notarizada**.
 Xus ha confirmado la QA terminada; la aceptación se registra en
 [docs/launch-qa-2026-10-03.md](docs/launch-qa-2026-10-03.md).

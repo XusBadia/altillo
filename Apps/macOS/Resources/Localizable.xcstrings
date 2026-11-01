@@ -1,6 +1,745 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "After removing the rule, use Show scripts to remove Altillo Mail.scpt and Altillo Mail Bridge.scpt. Leave other scripts untouched.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "After removing the rule, use Show scripts to remove Altillo Mail.scpt and Altillo Mail Bridge.scpt. Leave other scripts untouched."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tras retirar la regla, pulsa Mostrar scripts para retirar Altillo Mail.scpt y Altillo Mail Bridge.scpt. Conserva los demás scripts."
+          }
+        }
+      }
+    },
+    "Check script files": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check script files"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar archivos de scripts"
+          }
+        }
+      }
+    },
+    "Apple Mail delivered a new message to Altillo.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail delivered a new message to Altillo."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail ha entregado un mensaje nuevo a Altillo."
+          }
+        }
+      }
+    },
+    "Reception is off. Remove the Altillo Mail rule in Apple Mail Settings. Its scripts have been kept for manual removal.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reception is off. Remove the Altillo Mail rule in Apple Mail Settings. Its scripts have been kept for manual removal."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La recepción está desactivada. Retira la regla Altillo Mail en los ajustes de Apple Mail. Sus scripts se conservan para que los retires manualmente."
+          }
+        }
+      }
+    },
+    "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail didn't answer. Check that Mail is open and Altillo can control it in System Settings → Privacy & Security → Automation, then try again. Your scripts have been kept."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail no ha respondido. Comprueba que está abierto y que Altillo puede controlarlo en Ajustes del Sistema → Privacidad y seguridad → Automatización. Vuelve a intentarlo. Tus scripts se han conservado."
+          }
+        }
+      }
+    },
+    "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Altillo to control Apple Mail in System Settings → Privacy & Security → Automation, then check the rule again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite que Altillo controle Apple Mail en Ajustes del Sistema → Privacidad y seguridad → Automatización y vuelve a comprobar la regla."
+          }
+        }
+      }
+    },
+      "Remove rules that use Altillo Mail in Apple Mail Settings, then try again. Your scripts have been kept.": {
+        "localizations": {
+          "en": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Remove rules that use Altillo Mail in Apple Mail Settings, then try again. Your scripts have been kept."
+            }
+          },
+          "es": {
+            "stringUnit": {
+              "state": "translated",
+              "value": "Elimina en Mail → Ajustes las reglas que usan Altillo Mail y vuelve a intentarlo. Tus scripts se han conservado."
+            }
+          }
+        }
+      },
+    "1. Prepare the scripts. 2. In Mail Settings → Rules, add a rule named Altillo Mail for Every Message with Run AppleScript → Altillo Mail. 3. Choose Don't Apply for previous messages.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Prepare the scripts. 2. In Mail Settings → Rules, add a rule named Altillo Mail for Every Message with Run AppleScript → Altillo Mail. 3. Choose Don't Apply for previous messages."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Prepara los scripts. 2. En Mail → Ajustes → Reglas, añade una regla llamada Altillo Mail para Todos los mensajes con Ejecutar AppleScript → Altillo Mail. 3. Elige No aplicar a los mensajes anteriores."
+          }
+        }
+      }
+    },
+    "Allowed Mail account names": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed Mail account names"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nombres de cuentas de Mail permitidas"
+          }
+        }
+      }
+    },
+    "Allowed sender addresses": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allowed sender addresses"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Direcciones de remitentes permitidos"
+          }
+        }
+      }
+    },
+    "Apple Mail setup, message filters and private sign-in actions.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail setup, message filters and private sign-in actions."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configuración de Apple Mail, filtros y accesos privados."
+          }
+        }
+      }
+    },
+    "Apple Mail's rule is connected.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Mail's rule is connected."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La regla de Apple Mail está conectada."
+          }
+        }
+      }
+    },
+    "Check Mail rule": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check Mail rule"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobar regla de Mail"
+          }
+        }
+      }
+    },
+    "Clear recent messages": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear recent messages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Borrar mensajes recientes"
+          }
+        }
+      }
+    },
+    "Connect Apple Mail in Settings. Messages stay only in memory for five minutes.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Apple Mail in Settings. Messages stay only in memory for five minutes."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Apple Mail en Ajustes. Los mensajes permanecen solo en memoria durante cinco minutos."
+          }
+        }
+      }
+    },
+    "Copy sign-in code": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy sign-in code"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar código de acceso"
+          }
+        }
+      }
+    },
+    "Disabling this section stops reception and clears its messages. Remove the Mail rule below to disconnect completely.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabling this section stops reception and clears its messages. Remove the Mail rule below to disconnect completely."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al desactivar esta sección se detiene la recepción y se borran sus mensajes. Elimina la regla de Mail para desconectarlo por completo."
+          }
+        }
+      }
+    },
+    "Dismiss message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss message"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descartar mensaje"
+          }
+        }
+      }
+    },
+    "Leave these empty for all new messages. Separate exact addresses or account names with commas.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave these empty for all new messages. Separate exact addresses or account names with commas."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déjalos vacíos para recibir todos los mensajes nuevos. Separa con comas las direcciones completas o los nombres de cuentas."
+          }
+        }
+      }
+    },
+    "Mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correo"
+          }
+        }
+      }
+    },
+    "Mail couldn't start its local connection. Try turning Mail off and on again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail couldn't start its local connection. Try turning Mail off and on again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correo no pudo iniciar su conexión local. Prueba a desactivar y volver a activar Correo."
+          }
+        }
+      }
+    },
+    "Mail must stay open and receive messages. Altillo does not sign in to your email account.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail must stay open and receive messages. Altillo does not sign in to your email account."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail debe permanecer abierto y recibir mensajes. Altillo no inicia sesión en tu cuenta de correo."
+          }
+        }
+      }
+    },
+    "Mail settings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail settings"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajustes de Correo"
+          }
+        }
+      }
+    },
+    "Mail setup couldn't finish. Your existing rules and messages have been left untouched.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail setup couldn't finish. Your existing rules and messages have been left untouched."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo completar la configuración de Correo. Se han conservado tus reglas y mensajes."
+          }
+        }
+      }
+    },
+    "Mail setup hasn't started.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail setup hasn't started."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La configuración de Correo no ha empezado."
+          }
+        }
+      }
+    },
+    "Mail setup was changed. Your files have been left untouched.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mail setup was changed. Your files have been left untouched."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La configuración de Correo ha cambiado. Se han conservado tus archivos."
+          }
+        }
+      }
+    },
+    "Message filters": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Message filters"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Filtros de mensajes"
+          }
+        }
+      }
+    },
+    "Messages stay in memory for five minutes. Codes and sign-in links are never saved to history or sent to Ask.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Messages stay in memory for five minutes. Codes and sign-in links are never saved to history or sent to Ask."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los mensajes permanecen en memoria durante cinco minutos. Los códigos y enlaces de acceso no se guardan en el historial ni se envían a Pregunta."
+          }
+        }
+      }
+    },
+    "New Apple Mail messages, sign-in codes and links, kept briefly on this Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Apple Mail messages, sign-in codes and links, kept briefly on this Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mensajes nuevos de Apple Mail, códigos y enlaces de acceso, conservados brevemente en este Mac."
+          }
+        }
+      }
+    },
+    "New mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correo nuevo"
+          }
+        }
+      }
+    },
+    "Open Apple Mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Apple Mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir Apple Mail"
+          }
+        }
+      }
+    },
+    "Open Apple Mail and check the Altillo Mail rule before removing its scripts.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Apple Mail and check the Altillo Mail rule before removing its scripts."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Apple Mail y comprueba la regla Altillo Mail antes de eliminar sus scripts."
+          }
+        }
+      }
+    },
+    "Open Apple Mail to check its rule.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Apple Mail to check its rule."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abre Apple Mail para comprobar su regla."
+          }
+        }
+      }
+    },
+    "Open in Mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Mail"
+          }
+        }
+      }
+    },
+    "Open link": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open link"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlace"
+          }
+        }
+      }
+    },
+    "Open sign-in link in your browser": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open sign-in link in your browser"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir enlace de acceso en el navegador"
+          }
+        }
+      }
+    },
+    "Prepare Mail scripts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare Mail scripts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparar scripts de Mail"
+          }
+        }
+      }
+    },
+    "Remove Altillo's Mail connection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove Altillo's Mail connection"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar la conexión de Correo de Altillo"
+          }
+        }
+      }
+    },
+    "Scripts are ready. Add the rule in Apple Mail.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scripts are ready. Add the rule in Apple Mail."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los scripts están listos. Añade la regla en Apple Mail."
+          }
+        }
+      }
+    },
+    "Set up Apple Mail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up Apple Mail"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configurar Apple Mail"
+          }
+        }
+      }
+    },
+    "Show new-mail glances": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show new-mail glances"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar avisos de correo nuevo"
+          }
+        }
+      }
+    },
+    "Show scripts": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show scripts"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar scripts"
+          }
+        }
+      }
+    },
+    "The Mail scripts were changed or aren't owned by Altillo. They have been left untouched.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The Mail scripts were changed or aren't owned by Altillo. They have been left untouched."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los scripts de Mail han cambiado o no pertenecen a Altillo. Se han conservado."
+          }
+        }
+      }
+    },
+    "This copy of Altillo is missing its Mail helper. Install a complete copy of the app.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This copy of Altillo is missing its Mail helper. Install a complete copy of the app."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta copia de Altillo no incluye el asistente de Correo. Instala una copia completa de la app."
+          }
+        }
+      }
+    },
+    "Use the filters below to choose senders and accounts. The Mail rule delivers new messages to Altillo on this Mac.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the filters below to choose senders and accounts. The Mail rule delivers new messages to Altillo on this Mac."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usa los filtros de abajo para elegir remitentes y cuentas. La regla de Mail entrega los mensajes nuevos a Altillo en este Mac."
+          }
+        }
+      }
+    },
+    "Your next message will appear here": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your next message will appear here"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tu próximo mensaje aparecerá aquí"
+          }
+        }
+      }
+    },
+    "Apple Mail": {
+      "shouldTranslate": false
+    },
     "Add them to Home Assistant and they show up in Altillo with everything else." : {
       "extractionState": "manual",
       "localizations": {

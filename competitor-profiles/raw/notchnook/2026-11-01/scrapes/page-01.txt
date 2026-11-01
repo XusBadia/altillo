@@ -1,0 +1,231 @@
+NotchNook Pro — The original notch app for Mac, rebuilt (https://getnotchnook.com/)
+citeturn13view0 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://getnotchnook.com/","lineno":null}); Total lines: 278
+L0: 【0†Skip to content】
+L1: 
+L2: 【1†NotchNook PRO】
+L3: 
+L4: 【2†Features】【3†Reviews】【4†Pricing】【5†Changelog】【6†FAQ】
+L5: 
+L6: 【4†Get Pro】
+L7: 
+L8: 【1†NotchNook PRO】
+L9: 
+L10: 【7†Image: NotchNook Pro app icon】
+L11: 
+L12: 【5†New in Pro: the Liquid Glass notch】
+L13: # The original notch app, rebuilt for your Mac
+L14: 
+L15: Music, calendar, files, a teleprompter, your AI agents and more: 37 features right under your camera, for a small price.
+L16: 
+L17: 【8†Download for macOS】
+L18: 
+L19: 【4†Purchase$19】
+L20: 
+L21: Free trial · macOS 14.6+ · works on Macs without a notch, too
+L22: 
+L23: Try it
+L24: 
+L25: Nook Music Calendar Tray Prompter AI Agents Live Activities+30 more
+L26: 
+L27: Liquid Glass Classic
+L28: 
+L29: 【1†NotchNook by lo.cafe】
+L30: 
+L31: The original notch app, rebuilt. Made with care, and a lot of coffee, by lo.cafe.
+L32: 
+L33: 【8†Download for macOS】
+L34: Product
+L35: 
+L36:   * 【2†Features】
+L37:   * 【3†Reviews】
+L38:   * 【4†Pricing】
+L39:   * 【5†Changelog】
+L40:   * 【9†Press and media】
+L41: 
+L42: Help
+L43: 
+L44:   * 【10†Download】
+L45:   * 【11†FAQ】
+L46:   * 【12†Support】
+L47:   * 【13†Manage your subscription】
+L48:   * 【14†Recover your license】
+L49:   * Email support (support@getnotchnook.com)
+L50: 
+L51: Connect
+L52: 
+L53:   * 【15†About lo.cafe ↗†locafe.app】
+L54:   * 【16†lo.cafe on LinkedIn ↗†www.linkedin.com】
+L55:   * 【17†Follow on X ↗†x.com】
+L56: 
+L57: © 2026 lo.cafe · All rights reserved.
+L58: NotchNook and lo.cafe are trademarks of lo.cafe Ltda. · CNPJ 35.124.367/0001-00 · Brazil
+L59: 
+L60: 【18†Terms】【19†Privacy】【20†Cookies】[Button: Cookie settings]【21†Back to top ↑】
+L61: 
+L62: NotchNook
+L63: 
+L64: 喫茶ノッチ
+L65: 
+L66: ローファイ
+L67: 
+L68: 【22†Image】
+L69: 
+L70: Finder File Edit View Go Window Help
+L71: 
+L72: try to drag & drop
+L73: 
+L74: …or click the YouTube one ✦
+L75: 
+L76: lo-fi mix – YouTube Click to copy the link
+L77: 
+L78: Screen Rec…3.47 PM.mov
+L79: 
+L80: 【23†Image】Rooftops.png
+L81: 
+L82: Invoice.pdf
+L83: 
+L84: lofi-loop.wav
+L85: 
+L86: assets.zip
+L87: 
+L88: 【23†Image】
+L89: 
+L90: 【23†Image】
+L91: 
+L92: Reviews
+L93: ## Recommended by people who use it.
+L94: 
+L95: > “After using it for a day, I’m not sure I can do without it.”
+L96: 
+L97: 【24†Image】The Verge【25†Read the review ↗†www.theverge.com】
+L98: 
+L99: 【26†4.7 Rating on MacUpdate†notchnook.macupdate.com】【27†4.5 Rating on Product Hunt†www.producthunt.com】【27†#4↗Product of the Day on Product Hunt†www.producthunt.com】
+L100: 
+L101: 【28†MacRumors†www.macrumors.com】【29†TechRadar†www.techradar.com】More coverage and videos+
+L102: 【30†Tom’s Guide ↗†www.tomsguide.com】【31†Digital Trends ↗†tech.yahoo.com】【32†iMore ↗†www.imore.com】【33†XDA ↗†www.xda-developers.com】【34†MacStories ↗†www.macstories.net】【35†Lifehacker ↗†lifehacker.com】【36†How-To Geek ↗†www.howtogeek.com】【37†BGR ↗†www.bgr.com】【38†Applesfera ↗†www.applesfera.com】【39†iDownloadBlog ↗†www.idownloadblog.com】【40†Beebom ↗†beebom.com】【41†The Mac Observer ↗†www.macobserver.com】【42†T3 ↗†www.t3.com】【43†Clubic ↗†www.clubic.com】【44†iPhoneSoft ↗†iphonesoft.fr】【45†iPhones.ru ↗†www.iphones.ru】【46†Pplware ↗†pplware.sapo.pt】【47†Root-Nation ↗†root-nation.com】【48†Mezha ↗†mezha.media】【49†Lowyat.NET ↗†lowyat.net】【50†MacSources ↗†macsources.com】
+L103: On YouTube
+L104: 
+L105: 【51†MacMagazine ↗†www.youtube.com】【52†Andrew Ethan Zeng ↗†www.youtube.com】【53†Renz Sadiwa ↗†www.youtube.com】【54†Tool Finder ↗†www.youtube.com】
+L106: 
+L107: On Instagram
+L108: 
+L109: 【55†@bramdmedia ↗†www.instagram.com】【56†@bramdmedia ↗†www.instagram.com】【57†@minhmigoi ↗†www.instagram.com】
+L110: 
+L111: Press and community coverage of the original NotchNook.
+L112: ## NotchNook speaks your language. 32 of them, fully translated.
+L113:   * EN Hello, NotchNook!English
+L114:   * BR Oi, NotchNook!Português (Brasil)
+L115:   * ES¡Hola, NotchNook!Español
+L116:   * FR Bonjour, NotchNook !Français
+L117:   * DE Hallo, NotchNook!Deutsch
+L118:   * IT Ciao, NotchNook!Italiano
+L119:   * JAこんにちは、NotchNook！日本語
+L120:   * 简你好，NotchNook！简体中文
+L121:   * KO 안녕, NotchNook!한국어
+L122:   * RU Привет, NotchNook!Русский
+L123:   * UK Привіт, NotchNook!Українська
+L124:   * PL Cześć, NotchNook!Polski
+L125:   * TR Merhaba, NotchNook!Türkçe
+L126:   * VI Xin chào, NotchNook!Tiếng Việt
+L127:   * AR مرحبًا، NotchNook!العربية
+L128:   * HI नमस्ते, NotchNook!हिन्दी
+L129:   * EN Hello, NotchNook!English
+L130:   * BR Oi, NotchNook!Português (Brasil)
+L131:   * ES¡Hola, NotchNook!Español
+L132:   * FR Bonjour, NotchNook !Français
+L133:   * DE Hallo, NotchNook!Deutsch
+L134:   * IT Ciao, NotchNook!Italiano
+L135:   * JAこんにちは、NotchNook！日本語
+L136:   * 简你好，NotchNook！简体中文
+L137:   * KO 안녕, NotchNook!한국어
+L138:   * RU Привет, NotchNook!Русский
+L139:   * UK Привіт, NotchNook!Українська
+L140:   * PL Cześć, NotchNook!Polski
+L141:   * TR Merhaba, NotchNook!Türkçe
+L142:   * VI Xin chào, NotchNook!Tiếng Việt
+L143:   * AR مرحبًا، NotchNook!العربية
+L144:   * HI नमस्ते, NotchNook!हिन्दी
+L145:   * PT Olá, NotchNook!Português (Portugal)
+L146:   * 繁哈囉，NotchNook！繁體中文
+L147:   * EL Γεια σου, NotchNook!Ελληνικά
+L148:   * NL Hoi, NotchNook!Nederlands
+L149:   * CS Ahoj, NotchNook!Čeština
+L150:   * SK Čau, NotchNook!Slovenčina
+L151:   * HE שלום, NotchNook!עברית
+L152:   * SV Hallå, NotchNook!Svenska
+L153:   * DA Hej, NotchNook!Dansk
+L154:   * NB Hei, NotchNook!Norsk
+L155:   * FI Moi, NotchNook!Suomi
+L156:   * HU Szia, NotchNook!Magyar
+L157:   * RO Salut, NotchNook!Română
+L158:   * SR Здраво, NotchNook!Српски
+L159:   * CA Bon dia, NotchNook!Català
+L160:   * AF Haai, NotchNook!Afrikaans
+L161:   * PT Olá, NotchNook!Português (Portugal)
+L162:   * 繁哈囉，NotchNook！繁體中文
+L163:   * EL Γεια σου, NotchNook!Ελληνικά
+L164:   * NL Hoi, NotchNook!Nederlands
+L165:   * CS Ahoj, NotchNook!Čeština
+L166:   * SK Čau, NotchNook!Slovenčina
+L167:   * HE שלום, NotchNook!עברית
+L168:   * SV Hallå, NotchNook!Svenska
+L169:   * DA Hej, NotchNook!Dansk
+L170:   * NB Hei, NotchNook!Norsk
+L171:   * FI Moi, NotchNook!Suomi
+L172:   * HU Szia, NotchNook!Magyar
+L173:   * RO Salut, NotchNook!Română
+L174:   * SR Здраво, NotchNook!Српски
+L175:   * CA Bon dia, NotchNook!Català
+L176:   * AF Haai, NotchNook!Afrikaans
+L177: Pricing
+L178: ## One notch app. Two ways to get it.
+L179: 
+L180: NotchNook Pro is the new one, rebuilt from the ground up. NotchNook Classic is the classic you already know, and it isn't going anywhere.
+L181: 
+L182: 【58†Image: NotchNook Pro app icon】
+L183: ### NotchNook PRO
+L184: 
+L185: The new one
+L186: 
+L187: Everything NotchNook does, rebuilt with Liquid Glass, your AI agents and a lot more.
+L188: 
+L189: Monthly Lifetime Best value
+L190: 
+L191: —
+L192: 
+L193: once, and it's yours for good
+L194: 
+L195: One license, for up to 2 of your Macs
+L196:   * Every update included, forever Every update while you're subscribed
+L197:   * Liquid Glass notch, or the classic black
+L198:   * Approve Claude Code and Codex from the notch
+L199:   * Music with lyrics, Calendar, Tray and Pocket
+L200:   * Teleprompter and terminal
+L201:   * Live Activities: AirPods, battery and more
+L202:   * 37 features, and more on the way
+L203: 
+L204: 【4†Buy NotchNook Pro】【8†Or try it free for 48 hours】
+L205: 
+L206: 【59†Image: NotchNook Classic (classic) app icon】
+L207: ### NotchNook CLASSIC
+L208: 
+L209: The classic
+L210: 
+L211: Not ready for Pro? The NotchNook you know is still here, and it still gets updates.
+L212: 
+L213: Monthly Lifetime
+L214: 
+L215: —
+L216: 
+L217: once, and it's yours for good
+L218: 
+L219: One license, for up to 2 of your Macs
+L220: 
+L221:   * Every update included, forever Every update while you're subscribed
+L222:   * The classic NotchNook experience
+L223:   * Media controls, Calendar and Nook widgets
+L224:   * The file Tray and AirDrop
+L225: 
+L226: Buy NotchNook Classic
+L227: 
+L228: 【7†Image】【59†Image】

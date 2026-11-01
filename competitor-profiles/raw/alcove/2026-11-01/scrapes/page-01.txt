@@ -1,0 +1,52 @@
+Alcove — Dynamic Island for your Mac (https://tryalcove.com/)
+citeturn9view1 [wordlim: 200] Crawled: 6 months ago; Content type: text/html; Source: open({"ref_id":"https://tryalcove.com/","lineno":null}); Total lines: 50
+L0: Alcove
+L1: 
+L2: FAQs
+L3: 
+L4: Download for Mac
+L5: 
+L6: #  Dynamic Island
+L7: for Mac
+L8: 
+L9: Download for Mac
+L10: 
+L11: Purchase $13.99
+L12: 
+L13: Work
+L14: 
+L15: 2 4
+L16: 
+L17: °
+L18: 
+L19: Press to unlock
+L20: 
+L21: Psst… it's interactive!
+L22: 
+L23: ## Fluid
+L24: transitions
+L25: 
+L26: ## Instant
+L27: Notifications
+L28: 
+L29: ## Live
+L30: Activities
+L31: 
+L32: ## Swipe
+L33: gestures
+L34: 
+L35: ##  Packed with
+L36: surprises
+L37: 
+L38: ## Customizable
+L39: HUDs
+L40: 
+L41: ##  Lock Screen
+L42: Widgets
+L43: 
+L44: ##  Blazing fast
+L45: native app
+L46: 
+L47: Purchase for Mac
+L48: 
+L49: Alcove

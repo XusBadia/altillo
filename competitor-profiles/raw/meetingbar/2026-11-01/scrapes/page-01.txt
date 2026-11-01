@@ -1,0 +1,178 @@
+GitHub - leits/MeetingBar: 🇺🇦 Your meetings at your fingertips in the macOS menu bar · GitHub (https://github.com/leits/MeetingBar)
+citeturn10view5 [wordlim: 200] Crawled: today; Content type: text/html; Source: open({"ref_id":"https://github.com/leits/MeetingBar","lineno":null}); Total lines: 379
+L0: 【0†Skip to content】
+L1: ## Navigation Menu
+L2: 
+L3:   * Products
+L4: 
+L5:     *       * 【1†GitHub Repository hosting, code review, and collaboration】
+L6:       * 【2†Copilot AI coding agent for tasks, projects and automated work】
+L7: 
+L8:     * Build & Ship
+L9:       * 【3†Actions CI/CD and automation】
+L10:       * 【4†Code Quality Quality analysis, fixes, and enforcement】
+L11:       * 【5†Codespaces Cloud development environments】
+L12:     * Secure
+L13:       * 【6†Code Security Vulnerability detection and remediation】
+L14:       * 【7†Secret Protection Secret scanning and leak prevention】
+L15: 
+L16: 【8†All Features】
+L17: 
+L18:   * Developers
+L19: 
+L20:     * Learn
+L21:       * 【9†Documentation†docs.github.com】
+L22:       * 【10†Training†learn.github.com】
+L23:       * 【11†Certifications†learn.github.com】
+L24: 
+L25:     * Build
+L26:       * 【12†Build with Copilot】
+L27:       * 【13†Customize Copilot†docs.github.com】
+L28:       * 【14†Integrations】
+L29:     * Explore
+L30:       * 【15†Trending repos】
+L31:       * 【16†GitHub Sponsors】
+L32:       * 【17†Events】
+L33: 
+L34:     *       * 【18†Changelog Your source for the latest features, improvements, and fixes across GitHub products, all in one place.†github.blog】
+L35: 
+L36:   * Businesses
+L37: 
+L38:     * By Stage
+L39:       * 【19†Enterprises】
+L40:       * 【20†Team】
+L41:       * 【21†Startups】
+L42:       * 【22†Nonprofits】
+L43:     * By Industry
+L44:       * 【23†Healthcare】
+L45:       * 【24†Financial services】
+L46:       * 【25†Manufacturing】
+L47:       * 【26†Government】
+L48:       * 【27†See all industries】
+L49: 
+L50:     * Evaluate GitHub
+L51:       * 【28†Why GitHub】
+L52:       * 【29†Customer Stories】
+L53:       * 【30†Business insights】
+L54:       * 【31†Trust Center】
+L55: 
+L56:     * Add-ons
+L57:       * 【32†GitHub Advanced Security Enterprise-grade code security】
+L58:       * 【33†Copilot for business Enterprise-grade AI features】
+L59:       * 【34†Premium Support Enterprise-grade 24/7 support】
+L60:   * Resources
+L61: 
+L62:     * Learn & Connect
+L63:       * 【9†Documentation†docs.github.com】
+L64:       * 【35†Resource center】
+L65:       * 【36†Blog†github.blog】
+L66:       * 【17†Events & webinars】
+L67:       * 【37†Community Forum】
+L68:       * 【29†Customer Stories】
+L69:       * 【14†Integrations】
+L70: 
+L71:     * Support
+L72:       * 【38†Customer support†help.github.com】
+L73:       * 【10†Training†learn.github.com】
+L74:       * 【39†GitHub Status†www.githubstatus.com】
+L75: 
+L76:     * Company
+L77:       * 【40†About】
+L78:       * 【41†Partners】
+L79:       * 【18†Changelog†github.blog】
+L80:     *       * 【42†GitHub Universe The event for developers, by developers — talks, workshops, and what’s next for GitHub.†githubuniverse.com】
+L81: 
+L82:   * 【43†Pricing】
+L83: 
+L84: Search`/`
+L85: 
+L86: 【44†Sign in】
+L87: 
+L88: 【45†Sign up】
+L89: 
+L90: Appearance settings
+L91: 
+L92: You signed in with another tab or window. Reload to refresh your session. You signed out in another tab or window. Reload to refresh your session. You switched accounts on another tab or window. Reload to refresh your session. Dismiss alert
+L93: 
+L94:   1. 【46†leits】
+L95:   2. 【47†MeetingBar】
+L96: ## Repository navigation
+L97: 
+L98:   *   * 【47†Code】
+L99:   * 【48†Issues 106 (106)】
+L100:   * 【49†Pull requests 17 (17)】
+L101:   * 【50†Actions】
+L102:   * 【51†Wiki】
+L103:   * 【52†Security and quality】
+L104:   * 【53†Insights】
+L105: 
+L106: More items
+L107: 
+L108: 【54†Image: leits†avatars.githubusercontent.com】
+L109: 
+L110: 【47†MeetingBar】
+L111: 
+L112: Public
+L113: 
+L114:   * Sponsor
+L115:   * 【55†Notifications】You must be signed in to change notification settings
+L116:   * 【55†Fork 304 (304)】
+L117:   * 【55†Star 5.4k (5.4k)】You must be signed in to star a repository
+L118: ## About
+L119: 
+L120: 🇺🇦 Your meetings at your fingertips in the macOS menu bar
+L121: 
+L122: 【56†meetingbar.app†meetingbar.app】
+L123: 
+L124: ### Topics
+L125: 
+L126: 【57†apple】【58†calendar】【59†google-calendar】【60†google-meet】【61†macos】【62†macos-calendar】【63†meetings】【64†microsoft-teams】【65†productivity】【66†swift】【67†zoom】
+L127: 
+L128: ### Resources
+L129: 
+L130: 【68†Readme】
+L131: 
+L132: 【69†Apache-2.0 license】
+L133: 
+L134: ### Contributing
+L135: 
+L136: 【70†Contributing】
+L137: 
+L138: ### Security policy
+L139: 
+L140: 【71†Security policy】
+L141: 
+L142: 【72†Activity】
+L143: 
+L144: ### Stars
+L145: 
+L146: 5.4k stars
+L147: 
+L148: ### Watchers
+L149: 
+L150: 22 watching
+L151: ### Forks
+L152: 
+L153: 【73†304 forks】
+L154: 
+L155: 【74†Report repository】
+L156: 
+L157: master
+L158: 
+L159: 【75†Branches】【76†Tags】
+L160: 
+L161: [Input: Go to file]
+L162: 
+L163: Go to file
+L164: 
+L165: Code
+L166: 
+L167: Open more actions menu
+L168: 
+L169: ## Latest commit
+L170: 
+L171: 
+L172: 
+L173: ## History
+L174: 
+L175: 2,578 Commits

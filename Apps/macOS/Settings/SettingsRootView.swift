@@ -4,12 +4,12 @@ import SwiftUI
 /// Stable destinations: global settings first, then one page per configurable section.
 enum SettingsTab: String, CaseIterable, Identifiable {
     case modules, drawer, size, behaviour, about
-    case shelf, assistant, calendar, usage, clipboard, home, agents
+    case shelf, assistant, calendar, usage, clipboard, home, agents, mail
 
     var id: Self { self }
 
     static let global: [Self] = [.behaviour, .size, .modules, .drawer]
-    static let sections: [Self] = [.shelf, .assistant, .calendar, .usage, .clipboard, .home, .agents]
+    static let sections: [Self] = [.shelf, .assistant, .calendar, .usage, .clipboard, .home, .agents, .mail]
 
     var module: NotchModule? {
         switch self {
@@ -19,6 +19,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
         case .usage: .usage
         case .clipboard: .clipboard
         case .home: .home
+        case .mail: .mail
         case .agents: .agents
         default: nil
         }
@@ -105,7 +106,7 @@ struct SettingsRootView: View {
         case .behaviour: SettingsBehaviourPane(settings: settings, hasHardwareNotch: hasHardwareNotch)
         case .about: SettingsAboutPane()
         default:
-            SettingsSectionPane(tab: navigation.tab, settings: settings, clipboard: model?.clipboard, home: model?.home)
+            SettingsSectionPane(tab: navigation.tab, settings: settings, clipboard: model?.clipboard, home: model?.home, mail: model?.mail)
 
         }
     }

@@ -1,5 +1,12 @@
 # Planes de mejora de Altillo
 
+El [roadmap de producto](../ROADMAP.md) recoge las prioridades y el estado que
+retomamos entre sesiones, sin fechas de entrega. La auditoría siguiente
+conserva su contexto histórico de septiembre. La [investigación competitiva de
+noviembre](../competitor-profiles/_summary.md) aporta fuentes y oportunidades
+para las 60 iniciativas del roadmap. El [spike de Correo](../docs/spikes/mail-bridge.md)
+recoge el primer experimento de R01 y cómo repetirlo.
+
 Generados con la skill `improve` el 26-09-2026 a partir de una auditoría del
 producto y de NotchView. Ejecutar en el orden indicado salvo que las
 dependencias digan lo contrario. Cada ejecutor debe leer su plan completo,

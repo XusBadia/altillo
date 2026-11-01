@@ -34,7 +34,8 @@
 </p>
 
 > 🇪🇸 Este README está en inglés para llegar a más gente. El [plan de desarrollo](PLAN.md)
-> y la [guía de desarrollo](docs/desarrollo.md) están en español.
+> y la [guía de desarrollo](docs/desarrollo.md) están en español. El [roadmap](ROADMAP.md)
+> recoge las próximas prioridades y su estado, sin fechas fijas.
 
 Actively developed and used daily, with signed, notarized releases and automatic
 updates. Altillo is still pre-1.0, so expect some rough edges and occasional
@@ -51,6 +52,7 @@ breaking changes.
 | **Now Playing** | Control the active media session, with artwork and progress. Load synced lyrics on demand; Apple Music and Spotify have a compatibility fallback. |
 | **AI usage** | Check your remaining Claude, Codex and other provider quotas, with a private 30-day trend kept on your Mac. |
 | **Live agents** | Follow Claude Code, Codex, Gemini CLI, Copilot CLI, Cursor and OpenCode. See requests, running sessions and finished work; approve, deny or reply from the notch when the agent’s hooks or local API support it. |
+| **Mail** *(beta, opt-in)* | New Apple Mail messages, sign-in codes and links in the notch. Messages stay in memory for five minutes. Requires Apple Mail open and a manually configured rule. [Setup](docs/correo.md). |
 | **Calendar** | See today's events and the month at a glance. |
 | **Mirror** | Check your camera preview without opening another app. |
 | **Timers & focus** | Run several named timers or a persistent Pomodoro cycle, with a countdown beside the notch and a glance when time is up. |
