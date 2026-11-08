@@ -4,8 +4,8 @@
   "bufferPostId": "6af0cca0d6bbae6fa10906a3",
   "status": "draft",
   "dueAt": null,
-  "scheduleAfter": "Public release download and Sparkle appcast verified; then 60 minutes later in Europe/Madrid, once X is reconnected.",
-  "blocker": "Buffer channel disconnected as of 2026-11-08T20:25+01:00",
+  "scheduleAfter": "After account choice and connection, schedule 60 minutes in the future using current Europe/Madrid time.",
+  "blocker": "Awaiting account choice: @_flixmd disconnected in connector; separate Chrome Buffer session has XusBadia connected.",
   "review": {
     "directness": 9,
     "rhythm": 8,
@@ -19,5 +19,7 @@
     "docs/usage-accounts.md",
     "Apps/macOS/Modules/Usage/UsageAccountSession.swift"
   ],
-  "deduplication": "Latest 8 Buffer posts read on 2026-11-08; no matching release angle."
+  "deduplication": "Latest 8 Buffer posts read on 2026-11-08; no matching release angle.",
+  "releaseUrl": "https://github.com/XusBadia/altillo/releases/tag/v0.14.0",
+  "releaseVerified": true
 }

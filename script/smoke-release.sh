@@ -13,10 +13,23 @@ fi
 
 MOUNT_POINT="$(mktemp -d)"
 APP_PROCESS=""
+HOOK_PATH="$HOME/Library/Application Support/Altillo/bin/altillo-hook"
+ORIGINAL_HOOK_TARGET=""
+SMOKE_HOOK_TARGET=""
+if [[ -L "$HOOK_PATH" ]]; then ORIGINAL_HOOK_TARGET="$(readlink "$HOOK_PATH")"; fi
 cleanup() {
   if [[ -n "$APP_PROCESS" ]] && kill -0 "$APP_PROCESS" 2>/dev/null; then
     kill "$APP_PROCESS" 2>/dev/null || true
     wait "$APP_PROCESS" 2>/dev/null || true
+  fi
+  # Launching a mounted copy can redirect the stable agent hook to this temporary volume.
+  # Restore only our own change, leaving a concurrent user/app change untouched.
+  if [[ -n "$SMOKE_HOOK_TARGET" && -L "$HOOK_PATH" ]] && [[ "$(readlink "$HOOK_PATH")" == "$SMOKE_HOOK_TARGET" ]]; then
+    if [[ -n "$ORIGINAL_HOOK_TARGET" ]]; then
+      ln -sfn "$ORIGINAL_HOOK_TARGET" "$HOOK_PATH"
+    else
+      rm -f "$HOOK_PATH"
+    fi
   fi
   hdiutil detach "$MOUNT_POINT" -quiet 2>/dev/null || true
   rmdir "$MOUNT_POINT" 2>/dev/null || true
@@ -52,6 +65,7 @@ PUBLIC_KEY="$(/usr/libexec/PlistBuddy -c 'Print :SUPublicEDKey' "$INFO_PLIST")"
 
 if [[ "${ALTILLO_SMOKE_SKIP_LAUNCH:-0}" != 1 ]]; then
   echo "==> launching mounted app"
+  SMOKE_HOOK_TARGET="$APP_PATH/Contents/MacOS/altillo-hook"
   "$APP_PATH/Contents/MacOS/Altillo" >/tmp/altillo-release-smoke.log 2>&1 &
   APP_PROCESS=$!
   sleep 5

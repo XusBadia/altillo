@@ -307,3 +307,7 @@ Revisión de proveedores pasa a manual: workflow semanal deshabilitado, issue au
 ## Preparación de 0.14.0 · 8 noviembre 2026
 
 La publicación se separa en `release/usage-0.14.0`: cuentas propias de Uso de IA y mejoras de conexión. Claude tiene consentimiento, cuotas reales y recuperación de Keychain tras reinicio comprobados; Codex y la rotación real siguen pendientes de QA. R61 permanece en desarrollo, conservado en `feat/native-mail-accounts`; sus cuentas directas no forman parte de 0.14.0. El correo publicado conserva el puente Apple Mail de 0.13.0. Gmail sigue en Testing y Microsoft necesita un registro en un directorio propio.
+
+### 0.14.0 publicada
+
+[0.14.0](https://github.com/XusBadia/altillo/releases/tag/v0.14.0), build 219: cuentas propias de Uso de IA y mejoras de conexión. CI del SHA final verde, firma/notarización, descarga, appcasts y actualización Sparkle desde 0.13.0 verificados. Claude conserva su cuenta real tras actualizar. [Validación](docs/qa/usage-0.14.0.md). R61 sigue pendiente y no se incluye en esta distribución.

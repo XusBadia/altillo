@@ -72,3 +72,7 @@ Validación de esta revisión: **959 tests macOS en 75 suites**, incluidos servi
 ### Candidata de publicación 0.14.0
 
 Se ha separado el código de correo nativo, conservado en `feat/native-mail-accounts`. La suite del contenido exacto de esta candidata pasa **919 tests macOS en 71 suites**; localización: **0 de 1646 cadenas pendientes**. Los siete tests del validador de firma y las puertas de publicación pasan. La exportación exige perfil para Keychain privado aunque no haya clientes OAuth de correo. La notarización y publicación todavía dependen de CI verde para el SHA final de main y de comprobar el artefacto distribuido.
+
+### Publicación y actualización reales
+
+**0.14.0 (219) publicada**, firmada y notarizada. Descarga pública y ambos appcasts verificados; actualización real con Sparkle desde 0.13.0 completada. Claude conserva su cuenta y plan Max en la instalación de Applications. [Evidencia y límites pendientes](qa/usage-0.14.0.md).
