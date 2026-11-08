@@ -262,7 +262,9 @@ actor UsageAccountSession {
             guard operation == id else { return }
             accounts[provider] = record.summary
             onAccountChanged(provider)
+            oauth.completeConnection(success: true)
         } catch {
+            if operation == id { oauth.completeConnection(success: false) }
             if operation == id, !(error is CancellationError), error as? UsageAccountFailure != .cancelled {
                 errorMessage = (error as? UsageAccountFailure ?? .unavailable).localizedDescription
             }

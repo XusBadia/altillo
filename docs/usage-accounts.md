@@ -1,6 +1,6 @@
 # Cuentas propias para Uso de IA
 
-Estado de desarrollo: 8 noviembre 2026. Claude y Codex permiten conectar una cuenta seleccionada de cada proveedor desde Ajustes › Secciones › Uso de IA. La conexión real, la renovación real y la distribución todavía requieren QA; los tests con fixtures no acreditan esos recorridos.
+Estado de desarrollo: 8 noviembre 2026. Claude y Codex permiten conectar una cuenta seleccionada de cada proveedor desde Ajustes › Secciones › Uso de IA. Claude ya tiene conexión y lectura reales verificadas; Codex, la renovación real y la distribución todavía requieren QA. Los tests con fixtures no acreditan esos recorridos.
 
 ## Experiencia
 
@@ -58,3 +58,13 @@ Se añade «Navegador para iniciar sesión», con navegador del sistema o Google
 Para entregar una conexión preparada se deja Ajustes › Uso de IA visible, con «Conectar» habilitado, sin abrir antes una autorización. El intento y sus 30 minutos empiezan cuando el usuario pulse ese botón. Se retiran las pestañas caducadas del intento anterior.
 
 Comprobación interactiva de la Release firmada: Claude abre directamente en Chrome su consentimiento `user:profile`; Codex llega al selector oficial de cuenta en `auth.openai.com`. Ambos intentos de comprobación se cancelaron sin conceder permisos y se cerraron sus pestañas. Ajustes queda en Uso de IA, Google Chrome seleccionado y ambos botones Conectar disponibles. El consentimiento/canje/lectura real siguen pendientes de que el usuario inicie su conexión.
+
+### Claude conectado y nueva página de retorno
+
+El usuario completó el consentimiento de Claude. La Release firmada muestra `xus@badia.me`, «Connected · Max» y cuotas reales sin error. Tras recompilar y reiniciar, recupera la misma cuenta del Keychain y vuelve a consultar sus límites. Codex sigue sin conectar; la renovación con rotación real permanece pendiente.
+
+La página de retorno tiene diseño propio de Altillo, adaptable a ventanas estrechas, en español e inglés y con movimiento reducido. Distingue conexión en curso, completada y fallida; solo confirma el éxito tras validar y guardar la sesión. «Volver a Altillo» abre la app mediante `altillo://usage` y muestra Uso cuando ya está iniciada. Comprobado en Chrome con la Release firmada, conservando la cuenta.
+
+AppAuth mantiene el callback OAuth y redirige a un segundo servidor temporal exclusivamente loopback, con rutas aleatorias. Este sirve HTML y estado sin código, tokens ni dirección de cuenta, sin recursos externos, con no-store, no-referrer y CSP. Se cierra 180 segundos después del resultado; el enlace a la app permanece utilizable. La URL de navegación no admite parámetros, rutas ni credenciales.
+
+Validación de esta revisión: **959 tests macOS en 75 suites**, incluidos servidor HTTP real, estados de conexión, escape HTML/JavaScript, rechazo de URLs de navegación ajenas y confirmación posterior al commit de credenciales. Validador español: **0 de 1639 cadenas pendientes**. Release compilada y firma/perfil verificados. QA visual en Chrome de éxito y error, en escritorio y ventana estrecha. No se ha publicado una actualización.

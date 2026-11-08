@@ -98,6 +98,9 @@ targets:
         ALTILLO_GOOGLE_MAIL_CLIENT_ID: $(ALTILLO_GOOGLE_MAIL_CLIENT_ID)
         ALTILLO_MICROSOFT_MAIL_CLIENT_ID: $(ALTILLO_MICROSOFT_MAIL_CLIENT_ID)
         CFBundleURLTypes:
+          - CFBundleURLName: Altillo navigation
+            CFBundleURLSchemes:
+              - altillo
           - CFBundleURLName: Microsoft authentication
             CFBundleURLSchemes:
               - msauth.$(PRODUCT_BUNDLE_IDENTIFIER)

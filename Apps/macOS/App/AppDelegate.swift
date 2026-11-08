@@ -1,4 +1,5 @@
 import AppKit
+import Foundation
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -36,6 +37,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // `-showWelcome YES -welcomeStep <n>` opens it on a page for reviews.
         OnboardingWindowController.shared.model = coordinator.model
         OnboardingWindowController.shared.showAtLaunchIfNeeded()
+    }
+
+    nonisolated static func isUsageReturnURL(_ url: URL) -> Bool {
+        url.scheme == "altillo" && url.host == "usage" && url.path.isEmpty
+            && url.query == nil && url.fragment == nil && url.user == nil && url.password == nil && url.port == nil
+    }
+
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard isLiveStarted, urls.contains(where: Self.isUsageReturnURL) else { return }
+        SettingsWindowController.shared.show(tab: .usage)
     }
 
     func applicationWillTerminate(_ notification: Notification) {

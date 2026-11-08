@@ -218,6 +218,69 @@ struct UsageAccountTests {
         }
     }
 
+    @MainActor @Test func returnPageReportsOnlyCommittedOutcomeAndDoesNotReflectCredentials() async throws {
+        let server = UsageAccountReturnServer(provider: "Claude")
+        let page = try server.start()
+        defer { server.stop() }
+        let client = URLSession(configuration: .ephemeral)
+        defer { client.invalidateAndCancel() }
+        var components = URLComponents(url: page, resolvingAgainstBaseURL: false)!
+        components.queryItems = [.init(name: "code", value: "synthetic-private-code")]
+        var request = URLRequest(url: components.url!)
+        request.setValue("es-ES,es;q=0.9", forHTTPHeaderField: "Accept-Language")
+        let (body, response) = try await client.data(for: request)
+        let http = try #require(response as? HTTPURLResponse)
+        let html = String(decoding: body, as: UTF8.self)
+        #expect(http.statusCode == 200)
+        #expect(http.value(forHTTPHeaderField: "Cache-Control") == "no-store")
+        #expect(http.value(forHTTPHeaderField: "Referrer-Policy") == "no-referrer")
+        #expect(http.value(forHTTPHeaderField: "Content-Security-Policy")?.contains("connect-src 'self'") == true)
+        #expect(html.contains("Conectando con Altillo"))
+        #expect(!html.contains("synthetic-private-code"))
+        let status = try #require(server.baseURL).appending(path: server.statusPath)
+        let (initial, _) = try await client.data(from: status)
+        #expect(String(decoding: initial, as: UTF8.self) == #"{"state":"connecting"}"#)
+        server.complete(success: true)
+        let (connected, _) = try await client.data(from: status)
+        #expect(String(decoding: connected, as: UTF8.self) == #"{"state":"connected"}"#)
+        server.complete(success: false)
+        let (failed, _) = try await client.data(from: status)
+        #expect(String(decoding: failed, as: UTF8.self) == #"{"state":"failed"}"#)
+        let (_, missing) = try await client.data(from: try #require(server.baseURL).appending(path: "/state/wrong"))
+        #expect((missing as? HTTPURLResponse)?.statusCode == 404)
+        var post = URLRequest(url: page); post.httpMethod = "POST"
+        let (_, wrongMethod) = try await client.data(for: post)
+        #expect((wrongMethod as? HTTPURLResponse)?.statusCode == 400)
+    }
+
+    @Test func returnPageEscapesMarkupAndOnlyAcceptsTheUsageNavigationURL() {
+        let html = UsageAccountReturnPage.html(providerName: "<script>not-code</script>", language: "en",
+            state: .connected, statusPath: "/state/</script>", openPath: "altillo://usage", cleanPath: "/complete/example")
+        #expect(html.contains("&lt;script&gt;not-code&lt;/script&gt;"))
+        #expect(html.components(separatedBy: "</script>").count == 2)
+        #expect(AppDelegate.isUsageReturnURL(URL(string: "altillo://usage")!))
+        for raw in ["altillo://usage?command=delete", "altillo://usage/other", "altillo://other", "https://usage"] {
+            #expect(!AppDelegate.isUsageReturnURL(URL(string: raw)!))
+        }
+    }
+
+    @MainActor @Test func successPageIsConfirmedOnlyAfterCredentialCommit() async throws {
+        let vault = MemoryUsageAccountVault()
+        let replacement = account()
+        let driver = ReturnPageAuthorization(record: replacement)
+        let manager = UsageAccountManager(session: UsageAccountSession(vault: vault,
+            transport: UsageAccountFixtureTransport(responses: [])), oauth: driver)
+        driver.onCompletion = { success in
+            #expect(success)
+            #expect((try? vault.read(.claude)) == replacement)
+        }
+        await manager.connect(.claude)
+        #expect(driver.results == [true])
+        vault.setFailWrites(true)
+        await manager.connect(.claude)
+        #expect(driver.results == [true, false])
+    }
+
     private func account() -> UsageAccountRecord {
         .init(provider: .claude, label: "synthetic@example.invalid", remoteID: "test", accessToken: "old-access",
               refreshToken: "old-refresh", expiresAt: now.addingTimeInterval(-1))
@@ -319,4 +382,17 @@ private actor UsageAccountInstallBarrier {
 @MainActor private final class TimedOutUsageAuthorization: UsageAccountAuthorizing {
     func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord { throw UsageAccountFailure.timedOut }
     func cancel() {}
+}
+
+@MainActor private final class ReturnPageAuthorization: UsageAccountAuthorizing {
+    let record: UsageAccountRecord
+    var onCompletion: ((Bool) -> Void)?
+    var results: [Bool] = []
+    init(record: UsageAccountRecord) { self.record = record }
+    func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord { record }
+    func cancel() {}
+    func completeConnection(success: Bool) {
+        results.append(success)
+        if success { onCompletion?(success) }
+    }
 }

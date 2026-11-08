@@ -185,6 +185,11 @@ struct UsageAccountTokenClient: Sendable {
 @MainActor protocol UsageAccountAuthorizing: AnyObject {
     func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord
     func cancel()
+    func completeConnection(success: Bool)
+}
+
+extension UsageAccountAuthorizing {
+    func completeConnection(success: Bool) {}
 }
 
 @MainActor final class UsageAccountOAuth: UsageAccountAuthorizing {
@@ -193,13 +198,18 @@ struct UsageAccountTokenClient: Sendable {
     private var authorization: (any OIDExternalUserAgentSession)?
     private var cancelPending: ((UsageAccountFailure) -> Void)?
     private var timeoutTask: Task<Void, Never>?
+    private var returnPage: UsageAccountReturnServer?
     init(transport: any HTTPTransport = UsageAccountHTTPTransport()) { self.transport = transport }
 
     func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord {
         guard [.claude, .codex].contains(provider) else { throw UsageAccountFailure.unsupported }
         guard authorization == nil else { throw UsageAccountFailure.operationInProgress }
         let config = UsageAccountOAuthConfiguration(provider: provider)
-        let listener = OIDRedirectHTTPHandler(successURL: nil)
+        returnPage?.stop()
+        let page = UsageAccountReturnServer(provider: provider == .claude ? "Claude" : "Codex")
+        let successURL = try page.start()
+        returnPage = page
+        let listener = OIDRedirectHTTPHandler(successURL: successURL)
         var error: NSError?
         let base = listener.startHTTPListener(&error, withPort: provider == .codex ? 1455 : 0)
         guard error == nil else { throw provider == .codex ? UsageAccountFailure.callbackPortBusy : .unavailable }
@@ -251,9 +261,12 @@ struct UsageAccountTokenClient: Sendable {
         return code
     }
 
+    func completeConnection(success: Bool) { returnPage?.complete(success: success) }
+
     func cancel() { finish(.cancelled) }
 
     private func finish(_ reason: UsageAccountFailure) {
+        returnPage?.complete(success: false)
         timeoutTask?.cancel()
         timeoutTask = nil
         cancelPending?(reason)
