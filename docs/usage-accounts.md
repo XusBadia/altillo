@@ -68,3 +68,7 @@ La página de retorno tiene diseño propio de Altillo, adaptable a ventanas estr
 AppAuth mantiene el callback OAuth y redirige a un segundo servidor temporal exclusivamente loopback, con rutas aleatorias. Este sirve HTML y estado sin código, tokens ni dirección de cuenta, sin recursos externos, con no-store, no-referrer y CSP. Se cierra 180 segundos después del resultado; el enlace a la app permanece utilizable. La URL de navegación no admite parámetros, rutas ni credenciales.
 
 Validación de esta revisión: **959 tests macOS en 75 suites**, incluidos servidor HTTP real, estados de conexión, escape HTML/JavaScript, rechazo de URLs de navegación ajenas y confirmación posterior al commit de credenciales. Validador español: **0 de 1639 cadenas pendientes**. Release compilada y firma/perfil verificados. QA visual en Chrome de éxito y error, en escritorio y ventana estrecha. No se ha publicado una actualización.
+
+### Candidata de publicación 0.14.0
+
+Se ha separado el código de correo nativo, conservado en `feat/native-mail-accounts`. La suite del contenido exacto de esta candidata pasa **919 tests macOS en 71 suites**; localización: **0 de 1646 cadenas pendientes**. Los siete tests del validador de firma y las puertas de publicación pasan. La exportación exige perfil para Keychain privado aunque no haya clientes OAuth de correo. La notarización y publicación todavía dependen de CI verde para el SHA final de main y de comprobar el artefacto distribuido.
