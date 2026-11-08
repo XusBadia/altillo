@@ -1,5 +1,7 @@
 # OAuth de correo: configuración del distribuidor
 
+> Desarrollo conservado en `feat/native-mail-accounts`. Las cuentas directas no se incluyen en 0.14.0; esta documentación corresponde a esa rama.
+
 R61 está en desarrollo y **no forma parte de 0.13.0**. Esta guía describe el código actual; no acredita registros creados, aprobación de proveedores ni OAuth real validado. La persona que conecta su buzón no debe registrar aplicaciones ni introducir client IDs. Altillo nunca pide su contraseña de Google o Microsoft.
 
 ## Configuración local y firma

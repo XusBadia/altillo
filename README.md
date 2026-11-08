@@ -63,8 +63,6 @@ breaking changes.
 | **Keep Awake** | Keep your Mac awake for 30 minutes, one hour, two hours or until you stop it. The display may still turn off; the setting resets on relaunch. |
 | **Drawer** | Keep rarely used menu bar icons above Altillo's navigation and open their menus there. On macOS 27, their icons leave the menu bar entirely. Requires Accessibility; optional icon capture also needs screen-capture permission. [Setup and limitations](docs/cajon.md). |
 
-Direct Google, Microsoft, iCloud and IMAP accounts are **in development (R61), unreleased**: a recent Inbox, reader, send/reply, read/archive/trash actions and manual attachments without Apple Mail. OAuth providers use registered native apps; iCloud/IMAP use TLS and provider credentials/app passwords. The prior 1,386-test read-only baseline does not validate this expansion; real-provider and distribution checks remain pending. [Plan](docs/plans/mail-native-accounts.md) · [OAuth setup for distributors](docs/mail-oauth.md).
-
 Built with Swift 6 for macOS 26+. iPhone, iPad, widget and Live Activity targets
 are groundwork only; the mobile companion is not shipped yet. See [PLAN.md](PLAN.md)
 for the module design, roadmap and open decisions.
@@ -254,12 +252,10 @@ See the [safe uninstall guide](docs/desinstalacion-segura.md).
 - **Altillo has no analytics or telemetry service.** Your files, calendar,
   clipboard, camera image, agent sessions and Ask conversations are not sent
   to Altillo.
-- **Usage checks contact each provider directly.** In the development build,
-  connect Claude and Codex in Settings: Altillo stores and renews its own
-  authorization in this Mac’s private Keychain, with one selected account per
-  provider. Disconnect removes that local authorization. Other providers keep
-  their documented local credential sources, which Altillo never refreshes or
-  rewrites. No credential goes through an Altillo server.
+- **Usage checks contact each provider directly.** Altillo reads the sign-in
+  or API key that the provider's own tool already stores on your Mac, then
+  presents that credential only to the same provider to request your quota.
+  It does not refresh, rewrite or retain a copy of the credential.
 - **Ask is on-device by default.** If you allow web search for one question or
   in Settings, Altillo sends a short search derived from that question to the
   search, weather or reference service named in the privacy policy.
@@ -312,9 +308,7 @@ since Altillo is MIT-licensed.
 Altillo has no service or API key of its own, and this repository never
 contains secrets: signing material and local config are git-ignored, a
 pre-commit hook and CI scan every commit with gitleaks, and provider
-Claude and Codex usage authorizations are stored and renewed in Altillo’s
-private Keychain; other providers use their documented local credential
-sources. Credentials are presented only to their own provider for sign-in,
-renewal, identity and usage requests. See
+credentials are read from your own Keychain or the provider tool's config at
+runtime. They are used only to request usage from that same provider. See
 [CONTRIBUTING.md](CONTRIBUTING.md#secrets) and the [privacy
 policy](https://altillo.app/privacy/).

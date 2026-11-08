@@ -1,5 +1,7 @@
 # Correo con cuentas nativas en Altillo
 
+> Desarrollo conservado en `feat/native-mail-accounts`. Las cuentas directas no se incluyen en 0.14.0; esta documentación corresponde a esa rama.
+
 Revisión: **1 de noviembre de 2026**. **R61 en curso, sin publicar**. Xus aprobó ampliar la primera dirección de lectura a envío/respuestas, gestión de leído/archivo/papelera, adjuntos e iCloud/IMAP. Las pruebas de la baseline anterior no acreditan esta ampliación ni OAuth/SMTP reales.
 
 ## Dirección y alcance aprobados

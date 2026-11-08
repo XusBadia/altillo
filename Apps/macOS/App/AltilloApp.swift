@@ -6,15 +6,7 @@ struct AltilloApp: App {
 
     var body: some Scene {
         MenuBarExtra {
-            #if DEBUG
-            if NativeMailReview.isRequested {
-                Button("Quit Altillo") { NSApp.terminate(nil) }
-            } else {
-                AppMenu(coordinator: appDelegate.coordinator)
-            }
-            #else
             AppMenu(coordinator: appDelegate.coordinator)
-            #endif
         } label: {
             Image(nsImage: Self.menuBarIcon)
                 .accessibilityLabel("Altillo")

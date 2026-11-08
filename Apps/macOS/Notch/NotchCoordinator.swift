@@ -1040,7 +1040,7 @@ final class NotchCoordinator {
             _ = (settings.displayMode, settings.fullScreenBehaviour)
             _ = settings.usageDisabledProviders
             _ = settings.alertsForHome
-            _ = (settings.alertsForMail, settings.mailAllowedSenders, settings.mailAllowedAccounts, settings.mailConnectionMode)
+            _ = (settings.alertsForMail, settings.mailAllowedSenders, settings.mailAllowedAccounts)
             _ = model.calendar.access
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
@@ -1079,7 +1079,6 @@ final class NotchCoordinator {
         model.usage.providersMayHaveChanged()
         // Putting the section away is an explicit stop and must immediately release the power assertion.
         model.keepAwake.setModuleEnabled(settings.modules.contains(.keepAwake))
-        model.mail.selectConnectionMode(settings.mailConnectionMode)
         model.mail.configure(senders: settings.mailAllowedSenders, accounts: settings.mailAllowedAccounts)
         model.mail.update(enabled: settings.modules.contains(.mail))
         if !settings.modules.contains(.mail), model.alert?.source == .mail { expireAlert() }

@@ -30,9 +30,6 @@ packages:
   AppAuth:
     url: https://github.com/openid/AppAuth-iOS
     exactVersion: 3.0.0
-  MSAL:
-    url: https://github.com/AzureAD/microsoft-authentication-library-for-objc
-    exactVersion: 2.17.0
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.10.0
@@ -74,8 +71,6 @@ targets:
           destination: executables
       - package: AppAuth
         product: AppAuth
-      - package: MSAL
-        product: MSAL
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook
@@ -95,15 +90,10 @@ targets:
       # treats an empty feed URL or public key as "Sparkle not configured" and stays inert.
       path: Apps/macOS/App/Info.plist
       properties:
-        ALTILLO_GOOGLE_MAIL_CLIENT_ID: $(ALTILLO_GOOGLE_MAIL_CLIENT_ID)
-        ALTILLO_MICROSOFT_MAIL_CLIENT_ID: $(ALTILLO_MICROSOFT_MAIL_CLIENT_ID)
         CFBundleURLTypes:
           - CFBundleURLName: Altillo navigation
             CFBundleURLSchemes:
               - altillo
-          - CFBundleURLName: Microsoft authentication
-            CFBundleURLSchemes:
-              - msauth.$(PRODUCT_BUNDLE_IDENTIFIER)
         SUFeedURL: $(ALTILLO_SPARKLE_FEED_URL)
         SUPublicEDKey: $(ALTILLO_SPARKLE_PUBLIC_KEY)
         SUEnableAutomaticChecks: YES

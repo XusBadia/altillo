@@ -303,3 +303,7 @@ aprobación de Xus.
 Implementada conexión propia de Claude y Codex desde Ajustes, con OAuth/PKCE, Keychain privado, renovación automática y desconexión. Una cuenta seleccionada por proveedor; no se leen ni renuevan sus sesiones CLI. Cambio de identidad limpia cifras/historial y descarta respuestas anteriores. Copilot distingue limitación temporal de credenciales rechazadas. 954 tests macOS correctos y paquete/validación española correctos; Release Developer ID/Keychain e iOS compilados y verificados. [Alcance y validación](docs/usage-accounts.md). Pendiente QA con cuentas reales antes de distribución.
 
 Revisión de proveedores pasa a manual: workflow semanal deshabilitado, issue automática, su etiqueta y seis ejecuciones eliminadas; retirados workflow/script/manifiesto del código actual. Se conservan licencias y atribuciones; no se reescribe el historial Git.
+
+## Preparación de 0.14.0 · 8 noviembre 2026
+
+La publicación se separa en `release/usage-0.14.0`: cuentas propias de Uso de IA y mejoras de conexión. Claude tiene consentimiento, cuotas reales y recuperación de Keychain tras reinicio comprobados; Codex y la rotación real siguen pendientes de QA. R61 permanece en desarrollo, conservado en `feat/native-mail-accounts`; sus cuentas directas no forman parte de 0.14.0. El correo publicado conserva el puente Apple Mail de 0.13.0. Gmail sigue en Testing y Microsoft necesita un registro en un directorio propio.

@@ -30,10 +30,9 @@ tracks every case where Altillo actually does.
 
 ## Reused code
 
-Native mail account authentication links [AppAuth 3.0.0](https://github.com/openid/AppAuth-iOS/tree/3.0.0)
-(Apache-2.0) and [MSAL 2.17.0](https://github.com/AzureAD/microsoft-authentication-library-for-objc/tree/2.17.0)
-(MIT, including Microsoft IdentityCore). Their unmodified license texts are kept in `MailOAuth/`
-and shipped in the macOS application's resources. Altillo's adapters are original code.
+Usage account authentication links [AppAuth 3.0.0](https://github.com/openid/AppAuth-iOS/tree/3.0.0)
+(Apache-2.0). Its unmodified license text is kept in `MailOAuth/` and shipped in the macOS
+application's resources. Altillo's adapters are original code.
 
 Fill in a row whenever a PR reuses or adapts MIT/Apache/BSD code, and keep
 it accurate as code changes. Adapted files carry a header comment pointing

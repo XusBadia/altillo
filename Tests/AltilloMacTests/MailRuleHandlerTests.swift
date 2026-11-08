@@ -64,8 +64,8 @@ struct MailRuleHandlerTests {
         """
         try stub.write(to: bridge, atomically: true, encoding: .utf8)
         try compile(bridge, to: renderedBridge)
-        // Exercise the actual bundled template without reading a protected Documents checkout.
-        let templateURL = try #require(Bundle.main.url(forResource: "AltilloMailRule", withExtension: "txt"))
+        let repository = URL(fileURLWithPath: #filePath).deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()
+        let templateURL = repository.appendingPathComponent("Apps/macOS/Modules/Mail/Resources/AltilloMailRule.txt")
         let template = try String(contentsOf: templateURL, encoding: .utf8)
         try MailRuleInstaller.render(template, paths: paths).write(to: source, atomically: true, encoding: .utf8)
         try compile(source, to: compiled)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the private Keychain entitlement before a native-mail release is exported."""
+"""Validate provisioning and the private Keychain identity before release export."""
 import datetime
 import pathlib
 import plistlib
@@ -9,7 +9,8 @@ import sys
 import tempfile
 
 
-def check(app: pathlib.Path, require_clients: bool = False) -> tuple[str, str] | None:
+def check(app: pathlib.Path, require_clients: bool = False,
+          require_profile: bool = False) -> tuple[str, str] | None:
     info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
     if require_clients:
         google = info.get("ALTILLO_GOOGLE_MAIL_CLIENT_ID", "")
@@ -21,6 +22,8 @@ def check(app: pathlib.Path, require_clients: bool = False) -> tuple[str, str] |
         "ALTILLO_GOOGLE_MAIL_CLIENT_ID", "ALTILLO_MICROSOFT_MAIL_CLIENT_ID"))
     profile_path = app / "Contents/embedded.provisionprofile"
     if not profile_path.exists():
+        if require_profile:
+            raise ValueError("Private Keychain access requires an embedded macOS provisioning profile.")
         if configured:
             raise ValueError("Native mail requires an embedded macOS provisioning profile.")
         return None
@@ -56,7 +59,9 @@ def check(app: pathlib.Path, require_clients: bool = False) -> tuple[str, str] |
 
 if __name__ == "__main__":
     try:
-        result = check(pathlib.Path(sys.argv[1]), "--require-clients" in sys.argv[2:])
+        result = check(pathlib.Path(sys.argv[1]),
+                       require_clients="--require-clients" in sys.argv[2:],
+                       require_profile="--require-profile" in sys.argv[2:])
         if result:
             # Only public signing metadata; never emit the complete profile.
             print("\t".join(result))

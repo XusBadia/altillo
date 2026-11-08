@@ -208,9 +208,8 @@ xcodebuild archive \
   ALTILLO_SPARKLE_FEED_URL="$FEED_URL" \
   ALTILLO_SPARKLE_PUBLIC_KEY="$SPARKLE_PUBLIC_KEY"
 
-# A real mail client must have a private Data Protection Keychain identity before export.
-MAIL_SIGNING_ARGS=()
-if [ "$PUBLISH" = 1 ]; then MAIL_SIGNING_ARGS+=(--require-clients); fi
+# Usage OAuth requires a private Data Protection Keychain identity before export.
+MAIL_SIGNING_ARGS=(--require-profile)
 MAIL_SIGNING_METADATA="$(python3 "$ROOT_DIR/script/check-mail-signing.py" "$ARCHIVE_PATH/Products/Applications/$APP_NAME.app" "${MAIL_SIGNING_ARGS[@]}")"
 
 # Every user-facing string ships in Spanish too. ALTILLO_ALLOW_UNTRANSLATED=1 skips this (a hotfix, say).

@@ -1,0 +1,23 @@
+{
+  "account": "@_flixmd",
+  "channelId": "6ac3c82f6a5c39ccb620de39",
+  "bufferPostId": "6af0cca0d6bbae6fa10906a3",
+  "status": "draft",
+  "dueAt": null,
+  "scheduleAfter": "Public release download and Sparkle appcast verified; then 60 minutes later in Europe/Madrid, once X is reconnected.",
+  "blocker": "Buffer channel disconnected as of 2026-11-08T20:25+01:00",
+  "review": {
+    "directness": 9,
+    "rhythm": 8,
+    "trust": 9,
+    "authenticity": 8,
+    "density": 9
+  },
+  "media": "Text only: this short update is self-contained.",
+  "sources": [
+    "docs/releases/0.14.0.md",
+    "docs/usage-accounts.md",
+    "Apps/macOS/Modules/Usage/UsageAccountSession.swift"
+  ],
+  "deduplication": "Latest 8 Buffer posts read on 2026-11-08; no matching release angle."
+}

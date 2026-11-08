@@ -2,10 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>ALTILLO_GOOGLE_MAIL_CLIENT_ID</key>
-	<string>$(ALTILLO_GOOGLE_MAIL_CLIENT_ID)</string>
-	<key>ALTILLO_MICROSOFT_MAIL_CLIENT_ID</key>
-	<string>$(ALTILLO_MICROSOFT_MAIL_CLIENT_ID)</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
@@ -28,14 +24,6 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>altillo</string>
-			</array>
-		</dict>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>Microsoft authentication</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>msauth.$(PRODUCT_BUNDLE_IDENTIFIER)</string>
 			</array>
 		</dict>
 	</array>

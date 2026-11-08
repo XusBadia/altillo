@@ -1,5 +1,7 @@
 # Signing native mail account builds
 
+> 0.14.0 reutiliza este perfil y los checks de Keychain para Uso de IA. Las referencias a MSAL/correo describen el desarrollo conservado en `feat/native-mail-accounts`, excluido de esta release.
+
 Reviewed 1 November 2026. The native credential vault (Google authorization state, Microsoft account references, and iCloud/IMAP server credentials) selects the macOS Data Protection
 Keychain with `kSecUseDataProtectionKeychain = true`, `kSecAttrSynchronizable = false`, and
 `kSecAttrAccessibleWhenUnlockedThisDeviceOnly`. The latter accessibility setting requires the Data

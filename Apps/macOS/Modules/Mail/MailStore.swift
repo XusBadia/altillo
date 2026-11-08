@@ -1,20 +1,12 @@
 import AltilloMail
-import CryptoKit
 import AppKit
 import Foundation
 import Observation
-
-enum MailConnectionMode: String, CaseIterable {
-    case direct, appleMail
-}
 
 /// A short-lived inbox, only while the user has explicitly enabled Mail. No envelope is written to disk or Ask.
 @MainActor
 @Observable
 final class MailStore {
-    let native: NativeMailController?
-    private(set) var connectionMode: MailConnectionMode = .appleMail
-    @ObservationIgnored private var nativeKeys: [String: NativeMailMessageKey] = [:]
     private(set) var messages: [MailEnvelope] = []
     private(set) var enabled = false
     private(set) var problem: String?
@@ -35,34 +27,9 @@ final class MailStore {
     @ObservationIgnored private var suspended = false
     @ObservationIgnored private var observers: [(NotificationCenter, NSObjectProtocol)] = []
 
-    init(socketPath: String = MailRuleInstaller.defaultSocketPath, startsServer: Bool = true, native: NativeMailController? = nil) {
+    init(socketPath: String = MailRuleInstaller.defaultSocketPath, startsServer: Bool = true) {
         self.socketPath = socketPath
         self.startsServer = startsServer
-        self.native = native ?? (startsServer ? NativeMailController() : nil)
-        self.native?.onArrival = { [weak self] summary, content in self?.ingestNative(summary, content: content) }
-        self.native?.onContentCleared = { [weak self] in self?.clear() }
-    }
-
-    func selectConnectionMode(_ mode: MailConnectionMode) {
-        guard connectionMode != mode else { return }
-        let wasEnabled = enabled
-        stop()
-        connectionMode = mode
-        if wasEnabled { update(enabled: true) }
-    }
-
-    private func ingestNative(_ summary: NativeMailSummary, content: NativeMailContent?) {
-        guard connectionMode == .direct, enabled else { return }
-        let digest = SHA256.hash(data: Data((summary.key.accountID.uuidString + ":" + summary.key.remoteID).utf8))
-            .map { String(format: "%02x", $0) }.joined()
-        let identifier = digest + "@altillo.local"
-        nativeKeys[identifier] = summary.key
-        let text = String(decoding: (content?.text ?? summary.preview).utf8.prefix(1024), as: UTF8.self)
-        ingest(MailEnvelope(messageID: identifier, sender: String(summary.sender.prefix(200)),
-                            subject: String(summary.subject.prefix(250)), body: text,
-                            account: native?.accountName(for: summary.key.accountID) ?? "",
-                            receivedAt: summary.receivedAt.timeIntervalSince1970))
-        if !messages.contains(where: { $0.messageID == identifier }) { nativeKeys[identifier] = nil }
     }
 
     func configure(senders: String, accounts: String) {
@@ -70,7 +37,7 @@ final class MailStore {
         accountFilters = MailFilters.tokens(accounts)
         let rejected = messages.filter { !accepts($0) }.map(\.messageID)
         messages.removeAll { !accepts($0) }
-        rejected.forEach { nativeKeys[$0] = nil; onRevocation($0) }
+        rejected.forEach { onRevocation($0) }
         expire()
     }
 
@@ -81,11 +48,6 @@ final class MailStore {
         enabledSince = now()
         problem = nil
         observe()
-        if connectionMode == .direct {
-            native?.setEnabled(true)
-            return
-        }
-        native?.setEnabled(false)
         guard startsServer else { return }
         do {
             try MailRuleInstaller.ensurePrivateDirectory(URL(fileURLWithPath: socketPath).deletingLastPathComponent())
@@ -104,8 +66,6 @@ final class MailStore {
         server?.stop()
         server = nil
         enabled = false
-        native?.setEnabled(false)
-        native?.setSuspended(false)
         suspended = false
         enabledSince = .distantFuture
         clear()
@@ -118,7 +78,6 @@ final class MailStore {
         expiryTask?.cancel()
         expiryTask = nil
         messages.removeAll()
-        nativeKeys.removeAll()
         lastReceivedAt = nil
         onRevocation(nil)
         // Reapplying a rule after clearing must not resurface old mail.
@@ -128,7 +87,6 @@ final class MailStore {
     func dismiss(_ envelope: MailEnvelope) {
         let existed = messages.contains { $0.messageID == envelope.messageID }
         messages.removeAll { $0.messageID == envelope.messageID }
-        nativeKeys[envelope.messageID] = nil
         if existed { onRevocation(envelope.messageID) }
         expire()
     }
@@ -144,7 +102,7 @@ final class MailStore {
         if messages.count > 20 {
             let evicted = messages.suffix(messages.count - 20).map(\.messageID)
             messages.removeLast(messages.count - 20)
-            evicted.forEach { nativeKeys[$0] = nil; onRevocation($0) }
+            evicted.forEach { onRevocation($0) }
         }
         lastReceivedAt = moment
         expire()
@@ -160,7 +118,7 @@ final class MailStore {
             expired.append($0.messageID)
             return true
         }
-        expired.forEach { nativeKeys[$0] = nil; onRevocation($0) }
+        expired.forEach { onRevocation($0) }
         expiryTask?.cancel()
         expiryTask = nil
         guard let next = messages.map({ $0.receivedAt + 300 }).min() else { return }
@@ -183,12 +141,7 @@ final class MailStore {
 
     @discardableResult
     func openMessage(for envelope: MailEnvelope) -> Bool {
-        guard let stored = current(envelope) else { return false }
-        if let key = nativeKeys[stored.messageID], let summary = native?.messages.first(where: { $0.key == key }) {
-            native?.read(summary)
-            return true
-        }
-        guard connectionMode == .appleMail, let url = stored.messageURL else { return false }
+        guard let url = current(envelope)?.messageURL else { return false }
         return NSWorkspace.shared.open(url)
     }
 
@@ -236,7 +189,6 @@ final class MailStore {
 
     func setSuspended(_ suspended: Bool) {
         self.suspended = suspended
-        native?.setSuspended(suspended)
         clear()
     }
 }

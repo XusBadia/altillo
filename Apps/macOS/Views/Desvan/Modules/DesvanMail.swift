@@ -8,12 +8,6 @@ struct DesvanMailView: View {
     private var store: MailStore { model.mail }
 
     var body: some View {
-        if model.settings.mailConnectionMode == .direct, let native = store.native {
-            DesvanNativeMailView(controller: native)
-        } else { legacyBody }
-    }
-
-    private var legacyBody: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Text("New mail").font(Desvan.Typeface.rounded(12, weight: .semibold))
