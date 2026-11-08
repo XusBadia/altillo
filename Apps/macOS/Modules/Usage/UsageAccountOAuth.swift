@@ -198,9 +198,6 @@ struct UsageAccountTokenClient: Sendable {
     func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord {
         guard [.claude, .codex].contains(provider) else { throw UsageAccountFailure.unsupported }
         guard authorization == nil else { throw UsageAccountFailure.operationInProgress }
-        guard let window = NSApp.keyWindow ?? NSApp.mainWindow ?? NSApp.windows.first(where: { $0.isVisible }) else {
-            throw UsageAccountFailure.unavailable
-        }
         let config = UsageAccountOAuthConfiguration(provider: provider)
         let listener = OIDRedirectHTTPHandler(successURL: nil)
         var error: NSError?
@@ -222,7 +219,10 @@ struct UsageAccountTokenClient: Sendable {
             try await withCheckedThrowingContinuation { continuation in
                 let gate = UsageAccountCallbackGate(continuation)
                 cancelPending = { gate.finish(.failure(UsageAccountFailure.cancelled)) }
-                authorization = OIDAuthorizationService.present(request, externalUserAgent: OIDExternalUserAgentMac(presenting: window)) { response, error in
+                // The loopback callback belongs to our HTTP listener. The no-window initializer opens
+                // the system browser; the window initializer switches to ASWebAuthenticationSession,
+                // which can leave an HTTP callback flow waiting without displaying its login page.
+                authorization = OIDAuthorizationService.present(request, externalUserAgent: OIDExternalUserAgentMac()) { response, error in
                     let payload = UsageAccountAuthorizationPayload(code: response?.authorizationCode,
                                                                     state: response?.state, error: error)
                     Task { @MainActor in
