@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Sign-in timed out. Connect again in Altillo and finish in your browser within 30 minutes.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El inicio de sesión ha caducado. Vuelve a conectar desde Altillo y termina en el navegador antes de 30 minutos."
+          }
+        }
+      }
+    },
     "Connect accounts or set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here.": {
       "localizations": {
         "es": {

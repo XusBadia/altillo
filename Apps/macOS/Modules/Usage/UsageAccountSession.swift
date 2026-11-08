@@ -27,13 +27,14 @@ struct UsageAccountRecord: Codable, Equatable, Sendable {
 }
 
 enum UsageAccountFailure: Error, Equatable, LocalizedError {
-    case cancelled, unsupported, operationInProgress, storage, invalidResponse, sessionExpired, unavailable
+    case cancelled, timedOut, unsupported, operationInProgress, storage, invalidResponse, sessionExpired, unavailable
     case callbackPortBusy
     case temporary(Int)
 
     var errorDescription: String? {
         switch self {
         case .cancelled: return String(localized: "Sign-in cancelled.")
+        case .timedOut: return String(localized: "Sign-in timed out. Connect again in Altillo and finish in your browser within 30 minutes.")
         case .unsupported: return String(localized: "This provider does not support account sign-in here.")
         case .operationInProgress: return String(localized: "Another account is already connecting.")
         case .storage: return String(localized: "The account could not be saved in this Mac’s private Keychain. Try again when the Mac is unlocked.")

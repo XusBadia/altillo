@@ -194,6 +194,20 @@ struct UsageAccountTests {
         #expect(changes == 1)
     }
 
+    @MainActor @Test func timedOutSignInShowsRecoveryAndKeepsExistingAccount() async throws {
+        let vault = MemoryUsageAccountVault()
+        let previous = account()
+        try vault.save(previous)
+        let session = UsageAccountSession(vault: vault, transport: UsageAccountFixtureTransport(responses: []))
+        let manager = UsageAccountManager(session: session, oauth: TimedOutUsageAuthorization())
+        await manager.restore()
+        await manager.connect(.claude)
+        #expect(manager.connecting == nil)
+        #expect(manager.errorMessage == UsageAccountFailure.timedOut.localizedDescription)
+        #expect(manager.accounts[.claude]?.id == previous.id)
+        #expect(try vault.read(.claude) == previous)
+    }
+
     private func account() -> UsageAccountRecord {
         .init(provider: .claude, label: "synthetic@example.invalid", remoteID: "test", accessToken: "old-access",
               refreshToken: "old-refresh", expiresAt: now.addingTimeInterval(-1))
@@ -289,5 +303,10 @@ private actor UsageAccountInstallBarrier {
     let record: UsageAccountRecord
     init(record: UsageAccountRecord) { self.record = record }
     func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord { record }
+    func cancel() {}
+}
+
+@MainActor private final class TimedOutUsageAuthorization: UsageAccountAuthorizing {
+    func authorize(_ provider: UsageProviderID) async throws -> UsageAccountRecord { throw UsageAccountFailure.timedOut }
     func cancel() {}
 }

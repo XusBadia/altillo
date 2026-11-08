@@ -191,7 +191,7 @@ struct UsageAccountTokenClient: Sendable {
     private let transport: any HTTPTransport
     private var handler: OIDRedirectHTTPHandler?
     private var authorization: (any OIDExternalUserAgentSession)?
-    private var cancelPending: (() -> Void)?
+    private var cancelPending: ((UsageAccountFailure) -> Void)?
     private var timeoutTask: Task<Void, Never>?
     init(transport: any HTTPTransport = UsageAccountHTTPTransport()) { self.transport = transport }
 
@@ -218,7 +218,7 @@ struct UsageAccountTokenClient: Sendable {
         let code: String = try await withTaskCancellationHandler {
             try await withCheckedThrowingContinuation { continuation in
                 let gate = UsageAccountCallbackGate(continuation)
-                cancelPending = { gate.finish(.failure(UsageAccountFailure.cancelled)) }
+                cancelPending = { gate.finish(.failure($0)) }
                 // The loopback callback belongs to our HTTP listener. The no-window initializer opens
                 // the system browser; the window initializer switches to ASWebAuthenticationSession,
                 // which can leave an HTTP callback flow waiting without displaying its login page.
@@ -232,8 +232,8 @@ struct UsageAccountTokenClient: Sendable {
                 }
                 listener.currentAuthorizationFlow = authorization
                 timeoutTask = Task { @MainActor [weak self] in
-                    do { try await Task.sleep(for: .seconds(5 * 60)) } catch { return }
-                    if self?.handler === listener { self?.cancel() }
+                    do { try await Task.sleep(for: .seconds(30 * 60)) } catch { return }
+                    if self?.handler === listener { self?.finish(.timedOut) }
                 }
             }
         } onCancel: { Task { @MainActor [weak self] in self?.cancel() } }
@@ -251,10 +251,12 @@ struct UsageAccountTokenClient: Sendable {
         return code
     }
 
-    func cancel() {
+    func cancel() { finish(.cancelled) }
+
+    private func finish(_ reason: UsageAccountFailure) {
         timeoutTask?.cancel()
         timeoutTask = nil
-        cancelPending?()
+        cancelPending?(reason)
         authorization?.cancel()
         handler?.cancelHTTPListener()
     }

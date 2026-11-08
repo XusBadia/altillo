@@ -46,3 +46,7 @@ Validación final: **954 tests macOS en 75 suites** correctos, incluidos cambio 
 ### Comprobación interactiva del acceso
 
 Abierta la Release firmada en Ajustes › Uso de IA. Se detectó que proporcionar una ventana a `OIDExternalUserAgentMac` activaba ASWebAuthenticationSession y dejaba el callback HTTP esperando sin mostrar el acceso. Se usa explícitamente su variante de navegador del sistema para este listener loopback. Recompilación y firma correctas; verificada la llegada a la pantalla de autorización Claude (`user:profile`), con la cuenta del usuario ya iniciada en Chrome. El consentimiento queda a cargo de Xus; todavía no acredita canje de código, persistencia ni lectura real de esa cuenta.
+
+### Recuperación de un consentimiento tardío
+
+La primera autorización fue aceptada en el navegador, pero regresó cuando ya había vencido el listener local de cinco minutos; Chrome mostró conexión rechazada y no se guardó una cuenta. El plazo pasa a 30 minutos y la expiración se informa como error recuperable, separada de Cancelar. El intento puede repetirse sin tocar sesiones CLI ni sustituir una cuenta anterior hasta completar la validación. Añadida prueba de conservación de cuenta/error tras timeout: 12 tests de cuentas correctos.
