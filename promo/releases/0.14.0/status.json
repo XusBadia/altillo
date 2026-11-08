@@ -1,11 +1,9 @@
 {
-  "account": "@_flixmd",
-  "channelId": "6ac3c82f6a5c39ccb620de39",
-  "bufferPostId": "6af0cca0d6bbae6fa10906a3",
-  "status": "draft",
-  "dueAt": null,
-  "scheduleAfter": "After account choice and connection, schedule 60 minutes in the future using current Europe/Madrid time.",
-  "blocker": "Awaiting account choice: @_flixmd disconnected in connector; separate Chrome Buffer session has XusBadia connected.",
+  "account": "@XusBadia",
+  "channelId": "6a7f4609b2d9d57743791384",
+  "status": "scheduled",
+  "dueAt": "2026-11-08T22:45:00+01:00",
+  "blocker": null,
   "review": {
     "directness": 9,
     "rhythm": 8,
@@ -19,7 +17,28 @@
     "docs/usage-accounts.md",
     "Apps/macOS/Modules/Usage/UsageAccountSession.swift"
   ],
-  "deduplication": "Latest 8 Buffer posts read on 2026-11-08; no matching release angle.",
+  "deduplication": "Read all 9 drafts and empty live queue of XusBadia before creation; no Altillo duplicate.",
   "releaseUrl": "https://github.com/XusBadia/altillo/releases/tag/v0.14.0",
-  "releaseVerified": true
+  "releaseVerified": true,
+  "timezone": "Europe/Madrid",
+  "transport": "Buffer via existing Chrome session",
+  "transport_id": null,
+  "reviewUrl": "https://publish.buffer.com/channels/6a7f4609b2d9d57743791384/schedule",
+  "authorization": "User explicitly requested scheduling and confirmed XusBadia on 2026-11-08.",
+  "verification": "Buffer confirmed Your post is scheduled; queue shows exactly one scheduled Altillo post for XusBadia on Nov 8, 10:45 PM (Europe/Madrid).",
+  "legacyWrongAccountDraft": {
+    "account": "@_flixmd",
+    "postId": "6af0cca0d6bbae6fa10906a3",
+    "status": "draft, unscheduled; not used for this announcement"
+  },
+  "textSha256": "6facc2b318c493f4e7c1fa6e2313a8123230e56ef9a5afd2ab0ff744918a540f",
+  "text": "He añadido a Altillo el acceso con tu cuenta de Claude o Codex para ver los límites de uso en el notch. La sesión se guarda en el llavero del Mac y se renueva desde la app.\n\nYa puedes actualizar: https://altillo.app",
+  "platform": "X",
+  "visual_path": null,
+  "visual_kind": "none",
+  "alt_text": null,
+  "claim_notes": "Scope checked against published 0.14.0 release notes; live Claude verified; Codex live exchange remains documented as pending QA. No claim of permanent sign-in or improved percentage accuracy.",
+  "image_prompt": null,
+  "scheduled_at": "2026-11-08T22:45:00+01:00",
+  "public_url": null
 }

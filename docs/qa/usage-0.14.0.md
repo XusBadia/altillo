@@ -18,4 +18,4 @@ El smoke de distribución ahora restaura el enlace previo del hook después de c
 
 Claude/Codex conectan sesiones propias, independientes del CLI. Claude tiene consentimiento y lectura reales verificados. Codex y la rotación real del refresh token siguen pendientes de QA; las notas públicas lo explican. El correo nativo no se incluye: se conserva en `feat/native-mail-accounts` y Mail mantiene el puente publicado en 0.13.0.
 
-El anuncio de X permanece como borrador en Buffer, sin fecha. La cuenta del conector `@_flixmd` está desconectada; Chrome tiene otra sesión con XusBadia conectado. Se ha pedido elegir destino antes de programar. No se ha publicado ni programado el anuncio.
+Xus confirmó **@XusBadia**, la cuenta que usa Aurio, como destino del anuncio. Programado en Buffer mediante su sesión existente de Chrome para **8 noviembre 2026 a las 22:45 Europe/Madrid**. Confirmación de Buffer y lectura posterior de la cola: un único anuncio de Altillo, con texto y fecha correctos. No publicado todavía. El borrador anterior de @_flixmd no está programado y no se utiliza.
