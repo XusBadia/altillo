@@ -3,7 +3,7 @@
 Última actualización: 1 de noviembre de 2026.
 
 Roadmap de producto para retomar y ampliar entre sesiones, sin fechas fijas.
-Reúne **60 iniciativas en nueve áreas**: prioridades cercanas, ampliaciones y
+Reúne **61 iniciativas en nueve áreas**: prioridades cercanas, ampliaciones y
 exploraciones. Una idea aquí no es un compromiso de implementarla. Buscamos
 entregas pequeñas y completas, alternando features, mejoras e idiomas.
 
@@ -29,8 +29,7 @@ hipótesis que iremos validando.
 
 Estados: **Pendiente**, **En investigación**, **En curso**, **Bloqueado: motivo**,
 **Hecho** y **Descartado: motivo**. R01 está **Hecho**, publicado en 0.13.0;
-las demás iniciativas siguen **Pendientes**. Anotar los cambios de estado y su
-evidencia en la fila correspondiente.
+R61 está **En curso**, con el [plan de cuentas directas](docs/plans/mail-native-accounts.md) revisado por Astra e implementación autorizada por Xus; OAuth real y distribución siguen pendientes. Las demás iniciativas siguen **Pendientes**. Anotar los cambios de estado y su evidencia en la fila correspondiente.
 
 ## Dirección de producto
 
@@ -51,6 +50,7 @@ Correo e idiomas mantienen la prioridad destacada por Xus. Después, estas
 son las candidatas recomendadas para elegir entre sesiones:
 
 1. **R01 Correo — Hecho:** beta opcional publicada en [0.13.0](https://github.com/XusBadia/altillo/releases/tag/v0.13.0); [validación](docs/qa/mail-0.13.0.md).
+   **R61 — En curso:** cuentas directas con envío/respuesta, gestión y adjuntos, iCloud/IMAP y transición del puente; [plan revisado por Astra](docs/plans/mail-native-accounts.md). Implementación autorizada; pendiente de validación real OAuth y distribución.
 2. **R02 y R03 Idiomas — Pendientes:** catalán y lote francés/alemán/italiano con IA, candidatos para la siguiente sesión.
 3. **R04 y R19 Archivos listos para enviar:** ZIP y reducción de imágenes.
 4. **R26 Pegado en secuencia:** un flujo completo y fácil de demostrar.
@@ -85,8 +85,11 @@ CI, firma, notarización y comprobaciones públicas del artefacto.
 
 La preparación comprueba archivos locales y una entrega real confirma
 recepción; no se consultan las reglas de Mail. La regla y los dos scripts se
-retiran manualmente; Altillo los conserva al desconectar. MailKit queda como
-alternativa para futuras iteraciones si la configuración manual lo requiere.
+retiran manualmente; Altillo los conserva al desconectar. La siguiente evolución
+en curso es **R61: cuentas directas**, con Google, Microsoft, iCloud e IMAP en el alcance ampliado autorizado. La revisión
+de Astra considera el puente una compatibilidad temporal; MailKit conserva la
+dependencia de Mail y no resuelve la conexión independiente de cuentas. Véase el
+[plan de cambio de estrategia](docs/plans/mail-native-accounts.md).
 No se leen bases privadas de Mail ni notificaciones de otras apps.
 
 Primera entrega funcional:
@@ -100,8 +103,9 @@ Primera entrega funcional:
 
 La integración inicial requiere Apple Mail ejecutándose y recibiendo correo.
 Solo cubre las cuentas configuradas allí y comprobadas en la validación.
-Vista breve, resumen on-device al pedirlo y conectores directos de Gmail/Outlook
-son posibles iteraciones posteriores. Redacción y envío quedan fuera del MVP.
+R61 amplía esta beta con bandeja/lector, conectores directos, redacción y envío,
+gestión y adjuntos; el resumen on-device sigue siendo una iniciativa posterior.
+El alcance histórico de R01 no cambia por esa ampliación.
 
 ### R02 y R03 Idiomas
 
@@ -128,10 +132,11 @@ El estado por defecto de las filas es **Pendiente**.
 | ID | Prioridad y tamaño | Iniciativa y primera entrega | Dependencia o criterio de cierre | Inspiración |
 | --- | --- | --- | --- | --- |
 | R01 | Alta · M | **Correo en el notch — Hecho, publicado en [0.13.0](https://github.com/XusBadia/altillo/releases/tag/v0.13.0).** Módulo opcional, scripts guiados, filtros y acciones efímeras; [guía](docs/correo.md). | Recepción real, apertura del original y desconexión verificadas; 900 pruebas, CI, firma/notarización y descarga/appcasts públicos correctos. [Validación](docs/qa/mail-0.13.0.md). | GotEmail; prueba local |
+| R61 | Alta · L | **Cuentas de correo nativas — En curso.** Google/Microsoft OAuth e iCloud/IMAP con TLS; bandeja, lector, enviar/responder, leído/archivo/papelera y adjuntos. [Plan y verificación](docs/plans/mail-native-accounts.md). | Implementado el alcance ampliado: 499 tests de paquete + 940 macOS correctos, iOS/Release compilados y QA visual EN/ES. Perfil Developer ID instalado, Release validada y Keychain DP firmado comprobado con datos sintéticos. OAuth Google de escritorio creado sin facturación, política autorizada y usuario/scopes de pruebas configurados. Propietario Microsoft confirmado (`xus@badia.me`), sesión iniciada pero solo directorio invitado de Generalitat y error401 por permisos: falta directorio propio/registro y QA real por proveedor antes de distribuir. No publicado. | Petición de Xus; revisión de Astra |
 | R02 | Alta · S | **Catalán — Pendiente.** Traducir con IA app, onboarding, ajustes y paquetes compartidos. | Validar variables, plurales, terminología y tamaños; ampliar el validador de idiomas. | Decisión de Xus |
 | R03 | Alta · M | **Francés, alemán e italiano juntos — Pendiente.** Una entrega conjunta con traducción por IA y revisión de las pantallas principales. | No separar los tres en lanzamientos artificiales; revisar especialmente textos largos e interpolaciones. | Decisión de Xus |
 | R07 | Media · M | **Vista breve y resumen de correo.** Ver un extracto y pedir un resumen on-device desde el aviso. | Depende de R01; consentimiento explícito para procesar contenido; probar límites de idioma y longitud. | Idea Altillo |
-| R08 | Explorar · L | **Gmail y Outlook directos.** Recibir avisos sin tener Apple Mail abierto, empezando por un proveedor. | Resolver OAuth, permisos, recepción, revocación y coste operativo antes de implementar. | Idea Altillo |
+| R08 | Explorar · L | **Gmail y Outlook directos.** Su alcance se ha incorporado a R61, junto con iCloud/IMAP, envío y gestión. | Seguir implementación y cierre en R61; no abrir una segunda feature paralela para los mismos conectores. | Idea Altillo |
 | R14 | Explorar · M | **Siguientes lotes de idiomas.** Portugués y después japonés u otros según solicitudes. | La IA acelera traducción; validar composición, fechas, fuentes y, si procede, escritura de derecha a izquierda. | NotchNook; solicitudes |
 
 ### Archivos y Shelf
@@ -292,3 +297,13 @@ aprobación de Xus.
 - [Planes técnicos](plans/README.md): auditorías y tareas detalladas.
 - Decisiones de Xus: roadmap sin fechas, distintas sesiones, correo como feature
   propia y francés/alemán/italiano en un mismo lote.
+
+## Actualización de Uso de IA — 8 noviembre 2026
+
+Implementada conexión propia de Claude y Codex desde Ajustes, con OAuth/PKCE, Keychain privado, renovación automática y desconexión. Una cuenta seleccionada por proveedor; no se leen ni renuevan sus sesiones CLI. Cambio de identidad limpia cifras/historial y descarta respuestas anteriores. Copilot distingue limitación temporal de credenciales rechazadas. 954 tests macOS correctos y paquete/validación española correctos; Release Developer ID/Keychain e iOS compilados y verificados. [Alcance y validación](docs/usage-accounts.md). Pendiente QA con cuentas reales antes de distribución.
+
+Revisión de proveedores pasa a manual: workflow semanal deshabilitado, issue automática, su etiqueta y seis ejecuciones eliminadas; retirados workflow/script/manifiesto del código actual. Se conservan licencias y atribuciones; no se reescribe el historial Git.
+
+## Preparación de 0.14.0 · 8 noviembre 2026
+
+La publicación se separa en `release/usage-0.14.0`: cuentas propias de Uso de IA y mejoras de conexión. Claude tiene consentimiento, cuotas reales y recuperación de Keychain tras reinicio comprobados; Codex y la rotación real siguen pendientes de QA. R61 permanece en desarrollo, conservado en `feat/native-mail-accounts`; sus cuentas directas no forman parte de 0.14.0. El correo publicado conserva el puente Apple Mail de 0.13.0. Gmail sigue en Testing y Microsoft necesita un registro en un directorio propio.

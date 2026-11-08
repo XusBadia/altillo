@@ -1,0 +1,74 @@
+# Cuentas propias para Uso de IA
+
+Estado de desarrollo: 8 noviembre 2026. Claude y Codex permiten conectar una cuenta seleccionada de cada proveedor desde Ajustes › Secciones › Uso de IA. Claude ya tiene conexión y lectura reales verificadas; Codex, la renovación real y la distribución todavía requieren QA. Los tests con fixtures no acreditan esos recorridos.
+
+## Experiencia
+
+Conectar abre el login del proveedor en el navegador del sistema; la contraseña se introduce allí. Reconectar reemplaza la cuenta seleccionada después de obtener una autorización válida. Desconectar borra la identidad y los tokens locales de ese proveedor. No se afirma revocación remota: se gestiona en las conexiones/sesiones del propio proveedor. Desactivar la sección conserva la credencial para volver a usarla.
+
+Hay una cuenta seleccionada por proveedor, no una bandeja multicuenta. Claude Code y Codex CLI conservan sus sesiones independientes. Los collectors de cuotas Claude/Codex no leen sus archivos ni sus elementos de Keychain, ni arrancan `codex app-server`. Los hooks y la detección de agentes son otro módulo y mantienen sus integraciones locales.
+
+## Datos y renovación
+
+La identidad, el token de acceso, el de renovación y su caducidad forman un registro atómico por proveedor en el Data Protection Keychain privado de Altillo: no sincronizable y `WhenUnlockedThisDeviceOnly`. No se incluyen en snapshots, historial, logs ni ajustes. Las peticiones autentican directamente con el proveedor, con sesiones efímeras sin cookies persistentes ni caché de disco. El navegador mantiene sus propias reglas de sesión y cookies.
+
+La sesión se renueva con su propio refresh token, antes de caducar; las lecturas concurrentes de una cuenta comparten la renovación. Los cambios de cuenta y la desconexión invalidan las respuestas tardías para impedir que restauren una sesión anterior. La rotación pendiente de persistir se conserva temporalmente en memoria si el Keychain no está disponible. Los errores temporales no se presentan como una contraseña incorrecta. El collector permite un único reintento autorizado ante un `401`; un rechazo definitivo exige Reconectar.
+
+## Contratos de proveedor
+
+Referencia técnica manual: [OpenUsage v0.8.0-beta.5](https://github.com/robinebers/openusage/releases/tag/v0.8.0-beta.5), commit `f7e38d7608da061e609e6d0c8285531e56c2f950`. [BrowserProviderLogins.swift](https://github.com/robinebers/openusage/blob/f7e38d7608da061e609e6d0c8285531e56c2f950/Sources/OpenUsage/Services/BrowserProviderLogins.swift) y [OAuthLoginSupport.swift](https://github.com/robinebers/openusage/blob/f7e38d7608da061e609e6d0c8285531e56c2f950/Sources/OpenUsage/Services/OAuthLoginSupport.swift) documentan los contratos usados. La atribución MIT se conserva en [ThirdPartyNotices](../ThirdPartyNotices/README.md).
+
+| | Claude | Codex / ChatGPT |
+|---|---|---|
+| Autorizar | `https://claude.ai/oauth/authorize` | `https://auth.openai.com/oauth/authorize` |
+| Token y renovación | `https://platform.claude.com/v1/oauth/token`, POST JSON | `https://auth.openai.com/oauth/token`, POST form |
+| Scope | `user:profile` | `openid profile email offline_access` |
+| Callback | HTTP solo loopback, puerto efímero | HTTP solo loopback, puerto 1455, `/auth/callback` |
+| Cuota | `https://api.anthropic.com/api/oauth/usage` | `https://chatgpt.com/backend-api/wham/usage` |
+| Identidad | `/api/oauth/profile`: cuenta/organización y email | Claims de los tokens recibidos: cuenta ChatGPT y email; el proveedor valida el bearer en las peticiones |
+
+Se usa PKCE S256 y `state`. El canje Claude incluye `state` y su autorización añade `code=true`; el de Codex usa los parámetros de compatibilidad del cliente instalado. Los client IDs son identificadores públicos de esos flujos, no secretos de Altillo. El puerto fijo de Codex puede estar ocupado por otro login: la app lo explica para que se termine y se reintente. No se ha implementado el fallback device-code de OpenUsage en esta entrega.
+
+Estos servicios y clientes instalados no equivalen a una API pública estable para terceros ni a una aprobación del proveedor de Altillo. Las cuotas proceden de los mismos endpoints que antes: la nueva sesión elimina la dependencia del CLI para estas dos lecturas; no implica que el porcentaje sea más exacto ni garantiza que nunca haya que reconectar. No se solicitan capacidades de inferencia para Claude ni se consumen créditos o resets de cuota.
+
+## Otros proveedores y revisión
+
+Cursor, Copilot, Gemini/Antigravity, Grok, Z.ai, Devin y OpenCode mantienen sus fuentes locales y peticiones documentadas en [proveedores.md](proveedores.md). No se renuevan ni reescriben credenciales ajenas. No hay seguimiento programado de proyectos de referencia ni issues automáticos: las revisiones son manuales.
+
+## Validación pendiente antes de distribuir
+
+Comprobar con cuentas autorizadas: consentimiento, callback de ambas cuentas, cancelación, reinicio de la app y recuperación Keychain, renovación real con token rotado, rechazo del refresh y reconexión, cambio de cuenta sin mezclar cifras, desconexión durante una petición y ausencia de secretos en logs/archivos. Confirmar que no se ejecuta el CLI ni se toca su sesión. Registrar el build y los resultados reales por separado de los tests sintéticos.
+
+## Evidencia local — 8 noviembre 2026
+
+Validación final: **954 tests macOS en 75 suites** correctos, incluidos cambio de cuenta y las fronteras Cancel/commit. Paquete AltilloKit completo: **515 tests** (123 de AltilloUsage), más el test añadido para nombres de planes del perfil Claude; los 32 tests Claude se repitieron tras ese ajuste. Validador español: **0 de 1636 cadenas sin traducir**. Son pruebas sintéticas; no se han concedido permisos OAuth a cuentas reales durante esta implementación. Release universal compilada con Developer ID: firma estricta/perfil válidos, sin permiso de depuración. El helper sintético con sus entitlements exactos pasa add/read/delete en Keychain privado con `WhenUnlockedThisDeviceOnly`. iOS compila para simulador genérico. Artefacto local: `~/Library/Developer/BuildCache/altillo/Build/Products/Release/Altillo.app`; no instalado sobre la versión pública ni publicado.
+
+### Comprobación interactiva del acceso
+
+Abierta la Release firmada en Ajustes › Uso de IA. Se detectó que proporcionar una ventana a `OIDExternalUserAgentMac` activaba ASWebAuthenticationSession y dejaba el callback HTTP esperando sin mostrar el acceso. Se usa explícitamente su variante de navegador del sistema para este listener loopback. Recompilación y firma correctas; verificada la llegada a la pantalla de autorización Claude (`user:profile`), con la cuenta del usuario ya iniciada en Chrome. El consentimiento queda a cargo de Xus; todavía no acredita canje de código, persistencia ni lectura real de esa cuenta.
+
+### Recuperación de un consentimiento tardío
+
+La primera autorización fue aceptada en el navegador, pero regresó cuando ya había vencido el listener local de cinco minutos; Chrome mostró conexión rechazada y no se guardó una cuenta. El plazo pasa a 30 minutos y la expiración se informa como error recuperable, separada de Cancelar. El intento puede repetirse sin tocar sesiones CLI ni sustituir una cuenta anterior hasta completar la validación. Añadida prueba de conservación de cuenta/error tras timeout: 12 tests de cuentas correctos.
+
+### Inicio cuando el usuario esté preparado
+
+Se añade «Navegador para iniciar sesión», con navegador del sistema o Google Chrome instalado. La elección solo afecta a estos accesos de Altillo; no cambia el navegador predeterminado de macOS. Un adaptador AppAuth abre directamente la aplicación elegida y solo acepta URLs HTTPS de autorización de Claude/OpenAI. Las pruebas de cuentas (13) incluyen rechazo de destinos/puertos inseguros y siguen correctas; traducción española sin pendientes.
+
+Para entregar una conexión preparada se deja Ajustes › Uso de IA visible, con «Conectar» habilitado, sin abrir antes una autorización. El intento y sus 30 minutos empiezan cuando el usuario pulse ese botón. Se retiran las pestañas caducadas del intento anterior.
+
+Comprobación interactiva de la Release firmada: Claude abre directamente en Chrome su consentimiento `user:profile`; Codex llega al selector oficial de cuenta en `auth.openai.com`. Ambos intentos de comprobación se cancelaron sin conceder permisos y se cerraron sus pestañas. Ajustes queda en Uso de IA, Google Chrome seleccionado y ambos botones Conectar disponibles. El consentimiento/canje/lectura real siguen pendientes de que el usuario inicie su conexión.
+
+### Claude conectado y nueva página de retorno
+
+El usuario completó el consentimiento de Claude. La Release firmada muestra `xus@badia.me`, «Connected · Max» y cuotas reales sin error. Tras recompilar y reiniciar, recupera la misma cuenta del Keychain y vuelve a consultar sus límites. Codex sigue sin conectar; la renovación con rotación real permanece pendiente.
+
+La página de retorno tiene diseño propio de Altillo, adaptable a ventanas estrechas, en español e inglés y con movimiento reducido. Distingue conexión en curso, completada y fallida; solo confirma el éxito tras validar y guardar la sesión. «Volver a Altillo» abre la app mediante `altillo://usage` y muestra Uso cuando ya está iniciada. Comprobado en Chrome con la Release firmada, conservando la cuenta.
+
+AppAuth mantiene el callback OAuth y redirige a un segundo servidor temporal exclusivamente loopback, con rutas aleatorias. Este sirve HTML y estado sin código, tokens ni dirección de cuenta, sin recursos externos, con no-store, no-referrer y CSP. Se cierra 180 segundos después del resultado; el enlace a la app permanece utilizable. La URL de navegación no admite parámetros, rutas ni credenciales.
+
+Validación de esta revisión: **959 tests macOS en 75 suites**, incluidos servidor HTTP real, estados de conexión, escape HTML/JavaScript, rechazo de URLs de navegación ajenas y confirmación posterior al commit de credenciales. Validador español: **0 de 1639 cadenas pendientes**. Release compilada y firma/perfil verificados. QA visual en Chrome de éxito y error, en escritorio y ventana estrecha. No se ha publicado una actualización.
+
+### Candidata de publicación 0.14.0
+
+Se ha separado el código de correo nativo, conservado en `feat/native-mail-accounts`. La suite del contenido exacto de esta candidata pasa **919 tests macOS en 71 suites**; localización: **0 de 1646 cadenas pendientes**. Los siete tests del validador de firma y las puertas de publicación pasan. La exportación exige perfil para Keychain privado aunque no haya clientes OAuth de correo. La notarización y publicación todavía dependen de CI verde para el SHA final de main y de comprobar el artefacto distribuido.

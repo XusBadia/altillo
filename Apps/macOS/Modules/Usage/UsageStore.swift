@@ -88,6 +88,8 @@ final class UsageStore {
     @ObservationIgnored private var alertState = UsageAlertState()
     @ObservationIgnored private var loop: Task<Void, Never>?
     @ObservationIgnored private var inFlight: Task<Void, Never>?
+    @ObservationIgnored private var accountGeneration = 0
+    @ObservationIgnored private let usesOwnAccounts: Bool
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private var isStarted = false
     @ObservationIgnored private var isActive = true
@@ -96,14 +98,15 @@ final class UsageStore {
 
     init(
         settings: AltilloSettings,
-        collectors: @escaping () -> [any UsageCollector] = { UsageCollectors.all() },
+        collectors: (() -> [any UsageCollector])? = nil,
         clock: any UsageClock = SystemUsageClock(),
         archiveURL: URL? = URL.applicationSupportDirectory.appending(path: "Altillo/usage.json"),
         defaults: UserDefaults = .standard,
         timeout: Duration = UsageStore.collectorTimeout
     ) {
         self.settings = settings
-        self.collectors = collectors
+        self.collectors = collectors ?? { UsageAccountCollectors.all() }
+        self.usesOwnAccounts = collectors == nil
         self.clock = clock
         self.archiveURL = archiveURL
         self.historyURL = archiveURL.map {
@@ -168,6 +171,17 @@ final class UsageStore {
         Self.live = self
         loadArchive()
         loadHistory()
+        if usesOwnAccounts {
+            // Old CLI readings cannot establish the identity of a newly connected Altillo account.
+            if !defaults.bool(forKey: "usageOwnAccountsMigrated") {
+                accountDidChange(.claude)
+                accountDidChange(.codex)
+                defaults.set(true, forKey: "usageOwnAccountsMigrated")
+            }
+            UsageAccountManager.shared.onAccountChanged = { [weak self] provider in
+                self?.accountDidChange(provider)
+            }
+        }
         observeWorkspace()
         if isActive { schedule(after: .zero) }
     }
@@ -295,12 +309,13 @@ final class UsageStore {
         let task = Task { await self.performRefresh() }
         inFlight = task
         await task.value
-        inFlight = nil
+        if !task.isCancelled { inFlight = nil }
     }
 
     private func performRefresh() async {
+        let generation = accountGeneration
         isRefreshing = true
-        defer { isRefreshing = false }
+        defer { if generation == accountGeneration { isRefreshing = false } }
         let now = clock.now
         let collectors = self.collectors()
         let previous = readings
@@ -338,6 +353,7 @@ final class UsageStore {
             for await result in group { results.append((result.0, result.1)) }
             return results
         }
+        guard !Task.isCancelled, generation == accountGeneration else { return }
         apply(results.sorted { $0.index < $1.index }.map(\.entry), now: now)
     }
 
@@ -364,6 +380,27 @@ final class UsageStore {
             publisher.publish(snapshot)
         }
         evaluateAlerts(now: now)
+    }
+
+    /// A new identity must never inherit limits, history or pending responses from the previous account.
+    func accountDidChange(_ provider: UsageProviderID) {
+        accountGeneration += 1
+        inFlight?.cancel()
+        inFlight = nil
+        isRefreshing = false
+        readings.removeValue(forKey: provider)
+        entries.removeAll { $0.id == provider }
+        for index in history.samples.indices {
+            history.samples[index].values.removeAll { $0.provider == provider }
+        }
+        history.samples.removeAll { $0.values.isEmpty }
+        alertState.observations = alertState.observations.filter { !$0.key.hasPrefix(provider.rawValue + "|") }
+        let next = makeSnapshot(now: clock.now)
+        snapshot = next
+        saveArchive(next)
+        saveHistory()
+        for publisher in publishers where publisher.isEnabled { publisher.publish(next) }
+        if isStarted, isActive, !isAsleep { refreshNow() }
     }
 
     // MARK: Alerts

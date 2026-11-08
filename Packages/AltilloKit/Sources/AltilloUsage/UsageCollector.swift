@@ -4,8 +4,9 @@ import Foundation
 /// Reads one provider's usage on this Mac (PLAN §5.2). Implementations never throw: every failure becomes a
 /// `ProviderUsage.problem` the notch can explain, and they never refresh or rewrite another tool's credentials.
 ///
-/// Altillo reads every provider itself, from what that provider's own tools already keep on this Mac (a CLI's
-/// sign-in, an editor's session, an API key the user adds). It never depends on another usage app being installed.
+/// Altillo reads each provider directly. The macOS catalog supplies app-owned Claude/Codex sessions; legacy
+/// adapters remain available for explicit integrations and other providers' local sessions or keys.
+/// It never depends on another usage app being installed.
 public protocol UsageCollector: Sendable {
     var providerID: UsageProviderID { get }
     var displayName: String { get }
@@ -30,13 +31,4 @@ public enum UsageCollectors {
             GrokCollector(), ZAICollector(), DevinCollector(), OpenCodeCollector(),
         ]
     }
-}
-
-// The CLIs whose sign-in Altillo reads for the two built-in providers.
-public extension ClaudeCollector {
-    var setupHint: String { "Sign in to Claude Code on this Mac" }
-}
-
-public extension CodexCollector {
-    var setupHint: String { "Sign in to the Codex CLI on this Mac" }
 }

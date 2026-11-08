@@ -64,6 +64,10 @@ public enum ClaudeCredentialLookup: Sendable, Hashable {
     case notFound
     /// The keychain refused (or a prompt went unanswered).
     case accessDenied
+    /// Altillo-owned refresh failed transiently; the saved account remains connected.
+    case temporarilyUnavailable
+    /// Altillo-owned authorization was revoked or its refresh token expired.
+    case sessionExpired
 }
 
 /// Where the Claude collector gets its credentials. Tests inject fixed values.

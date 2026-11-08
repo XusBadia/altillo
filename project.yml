@@ -16,7 +16,7 @@ settings:
     SWIFT_VERSION: "6.0"
     SWIFT_STRICT_CONCURRENCY: complete
     DEVELOPMENT_TEAM: $(ALTILLO_TEAM)
-    MARKETING_VERSION: 0.13.0
+    MARKETING_VERSION: 0.14.0
     CURRENT_PROJECT_VERSION: 1
     GENERATE_INFOPLIST_FILE: YES
     INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: NO
@@ -27,6 +27,9 @@ settings:
 packages:
   AltilloKit:
     path: Packages/AltilloKit
+  AppAuth:
+    url: https://github.com/openid/AppAuth-iOS
+    exactVersion: 3.0.0
   Sparkle:
     url: https://github.com/sparkle-project/Sparkle
     exactVersion: 2.10.0
@@ -45,6 +48,9 @@ targets:
         buildPhase: resources
       - Apps/Shared/Assets.xcassets
       - Apps/Shared/AppIcon.icon
+      - path: ThirdPartyNotices/MailOAuth
+        type: folder
+        buildPhase: resources
     dependencies:
       - package: AltilloKit
         product: AltilloCore
@@ -63,6 +69,8 @@ targets:
         codeSign: true
         copy:
           destination: executables
+      - package: AppAuth
+        product: AppAuth
       - package: Sparkle
         product: Sparkle
       - target: altillo-hook
@@ -82,6 +90,10 @@ targets:
       # treats an empty feed URL or public key as "Sparkle not configured" and stays inert.
       path: Apps/macOS/App/Info.plist
       properties:
+        CFBundleURLTypes:
+          - CFBundleURLName: Altillo navigation
+            CFBundleURLSchemes:
+              - altillo
         SUFeedURL: $(ALTILLO_SPARKLE_FEED_URL)
         SUPublicEDKey: $(ALTILLO_SPARKLE_PUBLIC_KEY)
         SUEnableAutomaticChecks: YES
@@ -113,11 +125,12 @@ targets:
         ENABLE_HARDENED_RUNTIME: YES
         CODE_SIGN_STYLE: Manual
         CODE_SIGN_IDENTITY: $(ALTILLO_MAC_SIGN_IDENTITY)
-        CODE_SIGN_ENTITLEMENTS: Apps/macOS/App/Altillo.entitlements
-        PROVISIONING_PROFILE_SPECIFIER: ""
+        CODE_SIGN_ENTITLEMENTS: $(ALTILLO_MAC_ENTITLEMENTS)
+        PROVISIONING_PROFILE_SPECIFIER: $(ALTILLO_MAC_PROVISIONING_PROFILE)
         COMBINE_HIDPI_IMAGES: YES
       configs:
         Release:
+          CODE_SIGN_INJECT_BASE_ENTITLEMENTS: NO
           # Internal review windows and spike tools must never enter a distributable binary.
           EXCLUDED_SOURCE_FILE_NAMES: SpikeLog.swift
     scheme:

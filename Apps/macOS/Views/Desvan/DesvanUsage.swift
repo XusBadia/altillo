@@ -36,7 +36,7 @@ struct DesvanUsageView: View {
             DesvanModuleNotice(
                 symbol: "gauge.with.needle",
                 title: "No AI usage to show yet",
-                message: "Set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here.",
+                message: "Connect accounts or set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here.",
                 actionTitle: "Usage Settings…",
                 action: { SettingsWindowController.shared.show(tab: .usage) }
             )

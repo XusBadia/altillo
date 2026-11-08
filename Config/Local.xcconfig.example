@@ -9,3 +9,11 @@ ALTILLO_MAC_SIGN_IDENTITY = Apple Development
 // "//" — build it with $(ALTILLO_XC_SLASH) (defined in Shared.xcconfig) instead, as below.
 // ALTILLO_SPARKLE_FEED_URL = https:$(ALTILLO_XC_SLASH)$(ALTILLO_XC_SLASH)example.github.io/altillo/appcast.xml
 // ALTILLO_SPARKLE_PUBLIC_KEY = <EdDSA public key from `generate_keys --account altillo`>
+
+// Usage account OAuth requires a profile for the private Data Protection Keychain.
+// ALTILLO_MAC_ENTITLEMENTS = Apps/macOS/App/Altillo.provisioned.entitlements
+// ALTILLO_MAC_PROVISIONING_PROFILE = Altillo Developer ID
+// To keep a separate Apple Development setup for Debug, provision only Release:
+// ALTILLO_MAC_SIGN_IDENTITY[config=Release] = Developer ID Application
+// ALTILLO_MAC_ENTITLEMENTS[config=Release] = Apps/macOS/App/Altillo.provisioned.entitlements
+// ALTILLO_MAC_PROVISIONING_PROFILE[config=Release] = your-developer-id-profile-uuid

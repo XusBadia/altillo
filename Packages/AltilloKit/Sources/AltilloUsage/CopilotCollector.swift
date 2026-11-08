@@ -192,7 +192,7 @@ public struct CopilotCollector: UsageCollector {
             "User-Agent": "GitHubCopilotChat/0.26.7",
             "X-Github-Api-Version": "2025-04-01",
         ])
-        switch await Group1Support.send(request, transport: transport, now: now) {
+        switch await send(request, now: now) {
         case .ok(let data):
             switch CopilotUsageMapper.map(data) {
             case .mapped(let mapped):
@@ -218,6 +218,35 @@ public struct CopilotCollector: UsageCollector {
                            now: now)
         case .status(let code, _):
             return failure(.unreachable("HTTP \(code)"), detail: nil, previous: previous, now: now)
+        }
+    }
+
+    /// GitHub also reports rate limits as 403. Keep these separate from rejected credentials so
+    /// a temporary request limit does not send the user through sign-in again.
+    private func send(_ request: URLRequest, now: Date) async -> Group1Support.Reply {
+        let data: Data
+        let response: HTTPURLResponse
+        do {
+            (data, response) = try await transport.send(request)
+        } catch {
+            return .failed(ClaudeCollector.describe(error))
+        }
+        let retryAfter = response.header("Retry-After")
+        let exhausted = response.header("X-RateLimit-Remaining")?
+            .trimmingCharacters(in: .whitespacesAndNewlines) == "0"
+        if response.statusCode == 429 || (response.statusCode == 403 && (exhausted || retryAfter != nil)) {
+            let reset = response.header("X-RateLimit-Reset").flatMap(Double.init).flatMap { seconds -> Date? in
+                guard seconds.isFinite, seconds > now.timeIntervalSince1970 else { return nil }
+                return Date(timeIntervalSince1970: seconds)
+            }
+            return .rateLimited(UsageParsing.retryAfter(retryAfter, now: now)
+                ?? reset ?? now.addingTimeInterval(5 * 60))
+        }
+        switch response.statusCode {
+        case 200..<300: return .ok(data)
+        case 401, 403: return .unauthorized(response.statusCode)
+        case 500...: return .failed("HTTP \(response.statusCode)")
+        default: return .status(response.statusCode, data)
         }
     }
 

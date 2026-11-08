@@ -19,7 +19,7 @@ struct OnboardingAIToolsPage: View {
                 OnboardingHeader(
                     eyebrow: eyebrow,
                     title: "Your AI tools",
-                    subtitle: "Altillo finds your tools locally. Usage checks contact each provider directly."
+                    subtitle: "Connect your accounts to see limits. Agent tools are detected locally."
                 )
                 if !OnboardingLogic.wantsAITools(Set(modules)) {
                     Text("Usage and Agents are off in this setup. Turn them on any time: right-click the notch.")
@@ -64,6 +64,7 @@ struct OnboardingAIToolsPage: View {
                         .foregroundStyle(Desvan.Palette.paperTertiary)
                 }
             }
+            UsageAccountSettings(store: usage)
             if !usage.hasChecked {
                 HStack(spacing: 8) {
                     ProgressView().controlSize(.small)
@@ -73,7 +74,7 @@ struct OnboardingAIToolsPage: View {
                 }
                 .frame(minHeight: 30)
             } else if found.isEmpty {
-                Text("No AI accounts on this Mac yet. Sign in to Claude Code, Codex, Cursor or another one and it shows up in the notch by itself.")
+                Text("Connect Claude or Codex here. Other providers appear when their tools are set up on this Mac.")
                     .font(.system(size: 12.5))
                     .foregroundStyle(Desvan.Palette.paperSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -94,7 +95,7 @@ struct OnboardingAIToolsPage: View {
                         .accessibilityElement(children: .combine)
                     }
                 }
-                Text("Their limits show in Usage, and beside the notch when they run high. Sign in to others and they join in.")
+                Text("Their limits show in Usage, and beside the notch when they run high.")
                     .settingsHint()
                 Link("How privacy works", destination: Self.privacy)
                     .font(.system(size: 11.5, weight: .medium))

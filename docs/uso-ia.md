@@ -1,6 +1,16 @@
 # Uso de agentes de IA: estado actual y migración
 
-Análisis de `~/Documents/GitHub/openusage` (fork) y `~/Documents/GitHub/ai-limits` (18-09-2026).
+## Estado de desarrollo — 8 noviembre 2026
+
+Claude y Codex se conectan desde Ajustes › Secciones › Uso de IA con una cuenta seleccionada por proveedor. Conectar/Reconectar abren el navegador del proveedor; Desconectar borra la sesión local. Altillo guarda y renueva sus propios tokens en el Keychain privado de este Mac. Estos collectors ya no leen las credenciales del CLI ni arrancan `codex app-server`; los demás proveedores mantienen sus fuentes locales. No se altera el módulo de agentes/hooks.
+
+La independencia de la sesión no cambia el origen de las cifras: se consultan los mismos endpoints de cuota. No se promete mayor precisión ni ausencia de futuras reautenticaciones. La autorización y renovación reales todavía requieren QA antes de distribuir. Ver [cuentas de uso](usage-accounts.md) y [proveedores](proveedores.md).
+
+Las revisiones de referencias técnicas son manuales. Se conserva la atribución del código adaptado; no hay workflow programado ni issues automáticos.
+
+## Archivo de decisiones de septiembre
+
+El resto de este documento conserva el análisis de `~/Documents/GitHub/openusage` (fork) y `~/Documents/GitHub/ai-limits` del 18-09-2026. Las descripciones de credenciales Claude/Codex y del `app-server` pertenecen a esa implementación anterior; el flujo vigente de desarrollo es el descrito arriba.
 
 ## Identificadores (team 9L2TD7KVV9)
 
@@ -40,9 +50,9 @@ Análisis de `~/Documents/GitHub/openusage` (fork) y `~/Documents/GitHub/ai-limi
 | tests | Mínimos |
 | plans | 001-006. Del 001 al 003 están a medias; del 004 al 006 pendientes |
 
-## Sandbox
+## Sandbox (decisión original)
 
-Ninguna de las dos apps de Mac usa sandbox. Leer `~/.claude`, `~/.codex` o el llavero de otras apps y lanzar `codex app-server` no funciona de forma fiable dentro del sandbox, así que **Altillo se distribuye sin sandbox** (Developer ID + hardened runtime).
+Ninguna de las dos apps de Mac usaba sandbox. Leer `~/.claude`, `~/.codex` o el llavero de otras apps y lanzar `codex app-server` no funciona de forma fiable dentro del sandbox, así que **Altillo se distribuye sin sandbox** (Developer ID + hardened runtime).
 
 ## Plan (decisión del 18-09-2026: monorepo `altillo` y app de iOS desde cero)
 
@@ -62,7 +72,7 @@ Decisión tuya: **Altillo es una app independiente y lee cada proveedor por sí 
 - **openusage (MIT) es solo una referencia** de cómo funciona cada proveedor (qué fichero o llavero guarda la sesión, qué endpoint da el uso). Cuando se adapta código, va con atribución en `ThirdPartyNotices`.
 - **Cada proveedor es un `UsageCollector`** con su `UsageProviderID`, registrado en `UsageCollectors.all()`. Lee lo que las herramientas del propio proveedor ya guardan en este Mac (la sesión de un CLI o de un editor, una API key que añades tú), nunca refresca ni reescribe credenciales ajenas, y trae un `setupHint` de una línea («Sign in to Cursor») para quien aún no lo tiene configurado.
 - **Por defecto** todos los proveedores que se encuentran en este Mac están activados; cada uno se puede apagar en Ajustes › Secciones › Uso. Los que no están configurados se agrupan en «Not set up on this Mac», cada uno con su pista.
-- **Alcance actual (26-10-2026):** solo cuotas API, porcentaje y fecha de reinicio. Sin balances monetarios, tokens ni predicciones. OpenRouter se retira del catálogo porque esta integración solo ofrecía gasto. Los límites desconocidos se muestran como desconocidos; un fallo conserva la última cuota con su fecha y su problema.
+- **Alcance de cuotas (26-10-2026, se mantiene):** solo cuotas API, porcentaje y fecha de reinicio. Sin balances monetarios, tokens ni predicciones. OpenRouter se retira del catálogo porque esta integración solo ofrecía gasto. Los límites desconocidos se muestran como desconocidos; un fallo conserva la última cuota con su fecha y su problema.
 
 ## El fork y ai-limits ya no son parte de Altillo
 

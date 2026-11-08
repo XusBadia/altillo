@@ -14,20 +14,33 @@ public struct ClaudeCollector: UsageCollector {
 
     public let providerID: UsageProviderID = .claude
     public let displayName = "Claude"
+    public var setupHint: String {
+        usesOwnAccount ? "Connect your Claude account in Altillo Settings" : "Sign in to Claude Code on this Mac"
+    }
 
     private let credentials: any ClaudeCredentialReading
     private let transport: any HTTPTransport
     private let userAgent: @Sendable () async -> String
+    private let availability: (@Sendable () async -> Bool)?
+    private let usesOwnAccount: Bool
+    private let refreshAfterUnauthorized: (@Sendable () async throws -> Void)?
 
     public init(credentials: any ClaudeCredentialReading = ClaudeCredentialStore(),
                 transport: any HTTPTransport = URLSessionTransport(),
-                userAgent: @escaping @Sendable () async -> String = { await ClaudeCodeVersion.shared.userAgent() }) {
+                userAgent: (@Sendable () async -> String)? = nil,
+                availability: (@Sendable () async -> Bool)? = nil,
+                usesOwnAccount: Bool = false,
+                refreshAfterUnauthorized: (@Sendable () async throws -> Void)? = nil) {
         self.credentials = credentials
         self.transport = transport
-        self.userAgent = userAgent
+        self.userAgent = userAgent ?? { usesOwnAccount ? "Altillo" : await ClaudeCodeVersion.shared.userAgent() }
+        self.availability = availability
+        self.usesOwnAccount = usesOwnAccount
+        self.refreshAfterUnauthorized = refreshAfterUnauthorized
     }
 
     public func isAvailable() async -> Bool {
+        if let availability { return await availability() }
         let home = FileManager.default.homeDirectoryForCurrentUser
         let store = ClaudeCredentialStore()
         return FileManager.default.fileExists(atPath: home.appendingPathComponent(".claude").path)
@@ -35,6 +48,10 @@ public struct ClaudeCollector: UsageCollector {
     }
 
     public func fetch(previous: ProviderUsage?, now: Date) async -> ProviderUsage {
+        await fetch(previous: previous, now: now, mayRefreshAuthorization: true)
+    }
+
+    private func fetch(previous: ProviderUsage?, now: Date, mayRefreshAuthorization: Bool) async -> ProviderUsage {
         // Honour a pending Retry-After: asking again early only extends Anthropic's rate limiting.
         if let previous, case .rateLimited(let until?) = previous.problem, now < until {
             return previous
@@ -43,25 +60,37 @@ public struct ClaudeCollector: UsageCollector {
         let credential: ClaudeCredentials
         switch await credentials.read(now: now) {
         case .notFound:
-            return failure(.notSignedIn, detail: "Claude Code isn't signed in on this Mac.", previous: previous,
+            return failure(.notSignedIn, detail: usesOwnAccount ? "Connect your Claude account in Altillo Settings."
+                           : "Claude Code isn't signed in on this Mac.", previous: previous,
                            plan: nil, now: now)
         case .accessDenied:
-            return failure(.accessDenied, detail: "Access to Claude Code's keychain item was refused.",
+            return failure(.accessDenied, detail: usesOwnAccount ? "Altillo couldn't access its saved Claude account."
+                           : "Access to Claude Code's keychain item was refused.",
+                           previous: previous, plan: nil, now: now)
+        case .temporarilyUnavailable:
+            return failure(.unreachable("Account authorization temporarily unavailable"), detail: nil,
+                           previous: previous, plan: nil, now: now)
+        case .sessionExpired:
+            return failure(.sessionExpired, detail: "Reconnect your Claude account in Altillo Settings.",
                            previous: previous, plan: nil, now: now)
         case .found(let found):
             credential = found
         }
 
-        let plan = ClaudeUsageMapper.plan(subscriptionType: credential.subscriptionType,
-                                          rateLimitTier: credential.rateLimitTier)
+        let plan = usesOwnAccount
+            ? ClaudeUsageMapper.livePlan(subscriptionType: credential.subscriptionType, rateLimitTier: credential.rateLimitTier)
+            : ClaudeUsageMapper.plan(subscriptionType: credential.subscriptionType, rateLimitTier: credential.rateLimitTier)
         if credential.isExpired(now: now) {
-            return failure(.sessionExpired, detail: "Open Claude Code once to renew its sign-in.",
+            return failure(.sessionExpired, detail: usesOwnAccount ? "Reconnect your Claude account in Altillo Settings."
+                           : "Open Claude Code once to renew its sign-in.",
                            previous: previous, plan: plan, now: now)
         }
         if !credential.canReadUsage {
             return failure(.notSignedIn,
-                           detail: "This Claude Code sign-in can't read usage (no user:profile scope). "
-                               + "Run `claude` and sign in again.",
+                           detail: usesOwnAccount
+                               ? "Reconnect your Claude account in Altillo Settings to allow usage access (user:profile)."
+                               : "This Claude Code sign-in can't read usage (no user:profile scope). "
+                                   + "Run `claude` and sign in again.",
                            previous: previous, plan: plan, now: now)
         }
 
@@ -83,8 +112,26 @@ public struct ClaudeCollector: UsageCollector {
         switch response.statusCode {
         case 200..<300:
             break
+        case 401 where mayRefreshAuthorization && refreshAfterUnauthorized != nil:
+            do {
+                try await refreshAfterUnauthorized?()
+                try Task.checkCancellation()
+                return await fetch(previous: previous, now: now, mayRefreshAuthorization: false)
+            } catch UsageAuthorizationError.sessionExpired {
+                return failure(.sessionExpired, detail: "Reconnect your Claude account in Altillo Settings.",
+                               previous: previous, plan: plan, now: now)
+            } catch UsageAuthorizationError.accessDenied {
+                return failure(.accessDenied, detail: "Altillo couldn't access its saved Claude account.",
+                               previous: previous, plan: plan, now: now)
+            } catch is CancellationError {
+                return failure(.unreachable("Cancelled"), detail: nil, previous: previous, plan: plan, now: now)
+            } catch {
+                return failure(.unreachable("Account authorization temporarily unavailable"), detail: nil,
+                               previous: previous, plan: plan, now: now)
+            }
         case 401, 403:
-            return failure(.sessionExpired, detail: "Open Claude Code once to renew its sign-in.",
+            return failure(.sessionExpired, detail: usesOwnAccount ? "Reconnect your Claude account in Altillo Settings."
+                           : "Open Claude Code once to renew its sign-in.",
                            previous: previous, plan: plan, now: now)
         case 429:
             let retry = UsageParsing.retryAfter(response.header("Retry-After"), now: now)
@@ -184,6 +231,18 @@ enum ClaudeUsageMapper {
         }
         return UsageWindow(id: id, kind: kind, label: label, used: utilization / 100,
                            resetsAt: UsageParsing.date(object["resets_at"]), duration: duration)
+    }
+
+    /// The profile uses organization types rather than the CLI's legacy subscription names.
+    static func livePlan(subscriptionType: String?, rateLimitTier: String?) -> String? {
+        guard var raw = subscriptionType?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(),
+              !raw.isEmpty else { return nil }
+        if raw.hasPrefix("claude_") { raw.removeFirst("claude_".count) }
+        guard !raw.isEmpty else { return nil }
+        let tier = rateLimitTier?.lowercased() ?? ""
+        if raw == "ultra" || (raw == "max" && (tier.contains("ultra") || tier.contains("20x"))) { return "Ultra" }
+        if raw == "max" { return "Max" }
+        return plan(subscriptionType: raw, rateLimitTier: rateLimitTier)
     }
 
     /// "max" + "default_claude_max_20x" → "Max 20x".

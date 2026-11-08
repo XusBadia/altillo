@@ -1,0 +1,5 @@
+Altillo 0.14 adds account sign-in for Claude and Codex. Connect from Settings to see your usage limits in the notch, with a separate session stored in your Mac’s Keychain.
+
+Choose Chrome for sign-in and return straight to the app.
+
+https://altillo.app

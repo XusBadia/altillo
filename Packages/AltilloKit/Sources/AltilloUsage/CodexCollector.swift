@@ -36,18 +36,31 @@ public struct CodexAuth: Sendable, Hashable {
     }
 }
 
+/// Authentication failures from an app-owned account resolver. Provider tokens and error response bodies must
+/// never be included in an error string.
+public enum UsageAuthorizationError: Error, Sendable, Equatable {
+    case sessionExpired
+    case accessDenied
+}
+
 /// Reads Codex's session and weekly limits (including per-model limits).
 public struct CodexCollector: UsageCollector {
     public static let whamURL = URL(string: "https://chatgpt.com/backend-api/wham/usage")!
 
     public let providerID: UsageProviderID = .codex
     public let displayName = "Codex"
+    public var setupHint: String {
+        accountAuth != nil ? "Connect your Codex account in Altillo Settings" : "Sign in to the Codex CLI on this Mac"
+    }
 
     private let appServer: (any CodexRateLimitReading)?
     private let transport: any HTTPTransport
     private let readAuth: @Sendable () -> CodexAuth?
     private let authFileExists: @Sendable () -> Bool
     private let binaryExists: @Sendable () -> Bool
+    private let accountAuth: (@Sendable (Date) async throws -> CodexAuth?)?
+    private let availability: (@Sendable () async -> Bool)?
+    private let refreshAfterUnauthorized: (@Sendable () async throws -> Void)?
 
     /// - Parameters:
     ///   - appServer: how to talk to `codex app-server`; nil to use only the HTTP fallback.
@@ -66,13 +79,37 @@ public struct CodexCollector: UsageCollector {
         self.readAuth = readAuth
         self.authFileExists = authFileExists
         self.binaryExists = binaryExists
+        self.accountAuth = nil
+        self.availability = nil
+        self.refreshAfterUnauthorized = nil
+    }
+
+    /// Reads only Altillo's own account. This mode never locates a CLI, launches app-server or reads auth.json.
+    /// The resolver may renew Altillo-owned credentials before returning a usable access token.
+    public init(accountAuth: @escaping @Sendable (Date) async throws -> CodexAuth?,
+                availability: @escaping @Sendable () async -> Bool,
+                transport: any HTTPTransport = URLSessionTransport(),
+                refreshAfterUnauthorized: (@Sendable () async throws -> Void)? = nil) {
+        self.appServer = nil
+        self.transport = transport
+        self.readAuth = { nil }
+        self.authFileExists = { false }
+        self.binaryExists = { false }
+        self.accountAuth = accountAuth
+        self.availability = availability
+        self.refreshAfterUnauthorized = refreshAfterUnauthorized
     }
 
     public func isAvailable() async -> Bool {
-        (appServer != nil && binaryExists()) || authFileExists()
+        if let availability { return await availability() }
+        return (appServer != nil && binaryExists()) || authFileExists()
     }
 
     public func fetch(previous: ProviderUsage?, now: Date) async -> ProviderUsage {
+        await fetch(previous: previous, now: now, mayRefreshAuthorization: true)
+    }
+
+    private func fetch(previous: ProviderUsage?, now: Date, mayRefreshAuthorization: Bool) async -> ProviderUsage {
         if let previous, case .rateLimited(let until?) = previous.problem, now < until {
             return previous
         }
@@ -96,11 +133,28 @@ public struct CodexCollector: UsageCollector {
         }
 
         // Fallback: the HTTP endpoint with the CLI's token (read-only; the CLI rotates it, never Altillo).
-        guard let auth = readAuth() else {
+        let resolvedAuth: CodexAuth?
+        do {
+            if let accountAuth { resolvedAuth = try await accountAuth(now) }
+            else { resolvedAuth = readAuth() }
+        } catch UsageAuthorizationError.sessionExpired {
+            return failure(.sessionExpired, detail: "Reconnect your Codex account in Altillo Settings.",
+                           previous: previous, now: now)
+        } catch UsageAuthorizationError.accessDenied {
+            return failure(.accessDenied, detail: "Altillo couldn't access its saved Codex account.",
+                           previous: previous, now: now)
+        } catch is CancellationError {
+            return failure(.unreachable("Cancelled"), detail: nil, previous: previous, now: now)
+        } catch {
+            // Account errors can contain a token response. Never expose an arbitrary error description.
+            return failure(.unreachable("Account authorization failed"), detail: nil, previous: previous, now: now)
+        }
+        guard let auth = resolvedAuth else {
             if let appServerFailure {
                 return failure(.unreachable(appServerFailure), detail: nil, previous: previous, now: now)
             }
-            return failure(.notSignedIn, detail: "Codex isn't signed in with ChatGPT on this Mac.",
+            return failure(.notSignedIn, detail: accountAuth != nil ? "Connect your Codex account in Altillo Settings."
+                           : "Codex isn't signed in with ChatGPT on this Mac.",
                            previous: previous, now: now)
         }
 
@@ -121,8 +175,26 @@ public struct CodexCollector: UsageCollector {
         switch response.statusCode {
         case 200..<300:
             break
+        case 401 where mayRefreshAuthorization && refreshAfterUnauthorized != nil:
+            do {
+                try await refreshAfterUnauthorized?()
+                try Task.checkCancellation()
+                return await fetch(previous: previous, now: now, mayRefreshAuthorization: false)
+            } catch UsageAuthorizationError.sessionExpired {
+                return failure(.sessionExpired, detail: "Reconnect your Codex account in Altillo Settings.",
+                               previous: previous, now: now)
+            } catch UsageAuthorizationError.accessDenied {
+                return failure(.accessDenied, detail: "Altillo couldn't access its saved Codex account.",
+                               previous: previous, now: now)
+            } catch is CancellationError {
+                return failure(.unreachable("Cancelled"), detail: nil, previous: previous, now: now)
+            } catch {
+                return failure(.unreachable("Account authorization temporarily unavailable"), detail: nil,
+                               previous: previous, now: now)
+            }
         case 401, 403:
-            return failure(.sessionExpired, detail: "Run `codex` once to renew its sign-in.", previous: previous,
+            return failure(.sessionExpired, detail: accountAuth != nil ? "Reconnect your Codex account in Altillo Settings."
+                           : "Run `codex` once to renew its sign-in.", previous: previous,
                            now: now)
         case 429:
             let retry = UsageParsing.retryAfter(response.header("Retry-After"), now: now)

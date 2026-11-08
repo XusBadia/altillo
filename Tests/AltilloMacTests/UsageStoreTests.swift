@@ -239,6 +239,105 @@ struct UsageStoreTests {
         #expect(UsageText.name(for: cursor.windows[0]) == "Month")
     }
 
+    // MARK: - Account changes
+
+    @Test func changingOneAccountClearsItsPersistedUsageAndHistoryButPreservesOtherProviders() async throws {
+        let clock = FakeUsageClock(now: start)
+        let archive = Self.archiveURL()
+        defer { try? FileManager.default.removeItem(at: archive.deletingLastPathComponent()) }
+        let claude = ScriptedCollector(.claude, "Claude") { _, now in .sample(.claude, used: 0.8, at: now) }
+        let codex = ScriptedCollector(.codex, "Codex") { _, now in .sample(.codex, used: 0.3, at: now) }
+        let store = makeStore([claude, codex], clock: clock, archive: archive)
+        let publisher = RecordingPublisher()
+        store.publishers = [publisher]
+        await store.refresh()
+        clock.advance(by: 3600)
+        await store.refresh()
+        let otherReading = try #require(store.readings[.codex])
+        let otherHistory = store.trend(for: .codex)
+        #expect(store.trend(for: .claude).count == 2)
+
+        store.accountDidChange(.claude)
+
+        #expect(store.readings[.claude] == nil)
+        #expect(store.entries.map(\.id) == [.codex])
+        #expect(store.providers == [otherReading])
+        #expect(store.readings[.codex] == otherReading)
+        #expect(store.trend(for: .claude).isEmpty)
+        #expect(store.trend(for: .codex) == otherHistory)
+        #expect(store.snapshot?.providers == [otherReading])
+        #expect(publisher.published.last?.providers == [otherReading])
+        let saved = try UsageArchive.decoder.decode(UsageSnapshot.self, from: Data(contentsOf: archive))
+        #expect(saved.providers == [otherReading])
+        let historyURL = archive.deletingLastPathComponent().appending(path: "usage-history.json")
+        let history = try UsageArchive.decoder.decode(UsageHistory.self, from: Data(contentsOf: historyURL))
+        #expect(history.points(for: .claude).isEmpty)
+        #expect(history.points(for: .codex) == otherHistory)
+
+        // A failed first read for the new identity must not merge the previous identity's numbers back in.
+        claude.respond { previous, now in
+            #expect(previous == nil)
+            return ProviderUsage(id: .claude, displayName: "Claude", plan: nil, windows: [], fetchedAt: now,
+                                 problem: .unreachable("offline"))
+        }
+        await store.refresh()
+        #expect(store.readings[.claude]?.windows.isEmpty == true)
+        #expect(store.readings[.claude]?.plan == nil)
+        #expect(store.readings[.codex]?.session?.used == 0.3)
+    }
+
+    @Test func oldAccountBatchCompletingLastCannotRestoreReadingsOrTheSavedSnapshot() async throws {
+        let clock = FakeUsageClock(now: start)
+        let archive = Self.archiveURL()
+        defer { try? FileManager.default.removeItem(at: archive.deletingLastPathComponent()) }
+        let collector = GatedAccountCollector()
+        defer { collector.resumeAll(used: 0) }
+        let store = makeStore([collector], clock: clock, archive: archive)
+        let oldRefresh = Task { await store.refresh() }
+        await waitUntil { collector.calls == 1 }
+        store.accountDidChange(.claude)
+        let newRefresh = Task { await store.refresh() }
+        await waitUntil { collector.calls == 2 }
+
+        collector.resume(call: 2, used: 0.2)
+        await newRefresh.value
+        #expect(store.readings[.claude]?.session?.used == 0.2)
+        let newSnapshot = store.snapshot
+        collector.resume(call: 1, used: 0.9)
+        await oldRefresh.value
+        #expect(store.snapshot == newSnapshot)
+        #expect(store.readings[.claude]?.session?.used == 0.2)
+        let saved = try UsageArchive.decoder.decode(UsageSnapshot.self, from: Data(contentsOf: archive))
+        #expect(saved.providers.first?.session?.used == 0.2)
+        #expect(store.trend(for: .claude).map(\.used) == [0.2])
+    }
+
+    @Test func oldAccountBatchFinishingDuringNewRefreshDoesNotClearItsFlagOrFlight() async {
+        let clock = FakeUsageClock(now: start)
+        let collector = GatedAccountCollector()
+        defer { collector.resumeAll(used: 0) }
+        let store = makeStore([collector], clock: clock, archive: nil)
+        let oldRefresh = Task { await store.refresh() }
+        await waitUntil { collector.calls == 1 }
+        store.accountDidChange(.claude)
+        let newRefresh = Task { await store.refresh() }
+        await waitUntil { collector.calls == 2 }
+        #expect(store.isRefreshing)
+
+        collector.resume(call: 1, used: 0.9)
+        await oldRefresh.value
+        #expect(store.isRefreshing, "the old generation's defer must not finish the new generation's progress")
+        #expect(store.readings[.claude] == nil)
+        let joinsNewFlight = Task { await store.refresh() }
+        await settle()
+        #expect(collector.calls == 2, "the old refresh's cleanup must not detach the active replacement flight")
+        collector.resumeAll(used: 0.2)
+        await newRefresh.value
+        await joinsNewFlight.value
+        #expect(!store.isRefreshing)
+        #expect(store.readings[.claude]?.session?.used == 0.2)
+    }
+
     // MARK: - Scheduling
 
     @Test func itRefreshesAtLaunchThenEveryFiveMinutesAndNeverWhileAsleep() async {
@@ -405,6 +504,9 @@ struct UsageStoreTests {
 
         let clock = FakeUsageClock(now: start.addingTimeInterval(60))
         let store = makeStore([], clock: clock, archive: archive)
+        // This test checks restoration, not polling. An empty automatic refresh could race the
+        // separate writer below and overwrite the same history file with the restored sample.
+        store.setSectionEnabled(false)
         store.start()
         defer { store.stop() }
         #expect(store.snapshot == legacy)
@@ -422,6 +524,7 @@ struct UsageStoreTests {
         #expect(!json.contains("problemDetail"))
 
         let relaunched = makeStore([], clock: clock, archive: archive)
+        relaunched.setSectionEnabled(false)
         relaunched.start()
         defer { relaunched.stop() }
         #expect(relaunched.trend(for: .claude).last?.used == 0.7)
@@ -592,12 +695,12 @@ struct UsageStoreTests {
         #expect(UsageText.length(of: unstarted) == "5 h")
 
         #expect(UsageText.sentence(for: .sessionExpired, provider: .claude, displayName: "Claude")
-            == "The sign-in expired. Open Claude Code once and it's back.")
+            == "Reconnect this account in Altillo Settings › Usage.")
         #expect(UsageText.canRetry(.unreachable("x")) && !UsageText.canRetry(.rateLimited(retryAfter: nil)))
         let expired = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true,
                                        usage: ProviderUsage(id: .claude, displayName: "Claude", plan: nil, windows: [],
                                                             fetchedAt: now, problem: .sessionExpired))
-        #expect(UsageText.status(for: expired) == "Sign-in expired: open Claude Code once")
+        #expect(UsageText.status(for: expired) == "Reconnect in Altillo")
         let connected = UsageStore.Entry(id: .claude, displayName: "Claude", isAvailable: true,
                                          usage: .sample(.claude, used: 0.2, at: now))
         #expect(UsageText.status(for: connected) == "Connected · Max 20×")
@@ -797,6 +900,44 @@ final class ScriptedCollector: UsageCollector, @unchecked Sendable {
         }
         if hangs { try? await Task.sleep(for: .seconds(3600)) }
         return response(previous, now)
+    }
+}
+
+/// Deliberately ignores cancellation so account-switch tests can finish old and new requests in either order.
+private final class GatedAccountCollector: UsageCollector, @unchecked Sendable {
+    let providerID: UsageProviderID = .claude
+    let displayName = "Claude"
+    private let lock = NSLock()
+    private var count = 0
+    private var waiting: [Int: (Date, CheckedContinuation<ProviderUsage, Never>)] = [:]
+
+    var calls: Int { lock.withLock { count } }
+    func isAvailable() async -> Bool { true }
+    func fetch(previous: ProviderUsage?, now: Date) async -> ProviderUsage {
+        await withCheckedContinuation { continuation in
+            lock.withLock {
+                count += 1
+                waiting[count] = (now, continuation)
+            }
+        }
+    }
+
+    func resume(call: Int, used: Double) {
+        let request = lock.withLock { waiting.removeValue(forKey: call) }
+        if let (date, continuation) = request {
+            continuation.resume(returning: .sample(.claude, used: used, at: date))
+        }
+    }
+
+    func resumeAll(used: Double) {
+        let pending = lock.withLock {
+            let pending = Array(waiting.values)
+            waiting.removeAll()
+            return pending
+        }
+        for (date, continuation) in pending {
+            continuation.resume(returning: .sample(.claude, used: used, at: date))
+        }
     }
 }
 
