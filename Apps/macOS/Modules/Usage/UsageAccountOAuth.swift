@@ -219,10 +219,10 @@ struct UsageAccountTokenClient: Sendable {
             try await withCheckedThrowingContinuation { continuation in
                 let gate = UsageAccountCallbackGate(continuation)
                 cancelPending = { gate.finish(.failure($0)) }
-                // The loopback callback belongs to our HTTP listener. The no-window initializer opens
-                // the system browser; the window initializer switches to ASWebAuthenticationSession,
-                // which can leave an HTTP callback flow waiting without displaying its login page.
-                authorization = OIDAuthorizationService.present(request, externalUserAgent: OIDExternalUserAgentMac()) { response, error in
+                // This HTTP callback belongs to our listener, so open a browser rather than an
+                // ASWebAuthenticationSession that expects to own the callback.
+                let browser = UsageAccountBrowserAgent(browser: UserDefaults.standard.string(forKey: "usageSignInBrowser") ?? "system")
+                authorization = OIDAuthorizationService.present(request, externalUserAgent: browser) { response, error in
                     let payload = UsageAccountAuthorizationPayload(code: response?.authorizationCode,
                                                                     state: response?.state, error: error)
                     Task { @MainActor in
@@ -276,4 +276,37 @@ private struct UsageAccountAuthorizationPayload: @unchecked Sendable {
         self.continuation = nil
         continuation.resume(with: result)
     }
+}
+
+/// Opens the selected browser without changing macOS defaults or embedding the provider's sign-in UI.
+final class UsageAccountBrowserAgent: NSObject, OIDExternalUserAgent, @unchecked Sendable {
+    private let browser: String
+    init(browser: String) { self.browser = browser }
+
+    static func allows(_ url: URL) -> Bool {
+        url.scheme == "https" && ["claude.ai", "auth.openai.com"].contains(url.host ?? "")
+            && url.path == "/oauth/authorize" && (url.port == nil || url.port == 443)
+            && url.user == nil && url.password == nil
+    }
+
+    func present(_ request: any OIDExternalUserAgentRequest, session: any OIDExternalUserAgentSession) -> Bool {
+        MainActor.assumeIsolated {
+            guard let url = request.externalUserAgentRequestURL(), Self.allows(url) else { return false }
+            guard browser == "chrome" else { return NSWorkspace.shared.open(url) }
+            guard let app = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") else { return false }
+            let failure = UsageAccountBrowserFailure(session: session)
+            NSWorkspace.shared.open([url], withApplicationAt: app, configuration: NSWorkspace.OpenConfiguration()) { _, error in
+                if error != nil { Task { @MainActor in failure.report() } }
+            }
+            return true
+        }
+    }
+
+    func dismiss(animated: Bool, completion: @escaping @Sendable () -> Void) { completion() }
+}
+
+@MainActor private final class UsageAccountBrowserFailure {
+    private let session: any OIDExternalUserAgentSession
+    init(session: any OIDExternalUserAgentSession) { self.session = session }
+    func report() { session.failExternalUserAgentFlowWithError(UsageAccountFailure.unavailable) }
 }

@@ -1,13 +1,27 @@
 import AltilloCore
+import AppKit
 import SwiftUI
 
 /// One selected account per provider; replacing it clears the previous identity's readings and history.
 struct UsageAccountSettings: View {
     let store: UsageStore?
     @State private var manager = UsageAccountManager.shared
+    @AppStorage("usageSignInBrowser") private var browser = "system"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 9) {
+            HStack {
+                Text("Sign-in browser").font(.system(size: 11.5))
+                Spacer(minLength: 8)
+                Picker("Sign-in browser", selection: $browser) {
+                    Text("System default").tag("system")
+                    if NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") != nil {
+                        Text(verbatim: "Google Chrome").tag("chrome")
+                    }
+                }
+                .labelsHidden().frame(width: 155).controlSize(.small)
+                .disabled(manager.connecting != nil)
+            }
             ForEach([UsageProviderID.claude, .codex], id: \.self) { provider in
                 row(provider)
             }
@@ -21,7 +35,12 @@ struct UsageAccountSettings: View {
             }
         }
         .padding(.vertical, 6)
-        .task { await manager.restore() }
+        .task {
+            if browser == "chrome", NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.google.Chrome") == nil {
+                browser = "system"
+            }
+            await manager.restore()
+        }
     }
 
     private func row(_ provider: UsageProviderID) -> some View {

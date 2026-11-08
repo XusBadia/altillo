@@ -208,6 +208,16 @@ struct UsageAccountTests {
         #expect(try vault.read(.claude) == previous)
     }
 
+    @Test func browserRejectsNonProviderAndInsecureURLs() {
+        for raw in ["https://claude.ai/oauth/authorize?state=synthetic", "https://auth.openai.com/oauth/authorize"] {
+            #expect(UsageAccountBrowserAgent.allows(URL(string: raw)!))
+        }
+        for raw in ["http://claude.ai/oauth/authorize", "https://claude.ai.evil.invalid/oauth/authorize",
+                    "https://claude.ai:444/oauth/authorize", "https://claude.ai/other", "https://user@claude.ai/oauth/authorize"] {
+            #expect(!UsageAccountBrowserAgent.allows(URL(string: raw)!))
+        }
+    }
+
     private func account() -> UsageAccountRecord {
         .init(provider: .claude, label: "synthetic@example.invalid", remoteID: "test", accessToken: "old-access",
               refreshToken: "old-refresh", expiresAt: now.addingTimeInterval(-1))

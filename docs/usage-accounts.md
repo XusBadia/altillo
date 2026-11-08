@@ -50,3 +50,11 @@ Abierta la Release firmada en Ajustes › Uso de IA. Se detectó que proporciona
 ### Recuperación de un consentimiento tardío
 
 La primera autorización fue aceptada en el navegador, pero regresó cuando ya había vencido el listener local de cinco minutos; Chrome mostró conexión rechazada y no se guardó una cuenta. El plazo pasa a 30 minutos y la expiración se informa como error recuperable, separada de Cancelar. El intento puede repetirse sin tocar sesiones CLI ni sustituir una cuenta anterior hasta completar la validación. Añadida prueba de conservación de cuenta/error tras timeout: 12 tests de cuentas correctos.
+
+### Inicio cuando el usuario esté preparado
+
+Se añade «Navegador para iniciar sesión», con navegador del sistema o Google Chrome instalado. La elección solo afecta a estos accesos de Altillo; no cambia el navegador predeterminado de macOS. Un adaptador AppAuth abre directamente la aplicación elegida y solo acepta URLs HTTPS de autorización de Claude/OpenAI. Las pruebas de cuentas (13) incluyen rechazo de destinos/puertos inseguros y siguen correctas; traducción española sin pendientes.
+
+Para entregar una conexión preparada se deja Ajustes › Uso de IA visible, con «Conectar» habilitado, sin abrir antes una autorización. El intento y sus 30 minutos empiezan cuando el usuario pulse ese botón. Se retiran las pestañas caducadas del intento anterior.
+
+Comprobación interactiva de la Release firmada: Claude abre directamente en Chrome su consentimiento `user:profile`; Codex llega al selector oficial de cuenta en `auth.openai.com`. Ambos intentos de comprobación se cancelaron sin conceder permisos y se cerraron sus pestañas. Ajustes queda en Uso de IA, Google Chrome seleccionado y ambos botones Conectar disponibles. El consentimiento/canje/lectura real siguen pendientes de que el usuario inicie su conexión.

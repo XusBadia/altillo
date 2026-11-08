@@ -1,6 +1,26 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Sign-in browser": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Navegador para iniciar sesión"
+          }
+        }
+      }
+    },
+    "System default": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Predeterminado del sistema"
+          }
+        }
+      }
+    },
     "Sign-in timed out. Connect again in Altillo and finish in your browser within 30 minutes.": {
       "localizations": {
         "es": {
