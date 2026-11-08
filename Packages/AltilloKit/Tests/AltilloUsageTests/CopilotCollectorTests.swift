@@ -199,6 +199,57 @@ struct CopilotCollectorTests {
         #expect(usage.fetchedAt == referenceNow)
     }
 
+    @Test func github403RateLimitsPreserveReadingsAndBackOff() async {
+        let reset = referenceNow.addingTimeInterval(120)
+        let previous = ProviderUsage(id: .copilot, displayName: "Copilot", plan: "Pro", windows: [
+            UsageWindow(id: "premium", kind: .monthly, label: "Credits", used: 0.3,
+                        resetsAt: nil, duration: nil),
+        ], fetchedAt: referenceNow.addingTimeInterval(-900))
+        let cases: [([String: String], Date)] = [
+            (["X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "\(reset.timeIntervalSince1970)"], reset),
+            (["Retry-After": "30"], referenceNow.addingTimeInterval(30)),
+            (["Retry-After": "30", "X-RateLimit-Reset": "\(reset.timeIntervalSince1970)"],
+             referenceNow.addingTimeInterval(30)),
+            (["Retry-After": "invalid", "X-RateLimit-Reset": "\(reset.timeIntervalSince1970)"], reset),
+            (["X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "0"], referenceNow.addingTimeInterval(300)),
+            (["X-RateLimit-Remaining": "0", "X-RateLimit-Reset": "nan"], referenceNow.addingTimeInterval(300)),
+        ]
+        for (headers, until) in cases {
+            let transport = RoutedTransport([("copilot_internal/user", .response(status: 403, body: "{}",
+                                                                                 headers: headers))])
+            let collector = CopilotCollector(tokens: FixedTokens(lookup: token), transport: transport)
+            let limited = await collector.fetch(previous: previous, now: referenceNow)
+            #expect(limited.problem == .rateLimited(retryAfter: until))
+            #expect(limited.problemDetail == nil)
+            #expect(limited.windows == previous.windows)
+            #expect(limited.plan == previous.plan)
+            #expect(limited.fetchedAt == previous.fetchedAt)
+
+            let held = await collector.fetch(previous: limited, now: referenceNow.addingTimeInterval(1))
+            #expect(held == limited)
+            #expect(transport.requests.count == 1)
+        }
+    }
+
+    @Test func githubResetHeaderAloneDoesNotHideCredentialRejection() async {
+        let transport = RoutedTransport([("copilot_internal/user", .response(status: 403, body: "{}", headers: [
+            "X-RateLimit-Remaining": "50", "X-RateLimit-Reset": "\(referenceNow.addingTimeInterval(120).timeIntervalSince1970)",
+        ]))])
+        let usage = await CopilotCollector(tokens: FixedTokens(lookup: token), transport: transport)
+            .fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .sessionExpired)
+    }
+
+    @Test func github429CanUseResetHeaderWithoutRetryAfter() async {
+        let reset = referenceNow.addingTimeInterval(120)
+        let transport = RoutedTransport([("copilot_internal/user", .response(status: 429, body: "{}", headers: [
+            "X-RateLimit-Reset": "\(reset.timeIntervalSince1970)",
+        ]))])
+        let usage = await CopilotCollector(tokens: FixedTokens(lookup: token), transport: transport)
+            .fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .rateLimited(retryAfter: reset))
+    }
+
     @Test func failures() async {
         func run(_ reply: FakeTransport.Reply, lookup: CopilotTokenLookup? = nil,
                  previous: ProviderUsage? = nil) async -> ProviderUsage {

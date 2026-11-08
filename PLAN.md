@@ -356,7 +356,7 @@ Hay tres pistas: **M** (Mac), **K** (AltilloKit) e **I** (iOS). Pueden avanzar e
   - Altillo lee por sí mismo **9 proveedores**: Claude, Codex, Cursor, GitHub Copilot, Gemini (Antigravity), Grok, Z.ai, Devin y OpenCode. Usa las credenciales que ya guardan sus propias herramientas, en solo lectura y sin renovar nunca un token.
   - Verificado en vivo: Claude, Codex, Copilot (Free) y Grok (SuperGrok). Los demás muestran cómo configurarlos.
   - openusage (MIT) es solo referencia, con atribución en `ThirdPartyNotices`.
-  - Sus cambios se vigilan con `script/openusage-upstream.sh` y un workflow semanal que abre un issue ([docs/proveedores.md](docs/proveedores.md)).
+  - Las revisiones posteriores son manuales, a petición de Xus ([docs/proveedores.md](docs/proveedores.md)); no hay workflow de seguimiento ni issues automáticos.
 
 - **Ronda de feedback de la 0.2.0 (24-09-2026):**
   - El notch abierto es más alto y respira (unos 250-290 pt; el panel pasa a 780×440).

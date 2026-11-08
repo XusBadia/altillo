@@ -815,11 +815,12 @@ private struct SettingsUsageGroup: View {
                         .disabled(store.isRefreshing)
                 }
             }
-            let setUp = store?.setUpEntries ?? []
-            let notSetUp = store?.notSetUpEntries ?? []
+            UsageAccountSettings(store: store)
+            let setUp = (store?.setUpEntries ?? []).filter { $0.id != .claude && $0.id != .codex }
+            let notSetUp = (store?.notSetUpEntries ?? []).filter { $0.id != .claude && $0.id != .codex }
             if setUp.isEmpty {
                 Text(store?.hasChecked == true
-                     ? "None of the AI tools Altillo reads is set up on this Mac yet. Set one up and it shows up here."
+                     ? "Connect Claude or Codex above. Other tools appear here when set up on this Mac."
                      : "Looking for your AI tools…")
                     .settingsHint()
             } else {
@@ -835,7 +836,7 @@ private struct SettingsUsageGroup: View {
                 notSetUpList(notSetUp)
             }
             if !setUp.isEmpty || !notSetUp.isEmpty {
-                Text("Altillo reads the sign-in or key your tools already have on this Mac. It never signs in, refreshes or changes anything. To read quotas, it sends the credential only to that tool's provider.")
+                Text("Claude and Codex connect directly to Altillo. Their sessions stay in this Mac's Keychain and renew automatically. Other providers use their local sign-in or key. Credentials go only to the corresponding provider.")
                     .settingsHint()
                 Link("See privacy details", destination: Self.privacy)
                     .font(.system(size: 11.5, weight: .medium))

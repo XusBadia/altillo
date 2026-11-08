@@ -254,10 +254,12 @@ See the [safe uninstall guide](docs/desinstalacion-segura.md).
 - **Altillo has no analytics or telemetry service.** Your files, calendar,
   clipboard, camera image, agent sessions and Ask conversations are not sent
   to Altillo.
-- **Usage checks contact each provider directly.** Altillo reads the sign-in
-  or API key that the provider's own tool already stores on your Mac, then
-  presents that credential only to the same provider to request your quota.
-  It does not refresh, rewrite or retain a copy of the credential.
+- **Usage checks contact each provider directly.** In the development build,
+  connect Claude and Codex in Settings: Altillo stores and renews its own
+  authorization in this Mac’s private Keychain, with one selected account per
+  provider. Disconnect removes that local authorization. Other providers keep
+  their documented local credential sources, which Altillo never refreshes or
+  rewrites. No credential goes through an Altillo server.
 - **Ask is on-device by default.** If you allow web search for one question or
   in Settings, Altillo sends a short search derived from that question to the
   search, weather or reference service named in the privacy policy.
@@ -310,7 +312,9 @@ since Altillo is MIT-licensed.
 Altillo has no service or API key of its own, and this repository never
 contains secrets: signing material and local config are git-ignored, a
 pre-commit hook and CI scan every commit with gitleaks, and provider
-credentials are read from your own Keychain or the provider tool's config at
-runtime. They are used only to request usage from that same provider. See
+Claude and Codex usage authorizations are stored and renewed in Altillo’s
+private Keychain; other providers use their documented local credential
+sources. Credentials are presented only to their own provider for sign-in,
+renewal, identity and usage requests. See
 [CONTRIBUTING.md](CONTRIBUTING.md#secrets) and the [privacy
 policy](https://altillo.app/privacy/).

@@ -74,6 +74,105 @@ struct CodexMapperTests {
 struct CodexCollectorTests {
     let auth = CodexAuth(accessToken: "codex-token", accountID: "acct-1")
 
+    @Test func appOwnedAccountReadsDirectlyWithoutAnyCLIAndUsesSelectedAccountHeader() async throws {
+        let transport = FakeTransport([.response(status: 200, body: Fixtures.codexWham)])
+        let own = CodexCollector(accountAuth: { now in
+            #expect(now == referenceNow)
+            return CodexAuth(accessToken: "altillo-codex-token", accountID: "altillo-account")
+        }, availability: { true }, transport: transport)
+        #expect(await own.isAvailable())
+        #expect(own.setupHint == "Connect your Codex account in Altillo Settings")
+        #expect(await own.fetch(previous: nil, now: referenceNow).problem == nil)
+        let request = try #require(transport.requests.first)
+        #expect(request.url == CodexCollector.whamURL)
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer altillo-codex-token")
+        #expect(request.value(forHTTPHeaderField: "ChatGPT-Account-Id") == "altillo-account")
+        let disconnected = CodexCollector(accountAuth: { _ in nil }, availability: { false })
+        #expect(await !disconnected.isAvailable())
+    }
+
+    @Test func appOwnedRefreshFailuresAreTypedAndDoNotLeakCredentials() async {
+        let transport = FakeTransport()
+        for (error, expected) in [(UsageAuthorizationError.sessionExpired, UsageProblem.sessionExpired),
+                                  (.accessDenied, .accessDenied)] {
+            let own = CodexCollector(accountAuth: { _ in throw error }, availability: { true }, transport: transport)
+            let usage = await own.fetch(previous: nil, now: referenceNow)
+            #expect(usage.problem == expected)
+            #expect(usage.problemDetail?.contains("Altillo") == true)
+        }
+        struct SecretBearingError: Error { let token = "do-not-expose-this-token" }
+        let failed = CodexCollector(accountAuth: { _ in throw SecretBearingError() }, availability: { true },
+                                    transport: transport)
+        let usage = await failed.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .unreachable("Account authorization failed"))
+        #expect(usage.problemDetail == nil)
+        #expect(transport.requests.isEmpty)
+    }
+
+    @Test func disconnectedOwnAccountDoesNotFallBackToTheCLI() async {
+        let transport = FakeTransport()
+        let own = CodexCollector(accountAuth: { _ in nil }, availability: { false }, transport: transport)
+        let usage = await own.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .notSignedIn)
+        #expect(usage.problemDetail == "Connect your Codex account in Altillo Settings.")
+        #expect(transport.requests.isEmpty)
+    }
+
+    @Test func appOwnedHTTPRejectionPointsToAltilloReconnect() async {
+        let own = CodexCollector(accountAuth: { _ in auth }, availability: { true },
+                                 transport: FakeTransport([.response(status: 401, body: "")]))
+        let usage = await own.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .sessionExpired)
+        #expect(usage.problemDetail == "Reconnect your Codex account in Altillo Settings.")
+    }
+
+    @Test func ownAccount401RefreshesAndUsesRotatedTokenOnlyOnce() async {
+        let token = Locked(auth)
+        let refreshes = Locked(0)
+        let transport = FakeTransport([.response(status: 401, body: ""),
+                                       .response(status: 200, body: Fixtures.codexWham)])
+        let own = CodexCollector(accountAuth: { _ in token.withLock { $0 } }, availability: { true },
+                                 transport: transport, refreshAfterUnauthorized: {
+            refreshes.withLock { $0 += 1 }
+            token.withLock { $0.accessToken = "rotated-codex-token" }
+        })
+        #expect(await own.fetch(previous: nil, now: referenceNow).problem == nil)
+        #expect(refreshes.withLock { $0 } == 1)
+        #expect(transport.requests.map { $0.value(forHTTPHeaderField: "Authorization") }
+                == ["Bearer codex-token", "Bearer rotated-codex-token"])
+    }
+
+    @Test func ownAccountRejectionDoesNotRefreshForeverOrRefreshOn403() async {
+        for status in [401, 403] {
+            let refreshes = Locked(0)
+            let transport = FakeTransport([.response(status: status, body: ""),
+                                           .response(status: 401, body: "")])
+            let own = CodexCollector(accountAuth: { _ in auth }, availability: { true }, transport: transport,
+                                     refreshAfterUnauthorized: { refreshes.withLock { $0 += 1 } })
+            #expect(await own.fetch(previous: nil, now: referenceNow).problem == .sessionExpired)
+            #expect(refreshes.withLock { $0 } == (status == 401 ? 1 : 0))
+            #expect(transport.requests.count == (status == 401 ? 2 : 1))
+        }
+    }
+
+    @Test func ownAccountFailed401RefreshSeparatesExpiredAndOffline() async {
+        for (error, expected) in [(UsageAuthorizationError.sessionExpired, UsageProblem.sessionExpired),
+                                  (.accessDenied, .accessDenied)] {
+            let transport = FakeTransport([.response(status: 401, body: "")])
+            let own = CodexCollector(accountAuth: { _ in auth }, availability: { true }, transport: transport,
+                                     refreshAfterUnauthorized: { throw error })
+            #expect(await own.fetch(previous: nil, now: referenceNow).problem == expected)
+            #expect(transport.requests.count == 1)
+        }
+        let transport = FakeTransport([.response(status: 401, body: "")])
+        let own = CodexCollector(accountAuth: { _ in auth }, availability: { true }, transport: transport,
+                                 refreshAfterUnauthorized: { throw URLError(.notConnectedToInternet) })
+        let usage = await own.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == .unreachable("Account authorization temporarily unavailable"))
+        #expect(usage.problemDetail == nil)
+        #expect(transport.requests.count == 1)
+    }
+
     @Test func appServerWinsAndSkipsHTTP() async {
         let transport = FakeTransport()
         let collector = CodexCollector(appServer: FakeCodexReader(result: .success(Fixtures.codexAppServerFull)),

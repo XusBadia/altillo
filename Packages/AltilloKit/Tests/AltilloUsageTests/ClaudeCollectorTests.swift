@@ -170,6 +170,109 @@ struct ClaudeCollectorTests {
                         userAgent: { "claude-code/2.1.280" })
     }
 
+    @Test func appOwnedCredentialsAreAvailableWithoutClaudeCodeAndUseOnlyInjectedToken() async throws {
+        var credential = valid
+        credential.accessToken = "altillo-owned-claude-token"
+        let transport = FakeTransport([.response(status: 200, body: Fixtures.claudeUsage)])
+        let own = ClaudeCollector(credentials: FixedCredentials(lookup: .found(credential)), transport: transport,
+                                  availability: { true }, usesOwnAccount: true)
+        #expect(await own.isAvailable())
+        #expect(own.setupHint == "Connect your Claude account in Altillo Settings")
+        #expect(await own.fetch(previous: nil, now: referenceNow).problem == nil)
+        let request = try #require(transport.requests.first)
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer altillo-owned-claude-token")
+        #expect(request.value(forHTTPHeaderField: "User-Agent") == "Altillo")
+        let disconnected = ClaudeCollector(credentials: FixedCredentials(lookup: .found(credential)),
+                                           availability: { false }, usesOwnAccount: true)
+        #expect(await !disconnected.isAvailable(), "own account availability overrides local CLI installation")
+    }
+
+    @Test func appOwnedCredentialFailuresPointToAltilloAndNeverTheCLI() async {
+        for lookup in [ClaudeCredentialLookup.notFound, .accessDenied] {
+            let own = ClaudeCollector(credentials: FixedCredentials(lookup: lookup), transport: FakeTransport(),
+                                      availability: { true }, usesOwnAccount: true)
+            let usage = await own.fetch(previous: nil, now: referenceNow)
+            #expect(usage.problemDetail?.contains("Altillo") == true)
+            #expect(usage.problemDetail?.contains("Claude Code") == false)
+        }
+        var expired = valid
+        expired.expiresAt = referenceNow
+        for transport in [FakeTransport(), FakeTransport([.response(status: 401, body: "")])] {
+            let own = ClaudeCollector(credentials: FixedCredentials(lookup: .found(expired)), transport: transport,
+                                      availability: { true }, usesOwnAccount: true)
+            let usage = await own.fetch(previous: nil, now: referenceNow)
+            #expect(usage.problem == .sessionExpired)
+            #expect(usage.problemDetail == "Reconnect your Claude account in Altillo Settings.")
+            #expect(transport.requests.isEmpty)
+        }
+        let unauthorized = ClaudeCollector(credentials: FixedCredentials(lookup: .found(valid)),
+                                           transport: FakeTransport([.response(status: 401, body: "")]),
+                                           userAgent: { "Altillo" }, availability: { true }, usesOwnAccount: true)
+        #expect(await unauthorized.fetch(previous: nil, now: referenceNow).problemDetail
+                == "Reconnect your Claude account in Altillo Settings.")
+    }
+
+    @Test func ownAccount401RefreshesOnceAndReReadsTheRotatedCredential() async throws {
+        let credentials = RotatingClaudeCredentials(valid)
+        let refreshes = Locked(0)
+        let transport = FakeTransport([.response(status: 401, body: ""),
+                                       .response(status: 200, body: Fixtures.claudeUsage)])
+        let own = ClaudeCollector(credentials: credentials, transport: transport,
+                                  availability: { true }, usesOwnAccount: true, refreshAfterUnauthorized: {
+            refreshes.withLock { $0 += 1 }
+            credentials.rotate(to: "rotated-token")
+        })
+        let usage = await own.fetch(previous: nil, now: referenceNow)
+        #expect(usage.problem == nil)
+        #expect(refreshes.withLock { $0 } == 1)
+        #expect(transport.requests.map { $0.value(forHTTPHeaderField: "Authorization") }
+                == ["Bearer sk-ant-oat01-test", "Bearer rotated-token"])
+    }
+
+    @Test func ownAccountDoesNotLoopOnRejectedRefreshedTokenOrRefreshForbidden() async {
+        for status in [401, 403] {
+            let refreshes = Locked(0)
+            let transport = FakeTransport([.response(status: status, body: ""),
+                                           .response(status: 401, body: "")])
+            let own = ClaudeCollector(credentials: FixedCredentials(lookup: .found(valid)), transport: transport,
+                                      availability: { true }, usesOwnAccount: true, refreshAfterUnauthorized: {
+                refreshes.withLock { $0 += 1 }
+            })
+            let usage = await own.fetch(previous: nil, now: referenceNow)
+            #expect(usage.problem == .sessionExpired)
+            #expect(refreshes.withLock { $0 } == (status == 401 ? 1 : 0))
+            #expect(transport.requests.count == (status == 401 ? 2 : 1))
+        }
+    }
+
+    @Test func ownAccountRefreshNetworkFailureKeepsNumbersAndDoesNotDemandReconnect() async {
+        let previous = ProviderUsage(id: .claude, displayName: "Claude", plan: "Pro",
+                                     windows: [UsageWindow(id: "weekly", kind: .weekly, label: "Week", used: 0.4,
+                                                           resetsAt: nil, duration: nil)], fetchedAt: referenceNow)
+        let transport = FakeTransport([.response(status: 401, body: "")])
+        let own = ClaudeCollector(credentials: FixedCredentials(lookup: .found(valid)), transport: transport,
+                                  availability: { true }, usesOwnAccount: true, refreshAfterUnauthorized: {
+            throw URLError(.notConnectedToInternet)
+        })
+        let usage = await own.fetch(previous: previous, now: referenceNow.addingTimeInterval(100))
+        #expect(usage.problem == .unreachable("Account authorization temporarily unavailable"))
+        #expect(usage.windows == previous.windows)
+        #expect(usage.fetchedAt == previous.fetchedAt)
+        #expect(usage.problemDetail == nil)
+        #expect(transport.requests.count == 1)
+    }
+
+    @Test func ownCredentialLookupDistinguishesRevokedFromTransientRefreshFailure() async {
+        let transport = FakeTransport()
+        for (lookup, problem) in [(ClaudeCredentialLookup.sessionExpired, UsageProblem.sessionExpired),
+                                   (.temporarilyUnavailable, .unreachable("Account authorization temporarily unavailable"))] {
+            let own = ClaudeCollector(credentials: FixedCredentials(lookup: lookup), transport: transport,
+                                      availability: { true }, usesOwnAccount: true)
+            #expect(await own.fetch(previous: nil, now: referenceNow).problem == problem)
+        }
+        #expect(transport.requests.isEmpty)
+    }
+
     @Test func readsUsageWithTheExpectedRequest() async throws {
         let transport = FakeTransport([.response(status: 200, body: Fixtures.claudeUsage)])
         let usage = await collector(.found(valid), transport).fetch(previous: nil, now: referenceNow)
@@ -272,5 +375,23 @@ struct ClaudeCollectorTests {
         let changed = await collector(.found(valid), FakeTransport([.response(status: 200, body: "{}")]))
             .fetch(previous: nil, now: referenceNow)
         if case .unexpectedResponse = changed.problem {} else { Issue.record("expected unexpectedResponse") }
+    }
+}
+
+private final class RotatingClaudeCredentials: ClaudeCredentialReading, Sendable {
+    private let credential: Locked<ClaudeCredentials>
+    init(_ credential: ClaudeCredentials) { self.credential = Locked(credential) }
+    func read(now: Date) async -> ClaudeCredentialLookup { .found(credential.withLock { $0 }) }
+    func rotate(to token: String) { credential.withLock { $0.accessToken = token } }
+}
+
+struct ClaudeLivePlanTests {
+    @Test func organizationProfileUsesCurrentPlanNames() {
+        #expect(ClaudeUsageMapper.livePlan(subscriptionType: "claude_pro", rateLimitTier: nil) == "Pro")
+        #expect(ClaudeUsageMapper.livePlan(subscriptionType: "claude_max", rateLimitTier: "default_claude_max_5x") == "Max")
+        #expect(ClaudeUsageMapper.livePlan(subscriptionType: "claude_max", rateLimitTier: "default_claude_max_20x") == "Ultra")
+        #expect(ClaudeUsageMapper.livePlan(subscriptionType: "claude_ultra", rateLimitTier: nil) == "Ultra")
+        #expect(ClaudeUsageMapper.livePlan(subscriptionType: "claude_enterprise", rateLimitTier: nil) == "Enterprise")
+        #expect(ClaudeUsageMapper.livePlan(subscriptionType: "claude_", rateLimitTier: nil) == nil)
     }
 }

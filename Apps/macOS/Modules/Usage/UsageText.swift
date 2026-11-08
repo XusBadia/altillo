@@ -82,8 +82,10 @@ enum UsageText {
         let tool = toolName(for: id, displayName: displayName)
         switch problem {
         case .notSignedIn:
+            if id == .claude || id == .codex { return String(localized: "Connect this account in Altillo Settings › Usage.") }
             return String(localized: "Sign in to \(tool) on this Mac and it shows up here.")
         case .sessionExpired:
+            if id == .claude || id == .codex { return String(localized: "Reconnect this account in Altillo Settings › Usage.") }
             return String(localized: "The sign-in expired. Open \(tool) once and it's back.")
         case let .rateLimited(retryAfter):
             if let retryAfter, retryAfter > now {
@@ -130,6 +132,7 @@ enum UsageText {
         if let problem = usage.problem {
             switch problem {
             case .sessionExpired:
+                if entry.id == .claude || entry.id == .codex { return String(localized: "Reconnect in Altillo") }
                 return String(localized: "Sign-in expired: open \(toolName(for: entry.id, displayName: entry.displayName)) once")
             case .notSignedIn:
                 return String(localized: "Not signed in on this Mac")
@@ -150,8 +153,8 @@ extension UsageText {
     /// it's the fallback for any provider not listed here. Markdown backticks render as code in Settings.
     static func setupHint(for id: UsageProviderID, fallback: String) -> String {
         switch id.rawValue {
-        case "claude": String(localized: "Sign in to Claude Code on this Mac")
-        case "codex": String(localized: "Sign in to the Codex CLI on this Mac")
+        case "claude": String(localized: "Connect Claude in Altillo")
+        case "codex": String(localized: "Connect Codex in Altillo")
         case "cursor": String(localized: "Sign in to Cursor on this Mac")
         case "copilot": String(localized: "Sign in to GitHub Copilot in your editor, or run `gh auth login`")
         case "gemini": String(localized: "Open Antigravity or sign in with `agy` on this Mac")

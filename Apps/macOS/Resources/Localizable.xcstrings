@@ -1,6 +1,302 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Connect accounts or set up the AI tools you use on this Mac (Claude Code, Codex, Cursor…) and their limits show up here.": {
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta cuentas o configura las herramientas de IA que usas en este Mac (Claude Code, Codex, Cursor…) y sus límites aparecerán aquí."
+          }
+        }
+      }
+    },
+    "Account options": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opciones de la cuenta"
+          }
+        }
+      }
+    },
+    "Another account is already connecting.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya se está conectando otra cuenta."
+          }
+        }
+      }
+    },
+    "Connect Claude in Altillo": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Claude en Altillo"
+          }
+        }
+      }
+    },
+    "Connect Codex in Altillo": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Codex en Altillo"
+          }
+        }
+      }
+    },
+    "Connect Claude or Codex here. Other providers appear when their tools are set up on this Mac.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Claude o Codex aquí. Los demás proveedores aparecen cuando sus herramientas están configuradas en este Mac."
+          }
+        }
+      }
+    },
+    "Connect your accounts to see limits. Agent tools are detected locally.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta tus cuentas para ver los límites. Las herramientas de agentes se detectan en el Mac."
+          }
+        }
+      }
+    },
+    "Connect in your browser. Altillo keeps its own session in this Mac’s Keychain; your CLI sessions stay separate.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta desde tu navegador. Altillo guarda su propia sesión en el llavero de este Mac; las sesiones del CLI son independientes."
+          }
+        }
+      }
+    },
+    "Connect this account in Altillo Settings › Usage.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta esta cuenta en Ajustes de Altillo › Uso."
+          }
+        }
+      }
+    },
+    "Connect your account": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta tu cuenta"
+          }
+        }
+      }
+    },
+    "Connect…": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar…"
+          }
+        }
+      }
+    },
+    "Open usage dashboard": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir panel de uso"
+          }
+        }
+      }
+    },
+    "Port 1455 is in use. Finish the other Codex sign-in and try again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El puerto 1455 está ocupado. Termina el otro inicio de sesión de Codex y vuelve a intentarlo."
+          }
+        }
+      }
+    },
+    "Reconnect in Altillo": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a conectar en Altillo"
+          }
+        }
+      }
+    },
+    "Reconnect this account in Altillo Settings › Usage.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a conectar esta cuenta en Ajustes de Altillo › Uso."
+          }
+        }
+      }
+    },
+    "Reconnect this account in Altillo Settings.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a conectar esta cuenta en Ajustes de Altillo."
+          }
+        }
+      }
+    },
+    "Reconnect…": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Volver a conectar…"
+          }
+        }
+      }
+    },
+    "Sign-in cancelled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio de sesión cancelado."
+          }
+        }
+      }
+    },
+    "The account could not be saved in this Mac’s private Keychain. Try again when the Mac is unlocked.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido guardar la cuenta en el llavero privado de este Mac. Vuelve a intentarlo con el Mac desbloqueado."
+          }
+        }
+      }
+    },
+    "The provider could not be reached. Try again later.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha podido contactar con el proveedor. Vuelve a intentarlo más tarde."
+          }
+        }
+      }
+    },
+    "The provider is temporarily unavailable (HTTP %lld). Try again later.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor no está disponible temporalmente (HTTP %lld). Vuelve a intentarlo más tarde."
+          }
+        }
+      }
+    },
+    "The provider returned an unexpected sign-in response.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El proveedor ha devuelto una respuesta de inicio de sesión inesperada."
+          }
+        }
+      }
+    },
+    "Their limits show in Usage, and beside the notch when they run high.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sus límites aparecen en Uso y junto al notch cuando están cerca de agotarse."
+          }
+        }
+      }
+    },
+    "This provider does not support account sign-in here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este proveedor no admite conectar cuentas aquí."
+          }
+        }
+      }
+    },
+    "Connect Claude or Codex above. Other tools appear here when set up on this Mac.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta Claude o Codex arriba. Las demás herramientas aparecen aquí cuando están configuradas en este Mac."
+          }
+        }
+      }
+    },
+    "Claude and Codex connect directly to Altillo. Their sessions stay in this Mac's Keychain and renew automatically. Other providers use their local sign-in or key. Credentials go only to the corresponding provider.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude y Codex se conectan directamente a Altillo. Sus sesiones se guardan en el llavero de este Mac y se renuevan automáticamente. Los demás proveedores usan su sesión local o clave. Las credenciales solo se envían al proveedor correspondiente."
+          }
+        }
+      }
+    },
+    "Connect accounts or set up the AI tools you use on this Mac. Their limits will show up here.": {
+      "extractionState": "manual",
+      "localizations": {
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conecta cuentas o configura las herramientas de IA que usas en este Mac. Sus límites aparecerán aquí."
+          }
+        }
+      }
+    },
     "The attachment couldn't be saved. Choose another location and try again.": {
       "localizations": {
         "en": {

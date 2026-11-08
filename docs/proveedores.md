@@ -1,88 +1,37 @@
-# Proveedores de uso de IA: seguimiento de openusage
+# Proveedores de uso de IA
 
-Altillo es independiente: nunca lee datos de otra app (ni de OpenUsage ni de ai-limits). Cada proveedor de uso
-en `Packages/AltilloKit/Sources/AltilloUsage/` está reimplementado desde cero — credenciales propias, requests
-propias, mapeo propio. [openusage](https://github.com/robinebers/openusage) (MIT, © Robin Ebers) se usa solo
-como **referencia**: para saber qué endpoint llamar, dónde vive la credencial y cómo cambia la forma de la
-respuesta. Este documento lleva la cuenta de qué fichero de Altillo está basado en qué fichero de openusage, y
-en qué commit se revisó por última vez, para poder detectar cuándo openusage arregla algo (un endpoint que
-cambió, un caso límite en el mapeo) que Altillo debería copiar a mano.
+Altillo consulta directamente los servicios de cada proveedor. No necesita una instalación de OpenUsage ni de ai-limits, ni lee sus datos o APIs. Parte de los mappers y reglas se adaptó de [OpenUsage](https://github.com/robinebers/openusage) (MIT, © 2026 Robin Ebers); el JSON-RPC histórico de Codex procede de [ai-limits](https://github.com/XusBadia/ai-limits). La procedencia y las licencias se conservan en [ThirdPartyNotices](../ThirdPartyNotices/README.md).
 
-El seguimiento automático vive en [`script/openusage-upstream.sh`](../script/openusage-upstream.sh) + el
-manifiesto [`script/openusage-upstream.json`](../script/openusage-upstream.json), y corre cada semana en
-[`.github/workflows/openusage-upstream.yml`](../.github/workflows/openusage-upstream.yml) (además de a mano con
-`workflow_dispatch`). Cuando detecta cambios abre o actualiza un único issue "Upstream openusage: cambios en
-proveedores" con la etiqueta `upstream`.
+La revisión de cambios es **manual**, cuando Xus lo solicite. No hay workflow programado, manifiesto de seguimiento ni creación automática de issues. Las referencias de este documento permiten revisar los contratos y mantener la atribución del código adaptado.
 
-Ver también [`ThirdPartyNotices/README.md`](../ThirdPartyNotices/README.md), que es la fuente legal de qué
-código se adaptó de dónde; esta tabla es la vista operativa (qué endpoint, qué credencial, qué revisar).
+## Alcance
 
-## Alcance desde el 26 de octubre de 2026
+Uso de IA muestra cuotas comunicadas por el proveedor, fechas de reinicio y antigüedad de la lectura. No convierte gasto en cuota ni muestra saldos monetarios, tokens o predicciones. OpenRouter está fuera del catálogo por ofrecer únicamente gasto/créditos. Una respuesta ausente o malformada no equivale a cero; los fallos conservan las últimas cifras junto con su fecha y problema.
 
-Uso de IA muestra únicamente cuotas comunicadas por la API del proveedor, sus fechas de reinicio y la antigüedad de la lectura. Se retiran saldos monetarios, créditos, contadores de tokens y conversiones de gasto en cuota, junto con las peticiones exclusivas de facturación. OpenRouter se retira del catálogo porque su integración solo ofrecía créditos y límites de gasto.
+## Claude y Codex: cuentas de Altillo
 
-No hay predicciones de agotamiento ni marcador de ritmo. Los avisos responden a umbrales de consumo observados, límite alcanzado y reposición. Una respuesta ausente o malformada no equivale a cero. Los archivos de uso v1 se descartan al actualizar: pueden contener ventanas calculadas desde gasto; el primer refresh reconstruye un snapshot v2 solo de cuotas. El historial también comienza de nuevo en v2 para no mezclar cuotas con porcentajes antiguos derivados de gasto.
+El flujo en desarrollo conecta una cuenta seleccionada por proveedor desde Ajustes › Secciones › Uso de IA. Conectar abre el navegador del sistema; Reconectar sustituye esa autorización y Desconectar elimina la credencial local. Altillo guarda y renueva su propia sesión en el Keychain privado de este Mac. Estos dos collectors dejan de leer las credenciales CLI y de lanzar `codex app-server` para consultar cuotas. No se modifica la sesión de Claude Code, Codex ni la detección de agentes/hooks.
 
-## Claude
-
-| | |
+| Proveedor | Credenciales y peticiones |
 |---|---|
-| Collector de Altillo | [`ClaudeCollector.swift`](../Packages/AltilloKit/Sources/AltilloUsage/ClaudeCollector.swift), [`ClaudeCredentials.swift`](../Packages/AltilloKit/Sources/AltilloUsage/ClaudeCredentials.swift) |
-| Rutas de openusage en que se basa | `Sources/OpenUsage/Providers/Claude/ClaudeUsageMapper.swift` (ventanas, `limits[]` con `weekly_scoped`, formato del plan), `Sources/OpenUsage/Providers/Claude/ClaudeAuthStore.swift` (orden de búsqueda, sufijo del servicio de llavero con `CLAUDE_CONFIG_DIR`, fallback hex) |
-| Credenciales | Llavero `Claude Code-credentials` primero (vía `/usr/bin/security find-generic-password -w`, sin prompt porque el ACL del item confía en ese binario), luego `${CLAUDE_CONFIG_DIR:-~/.claude}/.credentials.json`. Solo lectura: Altillo nunca refresca ni reescribe el token (el refresh token rota; refrescarlo aquí cerraría la sesión de Claude Code) |
-| Endpoint | `GET https://api.anthropic.com/api/oauth/usage`, cabeceras `Authorization: Bearer <token>`, `anthropic-beta: oauth-2025-04-20`, `User-Agent: claude-code/<versión instalada>` |
-| Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
+| Claude | OAuth con PKCE y scope `user:profile`. Autoriza en `claude.ai`, canjea y renueva en `platform.claude.com`; perfil y cuota en `api.anthropic.com/api/oauth/profile` y `/api/oauth/usage`. El perfil proporciona identidad, organización y plan. |
+| Codex / ChatGPT | OAuth con PKCE y scopes `openid profile email offline_access` en `auth.openai.com`. Cuota en `chatgpt.com/backend-api/wham/usage`, con bearer e identificador de cuenta. Callback local en puerto 1455; si está ocupado, se informa para terminar el otro inicio de sesión y reintentar. |
 
-## Codex
+La revisión manual de estos contratos usa [OpenUsage v0.8.0-beta.5](https://github.com/robinebers/openusage/releases/tag/v0.8.0-beta.5), commit `f7e38d7608da061e609e6d0c8285531e56c2f950` (8 noviembre 2026): `Services/BrowserProviderLogins.swift`, `Services/OAuthLoginSupport.swift`, `Providers/AccountProviderRuntime.swift` y los clientes/mappers Claude y Codex. Se mantienen los endpoints de cuota anteriores: el cambio independiza la autorización, no demuestra una precisión mayor. Son flujos compatibles con clientes instalados de los proveedores, no una garantía de APIs públicas estables para terceros. Véase [diseño, privacidad y validación](usage-accounts.md).
 
-| | |
-|---|---|
-| Collector de Altillo | [`CodexCollector.swift`](../Packages/AltilloKit/Sources/AltilloUsage/CodexCollector.swift) (el JSON-RPC de `app-server` en [`CodexAppServer.swift`](../Packages/AltilloKit/Sources/AltilloUsage/CodexAppServer.swift) viene de [ai-limits](https://github.com/XusBadia/ai-limits), no de openusage — no está en este seguimiento) |
-| Rutas de openusage en que se basa | `Sources/OpenUsage/Providers/Codex/CodexUsageMapper.swift` (clasificación de ventanas por duración, nombre del plan, mapeo de `wham/usage`) |
-| Credenciales | Primero `codex app-server --listen stdio://` (JSON-RPC, `account/rateLimits/read`), que usa el propio token de Codex CLI siempre fresco. Si no hay binario `codex`, fallback HTTP con el token de `$CODEX_HOME/auth.json` (o `~/.codex/auth.json`): `tokens.access_token` + `tokens.account_id`. Solo lectura en ambos casos |
-| Endpoint | Fallback: `GET https://chatgpt.com/backend-api/wham/usage`, cabeceras `Authorization: Bearer <token>`, `ChatGPT-Account-Id: <account_id>` |
-| Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
+## Otros proveedores
 
-## Núcleo compartido: alertas
+Cursor, GitHub Copilot, Gemini/Antigravity, Grok, Z.ai, Devin y OpenCode mantienen sus fuentes locales actuales: sesión del editor/CLI o clave API del proveedor. Altillo las lee sin renovarlas ni sobrescribirlas. Cada collector presenta una pista de configuración. No se importa automáticamente ninguna de estas credenciales al nuevo almacén OAuth.
 
-No es un proveedor, pero todos los collectors dependen de esta lógica y también viene de openusage, así que se
-sigue igual.
+La clasificación de errores de Copilot distingue un `403` de rate limit (`X-RateLimit-Remaining: 0` o `Retry-After`) de un rechazo real. La espera usa `Retry-After`, después `X-RateLimit-Reset` futuro y, si faltan, un plazo de seguridad; conserva las cifras previas sin pedir otra autenticación.
 
-| | |
-|---|---|
-| Ficheros de Altillo | [`AltilloCore/Usage.swift`](../Packages/AltilloKit/Sources/AltilloCore/Usage.swift) (`UsagePace`), [`AltilloCore/UsageAlerts.swift`](../Packages/AltilloKit/Sources/AltilloCore/UsageAlerts.swift) |
-| Rutas de openusage en que se basa | `Sources/OpenUsage/Support/PaceNotificationLogic.swift` (tolerancia de jitter en el reset), `Sources/OpenUsageMobileCore/MobileQuotaNotifications.swift` → `MobileQuotaNotificationEvaluator` (umbrales, límite alcanzado, una vez por ventana, solo el umbral más alto cruzado) |
-| Revisado contra upstream | `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (2026-09-23) |
+## Referencias técnicas anteriores
 
-## Proveedores pendientes
+Los contratos de otros proveedores y las reglas de alertas se revisaron contra `4ce788775e0cb3ec779d353b2ac9f9d7e8765bb4` (23 septiembre 2026). Los mappers iniciales y las fuentes locales se documentan con sus commits en los comentarios de cada collector y en ThirdPartyNotices. La proyección `UsagePace` se retiró el 26 de octubre; las alertas actuales responden a umbrales observados, límite alcanzado y reposición.
 
-Cursor, Copilot, OpenRouter, Z.ai, Grok, Gemini/Antigravity, Devin y OpenCode se están escribiendo ahora mismo
-en `Packages/AltilloKit/Sources/AltilloUsage/` (otro trabajo en curso; no tocar esos ficheros desde aquí).
-Cuando un collector nuevo aterrice, añádele una entrada en `script/openusage-upstream.json` y una fila en este
-documento siguiendo el mismo formato — ver "Cómo actualizar un proveedor" más abajo, paso 0.
+## Revisión manual de un proveedor
 
-## Cómo actualizar un proveedor
-
-0. **Proveedor nuevo:** añade una entrada en [`script/openusage-upstream.json`](../script/openusage-upstream.json)
-   (`altillo_files`, `upstream_paths` en el fork de openusage, `last_reviewed_sha` = el HEAD actual de
-   `robinebers/openusage`) y una fila en este documento. A partir de ahí sigue el seguimiento igual que Claude
-   o Codex.
-1. **Detectar el cambio:** `script/openusage-upstream.sh <proveedor>` (o sin argumento, para todos) imprime los
-   commits y ficheros de openusage que cambiaron desde la última revisión, con enlaces. También corre solo cada
-   semana y abre/actualiza el issue con la etiqueta `upstream` — normalmente se entera ahí primero.
-2. **Leer el cambio:** abre los commits enlazados en GitHub, o mira el fichero en el fork local
-   (`~/Documents/GitHub/openusage`, remoto `origin` = `robinebers/openusage`). openusage es solo referencia:
-   nunca se copia ni se importa su código, así que hay que entender qué cambió (endpoint nuevo, campo que
-   cambió de forma, caso límite corregido) y decidir si Altillo necesita el mismo arreglo.
-3. **Portar el cambio a mano** en el fichero de Altillo correspondiente (columna "Collector de Altillo" de la
-   tabla de arriba), con el mismo estilo defensivo que ya tiene (`UsageParsing`, fallos que degradan a
-   `previous` en vez de tirar la sesión).
-4. **Tests:** añade o actualiza un caso en `Packages/AltilloKit/Tests/AltilloUsageTests/` (p. ej.
-   [`ClaudeCollectorTests.swift`](../Packages/AltilloKit/Tests/AltilloUsageTests/ClaudeCollectorTests.swift),
-   [`CodexCollectorTests.swift`](../Packages/AltilloKit/Tests/AltilloUsageTests/CodexCollectorTests.swift)) con
-   una respuesta fija que reproduzca el caso nuevo. `swift test` en `Packages/AltilloKit`.
-5. **Actualiza este documento:** si cambió qué se lee o de dónde, ajusta la fila del proveedor.
-6. **Marca como revisado:** `script/openusage-upstream.sh --mark-reviewed <proveedor>` (o `all` si revisaste
-   varios a la vez) pone `last_reviewed_sha` al HEAD actual de openusage. Commitea el manifiesto junto con el
-   arreglo y, si aplica, la fila nueva/actualizada de
-   [`ThirdPartyNotices/README.md`](../ThirdPartyNotices/README.md).
+1. Consultar sus notas y fuentes oficiales y, cuando resulte útil, los cambios de la implementación de referencia. Registrar la versión y el contrato concreto que afecta a Altillo.
+2. Adaptar el cambio en el collector correspondiente sin importar datos ni depender de la ejecución de otra app de uso. Conservar las atribuciones cuando se adapte código.
+3. Añadir fixtures que reproduzcan el contrato y sus fallos, y ejecutar los tests de AltilloUsage. Las pruebas sintéticas no sustituyen un login o una renovación real.
+4. Actualizar esta guía y ThirdPartyNotices si cambia la procedencia o el flujo de datos. La validación real y la publicación se registran por separado.
