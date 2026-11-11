@@ -21,7 +21,7 @@ let package = Package(
         // readers and the hook <-> app wire protocol. Pure Foundation so `altillo-hook` can link it and stay fast.
         .target(name: "AltilloAgents", dependencies: ["AltilloCore"]),
         // Home section (docs/casa.md): the shared vocabulary and the Home Assistant WebSocket client.
-        .target(name: "AltilloHome", resources: [.process("Resources")]),
+        .target(name: "AltilloHome", dependencies: ["AltilloDesign"], resources: [.process("Resources")]),
         // Read-only Apple Mail events and a bounded local bridge. Message content is never persisted.
         .target(name: "AltilloMail", dependencies: ["AltilloAgents"]),
         .testTarget(name: "AltilloCoreTests", dependencies: ["AltilloCore"]),

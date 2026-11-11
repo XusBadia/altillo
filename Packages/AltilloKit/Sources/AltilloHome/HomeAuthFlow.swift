@@ -1,3 +1,4 @@
+import AltilloDesign
 import CryptoKit
 import Foundation
 import Network
@@ -283,26 +284,18 @@ struct HomeAuthRequest: Sendable {
     }
 
     /// The small page the browser shows after the redirect, in the user's language.
-    static func page(success: Bool) -> String {
-        let title = success ? HomeStrings.signInPageDone : HomeStrings.signInPageFailed
-        let detail = success ? HomeStrings.signInPageClose : ""
-        func escape(_ text: String) -> String {
-            text.replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "<", with: "&lt;")
-                .replacingOccurrences(of: ">", with: "&gt;")
+    static func page(callback: HomeAuthCallback) -> String {
+        // The callback only proves the browser came back with a code; Altillo still has to trade it
+        // for tokens, so this page never says "connected". There's no Home deep link, so no button.
+        let (state, title, detail): (String, String, String) = switch callback {
+        case .code: ("received", HomeStrings.signInPageReceived, HomeStrings.signInPageContinue)
+        case .denied: ("cancelled", HomeStrings.signInPageCancelled, HomeStrings.signInPageRetry)
+        case .failed: ("failed", HomeStrings.signInPageFailed, HomeStrings.signInPageRetry)
+        case .stateMismatch: ("failed", HomeStrings.signInPageUnverified, HomeStrings.signInPageRetry)
         }
-        return """
-        <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">
-        <title>Altillo</title><style>
-        html,body{height:100%;margin:0}
-        body{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 30%,#3a2c20,#1c1611 70%);
-        color:#f3e7d3;font:15px -apple-system,BlinkMacSystemFont,"SF Pro Rounded",sans-serif}
-        main{text-align:center;padding:40px 48px;border-radius:22px;background:rgba(255,240,220,.05);
-        border:1px solid rgba(255,230,200,.14);box-shadow:0 20px 60px rgba(0,0,0,.45)}
-        .bulb{width:26px;height:26px;margin:0 auto 18px;border-radius:50%;background:\(success ? "#f6c46b" : "#7a6a58");
-        box-shadow:0 0 \(success ? "34px 10px rgba(246,196,107,.45)" : "0 0 transparent")}
-        h1{font-size:20px;font-weight:650;margin:0 0 6px}p{margin:0;color:#c8b79e}
-        </style></head><body><main><div class="bulb"></div><h1>\(escape(title))</h1><p>\(escape(detail))</p></main></body></html>
-        """
+        return BrowserConfirmationPage.html(language: Bundle.module.preferredLocalizations.first ?? "en",
+            state: state, provider: "Home Assistant", title: title, detail: detail,
+            hint: HomeStrings.signInPageClose)
     }
 }
 
@@ -494,7 +487,7 @@ final class HomeLoopbackServer: Sendable {
             case .failed: settled = .failed
             case .stateMismatch: break
             }
-            (status, body) = ("200 OK", HomeAuthRequest.page(success: settled.map { if case .code = $0 { true } else { false } } ?? false))
+            (status, body) = ("200 OK", HomeAuthRequest.page(callback: callback))
         } else if target == "/" || target.hasPrefix("/?") {
             // The client_id page. HA doesn't need it (same origin), but a browser opening it sees who this is.
             (status, body) = ("200 OK", "<!doctype html><html><head><meta charset=\"utf-8\"><title>Altillo</title>"
@@ -529,9 +522,15 @@ extension HomeStrings {
     static var signInIncomplete: String {
         String(localized: "Home Assistant didn't finish the sign-in. Try again.", bundle: .module)
     }
-    static var signInPageDone: String { String(localized: "Done. You can go back to Altillo.", bundle: .module) }
+    static var signInPageReceived: String { String(localized: "Authorization received", bundle: .module) }
+    static var signInPageContinue: String {
+        String(localized: "Return to Altillo to finish connecting Home Assistant.", bundle: .module)
+    }
     static var signInPageClose: String { String(localized: "You can close this tab.", bundle: .module) }
-    static var signInPageFailed: String {
-        String(localized: "The sign-in didn't finish. Go back to Altillo and try again.", bundle: .module)
+    static var signInPageCancelled: String { String(localized: "Sign-in cancelled", bundle: .module) }
+    static var signInPageUnverified: String { String(localized: "Couldn’t verify sign-in", bundle: .module) }
+    static var signInPageFailed: String { String(localized: "Couldn’t sign in", bundle: .module) }
+    static var signInPageRetry: String {
+        String(localized: "Return to Altillo and try connecting Home Assistant again.", bundle: .module)
     }
 }

@@ -18,6 +18,22 @@
         }
       }
     },
+    "Authorization received": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorization received"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorización recibida"
+          }
+        }
+      }
+    },
     "Can't find your Home Assistant at that address.": {
       "extractionState": "manual",
       "localizations": {
@@ -103,19 +119,34 @@
         }
       }
     },
-    "Done. You can go back to Altillo.": {
-      "extractionState": "manual",
+    "Couldn’t sign in": {
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Done. You can go back to Altillo."
+            "value": "Couldn’t sign in"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Listo. Ya puedes volver a Altillo."
+            "value": "No se pudo iniciar sesión"
+          }
+        }
+      }
+    },
+    "Couldn’t verify sign-in": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn’t verify sign-in"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo verificar el inicio de sesión"
           }
         }
       }
@@ -273,6 +304,54 @@
         }
       }
     },
+    "Return to Altillo and try connecting Home Assistant again.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to Altillo and try connecting Home Assistant again."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a Altillo e intenta conectar Home Assistant de nuevo."
+          }
+        }
+      }
+    },
+    "Return to Altillo to finish connecting Home Assistant.": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to Altillo to finish connecting Home Assistant."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vuelve a Altillo para terminar de conectar Home Assistant."
+          }
+        }
+      }
+    },
+    "Sign-in cancelled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in cancelled"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicio de sesión cancelado"
+          }
+        }
+      }
+    },
     "Something answers at that address, but it isn't Home Assistant.": {
       "extractionState": "manual",
       "localizations": {
@@ -337,23 +416,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "Eso no parece una dirección. Prueba con algo como homeassistant.local:8123."
-          }
-        }
-      }
-    },
-    "The sign-in didn't finish. Go back to Altillo and try again.": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The sign-in didn't finish. Go back to Altillo and try again."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El inicio de sesión no ha terminado. Vuelve a Altillo e inténtalo de nuevo."
           }
         }
       }

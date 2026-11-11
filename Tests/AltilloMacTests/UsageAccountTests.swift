@@ -235,7 +235,7 @@ struct UsageAccountTests {
         #expect(http.value(forHTTPHeaderField: "Cache-Control") == "no-store")
         #expect(http.value(forHTTPHeaderField: "Referrer-Policy") == "no-referrer")
         #expect(http.value(forHTTPHeaderField: "Content-Security-Policy")?.contains("connect-src 'self'") == true)
-        #expect(html.contains("Conectando con Altillo"))
+        #expect(html.contains("Conectando la cuenta"))
         #expect(!html.contains("synthetic-private-code"))
         let status = try #require(server.baseURL).appending(path: server.statusPath)
         let (initial, _) = try await client.data(from: status)

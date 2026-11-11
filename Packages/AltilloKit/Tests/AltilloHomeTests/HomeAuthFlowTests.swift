@@ -65,6 +65,25 @@ struct HomeAuthFlowTests {
         #expect(HomeAuthCallback.denied.isTerminal)
     }
 
+    @Test func callbackPagesDescribeTheActualHandoff() {
+        let accepted = HomeAuthRequest.page(callback: .code("private-oauth-code"))
+        #expect(accepted.contains(HomeStrings.signInPageReceived))
+        #expect(accepted.contains(HomeStrings.signInPageContinue))
+        #expect(!accepted.contains("private-oauth-code"))
+        #expect(!accepted.contains("Account connected"))
+        #expect(accepted.contains(#"data-state="received""#))
+        #expect(!accepted.contains("<button"))
+        #expect(HomeAuthRequest.page(callback: .denied).contains(#"data-state="cancelled""#))
+        for (callback, title) in [(HomeAuthCallback.denied, HomeStrings.signInPageCancelled),
+                                  (.failed, HomeStrings.signInPageFailed),
+                                  (.stateMismatch, HomeStrings.signInPageUnverified)] {
+            let page = HomeAuthRequest.page(callback: callback)
+            #expect(page.contains(title))
+            #expect(page.contains(HomeStrings.signInPageRetry))
+            #expect(!page.contains("data-state=\"received\""))
+        }
+    }
+
     // MARK: Token answer
 
     @Test func tokenResponseParsing() throws {
