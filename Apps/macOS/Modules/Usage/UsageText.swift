@@ -1,4 +1,5 @@
 import AltilloCore
+import AltilloUsage
 import Foundation
 
 /// Every sentence the usage section says, in one place and free of views so tests can read them: when a
@@ -72,6 +73,8 @@ enum UsageText {
         switch id {
         case .claude: "Claude Code"
         case .codex: "Codex"
+        case .grok: "Grok CLI"
+        case .gemini: "Antigravity"
         default: displayName
         }
     }
@@ -124,7 +127,8 @@ enum UsageText {
     // MARK: Settings
 
     /// What Settings says under a provider's name: "Connected · Max 20x", "Sign-in expired: open Claude Code once"…
-    static func status(for entry: UsageStore.Entry, now: Date = .now) -> String {
+    static func status(for entry: UsageStore.Entry, isEnabled: Bool = true, now: Date = .now) -> String {
+        guard isEnabled else { return String(localized: "Monitoring off") }
         guard entry.isAvailable else {
             return String(localized: "Not set up on this Mac")
         }

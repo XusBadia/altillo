@@ -8,6 +8,28 @@ La revisión de cambios es **manual**, cuando Xus lo solicite. No hay workflow p
 
 Uso de IA muestra cuotas comunicadas por el proveedor, fechas de reinicio y antigüedad de la lectura. No convierte gasto en cuota ni muestra saldos monetarios, tokens o predicciones. OpenRouter está fuera del catálogo por ofrecer únicamente gasto/créditos. Una respuesta ausente o malformada no equivale a cero; los fallos conservan las últimas cifras junto con su fecha y problema.
 
+## Conexión en Ajustes
+
+Los interruptores activan el seguimiento del uso; no inician ni cierran sesiones. Un proveedor apagado
+muestra «Seguimiento desactivado», aunque todavía no tenga datos o conserve un error anterior.
+
+Grok, Copilot y Gemini ofrecen «Cómo conectar…» tanto en la lista de herramientas detectadas como en
+la de herramientas sin configurar. La ayuda se despliega en el mismo panel:
+
+- **Grok:** instalar la CLI, ejecutar `grok login` y completar el inicio de sesión en el navegador. El comando
+  puede copiarse desde Ajustes. Una sesión en grok.com por sí sola no configura la CLI.
+- **Copilot:** iniciar sesión en el editor o ejecutar `gh auth login` con la cuenta que tiene Copilot.
+- **Gemini:** iniciar sesión en Antigravity. Si está instalado en Aplicaciones, Ajustes permite abrirlo.
+  El collector mide las cuotas de Antigravity, no el uso de la web de Gemini.
+
+Después de iniciar sesión, activar el seguimiento y pulsar «Comprobar de nuevo». Estas acciones no crean
+una sesión propia de Altillo ni renuevan los tokens de las herramientas.
+
+Una conexión OAuth propia de GitHub requiere una app registrada y verificar que su token permita consultar
+las cuotas de Copilot; un login genérico no garantiza ese acceso. Referencia:
+[Authorizing OAuth apps](https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps).
+Para Grok y Antigravity, este cambio conserva las fuentes de sesión que ya soportan sus collectors.
+
 ## Claude y Codex: cuentas de Altillo
 
 El flujo en desarrollo conecta una cuenta seleccionada por proveedor desde Ajustes › Secciones › Uso de IA. Conectar abre el navegador del sistema; Reconectar sustituye esa autorización y Desconectar elimina la credencial local. Altillo guarda y renueva su propia sesión en el Keychain privado de este Mac. Estos dos collectors dejan de leer las credenciales CLI y de lanzar `codex app-server` para consultar cuotas. No se modifica la sesión de Claude Code, Codex ni la detección de agentes/hooks.

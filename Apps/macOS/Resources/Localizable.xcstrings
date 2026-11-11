@@ -1,6 +1,166 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "Couldn’t open Antigravity. Open it from Applications, then sign in." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se pudo abrir Antigravity. Ábrelo desde Aplicaciones e inicia sesión."
+          }
+        }
+      }
+    },
+    "Open Antigravity" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abrir Antigravity"
+          }
+        }
+      }
+    },
+    "After signing in, turn on monitoring and choose Check Again. Altillo reads the saved session; your tool renews it." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tras iniciar sesión, activa el seguimiento y pulsa Comprobar de nuevo. Altillo lee la sesión guardada; la herramienta se encarga de renovarla."
+          }
+        }
+      }
+    },
+    "Altillo cannot sign in to Copilot directly yet. Sign in to GitHub Copilot in your editor, or run this command in Terminal with the GitHub account that has Copilot." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo todavía no puede iniciar sesión en Copilot directamente. Inicia sesión en GitHub Copilot desde tu editor o ejecuta este comando en Terminal con la cuenta de GitHub que tenga Copilot."
+          }
+        }
+      }
+    },
+    "Altillo cannot sign in to Google directly yet. Open Antigravity and sign in with Google. Keep it open while checking usage. This shows Antigravity quotas, not usage on gemini.google.com." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo todavía no puede iniciar sesión en Google directamente. Abre Antigravity e inicia sesión con Google. Déjalo abierto mientras consultas el uso. Se muestran las cuotas de Antigravity, no el uso de gemini.google.com."
+          }
+        }
+      }
+    },
+    "Altillo cannot sign in to Grok directly yet. Install the Grok CLI, then run this command in Terminal and complete its browser sign-in. If the session expires, run it again." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Altillo todavía no puede iniciar sesión en Grok directamente. Instala la CLI de Grok, ejecuta este comando en Terminal y completa el inicio de sesión en el navegador. Si la sesión caduca, vuelve a ejecutarlo."
+          }
+        }
+      }
+    },
+    "Copy Command" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copiar comando"
+          }
+        }
+      }
+    },
+    "Hide Steps" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ocultar pasos"
+          }
+        }
+      }
+    },
+    "How to Connect…" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cómo conectar…"
+          }
+        }
+      }
+    },
+    "Monitor %@ usage" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Consultar el uso de %@"
+          }
+        }
+      }
+    },
+    "Monitoring off" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seguimiento desactivado"
+          }
+        }
+      }
+    },
+    "Setup Guide" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guía de configuración"
+          }
+        }
+      }
+    },
+    "Turn usage monitoring on or off. This does not sign in or sign out." : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activa o desactiva el seguimiento del uso. Esto no inicia ni cierra la sesión."
+          }
+        }
+      }
+    },
+    "Uses Antigravity, not the Gemini website" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa Antigravity, no la web de Gemini"
+          }
+        }
+      }
+    },
+    "Uses the Grok CLI sign-in on this Mac" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la sesión de la CLI de Grok en este Mac"
+          }
+        }
+      }
+    },
+    "Uses your editor or GitHub CLI sign-in" : {
+      "localizations" : {
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Usa la sesión de tu editor o de la CLI de GitHub"
+          }
+        }
+      }
+    },
     "Sign-in browser": {
       "localizations": {
         "es": {

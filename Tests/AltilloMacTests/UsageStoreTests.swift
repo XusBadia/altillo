@@ -706,6 +706,18 @@ struct UsageStoreTests {
         #expect(UsageText.status(for: connected) == "Connected · Max 20×")
     }
 
+    @Test func disabledProvidersDoNotClaimToBeCheckingOrHaveAnActiveError() {
+        let detected = UsageStore.Entry(id: .copilot, displayName: "Copilot", isAvailable: true)
+        #expect(UsageText.status(for: detected, isEnabled: false) == "Monitoring off")
+        #expect(UsageText.status(for: detected, isEnabled: true) == "Checking…")
+        let expired = UsageStore.Entry(id: .grok, displayName: "Grok", isAvailable: true,
+                                       usage: ProviderUsage(id: .grok, displayName: "Grok", plan: nil, windows: [],
+                                                            fetchedAt: start, problem: .sessionExpired))
+        #expect(UsageText.status(for: expired, isEnabled: false) == "Monitoring off")
+        #expect(UsageText.status(for: expired).contains("Grok CLI"))
+        #expect(UsageText.toolName(for: .gemini, displayName: "Gemini") == "Antigravity")
+    }
+
     @Test func everyProviderGetsAMarkAndUnknownOnesKeepTheirColour() {
         #expect(AgentGlyph.brand(for: .claude, name: "Claude") == .claude)
         #expect(AgentGlyph.brand(for: .codex, name: "Codex") == .codex)

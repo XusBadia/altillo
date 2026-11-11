@@ -1,5 +1,6 @@
 import AltilloCore
 import AppKit
+import AppKit
 import SwiftUI
 import UniformTypeIdentifiers
 
@@ -826,7 +827,7 @@ private struct SettingsUsageGroup: View {
             } else {
                 SettingsWell {
                     ForEach(setUp) { entry in
-                        SettingsUsageProviderRow(entry: entry, settings: settings)
+                        SettingsUsageProviderRow(entry: entry, settings: settings, store: store)
                             .padding(.vertical, 6)
                         if entry.id != setUp.last?.id { SettingsRowDivider(leading: 29) }
                     }
@@ -849,7 +850,7 @@ private struct SettingsUsageGroup: View {
         SettingsInlineDisclosure(title: "Not set up on this Mac", count: entries.count, isExpanded: $showsNotSetUp) {
             VStack(alignment: .leading, spacing: 7) {
                 ForEach(entries) { entry in
-                    SettingsUsageSetupRow(entry: entry)
+                    SettingsUsageSetupRow(entry: entry, store: store)
                 }
             }
             .padding(.leading, 14)
@@ -904,6 +905,10 @@ private struct SettingsUsageGroup: View {
 private struct SettingsUsageProviderRow: View {
     let entry: UsageStore.Entry
     @Bindable var settings: AltilloSettings
+    let store: UsageStore?
+    @State private var showsConnectionHelp = false
+
+    private var isEnabled: Bool { settings.isUsageProviderEnabled(entry.id) }
 
     private var isOn: Binding<Bool> {
         Binding(
@@ -912,41 +917,62 @@ private struct SettingsUsageProviderRow: View {
         )
     }
 
-    private var hasProblem: Bool { !entry.isAvailable || entry.usage?.problem != nil }
+    private var hasProblem: Bool { isEnabled && (!entry.isAvailable || entry.usage?.problem != nil) }
 
     var body: some View {
-        HStack(spacing: 9) {
-            AgentGlyph(provider: entry.id, name: entry.displayName, size: 20)
-                .opacity(entry.isAvailable ? 1 : 0.5)
-            VStack(alignment: .leading, spacing: 0) {
-                Text(entry.displayName)
-                    .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
-                    .foregroundStyle(Desvan.Palette.paper)
-                    .lineLimit(1)
-                HStack(spacing: 4) {
-                    if hasProblem {
-                        Image(systemName: entry.isAvailable ? "exclamationmark.triangle.fill" : "person.crop.circle.badge.questionmark")
-                            .font(.system(size: 10.5, weight: .semibold))
-                            .accessibilityHidden(true)
-                    }
-                    Text(UsageText.status(for: entry))
-                        .font(.system(size: 11))
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 9) {
+                AgentGlyph(provider: entry.id, name: entry.displayName, size: 20)
+                    .opacity(entry.isAvailable ? 1 : 0.5)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(entry.displayName)
+                        .font(Desvan.Typeface.rounded(12.5, weight: .semibold))
+                        .foregroundStyle(Desvan.Palette.paper)
                         .lineLimit(1)
+                    HStack(spacing: 4) {
+                        if hasProblem {
+                            Image(systemName: entry.isAvailable ? "exclamationmark.triangle.fill" : "person.crop.circle.badge.questionmark")
+                                .font(.system(size: 10.5, weight: .semibold))
+                                .accessibilityHidden(true)
+                        }
+                        Text(UsageText.status(for: entry, isEnabled: isEnabled))
+                            .font(.system(size: 11))
+                            .lineLimit(1)
+                    }
+                    .foregroundStyle(isEnabled && entry.isAvailable && entry.usage?.problem != nil
+                                     ? Desvan.Palette.warning : Desvan.Palette.paperSecondary)
+                    .help(help)
                 }
-                .foregroundStyle(entry.isAvailable && entry.usage?.problem != nil
-                                 ? Desvan.Palette.warning : Desvan.Palette.paperSecondary)
-                .help(help)
+                Spacer(minLength: 8)
+                if UsageConnectionGuide.supports(entry.id) {
+                    Button(showsConnectionHelp ? "Hide Steps" : "How to Connect…") {
+                        showsConnectionHelp.toggle()
+                    }
+                    .controlSize(.small)
+                    .accessibilityValue(Text(showsConnectionHelp ? "Expanded" : "Collapsed"))
+                }
+                Toggle(entry.displayName, isOn: isOn)
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                    .controlSize(.small)
+                    .accessibilityLabel(String(localized: "Monitor \(entry.displayName) usage"))
+                    .help("Turn usage monitoring on or off. This does not sign in or sign out.")
             }
-            Spacer(minLength: 8)
-            Toggle(entry.displayName, isOn: isOn)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .controlSize(.small)
+            if UsageConnectionGuide.supports(entry.id) {
+                Text(UsageConnectionGuide.source(for: entry.id))
+                    .font(.system(size: 11))
+                    .foregroundStyle(Desvan.Palette.paperSecondary)
+                    .padding(.leading, 29)
+                if showsConnectionHelp {
+                    SettingsUsageConnectionHelp(id: entry.id, store: store)
+                        .padding(.leading, 29)
+                }
+            }
         }
-        .accessibilityElement(children: .combine)
     }
 
     private var help: String {
+        guard isEnabled else { return String(localized: "Monitoring off") }
         guard entry.isAvailable else {
             return UsageText.sentence(for: .notSignedIn, provider: entry.id, displayName: entry.displayName)
         }
@@ -960,6 +986,8 @@ private struct SettingsUsageProviderRow: View {
 /// collector's hint may put a command in `backticks`; it shows in monospace).
 private struct SettingsUsageSetupRow: View {
     let entry: UsageStore.Entry
+    let store: UsageStore?
+    @State private var showsConnectionHelp = false
 
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
@@ -977,10 +1005,21 @@ private struct SettingsUsageSetupRow: View {
                     .lineLimit(2)
                     .fixedSize(horizontal: false, vertical: true)
                     .textSelection(.enabled)
+                if UsageConnectionGuide.supports(entry.id) {
+                    Button(showsConnectionHelp ? "Hide Steps" : "How to Connect…") {
+                        showsConnectionHelp.toggle()
+                    }
+                    .controlSize(.small)
+                    .accessibilityValue(Text(showsConnectionHelp ? "Expanded" : "Collapsed"))
+                    .padding(.top, 4)
+                    if showsConnectionHelp {
+                        SettingsUsageConnectionHelp(id: entry.id, store: store)
+                            .padding(.top, 6)
+                    }
+                }
             }
             Spacer(minLength: 0)
         }
-        .accessibilityElement(children: .combine)
     }
 
     private var hint: AttributedString {
@@ -989,4 +1028,121 @@ private struct SettingsUsageSetupRow: View {
             : UsageText.setupHint(for: entry.id, fallback: entry.setupHint)
         return (try? AttributedString(markdown: text)) ?? AttributedString(text)
     }
+}
+
+
+/// These collectors reuse a tool's session. Never present this as an Altillo-owned browser sign-in.
+private enum UsageConnectionGuide {
+    static func supports(_ id: UsageProviderID) -> Bool {
+        ["grok", "copilot", "gemini"].contains(id.rawValue)
+    }
+
+    static func source(for id: UsageProviderID) -> String {
+        switch id.rawValue {
+        case "grok": String(localized: "Uses the Grok CLI sign-in on this Mac")
+        case "copilot": String(localized: "Uses your editor or GitHub CLI sign-in")
+        default: String(localized: "Uses Antigravity, not the Gemini website")
+        }
+    }
+
+    static func steps(for id: UsageProviderID) -> String {
+        switch id.rawValue {
+        case "grok": String(localized: "Altillo cannot sign in to Grok directly yet. Install the Grok CLI, then run this command in Terminal and complete its browser sign-in. If the session expires, run it again.")
+        case "copilot": String(localized: "Altillo cannot sign in to Copilot directly yet. Sign in to GitHub Copilot in your editor, or run this command in Terminal with the GitHub account that has Copilot.")
+        default: String(localized: "Altillo cannot sign in to Google directly yet. Open Antigravity and sign in with Google. Keep it open while checking usage. This shows Antigravity quotas, not usage on gemini.google.com.")
+        }
+    }
+
+    static func command(for id: UsageProviderID) -> String? {
+        switch id.rawValue {
+        case "grok": "grok login"
+        case "copilot": "gh auth login"
+        default: nil
+        }
+    }
+
+    static func documentation(for id: UsageProviderID) -> URL {
+        let address: String
+        switch id.rawValue {
+        case "grok": address = "https://github.com/xai-org/grok-build"
+        case "copilot": address = "https://cli.github.com/manual/gh_auth_login"
+        default: address = "https://antigravity.google/docs/getting-started"
+        }
+        return URL(string: address)!
+    }
+}
+
+private struct SettingsUsageConnectionHelp: View {
+    let id: UsageProviderID
+    let store: UsageStore?
+    @State private var copied = false
+    @State private var couldNotOpen = false
+
+    private var antigravityApp: URL? {
+        guard id.rawValue == "gemini" else { return nil }
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        return [URL(fileURLWithPath: "/Applications/Antigravity.app"),
+                home.appendingPathComponent("Applications/Antigravity.app")]
+            .first { FileManager.default.fileExists(atPath: $0.path) }
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(UsageConnectionGuide.steps(for: id))
+                .settingsHint()
+                .fixedSize(horizontal: false, vertical: true)
+                .textSelection(.enabled)
+            if let command = UsageConnectionGuide.command(for: id) {
+                HStack(spacing: 8) {
+                    Text(verbatim: command)
+                        .font(.system(size: 11, design: .monospaced))
+                        .textSelection(.enabled)
+                    Button(copied ? "Copied" : "Copy Command") {
+                        NSPasteboard.general.clearContents()
+                        copied = NSPasteboard.general.setString(command, forType: .string)
+                    }
+                    .controlSize(.small)
+                }
+            }
+            HStack(spacing: 12) {
+                if let antigravityApp {
+                    Button("Open Antigravity") {
+                        Task { @MainActor in
+                            do {
+                                _ = try await NSWorkspace.shared.openApplication(
+                                    at: antigravityApp, configuration: NSWorkspace.OpenConfiguration())
+                                couldNotOpen = false
+                            } catch {
+                                couldNotOpen = true
+                            }
+                        }
+                    }
+                }
+                Link("Setup Guide", destination: UsageConnectionGuide.documentation(for: id))
+                if let store {
+                    Button(store.isRefreshing ? "Checking…" : "Check Again") { store.refreshNow() }
+                        .disabled(store.isRefreshing)
+                }
+            }
+            .font(.system(size: 11.5))
+            if couldNotOpen {
+                Text("Couldn’t open Antigravity. Open it from Applications, then sign in.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(Desvan.Palette.warning)
+            }
+            Text("After signing in, turn on monitoring and choose Check Again. Altillo reads the saved session; your tool renews it.")
+                .settingsHint()
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
+#Preview("External provider connection steps") {
+    VStack(alignment: .leading, spacing: 20) {
+        SettingsUsageConnectionHelp(id: UsageProviderID(rawValue: "grok"), store: nil)
+        SettingsUsageConnectionHelp(id: UsageProviderID(rawValue: "copilot"), store: nil)
+        SettingsUsageConnectionHelp(id: UsageProviderID(rawValue: "gemini"), store: nil)
+    }
+    .padding(24)
+    .frame(width: 560)
 }
