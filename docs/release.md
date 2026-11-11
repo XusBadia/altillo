@@ -8,10 +8,12 @@ Todo esto solo hace falta si vas a publicar una release real. Para compilar
 y desarrollar Altillo no necesitas nada de esto — ver
 [CONTRIBUTING.md](../CONTRIBUTING.md).
 
-Altillo **0.14.0 ya está distribuida públicamente**, firmada y notarizada por
+Altillo **0.14.1 ya está distribuida públicamente**, firmada y notarizada por
 Apple, con actualizaciones Sparkle. Los comandos siguientes describen el
-procedimiento para futuras releases. La [validación de 0.14.0](qa/usage-0.14.0.md)
-registra la descarga pública y la actualización real desde 0.13.0.
+procedimiento para futuras releases. La [validación de 0.14.1](qa/confirmation-pages-0.14.1.md)
+registra el instalador público, su firma y el feed de actualizaciones. La
+[validación de 0.14.0](qa/usage-0.14.0.md) conserva la prueba de actualización
+real desde 0.13.0.
 
 ## Cómo funciona
 
