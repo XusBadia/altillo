@@ -1,0 +1,310 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Altillo</title>
+        <item>
+            <title>0.14.1</title>
+            <pubDate>Wed, 11 Nov 2026 13:03:07 +0100</pubDate>
+            <sparkle:version>223</sparkle:version>
+            <sparkle:shortVersionString>0.14.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.14.1/Altillo-0.14.1.dmg" length="18348009" type="application/octet-stream" sparkle:edSignature="hAntYd51eG/a/RyBuBkqOZB+PCtiVGCpZ5BPcGTz2l7p+twc3VBFkiYGHs0vOMaF6VA+HUK/DXkdj68cgwKOCQ=="/>
+        </item>
+        <item>
+            <title>0.14.0</title>
+            <pubDate>Sun, 08 Nov 2026 20:57:03 +0100</pubDate>
+            <sparkle:version>219</sparkle:version>
+            <sparkle:shortVersionString>0.14.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.14.0/Altillo-0.14.0.dmg" length="18271588" type="application/octet-stream" sparkle:edSignature="oxEfVGSvz3vLn3o9dIlLNByWnjFz56sUHFfsVv7AfAK5CNRLYZaxP25BToVUpQ68WRr+yYCFB/mLAUEFavh3BQ=="/>
+        </item>
+        <item>
+            <title>0.13.0</title>
+            <pubDate>Sun, 01 Nov 2026 12:23:41 +0100</pubDate>
+            <sparkle:version>217</sparkle:version>
+            <sparkle:shortVersionString>0.13.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.13.0/Altillo-0.13.0.dmg" length="17913885" type="application/octet-stream" sparkle:edSignature="MH2ySMyrwFOgZzgaV8MDPgsOrtFjc7R6kZHtIxmygsnKaPd0dPmOKcrNeQY1qy/JoIGnUzeyATL8UrzDW3SWCA=="/>
+        </item>
+        <item>
+            <title>0.12.1</title>
+            <pubDate>Thu, 29 Oct 2026 20:29:34 +0100</pubDate>
+            <sparkle:version>209</sparkle:version>
+            <sparkle:shortVersionString>0.12.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.12.1/Altillo-0.12.1.dmg" length="17096742" type="application/octet-stream" sparkle:edSignature="ZAUBREaE7qqW2nisBDPcyJ0fV//8q/R3MEGL9Gv6v8IWSYMaFaC//OduidAw5VjEUVNduU0PwzXEE74WMOIjDA=="/>
+        </item>
+        <item>
+            <title>0.12.0</title>
+            <pubDate>Mon, 26 Oct 2026 21:28:29 +0100</pubDate>
+            <sparkle:version>207</sparkle:version>
+            <sparkle:shortVersionString>0.12.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.12.0/Altillo-0.12.0.dmg" length="17093275" type="application/octet-stream" sparkle:edSignature="CcSsl28ocYVN3H2xaqr2OZposWHx2uLBxykpiR21MmeD/9MABym+TfeVp8UdpC/TWwfXOAy7HLlDDpiA/IQiDw=="/>
+        </item>
+        <item>
+            <title>0.11.0</title>
+            <pubDate>Mon, 26 Oct 2026 10:03:08 +0100</pubDate>
+            <sparkle:version>205</sparkle:version>
+            <sparkle:shortVersionString>0.11.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.11.0/Altillo-0.11.0.dmg" length="17185483" type="application/octet-stream" sparkle:edSignature="A9Vp4hMUSGgHyGK00GTXNB4A97HICsug/hyUrND93Pd9zKP4EbZ6GfTKnH64yg/1a/PnngDYWgo1Cu6XI2hcAA=="/>
+        </item>
+        <item>
+            <title>0.10.8</title>
+            <pubDate>Mon, 19 Oct 2026 18:28:23 +0200</pubDate>
+            <sparkle:version>182</sparkle:version>
+            <sparkle:shortVersionString>0.10.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.8/Altillo-0.10.8.dmg" length="15490025" type="application/octet-stream" sparkle:edSignature="rGJA96+bScv/nMHQW4AMFDU946BMObMYevByqIRppvFw7Q/sdewl6uzWt92tbEVl2BrDncdXmRNo8mXCEinKDQ=="/>
+        </item>
+        <item>
+            <title>0.10.7</title>
+            <pubDate>Fri, 16 Oct 2026 17:50:12 +0200</pubDate>
+            <sparkle:version>179</sparkle:version>
+            <sparkle:shortVersionString>0.10.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.7/Altillo-0.10.7.dmg" length="15488860" type="application/octet-stream" sparkle:edSignature="F937YYXaXBDDLVlchW0TKtmb+M5mmoUE/afoplMdSzJzCnFcq88VORvUy4Cb9cripyu9L1KGN8Wajd08ewq4DQ=="/>
+        </item>
+        <item>
+            <title>0.10.6</title>
+            <pubDate>Fri, 09 Oct 2026 18:07:29 +0200</pubDate>
+            <sparkle:version>172</sparkle:version>
+            <sparkle:shortVersionString>0.10.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.6/Altillo-0.10.6.dmg" length="15483694" type="application/octet-stream" sparkle:edSignature="yXIRDN6sIjNnRKs/pC3RIlEA3nQKr8DS6krZTXtzjBWSY8TGE19gOmm59+HsU0A7ILvtAKPe3lpcI8GmnvN8Cw=="/>
+        </item>
+        <item>
+            <title>0.10.5</title>
+            <pubDate>Thu, 08 Oct 2026 15:24:00 +0200</pubDate>
+            <sparkle:version>165</sparkle:version>
+            <sparkle:shortVersionString>0.10.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.5/Altillo-0.10.5.dmg" length="15480273" type="application/octet-stream" sparkle:edSignature="RHGkoQ/8dzQ2G0rk5MryN6a5Lc6TTM/sHiA7GH+N14zcxBSb8RS24XptjqADT6dgjOXkBmz9bp+18PZQM6MEBw=="/>
+        </item>
+        <item>
+            <title>0.10.4</title>
+            <pubDate>Thu, 08 Oct 2026 12:10:28 +0200</pubDate>
+            <sparkle:version>152</sparkle:version>
+            <sparkle:shortVersionString>0.10.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.4/Altillo-0.10.4.dmg" length="15474616" type="application/octet-stream" sparkle:edSignature="8uFB4YoKgVtlHI0hW7wOk/+AlHrxU3VXaOh67FPQ37lCvN1jMRbhmoNTFT5UZ+lnSCkRfd5NWn/szLHeGCDzDg=="/>
+        </item>
+        <item>
+            <title>0.10.3</title>
+            <pubDate>Thu, 08 Oct 2026 10:43:23 +0200</pubDate>
+            <sparkle:version>148</sparkle:version>
+            <sparkle:shortVersionString>0.10.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.3/Altillo-0.10.3.dmg" length="15379937" type="application/octet-stream" sparkle:edSignature="tkkk6K/TNWT+14hjTu1fFJz91pvNT1zfzI2S2Uem8gWJ7kjnC4e+gCXwuVGjEhdl638Lin44onOP+/q8vgfmCw=="/>
+        </item>
+        <item>
+            <title>0.10.2</title>
+            <pubDate>Mon, 05 Oct 2026 19:16:44 +0200</pubDate>
+            <sparkle:version>146</sparkle:version>
+            <sparkle:shortVersionString>0.10.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.2/Altillo-0.10.2.dmg" length="15372013" type="application/octet-stream" sparkle:edSignature="zc4DfLFvO/e6COU3QdTqvuGJ8CwofHrIxAcoDauix9JAJZSavvumN5E08rHtIBBfZHAXdpMCSGDdml2NLSefCA=="/>
+        </item>
+        <item>
+            <title>0.10.1</title>
+            <pubDate>Mon, 05 Oct 2026 18:59:55 +0200</pubDate>
+            <sparkle:version>144</sparkle:version>
+            <sparkle:shortVersionString>0.10.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.1/Altillo-0.10.1.dmg" length="15387119" type="application/octet-stream" sparkle:edSignature="sVrqngpH/CPcPlCJN7QqwWbZEFz994Rg5h1vnJ/hdWNipFdcxnHSSieZy6glvxovB+YZy22qE5pD57v+RVHaBQ=="/>
+        </item>
+        <item>
+            <title>0.10.0</title>
+            <pubDate>Mon, 28 Sep 2026 23:02:50 +0200</pubDate>
+            <sparkle:version>136</sparkle:version>
+            <sparkle:shortVersionString>0.10.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.10.0/Altillo-0.10.0.dmg" length="15383230" type="application/octet-stream" sparkle:edSignature="d8zejmE9TyNhuYBr3yBFIN7JxAncRfmz7dVPK6/dCbYE4HxD1E47/AYfzbuYsReetJ+9WGfKVFOx7exdhEL2DA=="/>
+        </item>
+        <item>
+            <title>0.9.1</title>
+            <pubDate>Mon, 28 Sep 2026 18:47:49 +0200</pubDate>
+            <sparkle:version>133</sparkle:version>
+            <sparkle:shortVersionString>0.9.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.9.1/Altillo-0.9.1.dmg" length="15100984" type="application/octet-stream" sparkle:edSignature="V+h0JjTdfxtZKSBvEk6xZRlWhReXrXAcOkutptcBM6dK+9KFeqvLuZACqmYF449qAKH+5Del2RekE0jg0jj3CA=="/>
+        </item>
+        <item>
+            <title>0.9.0</title>
+            <pubDate>Mon, 28 Sep 2026 07:21:07 +0200</pubDate>
+            <sparkle:version>127</sparkle:version>
+            <sparkle:shortVersionString>0.9.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.9.0/Altillo-0.9.0.dmg" length="15038651" type="application/octet-stream" sparkle:edSignature="vkOXVZHAasOEwqQ0dEjflwQ/G7GcP8xdnXTJS8zIM0nfV4sYdRABltYsEHCFC2uzbahewPABn7qpkgceKr94Cw=="/>
+        </item>
+        <item>
+            <title>0.8.0</title>
+            <pubDate>Sun, 27 Sep 2026 18:36:42 +0200</pubDate>
+            <sparkle:version>121</sparkle:version>
+            <sparkle:shortVersionString>0.8.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.8.0/Altillo-0.8.0.dmg" length="15041800" type="application/octet-stream" sparkle:edSignature="TvPWSZ8q0ex4bpsyHpeykMHGYc52aFiaJFxv2eFEme7ielwD/J7TLQJy/7AMncKZgqDDHYcWu0CxJaGqA5xbBA=="/>
+        </item>
+        <item>
+            <title>0.7.11</title>
+            <pubDate>Sun, 27 Sep 2026 13:24:17 +0200</pubDate>
+            <sparkle:version>105</sparkle:version>
+            <sparkle:shortVersionString>0.7.11</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.11/Altillo-0.7.11.dmg" length="14832888" type="application/octet-stream" sparkle:edSignature="Bqib6gtTLqp8SsxKO3dn1fIfFKDtV/mGIdzCPhwoRq+Syn/BmIBlue+aeBJqaeOPyAvvv4x1opWsChoWN6/9Cw=="/>
+        </item>
+        <item>
+            <title>0.7.10</title>
+            <pubDate>Sun, 27 Sep 2026 09:20:12 +0200</pubDate>
+            <sparkle:version>102</sparkle:version>
+            <sparkle:shortVersionString>0.7.10</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.10/Altillo-0.7.10.dmg" length="14832624" type="application/octet-stream" sparkle:edSignature="S/2tY+YZdefTa88xRZ8fTPnYs9AAvEGmYiG6FUc4pvuASNGlTuzn7i/N1euwwbYrYSlBSOoE0AM0uK1fCP2kCQ=="/>
+        </item>
+        <item>
+            <title>0.7.9</title>
+            <pubDate>Sun, 27 Sep 2026 08:44:20 +0200</pubDate>
+            <sparkle:version>100</sparkle:version>
+            <sparkle:shortVersionString>0.7.9</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.9/Altillo-0.7.9.dmg" length="14796471" type="application/octet-stream" sparkle:edSignature="nz2m97dZL3A9LBxhxRuDd12CWfMnngcyjNa8Vf3iSh4ZXWakigW6TL7J2jegawsYsK745gAMQ5OPKGHR0IILAw=="/>
+        </item>
+        <item>
+            <title>0.7.8</title>
+            <pubDate>Sun, 27 Sep 2026 00:14:03 +0200</pubDate>
+            <sparkle:version>97</sparkle:version>
+            <sparkle:shortVersionString>0.7.8</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.8/Altillo-0.7.8.dmg" length="14786086" type="application/octet-stream" sparkle:edSignature="KF4SkFlHx6wFiyW7vCG/4fInk6JjZZeQ9GRgbn1f5M/HD1Ey9/OxSVNROdYelbYpmqZDAorDy2xwNXt5SYOfBQ=="/>
+        </item>
+        <item>
+            <title>0.7.7</title>
+            <pubDate>Sat, 26 Sep 2026 23:39:54 +0200</pubDate>
+            <sparkle:version>94</sparkle:version>
+            <sparkle:shortVersionString>0.7.7</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.7/Altillo-0.7.7.dmg" length="14782147" type="application/octet-stream" sparkle:edSignature="biambp2YCBVsMuQxzwUo0vOjs8eveaB0jiYzl/HMHzpdSk/VFClNpy/QAZQQOxjbMrse3I8q5mdOecXghhDxCA=="/>
+        </item>
+        <item>
+            <title>0.7.6</title>
+            <pubDate>Sat, 26 Sep 2026 22:47:33 +0200</pubDate>
+            <sparkle:version>87</sparkle:version>
+            <sparkle:shortVersionString>0.7.6</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.6/Altillo-0.7.6.dmg" length="14887501" type="application/octet-stream" sparkle:edSignature="raofFFdfexYbplyNXzcMA2+TyxB0GUWZLrtndtFoLM+tCmN1ymnwvTZDToBWRo6ZbOhq5jQ4MTp1owLY8B4lAQ=="/>
+        </item>
+        <item>
+            <title>0.7.5</title>
+            <pubDate>Sat, 26 Sep 2026 21:44:24 +0200</pubDate>
+            <sparkle:version>79</sparkle:version>
+            <sparkle:shortVersionString>0.7.5</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.5/Altillo-0.7.5.dmg" length="11192425" type="application/octet-stream" sparkle:edSignature="itFeQfjQ79jPj2nUiAIJVokJWZDaVna0T418/jiV9uh+X5Jbc9B+ehzrNPF/DRtcCsiH7Kck44xVAinCb6BxAw=="/>
+        </item>
+        <item>
+            <title>0.7.4</title>
+            <pubDate>Sat, 26 Sep 2026 19:16:10 +0200</pubDate>
+            <sparkle:version>77</sparkle:version>
+            <sparkle:shortVersionString>0.7.4</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.4/Altillo-0.7.4.dmg" length="11047246" type="application/octet-stream" sparkle:edSignature="zEJgseheGnMs4bgPp9i6vH/DEN8Ez8Aq/QN/4WFakNE9v21FXkJ0gxEvBb2pvlOYUWb52wrDJ+5YI85KbraSCQ=="/>
+        </item>
+        <item>
+            <title>0.7.3</title>
+            <pubDate>Sat, 26 Sep 2026 18:42:37 +0200</pubDate>
+            <sparkle:version>75</sparkle:version>
+            <sparkle:shortVersionString>0.7.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.3/Altillo-0.7.3.dmg" length="11040247" type="application/octet-stream" sparkle:edSignature="ny521WliSawFWmtyIj6yn0iW5eooOLXAtsC9hNmiM3t3uQY9au6pljAyExsMzhd/Sz3qSWH+MsFMNUlZH44aDg=="/>
+        </item>
+        <item>
+            <title>0.7.2</title>
+            <pubDate>Sat, 26 Sep 2026 15:42:59 +0200</pubDate>
+            <sparkle:version>73</sparkle:version>
+            <sparkle:shortVersionString>0.7.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.2/Altillo-0.7.2.dmg" length="11010929" type="application/octet-stream" sparkle:edSignature="fveBpJ6nOat6BtG23KACs7Z84crTK+0LMXGdUnkc2fJskbyYqvNLRM0HI1lykp33HB/x/dMvI96Lkje45iODDQ=="/>
+        </item>
+        <item>
+            <title>0.7.1</title>
+            <pubDate>Sat, 26 Sep 2026 14:43:08 +0200</pubDate>
+            <sparkle:version>71</sparkle:version>
+            <sparkle:shortVersionString>0.7.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.1/Altillo-0.7.1.dmg" length="11014007" type="application/octet-stream" sparkle:edSignature="RMJZ92gGhx0x2NSGEu9iOiZHMF14LQnaWYZhLBtWLtoBHa6Fxhs4KwsxrELM2cIsyhRSH+TyQ2wF+og9t4koBw=="/>
+        </item>
+        <item>
+            <title>0.7.0</title>
+            <pubDate>Sat, 26 Sep 2026 14:17:39 +0200</pubDate>
+            <sparkle:version>70</sparkle:version>
+            <sparkle:shortVersionString>0.7.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.7.0/Altillo-0.7.0.dmg" length="10964888" type="application/octet-stream" sparkle:edSignature="OlUFJxJKx5t+wYhjvDMyWgs/TOzJF9X8y1OF2oEf2wW8prhu8aapnIfcs9ta3JH4UfuFSnhXbxC2cOdk835LCA=="/>
+        </item>
+        <item>
+            <title>0.6.0</title>
+            <pubDate>Sat, 26 Sep 2026 12:50:19 +0200</pubDate>
+            <sparkle:version>69</sparkle:version>
+            <sparkle:shortVersionString>0.6.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.6.0/Altillo-0.6.0.dmg" length="10898752" type="application/octet-stream" sparkle:edSignature="DlpGZCaBPMxQporRZ4YI4rh0YT8c1MTH2ECGjTfyb+X2XV2jlyZZp6JhoUHm70f0sQwKst8o7VqxmonrMaStDw=="/>
+        </item>
+        <item>
+            <title>0.5.0</title>
+            <pubDate>Fri, 25 Sep 2026 14:31:33 +0200</pubDate>
+            <sparkle:version>65</sparkle:version>
+            <sparkle:shortVersionString>0.5.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.5.0/Altillo-0.5.0.dmg" length="9866038" type="application/octet-stream" sparkle:edSignature="yZ96nwEQa0kHkOWhhkEVIi3NY4gbb8v05EwrbQjwCCe56rgLhiwumJ1ulynIVy1VkDdR0Fe8zjLFdCZ8mnTbAg=="/>
+        </item>
+        <item>
+            <title>0.4.0</title>
+            <pubDate>Fri, 25 Sep 2026 06:38:07 +0200</pubDate>
+            <sparkle:version>63</sparkle:version>
+            <sparkle:shortVersionString>0.4.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.4.0/Altillo-0.4.0.dmg" length="8602342" type="application/octet-stream" sparkle:edSignature="X07mqwqoOdIwAqE9nr+mUWOazXia4SS0T7y0u4D9dl+7vRJUoLm6mq2pQwtcYqj0YmO10SEO392rO91LMwHADA=="/>
+        </item>
+        <item>
+            <title>0.3.2</title>
+            <pubDate>Thu, 24 Sep 2026 23:12:57 +0200</pubDate>
+            <sparkle:version>58</sparkle:version>
+            <sparkle:shortVersionString>0.3.2</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.3.2/Altillo-0.3.2.dmg" length="6897357" type="application/octet-stream" sparkle:edSignature="OWHRbLu25bND6mxaWLZigR3ZlQPxv98/kikD96XjZVqlUiAEhSR0xcRkLQXhi1c92rnqWHN1S6jd2N4rIc0tAw=="/>
+        </item>
+        <item>
+            <title>0.3.1</title>
+            <pubDate>Thu, 24 Sep 2026 22:50:34 +0200</pubDate>
+            <sparkle:version>57</sparkle:version>
+            <sparkle:shortVersionString>0.3.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.3.1/Altillo-0.3.1.dmg" length="6981609" type="application/octet-stream" sparkle:edSignature="U75bvGf6uQkyqapV77LNOLrisdkK8bpFTI28OzPjDZGACNGDC+G0X4dtkmwCaF72Yz7Fdvf1QzbcL3T/1HBKCw=="/>
+        </item>
+        <item>
+            <title>0.3.0</title>
+            <pubDate>Thu, 24 Sep 2026 13:11:33 +0200</pubDate>
+            <sparkle:version>56</sparkle:version>
+            <sparkle:shortVersionString>0.3.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.3.0/Altillo-0.3.0.dmg" length="6527382" type="application/octet-stream" sparkle:edSignature="YOELVjrQls9ZJK4kuVHGSgdpgv/PLwHYZQziaoM6S8fQe2J3ozqULrOxXwM8HasEdnV94X+NBAlaaShcBe/lBw=="/>
+        </item>
+        <item>
+            <title>0.2.1</title>
+            <pubDate>Thu, 24 Sep 2026 12:24:27 +0200</pubDate>
+            <sparkle:version>52</sparkle:version>
+            <sparkle:shortVersionString>0.2.1</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.2.1/Altillo-0.2.1.dmg" length="5734958" type="application/octet-stream" sparkle:edSignature="nfdWkO8BVIuFy1FYNQMp7bQC8J8MoW/3id3lstnSQV+nPZd6j1OQQezG/4xQh2+/oGo2vfqH5WU4acG13DfKCQ=="/>
+        </item>
+        <item>
+            <title>0.2.0</title>
+            <pubDate>Wed, 23 Sep 2026 12:43:12 +0200</pubDate>
+            <sparkle:version>51</sparkle:version>
+            <sparkle:shortVersionString>0.2.0</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
+            <enclosure url="https://github.com/XusBadia/altillo/releases/download/v0.2.0/Altillo-0.2.0.dmg" length="5076275" type="application/octet-stream" sparkle:edSignature="hJSZX03NOAC+XgNbdBFwnWR48MiKKIZGFtn0vye0l95DwKqV3sEAkkuYQ2KU0Q25vrMzvEQvQWKgnizkpAWnAQ=="/>
+        </item>
+    </channel>
+</rss>

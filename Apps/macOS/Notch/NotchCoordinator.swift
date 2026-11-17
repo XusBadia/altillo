@@ -23,6 +23,7 @@ final class NotchCoordinator {
     private var displayMode: DisplayMode = .notch
     private var appliedScreenSettings: (mode: DisplayMode, fullScreen: FullScreenBehaviour)?
     private let input = InputMonitor()
+    private lazy var menuBarClock = MenuBarClockInteraction { [weak self] in self?.model.drawer.setClockInUse($0) }
     private let sharingController = SharingController()
     private lazy var dragDetector = DragDetector(callbacks: .init(
         began: { [weak self] in
@@ -250,6 +251,7 @@ final class NotchCoordinator {
         model.keepAwake.stop()
         model.mail.stop()
         input.stop()
+        menuBarClock.stop()
         dragDetector.stop()
         model.drawer.stop()
         observers.forEach {
@@ -306,6 +308,7 @@ final class NotchCoordinator {
     private func arrangeScreens() {
         displayMode = model.settings.displayMode
         screens = ScreenService.descriptors
+        trackMenuBarClock(at: NSEvent.mouseLocation)
         guard let plan = ScreenService.plan(
             for: displayMode, screens: screens, pointer: NSEvent.mouseLocation,
             currentLive: window?.screenID, canMove: canMoveLive
@@ -548,6 +551,7 @@ final class NotchCoordinator {
     }
 
     private func mouseMoved(to point: CGPoint) {
+        trackMenuBarClock(at: point)
         // While an app's panel is open from the Drawer, the open notch stays put. Once it's closed (Esc, say), the
         // panel no longer holds it: hover brings it back as usual.
         guard !(model.drawer.isPerformingMenuBarInteraction && model.state == .open) else { return }
@@ -585,6 +589,8 @@ final class NotchCoordinator {
     }
 
     private func mouseDown(at point: CGPoint, isLocal: Bool, isRight: Bool) {
+        let modifiers = NSEvent.modifierFlags.intersection([.shift, .control, .option, .command])
+        trackMenuBarClock(at: point, primaryClick: !isRight && modifiers.isEmpty && !MenuBarItemClicker.isClicking)
         if model.drawer.isPerformingMenuBarInteraction, model.state == .open {
             // An app's open panel takes clicks meant for the Drawer; Altillo's own clicks reach its buttons.
             if !isLocal, !isRight { model.drawer.handleClickWhileMenuOpen(at: point) }
@@ -612,6 +618,12 @@ final class NotchCoordinator {
         } else if !onShape, model.state != .idle, model.state != .dragArmed, model.state != .dropTarget {
             send(.escape)
         }
+    }
+
+    private func trackMenuBarClock(at point: CGPoint, primaryClick: Bool = false) {
+        guard model.drawer.support.hiding else { return }
+        menuBarClock.update(pointer: point, screens: screens, isConcealing: model.drawer.isConcealing,
+                            primaryClick: primaryClick) { model.drawer.notificationClockFrame }
     }
 
     private func dragMoved(to point: CGPoint) {

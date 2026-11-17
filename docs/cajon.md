@@ -23,6 +23,7 @@ MenuBarAgent, el proceso que dibuja la barra en macOS 27, tiene una lista de per
 - **Seguridad:** la API privada se resuelve en tiempo de ejecución (`dlopen`, `NSClassFromString`, selectores comprobados). Si falta algo, ocultar no está disponible y no se oculta nada. La aserción pertenece al proceso de Altillo: al salir o fallar, macOS muestra todos los iconos. Sin Accesibilidad no se oculta, porque los iconos no se podrían abrir desde Altillo.
 - **Sin divisor ni arrastres:** no hay elementos propios en la barra, ni flecha, ni huecos, ni arrastres ⌘ sintéticos, ni ficheros de preferencias de macOS modificados.
 - **Límites:** una app firmada ad hoc o que no se ejecuta desde `/Applications` (p. ej. una build de Debug) no se puede permitir por bundle: sus iconos se ocultan mientras la aserción esté activa. Las píldoras tipo Live Activity de MenuBarAgent tampoco están cubiertas y se ocultan igual.
+- **Centro de notificaciones:** el Cajón libera la aserción al acercar el puntero al reloj. Los iconos vuelven a ocultarse cuando el panel se cierra y el puntero sale del área del reloj.
 
 En **macOS 26** el Cajón lista los iconos y abre sus menús, pero no los oculta.
 
@@ -45,6 +46,7 @@ Con la build firmada instalada en `/Applications` y Accesibilidad concedida:
 - Abrir cada icono desde la estantería (un menú estándar y un panel personalizado).
 - Abrir una app nueva: su icono aparece en la barra en menos de un segundo (o en el Cajón con **Go to the Drawer**).
 - **Show hidden icons** y **Hide them again**; mover una app de vuelta a **Menu Bar**.
+- Con los iconos ocultos, pulsa la fecha o el reloj una vez. Comprueba que el panel sigue abierto al mover el puntero hacia las notificaciones y que los iconos se vuelven a ocultar al cerrar el panel y salir del área del reloj.
 - `kill -9` de Altillo: la captura vuelve a coincidir con `a.png`. Revocar Accesibilidad: los iconos vuelven.
 - MacBook con notch y monitor externo; barra autooculta; pantalla completa; VoiceOver.
 

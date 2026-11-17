@@ -79,6 +79,7 @@ final class MenuBarDrawerStore: NSObject {
     /// Apps shown in the menu bar during this assertion. The list only grows while it lives: macOS ignores a
     /// shorter list, and replacing the assertion flashes every icon, so a quitting app simply stays listed.
     @ObservationIgnored private var shownThisSession: Set<String> = []
+    @ObservationIgnored private var isClockInUse = false
     @ObservationIgnored private var concealTask: Task<Void, Never>?
     @ObservationIgnored private var scanTask: Task<Void, Never>?
     @ObservationIgnored private var permissionTask: Task<Void, Never>?
@@ -259,6 +260,7 @@ final class MenuBarDrawerStore: NSObject {
     func stop() {
         menuPresenter.cancel()
         started = false
+        isClockInUse = false
         for task in [scanTask, permissionTask, activationTask, menuSessionTask, accessRecheckTask, concealTask,
                      glyphRevealTask] {
             task?.cancel()
@@ -405,6 +407,19 @@ final class MenuBarDrawerStore: NSObject {
 
     // MARK: - Hiding
 
+    /// The clock opens a native panel that macOS blocks while Altillo's assertion is active.
+    func setClockInUse(_ inUse: Bool) {
+        guard isClockInUse != inUse else { return }
+        isClockInUse = inUse
+        if inUse { suspendConcealment() } else { applyConcealment() }
+    }
+
+    var notificationClockFrame: CGRect? {
+        let clockID = MenuBarAccessibility.stableID(bundleID: MenuBarAccessibility.menuBarAgentBundleID,
+                                                    identifier: MenuBarClockInteraction.clockIdentifier, title: nil, ordinal: 0)
+        return entries.first { $0.id == clockID }?.frame
+    }
+
     /// Hiding needs the Drawer on, Accessibility (without it hidden icons couldn't be opened from Altillo) and
     /// something to hide. Anything else shows every icon.
     private var wantsConcealment: Bool {
@@ -418,6 +433,7 @@ final class MenuBarDrawerStore: NSObject {
             releaseConcealment()
             return
         }
+        guard !isClockInUse else { return }
         let previous = concealTask
         // Only the newest request may commit state. Keep awaiting the previous call so macOS is never
         // activated concurrently, but cancel it (and thus every earlier request) before replacing it.
@@ -453,12 +469,16 @@ final class MenuBarDrawerStore: NSObject {
     }
 
     private func releaseConcealment() {
+        suspendConcealment()
+        temporarilyShown = []
+        revealedForMenu = nil
+    }
+
+    private func suspendConcealment() {
         concealTask?.cancel()
         concealTask = nil
         concealer.release()
         shownThisSession = []
-        temporarilyShown = []
-        revealedForMenu = nil
         isConcealing = false
     }
 

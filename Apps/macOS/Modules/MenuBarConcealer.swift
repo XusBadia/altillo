@@ -1,4 +1,6 @@
-import Foundation
+import AltilloCore
+import AppKit
+import ApplicationServices
 import ObjectiveC
 import Security
 import os
@@ -160,4 +162,117 @@ final class UnavailableMenuBarConcealer: MenuBarConcealing {
     var isActive: Bool { false }
     func conceal(allowing list: MenuBarAllowList) async -> Bool { false }
     func release() {}
+}
+
+/// Releases Altillo's assertion before the clock receives a click and keeps it released
+/// while the native Notification Center panel is open.
+@MainActor
+final class MenuBarClockInteraction {
+    static let clockIdentifier = "com.apple.menuextra.clock"
+    private var pointerIsNearClock = false
+    private var releasedAt: ContinuousClock.Instant?
+    private var resumeTask: Task<Void, Never>?
+    private var clickTask: Task<Void, Never>?
+    private let setClockInUse: (Bool) -> Void
+
+    init(setClockInUse: @escaping (Bool) -> Void) {
+        self.setClockInUse = setClockInUse
+    }
+
+    func update(pointer: CGPoint, screens: [ScreenDescriptor], isConcealing: Bool,
+                primaryClick: Bool = false, clockFrame: () -> CGRect?) {
+        let nearClock = screens.contains { screen in
+            let height = screen.geometry.notchRect.height + 16
+            let corner = CGRect(x: screen.frame.maxX - 320, y: screen.frame.maxY - height, width: 320, height: height)
+            guard NotchGeometry.containsPointer(pointer, in: corner) else { return false }
+
+            // AX may report the clock on another display. Use its distance from the right edge.
+            let distance = clockFrame().flatMap { frame in
+                screens.first { $0.windowServerFrame.intersects(frame) }.map { $0.windowServerFrame.maxX - frame.minX }
+            } ?? 180
+            return pointer.x >= screen.frame.maxX - distance - 18
+        }
+        if pointerIsNearClock != nearClock {
+            updateSuspension(nearClock: nearClock, screens: screens)
+            releasedAt = nearClock && isConcealing ? .now : nil
+        }
+        if primaryClick {
+            clickTask?.cancel()
+            if nearClock, let releasedAt, ContinuousClock.now - releasedAt < .milliseconds(150) {
+                recoverClockClick(at: pointer, screens: screens)
+            }
+        }
+    }
+
+    private func updateSuspension(nearClock: Bool, screens: [ScreenDescriptor]) {
+        pointerIsNearClock = nearClock
+        resumeTask?.cancel()
+        if nearClock {
+            setClockInUse(true)
+        } else {
+            resumeTask = Task { [weak self] in
+                repeat {
+                    // Allow the opening or closing animation to settle before checking the window.
+                    try? await Task.sleep(for: .milliseconds(450))
+                    guard !Task.isCancelled, let self else { return }
+                    if !Self.notificationCenterIsOpen(on: screens) {
+                        self.setClockInUse(false)
+                        self.resumeTask = nil
+                        return
+                    }
+                } while !Task.isCancelled
+            }
+        }
+    }
+
+    func stop() {
+        resumeTask?.cancel()
+        clickTask?.cancel()
+        resumeTask = nil
+        clickTask = nil
+        pointerIsNearClock = false
+        releasedAt = nil
+    }
+
+    /// A click with no preceding mouse move can reach macOS before the assertion is released.
+    /// Retry only when the original click opened no panel and AX confirms the actual clock.
+    private func recoverClockClick(at pointer: CGPoint, screens: [ScreenDescriptor]) {
+        guard let primary = screens.first else { return }
+        let quartz = CGPoint(x: pointer.x, y: primary.frame.height - pointer.y)
+        clickTask = Task {
+            try? await Task.sleep(for: .milliseconds(250))
+            guard !Task.isCancelled, !MenuBarItemClicker.isClicking,
+                  !Self.notificationCenterIsOpen(on: screens) else { return }
+            let system = AXUIElementCreateSystemWide()
+            AXUIElementSetMessagingTimeout(system, 0.1)
+            var item: AXUIElement?
+            guard AXUIElementCopyElementAtPosition(system, Float(quartz.x), Float(quartz.y), &item) == .success,
+                  let item else { return }
+            AXUIElementSetMessagingTimeout(item, 0.1)
+            var identifier: CFTypeRef?
+            guard AXUIElementCopyAttributeValue(item, kAXIdentifierAttribute as CFString, &identifier) == .success,
+                  identifier as? String == Self.clockIdentifier else { return }
+            // The system clock advertises AXPress, but only an actual mouse event opens its panel.
+            await MenuBarItemClicker.click(CGRect(x: quartz.x - 1, y: quartz.y - 1, width: 2, height: 2))
+        }
+    }
+
+    private static func notificationCenterIsOpen(on screens: [ScreenDescriptor]) -> Bool {
+        guard let owner = NSRunningApplication.runningApplications(withBundleIdentifier: "com.apple.notificationcenterui").first,
+              let windows = CGWindowListCopyWindowInfo([.optionOnScreenOnly, .excludeDesktopElements], kCGNullWindowID)
+                as? [[String: Any]] else { return false }
+        return windows.contains { info in
+            guard info[kCGWindowOwnerPID as String] as? pid_t == owner.processIdentifier,
+                  (info[kCGWindowAlpha as String] as? Double ?? 1) > 0,
+                  let bounds = info[kCGWindowBounds as String] as? NSDictionary,
+                  let frame = CGRect(dictionaryRepresentation: bounds) else { return false }
+            // The panel reaches down from the top, unlike individual notification banners.
+            return screens.contains { screen in
+                let display = screen.windowServerFrame
+                return abs(frame.minY - display.minY) <= 64
+                    && abs(frame.maxX - display.maxX) <= 32
+                    && frame.height >= display.height / 2
+            }
+        }
+    }
 }

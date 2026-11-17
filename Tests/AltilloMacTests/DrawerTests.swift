@@ -346,6 +346,32 @@ struct DrawerTests {
         #expect(!store.isConcealing)
     }
 
+    @Test func usingTheClockSuspendsHidingAndResumesWithCurrentMembership() async {
+        let storage = Self.makeDefaults()
+        defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }
+        storage.defaults.set(true, forKey: "drawer.enabled")
+        let concealer = FakeConcealer()
+        let store = Self.makeStore(storage.defaults, concealer: concealer)
+        let first = Self.item("com.a")
+        let second = Self.item("com.b")
+        store.setCatalogForTesting([first, second], hasAccess: true)
+        store.move(first, toDrawer: true)
+        await store.settleForTesting()
+        #expect(store.isConcealing)
+
+        store.setClockInUse(true)
+        #expect(!concealer.isActive)
+        #expect(!store.isPeeking)
+        store.move(second, toDrawer: true)
+        await store.settleForTesting()
+        #expect(!concealer.isActive)
+
+        store.setClockInUse(false)
+        await store.settleForTesting()
+        #expect(store.isConcealing)
+        #expect(concealer.active?.bundleIDs.isDisjoint(with: ["com.a", "com.b"]) == true)
+    }
+
     @Test func emptyingTheDrawerShowsEverything() async {
         let storage = Self.makeDefaults()
         defer { UserDefaults.standard.removePersistentDomain(forName: storage.suite) }

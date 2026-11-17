@@ -25,7 +25,7 @@ real desde 0.13.0.
   builds de release usan las mismas entitlements que las de desarrollo.
 - Las actualizaciones usan **[Sparkle 2](https://sparkle-project.org/)**: la
   app comprueba `https://altillo.app/appcast.xml`, que la web sirve desde el
-  feed publicado en GitHub Pages (rama `gh-pages`), y
+  fichero `website/public/appcast.xml` en Vercel, y
   verifica la firma EdDSA de cada descarga con la clave pública embebida en
   `Info.plist` (`SUPublicEDKey`).
 - **Un fork sin configurar Sparkle sigue compilando.** `ALTILLO_SPARKLE_FEED_URL`
@@ -37,8 +37,7 @@ real desde 0.13.0.
   Developer ID → exportar el `.app` → verificar la firma → notarizar el
   `.app` → construir el DMG → notarizar el DMG → generar/actualizar
   `appcast.xml` con `generate_appcast` de Sparkle. El paso final de
-  publicación (crear el release de GitHub y subir `appcast.xml` a
-  `gh-pages`) solo ocurre con `--publish`; sin ese flag el script se detiene
+  publicación (crear el release de GitHub) solo ocurre con `--publish`; sin ese flag el script se detiene
   después de dejar los artefactos en `dist/`.
 
 ## Configuración única (la haces tú, una sola vez)
@@ -88,130 +87,41 @@ xcrun notarytool store-credentials altillo-notary \
 ```
 
 Esto guarda las credenciales en el llavero bajo el perfil `altillo-notary`,
-que es lo que usa `script/release.sh` por defecto en local. (En CI se usan
+que es lo que usa `script/release.sh` por defecto en local. (Como alternativa se usan
 en su lugar los secretos `ALTILLO_NOTARY_*`, ver más abajo.)
 
-### 3. GitHub Pages como origen del appcast
+### 3. Feed de actualizaciones en Vercel
 
-En la configuración del repo (`XusBadia/altillo` → Settings → Pages), activa
-Pages sirviendo desde la rama `gh-pages` (carpeta raíz). La primera
-publicación (`script/release.sh <version> --publish`, o el workflow de CI)
-crea esa rama si no existe todavía.
-
-La web reexpone ese fichero en `https://altillo.app/appcast.xml` mediante una
-reescritura de Vercel. La URL pública queda así bajo el dominio definitivo sin
-cambiar el flujo de publicación de releases.
-
-### 4. Secretos de CI (`.github/workflows/release.yml`)
-
-Solo hacen falta si quieres que las releases se publiquen automáticamente al
-empujar una etiqueta `vX.Y.Z`. Configúralos en Settings → Secrets and
-variables → Actions:
-
-| Secreto | Qué es |
-|---|---|
-| `ALTILLO_CERTIFICATE_P12` | El certificado "Developer ID Application" (equipo `9L2TD7KVV9`), exportado desde Acceso a Llaveros como `.p12`, codificado en base64 (`base64 -i cert.p12 \| pbcopy`). |
-| `ALTILLO_CERTIFICATE_PASSWORD` | La contraseña que le pusiste a ese `.p12` al exportarlo. |
-| `ALTILLO_NOTARY_APPLE_ID` | El Apple ID con acceso al equipo `9L2TD7KVV9`. |
-| `ALTILLO_NOTARY_APP_PASSWORD` | Una contraseña específica de app para ese Apple ID (la del paso 2, o una nueva). |
-| `ALTILLO_NOTARY_TEAM_ID` | `9L2TD7KVV9`. |
-| `ALTILLO_SPARKLE_PUBLIC_KEY` | La clave pública EdDSA (no es secreta, pero así queda junto a las demás). |
-| `ALTILLO_SPARKLE_PRIVATE_KEY` | La clave privada EdDSA exportada en base64 (paso 1). **Esta sí es secreta de verdad.** |
-
-Cuando estén todos, crea la variable de repositorio `ALTILLO_CI_RELEASE` con valor `true`
-(Settings → Secrets and variables → Actions → Variables). Sin ella, empujar una
-etiqueta o lanzar `workflow_dispatch` ejecuta las puertas de calidad, pero omite
-el job de firma/publicación. El dispatch manual usa el mismo opt-in que el tag;
-no puede activar una segunda publicación sin las credenciales preparadas.
-
-`GITHUB_TOKEN` lo proporciona GitHub Actions automáticamente (con permiso
-`contents: write` y `actions: read` declarados en el workflow) — no hay que crearlo.
+La web sirve `website/public/appcast.xml` en `https://altillo.app/appcast.xml`.
+El script parte del feed público para conservar las versiones anteriores y
+genera el nuevo fichero con los enlaces firmados del DMG.
 
 ## Publicar una release
 
-1. Decide la versión (`X.Y.Z`, [SemVer](https://semver.org/lang/es/)), actualiza
-   `MARKETING_VERSION` en `project.yml` y escribe `docs/releases/<versión>.md`.
-   Compromete los cambios y empújalos a `main`; espera a que el último run de
-   `CI` para ese SHA termine completamente verde.
-2. Con todo lo de arriba ya configurado en este Mac, prueba en seco primero
-   (no notariza, no publica nada, no toca red de escritura):
+1. Actualiza `MARKETING_VERSION` en `project.yml` y escribe
+   `docs/releases/<versión>.md`. Crea el commit de lanzamiento.
+2. Ejecuta `script/validate-release.sh`. El script guarda resultados y logs
+   locales asociados al SHA exacto.
+3. Empuja el commit validado y ejecuta:
 
    ```sh
    export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-   script/release.sh 0.2.0 --dry-run
+   script/release.sh <versión> --publish
    ```
 
-   El empaquetado necesita `xcodegen` y `create-dmg`; se instalan una vez con
-   `brew install xcodegen create-dmg`. El fondo, su fuente y las instrucciones
-   para regenerarlo viven en [`packaging/dmg/`](../packaging/dmg/README.md).
+   El script exige el árbol limpio y la validación del SHA, tanto al arrancar
+   como antes de crear el release. Firma, notariza y verifica el DMG.
+4. Copia `dist/appcast.xml` a `website/public/appcast.xml`, haz commit y
+   publica la web en Vercel. Comprueba que la URL pública entrega la versión
+   nueva y que el enlace firmado al DMG funciona.
 
-3. Genera la release real (firma y notariza de verdad, pero no publica):
-
-   ```sh
-   export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer
-   script/release.sh 0.2.0
-   ```
-
-   Revisa `dist/Altillo.app`, `dist/Altillo-0.2.0.dmg` y `dist/appcast.xml`.
-   El script monta ese mismo DMG y comprueba Gatekeeper, firma profunda,
-   componentes embebidos, configuración de Sparkle y que la app permanece
-   viva tras arrancar. Un fallo detiene la publicación.
-
-   Antes de publicar, copia `docs/releases/TEMPLATE.md` a
-   `docs/releases/<versión>.md` y sustituye cada marcador. La publicación se
-   niega a continuar sin esas notas, que deben incluir cambios, limitaciones,
-   soporte y rollback.
-
-4. Publica (crea el release de GitHub y sube el appcast a `gh-pages`):
-
-   `--publish` comprueba **antes de compilar y de nuevo justo antes de publicar**
-   el árbol limpio (tracked y untracked, incluidos cambios de promo) y el último
-   run de `ci.yml` disparado por push a `main` para el **SHA exacto de HEAD**.
-   Un run pendiente, fallido, cancelado o ausente, aunque haya un run verde
-   anterior, bloquea publicación. Un error de GitHub también bloquea. No hay
-   variable para saltarse esta puerta. El tag remoto, si ya existe, debe apuntar
-   al mismo commit; los tags nuevos se crean con ese SHA como target.
-
-   Si tienes trabajo sin comprometer, conserva ese árbol y utiliza otro
-   checkout/worktree del commit aprobado; copia ahí la configuración local
-   ignorada que necesite la firma. El script no descarta ni guarda cambios por ti.
-
-   ```sh
-   script/release.sh 0.2.0 --publish
-   ```
-
-   O, más simple, deja que lo haga CI: etiqueta y empuja.
-
-   ```sh
-   git tag v0.2.0
-   git push origin v0.2.0
-   ```
-
-   `.github/workflows/release.yml` hace exactamente los mismos pasos
-   (`script/release.sh 0.2.0 --publish`) con las credenciales de los
-   secretos.
-
-5. Una vez publicado, las instalaciones existentes de Altillo (con Sparkle
-   configurado) lo detectan en su siguiente comprobación programada, o al
-   momento si el usuario pulsa "Check for Updates…".
-
-El workflow remoto ejecuta antes, como puertas obligatorias, AltilloKit, la
-suite macOS, el control de localización, el build de la web y Playwright. Tanto
-CI como el workflow de release fallan si una prueba web necesita un reintento
-para pasar o si se deja un `test.only`; un resultado intermitente no abre la
-puerta de publicación. Las
-suites Swift y Xcode se ejecutan en serie porque comparten el socket de hooks.
-El script compartido añade también la comprobación de CI para el SHA exacto,
-de modo que publicar desde local y desde Actions obedece la misma regla.
-
-Las pruebas baratas de autorización de publicación se ejecutan con
-`bash script/release-gates-test.sh`: git desechable y `gh` simulado, sin firma,
-Xcode, credenciales ni llamadas a red.
+`script/release.sh <versión> --dry-run` permite empaquetar sin notarizar.
+`bash script/release-gates-test.sh` comprueba localmente las puertas de publicación.
 
 ## Rollback y hotfix
 
 - **Release defectuosa todavía no anunciada:** marca el release de GitHub como
-  pre-release o elimínalo, restaura en `gh-pages` el `appcast.xml` anterior y
+  pre-release o elimínalo, restaura el `appcast.xml` anterior en Vercel y
   comprueba que `https://altillo.app/appcast.xml` ya no ofrece esa versión.
 - **Release ya instalada:** no sustituyas silenciosamente el DMG bajo la misma
   etiqueta. Corrige desde `main`, aumenta la versión patch, escribe sus notas y

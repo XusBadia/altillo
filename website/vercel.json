@@ -6,11 +6,5 @@
       "destination": "/",
       "permanent": true
     }
-  ],
-  "rewrites": [
-    {
-      "source": "/appcast.xml",
-      "destination": "https://xusbadia.github.io/altillo/appcast.xml"
-    }
   ]
 }

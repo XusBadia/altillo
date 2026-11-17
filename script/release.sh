@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Builds a distributable, Developer ID-signed, notarized Altillo.app, wraps it in a DMG, and updates the
-# Sparkle appcast. Runs locally and in CI (.github/workflows/release.yml). See docs/release.md for the
+# Sparkle appcast. Runs locally. See docs/release.md for the
 # one-time setup (notarytool profile, Sparkle key, GitHub Pages) and the per-release steps.
 #
 # Usage: script/release.sh <version> [--dry-run] [--publish]
@@ -14,9 +14,9 @@ set -euo pipefail
 #                 not touch GitHub or gh-pages, even to read. Equivalent to ALLOW_UNNOTARIZED=1 with
 #                 publishing forced off. Use this to prove the pipeline works without real credentials.
 #   --publish    After building, notarizing, and packaging, create the GitHub release (`gh release
-#                 create`) and push the updated appcast.xml to the gh-pages branch. Requires
+#                 create`) create and verify the updated appcast.xml. Requires
 #                 notarization (never publishes an un-notarized build) and a `gh` CLI authenticated with
-#                 push access to XusBadia/altillo. Requires a clean tree and green CI for exact HEAD.
+#                 push access to XusBadia/altillo. Requires a clean tree and successful local validation for exact HEAD.
 #
 # Without either flag, the script does everything --publish does except the final publish step: it
 # still notarizes and produces a real, ready-to-upload dist/Altillo-<version>.dmg and dist/appcast.xml.
@@ -98,7 +98,7 @@ source "$ROOT_DIR/script/release-gates.sh"
 RELEASE_SOURCE_SHA="$(git rev-parse HEAD)"
 if [ "$PUBLISH" = 1 ]; then
   require_release_snapshot "$RELEASE_SOURCE_SHA"
-  require_release_ci "$REPO_SLUG" "$RELEASE_SOURCE_SHA"
+  require_release_ci "$RELEASE_SOURCE_SHA"
 fi
 
 # ---- prerequisites ------------------------------------------------------------------------------------
@@ -327,26 +327,8 @@ rm -rf "$RELEASES_DIR"
 mkdir -p "$RELEASES_DIR"
 
 if [ "$DRY_RUN" = 0 ]; then
-  # Carry forward the live feed so older versions (and other channels) aren't dropped. Best-effort:
-  # only replaces the fresh, empty feed when gh-pages genuinely has no appcast yet; any other failure
-  # to read it aborts, so a network blip can never silently truncate the published history.
-  set +e
-  git ls-remote --exit-code --heads "https://github.com/$REPO_SLUG.git" gh-pages >/dev/null 2>&1
-  rc=$?
-  set -e
-  if [ "$rc" -eq 0 ]; then
-    TMP_CLONE="$(mktemp -d)"
-    git clone --quiet --branch gh-pages --single-branch --depth 1 "https://github.com/$REPO_SLUG.git" "$TMP_CLONE"
-    cp "$TMP_CLONE/appcast.xml" "$RELEASES_DIR/appcast.xml"
-    rm -rf "$TMP_CLONE"
-    echo "    loaded existing appcast from gh-pages"
-  elif [ "$rc" -eq 2 ]; then
-    echo "    no gh-pages branch yet — starting a fresh feed"
-  else
-    echo "Could not reach GitHub to check for gh-pages — aborting to protect the live feed." >&2
-    echo "(pass --dry-run to skip this check entirely)" >&2
-    exit 1
-  fi
+  # Start from the last published feed and preserve its signed enclosures.
+  curl --fail --silent --show-error --retry 2 "$FEED_URL" -o "$RELEASES_DIR/appcast.xml"
 fi
 
 cp "$DMG_PATH" "$RELEASES_DIR/$DMG_NAME"
@@ -387,9 +369,9 @@ if [ "$PUBLISH" = 0 ]; then
   exit 0
 fi
 
-# Recheck after the build: a changed tree/HEAD or a newer unsuccessful CI run cannot publish.
+# Recheck after the build: a changed tree/HEAD or missing local validation cannot publish.
 require_release_snapshot "$RELEASE_SOURCE_SHA"
-require_release_ci "$REPO_SLUG" "$RELEASE_SOURCE_SHA"
+require_release_ci "$RELEASE_SOURCE_SHA"
 
 # Existing tags must identify the same source as the artifact. New tags are pinned with --target.
 require_release_tag "https://github.com/$REPO_SLUG.git" "v$VERSION" "$RELEASE_SOURCE_SHA"
@@ -410,23 +392,5 @@ gh release create "v$VERSION" "$DMG_PATH" \
   --notes-file "$RELEASE_NOTES" \
   "${PRERELEASE_ARGS[@]}"
 
-echo "==> publishing appcast to gh-pages"
-PAGES_DIR="$(mktemp -d)"
-if git ls-remote --exit-code --heads "https://github.com/$REPO_SLUG.git" gh-pages >/dev/null 2>&1; then
-  git clone --quiet --branch gh-pages --single-branch --depth 1 "https://github.com/$REPO_SLUG.git" "$PAGES_DIR"
-else
-  git -C "$PAGES_DIR" init --quiet
-  git -C "$PAGES_DIR" checkout --quiet -b gh-pages
-fi
-cp "$DIST_DIR/appcast.xml" "$PAGES_DIR/appcast.xml"
-git -C "$PAGES_DIR" add appcast.xml
-if ! git -C "$PAGES_DIR" diff --cached --quiet; then
-  git -C "$PAGES_DIR" -c user.name="altillo-release" -c user.email="noreply@altillo.local" \
-    commit --quiet -m "chore: publish appcast for v$VERSION"
-  git -C "$PAGES_DIR" push --quiet "https://github.com/$REPO_SLUG.git" gh-pages
-else
-  echo "    appcast.xml unchanged — nothing to push"
-fi
-rm -rf "$PAGES_DIR"
-
 echo "==> published: https://github.com/$REPO_SLUG/releases/tag/v$VERSION"
+echo "    Sparkle: commit dist/appcast.xml as website/public/appcast.xml and deploy the website."

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Shared by local and GitHub Actions publication. No credentials or bypass flags.
+# Shared by local release validation and publication. No credentials or bypass flags.
 
 require_release_snapshot() {
   local expected_sha="$1" tree_status
@@ -18,28 +18,14 @@ require_release_snapshot() {
   fi
 }
 
+# Results live outside the checkout and are written only after all checks pass.
 require_release_ci() {
-  local repo="$1" expected_sha="$2"
-  local result ci_sha ci_status ci_conclusion ci_run_id extra
-  command -v gh >/dev/null 2>&1 || { echo "--publish needs the gh CLI." >&2; return 1; }
-  # Do not filter by success: a newer failing, cancelled or pending run must block publication.
-  # Restrict to push/main: an unrelated PR run cannot authorize a public artifact.
-  # TSV preserves integer run IDs; Go templates print large IDs in scientific notation.
-  if ! result="$(gh run list --repo "$repo" --workflow ci.yml --branch main --event push \
-    --commit "$expected_sha" --limit 1 --json headSha,status,conclusion,databaseId \
-    --jq '.[] | [.headSha, .status, .conclusion, .databaseId] | @tsv')"; then
-    echo "Could not verify CI for $expected_sha; refusing publication." >&2
+  local expected_sha="$1" result="${ALTILLO_VALIDATION_DIR:-$HOME/Library/Developer/BuildCache/altillo/ReleaseValidation}/$1/passed"
+  if [ ! -f "$result" ] || [ "$(cat "$result")" != "$expected_sha" ]; then
+    echo "Run script/validate-release.sh on $expected_sha before publishing." >&2
     return 1
   fi
-  read -r ci_sha ci_status ci_conclusion ci_run_id extra <<< "$result"
-  if [ "$ci_sha" != "$expected_sha" ] || [ "$ci_status" != completed ] \
-    || [ "$ci_conclusion" != success ] || ! [[ "$ci_run_id" =~ ^[0-9]+$ ]] \
-    || [ -n "$extra" ] || [[ "$result" == *$'\n'* ]]; then
-    echo "--publish requires the latest CI run on main to be completed/success for exact commit $expected_sha." >&2
-    echo "Push that commit to main, wait for every CI job, then retry (no publication occurred)." >&2
-    return 1
-  fi
-  echo "    CI verified: https://github.com/$repo/actions/runs/$ci_run_id ($expected_sha)"
+  echo "    Local validation verified: $result"
 }
 
 require_release_tag() {
