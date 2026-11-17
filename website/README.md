@@ -66,5 +66,5 @@ Aloja el contenido de `dist/` en un hosting estático. Configura `website/` como
 
 Estos comandos preparan los archivos; no publican la web. La sección final enlaza a [Aurio](https://www.aurioapp.com) para quienes quieran apoyar el desarrollo probando la otra app del equipo.
 
-`vercel.json` mantiene `https://altillo.app/appcast.xml` como URL pública estable
-del feed de Sparkle y lo sirve desde el origen publicado en GitHub Pages.
+`public/appcast.xml` se publica en Vercel como `https://altillo.app/appcast.xml`.
+El feed de Sparkle se actualiza siguiendo [el proceso de lanzamiento](../docs/release.md).

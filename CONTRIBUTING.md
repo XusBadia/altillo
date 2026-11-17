@@ -109,8 +109,8 @@ xcodebuild -project Altillo.xcodeproj -scheme AltilloiOS \
   -derivedDataPath build/dd-ios CODE_SIGNING_ALLOWED=NO build
 ```
 
-CI (`.github/workflows/ci.yml`) runs all three on every push to `main` and on
-every pull request.
+Run `script/validate-release.sh` locally for the full validation suite. It saves
+logs and results by source commit.
 
 ## Pull requests
 
@@ -132,9 +132,9 @@ Altillo never needs an API key to run, and the repository must never contain one
 - The Sparkle EdDSA **private** signing key lives in the login keychain (`generate_keys --account altillo`),
   never on disk or in git; notarization credentials live in a notarytool keychain profile
   (`altillo-notary`). Neither is needed to build or contribute — only to cut a release. See
-  [docs/release.md](docs/release.md) (Spanish) for the full release setup and CI secret names.
+  [docs/release.md](docs/release.md) (Spanish) for the full release setup.
 - The APNs key used for Live Activities (phase 6) is read from the user's Keychain at runtime. It is never bundled, printed or committed.
 - Provider credentials (Claude, Codex…) are read from the user's own Keychain/config files and never leave the Mac.
-- Run `script/install-git-hooks.sh` once (needs `brew install gitleaks`): it installs a pre-commit hook that refuses to commit a secret. CI runs the same scan over the full history on every push and pull request.
+- Run `script/install-git-hooks.sh` once (needs `brew install gitleaks`). The pre-commit hook checks staged changes, and local release validation scans the history reachable from the release commit.
 
 If a secret ever does land in the history, treat it as leaked: rotate it first, then rewrite the history.

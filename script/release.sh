@@ -14,7 +14,7 @@ set -euo pipefail
 #                 not touch GitHub or gh-pages, even to read. Equivalent to ALLOW_UNNOTARIZED=1 with
 #                 publishing forced off. Use this to prove the pipeline works without real credentials.
 #   --publish    After building, notarizing, and packaging, create the GitHub release (`gh release
-#                 create`) create and verify the updated appcast.xml. Requires
+#                 create`). It also generates the updated appcast.xml. Requires
 #                 notarization (never publishes an un-notarized build) and a `gh` CLI authenticated with
 #                 push access to XusBadia/altillo. Requires a clean tree and successful local validation for exact HEAD.
 #
@@ -365,7 +365,7 @@ echo "    Appcast:  $DIST_DIR/appcast.xml"
 # ---- publish ------------------------------------------------------------------------------------------
 
 if [ "$PUBLISH" = 0 ]; then
-  echo "    Stopping here (pass --publish to create the GitHub release and push the appcast)."
+  echo "    Stopping here (pass --publish to create the GitHub release)."
   exit 0
 fi
 

@@ -15,7 +15,7 @@ printf 'Validating %s\n' "$sha"
 
 bash script/release-gates-test.sh
 python3 script/check-mail-signing-test.py
-gitleaks git --redact --no-banner .
+gitleaks git --redact --no-banner --log-opts="$sha" .
 swift test --package-path Packages/AltilloKit --scratch-path "$cache/SwiftPM"
 xcodegen generate
 xcodebuild -project Altillo.xcodeproj -scheme Altillo -destination 'platform=macOS,arch=arm64' \

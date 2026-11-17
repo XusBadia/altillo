@@ -147,7 +147,11 @@ for (const L of LOCALES) {
 
     test("the language switch leads to the other page", async ({ page }) => {
       await gotoPage(page, L.path);
-      await page.locator(`.footer a[href="${L.other}"]`).click();
+      const link = page.locator(`.footer a[href="${L.other}"]`);
+      // Let WebKit finish scrolling before dispatching the click on the footer.
+      await link.evaluate((element) => element.scrollIntoView({ behavior: "instant", block: "center" }));
+      await expect(link).toBeInViewport({ ratio: 1 });
+      await link.click();
       await expect(page).toHaveURL(new RegExp(`${L.other.replace(/\//g, "\\/")}$`));
       await expect(page.locator("html")).toHaveAttribute("lang", L.otherLang);
     });
