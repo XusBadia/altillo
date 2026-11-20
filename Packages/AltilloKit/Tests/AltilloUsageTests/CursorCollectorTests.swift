@@ -72,6 +72,24 @@ struct CursorMapperTests {
         #expect(!CursorUsageMapper.prefersDashboardSummary(pro, planName: "Pro", planInfoMissing: false))
     }
 
+    @Test func completeTeamPoolsNeedNoSpendingLimit() throws {
+        let usage: [String: Any] = [
+            "planUsage": ["autoPercentUsed": 0, "apiPercentUsed": 12],
+            "spendLimitUsage": ["limitType": "team"],
+        ]
+        #expect(!CursorUsageMapper.prefersDashboardSummary(usage, planName: "Team", planInfoMissing: false))
+        let mapped = try #require(CursorUsageMapper.mapPlanUsage(usage))
+        #expect(mapped.windows.map(\.id) == ["auto", "api"])
+        #expect(mapped.windows.map(\.used) == [0, 0.12])
+    }
+
+    @Test func malformedTeamPoolsStillPreferDashboard() {
+        for value: Any in [true, -1, "inf"] {
+            let usage: [String: Any] = ["planUsage": ["autoPercentUsed": value, "apiPercentUsed": 12]]
+            #expect(CursorUsageMapper.prefersDashboardSummary(usage, planName: "Team", planInfoMissing: false))
+        }
+    }
+
     @Test func mapsEnterpriseDashboard() throws {
         let summary = UsageParsing.object(Data(CursorFixtures.enterpriseSummary.utf8))
         let requests = UsageParsing.object(Data(CursorFixtures.enterpriseRequests.utf8))

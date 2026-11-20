@@ -92,8 +92,9 @@ public struct CursorCollector: UsageCollector {
                            previous: previous, plan: plan, now: now)
         }
 
+        let routingPlan = ["Team", "Enterprise"].contains(storedPlan ?? "") ? storedPlan : planName
         var mapped = CursorUsageMapper.mapPlanUsage(usage)
-        if mapped == nil || CursorUsageMapper.prefersDashboardSummary(usage, planName: planName,
+        if mapped == nil || CursorUsageMapper.prefersDashboardSummary(usage, planName: routingPlan,
                                                                       planInfoMissing: planInfo == nil) {
             // Team/enterprise and request-based accounts: the dashboard's REST endpoints carry the real numbers.
             async let summaryReply = optional(cookieRequest(Self.usageSummaryURL, credential), now: now)
@@ -197,6 +198,11 @@ enum CursorUsageMapper {
     /// Team/enterprise accounts whose `planUsage` is missing or has no limit: prefer the dashboard's REST numbers.
     static func prefersDashboardSummary(_ usage: [String: Any], planName: String?, planInfoMissing: Bool) -> Bool {
         let planUsage = usage["planUsage"] as? [String: Any]
+        // Model quotas are reported independently of spending limits. Zero is a valid percentage.
+        if let auto = UsageParsing.number(planUsage?["autoPercentUsed"]), auto >= 0,
+           let api = UsageParsing.number(planUsage?["apiPercentUsed"]), api >= 0 {
+            return false
+        }
         let limitMissing = planUsage.map { UsageParsing.number($0["limit"]) == nil } ?? true
         let percentMissing = planUsage.map { UsageParsing.number($0["totalPercentUsed"]) == nil } ?? true
         let plan = planName?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased() ?? ""
