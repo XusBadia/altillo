@@ -383,6 +383,11 @@ struct SettingsDrawerPane: View {
                     Text("Or drag the icon into the Accessibility list in System Settings.")
                         .settingsHint()
                         .fixedSize(horizontal: false, vertical: true)
+                    if store.accessStillDenied {
+                        Text("Already on in System Settings? Remove Altillo with − and add it again: macOS may be keeping the permission of an older copy.")
+                            .settingsHint()
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
