@@ -28027,6 +28027,516 @@
           }
         }
       }
+    },
+    "A page of its own in the notch, after Favourites. Add tiles from a room below." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page of its own in the notch, after Favourites. Add tiles from a room below."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una página propia en el notch, después de Favoritos. Añade baldosas desde una estancia, aquí debajo."
+          }
+        }
+      }
+    },
+    "A page of your own in the notch, like Night or Office" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A page of your own in the notch, like Night or Office"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Una página tuya en el notch, como Noche u Oficina"
+          }
+        }
+      }
+    },
+    "Add to “%@”" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add to “%@”"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añadir a «%@»"
+          }
+        }
+      }
+    },
+    "Altillo can't reach Home Assistant, so your devices can't be listed. Your tiles are kept." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo can't reach Home Assistant, so your devices can't be listed. Your tiles are kept."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Altillo no llega a Home Assistant, así que no puede listar tus dispositivos. Tus baldosas se conservan."
+          }
+        }
+      }
+    },
+    "Delete Page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Page"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eliminar página"
+          }
+        }
+      }
+    },
+    "Deletes this page and its tiles. The devices stay in Home Assistant and on your other pages." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deletes this page and its tiles. The devices stay in Home Assistant and on your other pages."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elimina esta página y sus baldosas. Los dispositivos siguen en Home Assistant y en tus otras páginas."
+          }
+        }
+      }
+    },
+    "Everything Altillo would suggest is already in your favourites" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything Altillo would suggest is already in your favourites"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todo lo que Altillo propondría ya está en tus favoritos"
+          }
+        }
+      }
+    },
+    "Hidden in its room in the notch. Click to show it." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidden in its room in the notch. Click to show it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oculto en su estancia en el notch. Haz clic para mostrarlo."
+          }
+        }
+      }
+    },
+    "Hide %@ in its room" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide %@ in its room"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar %@ en su estancia"
+          }
+        }
+      }
+    },
+    "Hide %@ in the notch" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide %@ in the notch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar %@ en el notch"
+          }
+        }
+      }
+    },
+    "Hide This Room" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide This Room"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar esta estancia"
+          }
+        }
+      }
+    },
+    "Hide in This Room" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hide in This Room"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ocultar en esta estancia"
+          }
+        }
+      }
+    },
+    "Home Assistant hasn't shared anything that can be a tile yet." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant hasn't shared anything that can be a tile yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home Assistant aún no ha compartido nada que pueda ser una baldosa."
+          }
+        }
+      }
+    },
+    "Its room is hidden in the notch" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Its room is hidden in the notch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Su estancia está oculta en el notch"
+          }
+        }
+      }
+    },
+    "Loading your devices from Home Assistant. Your tiles are kept meanwhile." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading your devices from Home Assistant. Your tiles are kept meanwhile."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cargando tus dispositivos desde Home Assistant. Mientras tanto, tus baldosas se conservan."
+          }
+        }
+      }
+    },
+    "New Page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New Page"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nueva página"
+          }
+        }
+      }
+    },
+    "No tiles on this page yet. Add them from a room below." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tiles on this page yet. Add them from a room below."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta página aún no tiene baldosas. Añádelas desde una estancia, aquí debajo."
+          }
+        }
+      }
+    },
+    "On “%@”. Click to take it off." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "On “%@”. Click to take it off."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En «%@». Haz clic para quitarlo."
+          }
+        }
+      }
+    },
+    "Page %lld" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Page %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Página %lld"
+          }
+        }
+      }
+    },
+    "Pages" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pages"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Páginas"
+          }
+        }
+      }
+    },
+    "Remove from This Page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remove from This Page"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitar de esta página"
+          }
+        }
+      }
+    },
+    "Show %@ in its room" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show %@ in its room"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar %@ en su estancia"
+          }
+        }
+      }
+    },
+    "Show %@ in the notch" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show %@ in the notch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mostrar %@ en el notch"
+          }
+        }
+      }
+    },
+    "Shown in its room in the notch. Click to hide it there." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown in its room in the notch. Click to hide it there."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible en su estancia en el notch. Haz clic para ocultarlo ahí."
+          }
+        }
+      }
+    },
+    "Shown in the notch. Click to hide “%@”." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown in the notch. Click to hide “%@”."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visible en el notch. Haz clic para ocultar «%@»."
+          }
+        }
+      }
+    },
+    "Takes it off this page" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Takes it off this page"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo quita de esta página"
+          }
+        }
+      }
+    },
+    "The eye sets what each room shows in the notch. Locks, alarms and garage doors can't be tiles yet." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The eye sets what each room shows in the notch. Locks, alarms and garage doors can't be tiles yet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El ojo decide qué muestra cada estancia en el notch. Cerraduras, alarmas y puertas de garaje aún no pueden ser baldosas."
+          }
+        }
+      }
+    },
+    "Tiles" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tiles"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baldosas"
+          }
+        }
+      }
+    },
+    "Waiting for Home Assistant" : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for Home Assistant"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esperando a Home Assistant"
+          }
+        }
+      }
+    },
+    "“%@” is hidden in the notch. Click to show it." : {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@” is hidden in the notch. Click to show it."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "«%@» está oculta en el notch. Haz clic para mostrarla."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

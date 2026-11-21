@@ -110,6 +110,10 @@ public struct HomePage: Codable, Hashable, Identifiable, Sendable {
 /// Favourites page; page ids are unique; an entity appears at most once per page.
 public struct HomeLayout: Codable, Hashable, Sendable {
     public private(set) var pages: [HomePage]
+    /// Entities the user took out of their room's view in the notch (Favourites and pages still show them).
+    public private(set) var hiddenInRooms: Set<HomeEntityID> = []
+    /// Home Assistant areas whose chip the notch leaves out.
+    public private(set) var hiddenAreas: Set<String> = []
 
     /// An empty Favourites page and nothing else.
     public init() { pages = [HomePage(kind: .favourites)] }
@@ -124,17 +128,22 @@ public struct HomeLayout: Codable, Hashable, Sendable {
         self.init(pages: [HomePage(kind: .favourites, tiles: favourites.map { HomeTile(entity: $0) })])
     }
 
-    private enum CodingKeys: String, CodingKey { case pages }
+    private enum CodingKeys: String, CodingKey { case pages, hiddenInRooms, hiddenAreas }
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         pages = (try c.decodeIfPresent([Lossy<HomePage>].self, forKey: .pages) ?? []).compactMap(\.value)
+        hiddenInRooms = Set((try? c.decodeIfPresent([Lossy<HomeEntityID>].self, forKey: .hiddenInRooms) ?? [])?
+            .compactMap(\.value) ?? [])
+        hiddenAreas = Set((try? c.decodeIfPresent([String].self, forKey: .hiddenAreas)) ?? [])
         normalise()
     }
 
     public func encode(to encoder: Encoder) throws {
         var c = encoder.container(keyedBy: CodingKeys.self)
         try c.encode(pages, forKey: .pages)
+        if !hiddenInRooms.isEmpty { try c.encode(hiddenInRooms.map(\.rawValue).sorted(), forKey: .hiddenInRooms) }
+        if !hiddenAreas.isEmpty { try c.encode(hiddenAreas.sorted(), forKey: .hiddenAreas) }
     }
 
     // MARK: Reading
@@ -253,6 +262,20 @@ public struct HomeLayout: Codable, Hashable, Sendable {
     public mutating func renamePage(_ id: HomePage.ID, to name: String) {
         guard let p = pages.firstIndex(where: { $0.id == id }), p > 0 else { return }
         pages[p].kind = .custom(name: name)
+    }
+
+    // MARK: Rooms
+
+    /// Takes the entity out of its room's view in the notch, or puts it back. False when nothing changed.
+    @discardableResult
+    public mutating func setHiddenInRooms(_ entity: HomeEntityID, _ hidden: Bool) -> Bool {
+        hidden ? hiddenInRooms.insert(entity).inserted : hiddenInRooms.remove(entity) != nil
+    }
+
+    /// Leaves the area's chip out of the notch, or brings it back. False when nothing changed.
+    @discardableResult
+    public mutating func setAreaHidden(_ area: String, _ hidden: Bool) -> Bool {
+        hidden ? hiddenAreas.insert(area).inserted : hiddenAreas.remove(area) != nil
     }
 
     // MARK: Invariants

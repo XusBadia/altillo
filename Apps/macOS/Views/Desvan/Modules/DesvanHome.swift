@@ -146,7 +146,8 @@ struct DesvanHomeView: View {
             ? (gridSize.width - spacing * CGFloat(metrics.columns - 1)) / CGFloat(metrics.columns) : gridSize.width
         return VStack(alignment: .leading, spacing: 6) {
             DesvanHomeHeader(name: store.homeName, chips: chips, selection: $selection,
-                             hint: store.didAutoSuggest ? store.autoSuggestedCount : nil) {
+                             hint: store.didAutoSuggest ? store.autoSuggestedCount : nil,
+                             hideArea: { store.setAreaHidden($0, true) }) {
                 store.dismissAutoSuggestHint()
                 model.actions.openHomeSettings()
             }
@@ -226,6 +227,11 @@ struct DesvanHomeView: View {
         .onChange(of: selection) { _, new in
             if case let .area(id) = new { store.watchArea(id) } else { store.watchArea(nil) }
         }
+        // A page deleted or a room hidden in Settings (or from its chip) while it was picked: back to Favourites.
+        .onChange(of: chips.map(\.selection)) { _, shown in
+            if !shown.contains(selection) { selection = .page(nil) }
+        }
+        .environment(\.homeSelection, selection)
     }
 
     /// The tile's second line: its room on Favourites and pages, nothing while browsing that room.
@@ -397,6 +403,50 @@ enum HomeSelection: Hashable {
     case page(HomePage.ID?)
     /// Everything worth a tile in one of Home Assistant's areas.
     case area(String)
+
+    /// The page whose tiles a tile's menu edits: the user's page when one is picked, Favourites otherwise.
+    var editedPage: HomePage.ID? {
+        if case let .page(id) = self { id } else { nil }
+    }
+}
+
+extension EnvironmentValues {
+    /// The chip the Home section shows, so a tile's menu edits that page (or offers to hide it from that room).
+    @Entry var homeSelection: HomeSelection = .page(nil)
+}
+
+/// What a tile's menu says about where it lives: this page, Favourites, the user's other pages and, while a room
+/// is explored, that room.
+struct DesvanHomeMembershipMenu: View {
+    let entity: HomeEntity
+    let store: HomeStore
+    let selection: HomeSelection
+
+    var body: some View {
+        if let page = selection.editedPage, store.isOnPage(entity.id, page: page) {
+            Button("Remove from This Page") { store.removeTile(entity.id, fromPage: page) }
+        }
+        if store.isFavourite(entity.id) {
+            Button("Remove from Favourites") { store.removeFavourite(entity.id) }
+        } else {
+            Button("Add to Favourites") { store.addFavourite(entity.id) }
+        }
+        let pages = store.layout.customPages
+        if !pages.isEmpty {
+            Menu("Pages") {
+                ForEach(pages) { page in
+                    Toggle(isOn: Binding(get: { store.isOnPage(entity.id, page: page.id) }, set: { on in
+                        if on { store.addTile(entity.id, toPage: page.id) } else { store.removeTile(entity.id, fromPage: page.id) }
+                    })) {
+                        Text(verbatim: page.customName ?? "")
+                    }
+                }
+            }
+        }
+        if case .area = selection {
+            Button("Hide in This Room") { store.setHiddenInRooms(entity.id, true) }
+        }
+    }
 }
 
 struct HomeChip: Hashable {
@@ -451,6 +501,8 @@ private struct DesvanHomeHeader: View {
     let chips: [HomeChip]
     @Binding var selection: HomeSelection
     var hint: Int?
+    /// Right-click on a room's chip: leave it out of the notch (Settings › Home brings it back).
+    var hideArea: ((String) -> Void)?
     var change: () -> Void = {}
 
     var body: some View {
@@ -525,6 +577,11 @@ private struct DesvanHomeHeader: View {
                 .desvanHitTarget()
         }
         .buttonStyle(DesvanPressStyle())
+        .contextMenu {
+            if case let .area(id) = chip.selection, let hideArea {
+                Button("Hide This Room") { hideArea(id) }
+            }
+        }
         .accessibilityAddTraits(isSelected ? [.isSelected] : [])
     }
 }

@@ -231,6 +231,39 @@ struct HomeSettingsTests {
         #expect(store.settingsTiles.map(\.id) == [ids[1], ids[2]])
     }
 
+    @Test func pagesAreCreatedFilledRenamedAndDeleted() {
+        let (store, ids) = storeWithTiles()
+        let night = store.addPage()
+        #expect(store.layout.page(night)?.customName == "Page 2")
+        let third = store.addPage()
+        #expect(store.layout.page(third)?.customName == "Page 3")
+        store.renamePage(night, to: "  Night ")
+        store.renamePage(night, to: "   ")
+        #expect(store.layout.page(night)?.customName == "Night", "trimmed; an empty name keeps the old one")
+
+        store.addTile(ids[1], toPage: night)
+        store.rename(ids[1], to: "Bedside", onPage: night)
+        #expect(store.settingsTiles(onPage: night).map(\.name) == ["Bedside"])
+        #expect(store.settingsTiles.map(\.name)[1] == "light.b", "Favourites keep their own tile")
+        #expect(store.isOnPage(ids[1], page: night) && !store.isOnPage(ids[0], page: night))
+        #expect(store.watchSet().contains(ids[1]))
+
+        store.removePage(night)
+        #expect(store.layout.page(night) == nil)
+        #expect(store.settingsTiles(onPage: night).isEmpty)
+        #expect(store.isFavourite(ids[1]))
+    }
+
+    @Test func hiddenRoomsSurviveARelaunch() throws {
+        let (store, _, settings) = makeStore()
+        store.setHiddenInRooms(HomeTests.id("light.a"), true)
+        store.setAreaHidden("garage", true)
+        let data = try JSONEncoder().encode(settings.homeLayout)
+        let decoded = try JSONDecoder().decode(HomeLayout.self, from: data)
+        #expect(decoded.hiddenInRooms == [HomeTests.id("light.a")])
+        #expect(decoded.hiddenAreas == ["garage"])
+    }
+
     @Test func theCatalogueGroupsByRoomAndSearches() {
         let (store, service, _) = makeStore()
         service.add(HomeTests.entity("light.sofa", .light, area: "living", name: "Sofa"))

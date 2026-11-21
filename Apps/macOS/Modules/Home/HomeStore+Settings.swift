@@ -24,9 +24,12 @@ struct HomeCatalogueGroup: Identifiable, Hashable {
 /// What Settings › Home needs from the store beyond the layout API (`HomeStore+Layout`).
 extension HomeStore {
     /// Favourites' tiles in order, hidden ones included: the grid Settings edits.
-    var settingsTiles: [HomeSettingsTile] {
+    var settingsTiles: [HomeSettingsTile] { settingsTiles(onPage: nil) }
+
+    /// A page's tiles in order, hidden ones included (Favourites for nil; none when the page is gone).
+    func settingsTiles(onPage page: HomePage.ID?) -> [HomeSettingsTile] {
         let entities = service.entities
-        return settings.homeLayout.favourites.tiles.map { HomeSettingsTile(tile: $0, entity: entities[$0.entity]) }
+        return (settings.homeLayout.page(page)?.tiles ?? []).map { HomeSettingsTile(tile: $0, entity: entities[$0.entity]) }
     }
 
     /// Everything that can be a tile, area by area (HA's order), then "No room". Without a query, technical entities
@@ -53,9 +56,9 @@ extension HomeStore {
     }
 
     /// Drops `dragged` where `target` is in the Settings grid (hidden tiles count: they keep their place).
-    func dropTile(_ dragged: HomeEntityID, onto target: HomeEntityID) {
+    func dropTile(_ dragged: HomeEntityID, onto target: HomeEntityID, onPage page: HomePage.ID? = nil) {
         guard dragged != target else { return }
-        moveTile(from: dragged, to: target)
+        moveTile(from: dragged, to: target, onPage: page)
     }
 
     /// The icons offered for a tile, about sixteen per kind. The first is the kind's own look.

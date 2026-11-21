@@ -116,6 +116,23 @@ struct HomeNotchTests {
             == ["light.living_room_lamp", "light.living_room_ceiling", "cover.living_room_blind"])
     }
 
+    @Test func roomsAndTheirEntitiesCanBeHiddenFromTheNotch() {
+        let store = HomeStore.demo()
+        let lamp = HomeDemoService.id("light.living_room_lamp")
+        store.setHiddenInRooms(lamp, true)
+        #expect(!store.tiles(inArea: "living_room").map(\.id).contains(lamp))
+        #expect(!store.areaWatchSet().contains(lamp) || store.selectedArea == nil)
+        store.setHiddenInRooms(lamp, false)
+        #expect(store.tiles(inArea: "living_room").map(\.id).first == lamp)
+
+        store.watchArea("kitchen")
+        store.setAreaHidden("kitchen", true)
+        #expect(!store.browsableAreas.map(\.id).contains("kitchen"))
+        #expect(store.selectedArea == nil, "hiding the room being explored stops watching it")
+        store.setAreaHidden("kitchen", false)
+        #expect(store.browsableAreas.map(\.id).contains("kitchen"))
+    }
+
     @Test func colourAndWarmthReachTheService() async throws {
         let store = HomeStore.demo()
         let demo = try #require(store.service as? HomeDemoService)

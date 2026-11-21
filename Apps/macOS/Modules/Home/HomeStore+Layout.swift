@@ -47,8 +47,9 @@ extension HomeStore {
     func entities(inArea areaID: String) -> [HomeEntity] {
         let favourites = settings.homeLayout.favouriteEntities
         let favouriteRank = Dictionary(favourites.enumerated().map { ($1, $0) }, uniquingKeysWith: { a, _ in a })
+        let hidden = settings.homeLayout.hiddenInRooms
         let candidates = service.entities.values.filter { entity in
-            entity.areaID == areaID && Self.canFavourite(entity) && !entity.isTechnical
+            entity.areaID == areaID && Self.canFavourite(entity) && !entity.isTechnical && !hidden.contains(entity.id)
                 && (favouriteRank[entity.id] != nil || Self.areaKinds.contains(entity.kind))
         }
         return candidates.sorted { a, b in
@@ -73,7 +74,32 @@ extension HomeStore {
         }
     }
 
-    private static let areaKinds: [HomeEntityKind] = [.light, .cover, .switchable, .fan, .scene, .script]
+    static let areaKinds: [HomeEntityKind] = [.light, .cover, .switchable, .fan, .scene, .script]
+
+    // MARK: Rooms
+
+    /// Whether the entity would show when its room is explored in the notch, hidden or not: it has an area and is
+    /// a kind rooms list.
+    func showsInRooms(_ entity: HomeEntity) -> Bool {
+        entity.areaID != nil && Self.canFavourite(entity) && !entity.isTechnical
+            && (Self.areaKinds.contains(entity.kind) || isFavourite(entity.id))
+    }
+
+    func isHiddenInRooms(_ id: HomeEntityID) -> Bool { settings.homeLayout.hiddenInRooms.contains(id) }
+
+    /// Takes the entity out of its room's view in the notch (Favourites and pages still show it), or puts it back.
+    func setHiddenInRooms(_ id: HomeEntityID, _ hidden: Bool) {
+        guard settings.homeLayout.setHiddenInRooms(id, hidden) else { return }
+        refreshWatch()
+    }
+
+    func isAreaHidden(_ id: String) -> Bool { settings.homeLayout.hiddenAreas.contains(id) }
+
+    /// Leaves the room's chip out of the notch, or brings it back.
+    func setAreaHidden(_ id: String, _ hidden: Bool) {
+        guard settings.homeLayout.setAreaHidden(id, hidden) else { return }
+        if hidden, selectedArea == id { watchArea(nil) }
+    }
 
     private static func areaKindRank(_ kind: HomeEntityKind) -> Int {
         switch kind {
@@ -90,18 +116,61 @@ extension HomeStore {
 
     func isFavourite(_ id: HomeEntityID) -> Bool { settings.homeLayout.contains(id) }
 
+    /// Whether the entity has a tile on that page (Favourites for nil).
+    func isOnPage(_ id: HomeEntityID, page: HomePage.ID?) -> Bool { settings.homeLayout.contains(id, onPage: page) }
+
     /// Adds a tile for the entity at the end of Favourites (or at `index`). Ignored if it's already there.
     func addFavourite(_ id: HomeEntityID, at index: Int? = nil) {
-        guard settings.homeLayout.add(id, at: index) else { return }
-        autoSuggestedCount = 0
-        refreshWatch()
+        addTile(id, toPage: nil, at: index)
     }
 
     /// Removes the entity's Favourites tile, overrides and all.
     func removeFavourite(_ id: HomeEntityID) {
-        guard settings.homeLayout.remove(id) else { return }
+        removeTile(id, fromPage: nil)
+    }
+
+    /// Adds a tile for the entity at the end of a page (Favourites for nil). Ignored if it's already there.
+    func addTile(_ id: HomeEntityID, toPage page: HomePage.ID?, at index: Int? = nil) {
+        guard settings.homeLayout.add(id, toPage: page, at: index) else { return }
         autoSuggestedCount = 0
         refreshWatch()
+    }
+
+    /// Removes the entity's tile from a page (Favourites for nil), overrides and all.
+    func removeTile(_ id: HomeEntityID, fromPage page: HomePage.ID?) {
+        guard settings.homeLayout.remove(id, fromPage: page) else { return }
+        autoSuggestedCount = 0
+        refreshWatch()
+    }
+
+    // MARK: Pages
+
+    /// A new, empty page after the others ("Page 2", "Page 3"… until the user names it). Returns its id.
+    @discardableResult
+    func addPage(named name: String? = nil) -> HomePage.ID {
+        let trimmed = name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let title = trimmed.isEmpty ? Self.newPageName(existing: pages.compactMap(\.customName)) : trimmed
+        return settings.homeLayout.addPage(named: title)
+    }
+
+    /// Renames one of the user's pages; an empty name keeps the old one.
+    func renamePage(_ id: HomePage.ID, to name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        settings.homeLayout.renamePage(id, to: trimmed)
+    }
+
+    /// Deletes one of the user's pages and its tiles (the entities stay in Home Assistant and elsewhere).
+    func removePage(_ id: HomePage.ID) {
+        settings.homeLayout.removePage(id)
+        refreshWatch()
+    }
+
+    /// "Page 2" (Favourites being the first), or the next number free.
+    nonisolated static func newPageName(existing: [String]) -> String {
+        var number = existing.count + 2
+        while existing.contains(String(localized: "Page \(number)")) { number += 1 }
+        return String(localized: "Page \(number)")
     }
 
     // MARK: Editing tiles

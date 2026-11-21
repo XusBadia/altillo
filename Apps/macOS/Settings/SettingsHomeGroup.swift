@@ -18,10 +18,14 @@ struct SettingsHomeGroup: View {
     private func content(settings: AltilloSettings, store: HomeStore) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             SettingsHomeConnect(settings: settings, store: store, model: connect)
-            if settings.homeServer != nil, !store.service.entities.isEmpty {
+            // The tiles stay editable while Home Assistant is away or still loading: they say why the devices
+            // aren't listed instead of the whole section vanishing.
+            if settings.homeServer != nil {
                 SettingsCardDivider()
                 SettingsHomeTiles(settings: settings, store: store)
                     .transition(.settingsReveal)
+            }
+            if settings.homeServer != nil, !store.service.entities.isEmpty {
                 SettingsCardDivider()
                 SettingsHomeDoorbell(settings: settings, store: store)
                     .transition(.settingsReveal)

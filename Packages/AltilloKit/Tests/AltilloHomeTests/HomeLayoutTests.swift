@@ -29,6 +29,23 @@ import Testing
         #expect(none.pages.count == 2)
     }
 
+    @Test func roomVisibilityRoundTripsAndOldLayoutsLoad() throws {
+        var layout = HomeLayout(favourites: [a])
+        let hid = layout.setHiddenInRooms(b, true)
+        let again = layout.setHiddenInRooms(b, true)
+        let area = layout.setAreaHidden("garage", true)
+        #expect(hid && !again && area, "a second hide changes nothing")
+        let decoded = try JSONDecoder().decode(HomeLayout.self, from: JSONEncoder().encode(layout))
+        #expect(decoded == layout)
+        let shown = layout.setHiddenInRooms(b, false), areaShown = layout.setAreaHidden("garage", false)
+        #expect(shown && areaShown && layout.hiddenInRooms.isEmpty && layout.hiddenAreas.isEmpty)
+
+        let old = try JSONEncoder().encode(HomeLayout(favourites: [a]))
+        #expect(String(decoding: old, as: UTF8.self).contains("hidden") == false, "nothing hidden, nothing written")
+        let bad = Data(#"{"pages":[{"kind":{"favourites":{}}}],"hiddenInRooms":["nope","ha:srv:light.b"]}"#.utf8)
+        #expect(try JSONDecoder().decode(HomeLayout.self, from: bad).hiddenInRooms == [b], "bad ids are dropped")
+    }
+
     @Test func duplicatesAndClashingIdsAreRepaired() {
         let tile = HomeTile(entity: a)
         var same = HomeTile(entity: b)

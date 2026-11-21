@@ -6,11 +6,14 @@ import Foundation
 extension HomeStore {
     /// Areas with at least one light, blind, switch, fan, scene or script to browse, in the server's order.
     var browsableAreas: [HomeArea] {
+        let hiddenEntities = settings.homeLayout.hiddenInRooms
         let used = Set(service.entities.values.compactMap { entity -> String? in
-            guard Self.canFavourite(entity), !entity.isTechnical, Self.browsableKinds.contains(entity.kind) else { return nil }
+            guard Self.canFavourite(entity), !entity.isTechnical, Self.browsableKinds.contains(entity.kind),
+                  !hiddenEntities.contains(entity.id) else { return nil }
             return entity.areaID
         })
-        return service.areas.filter { used.contains($0.id) }
+        let hidden = settings.homeLayout.hiddenAreas
+        return service.areas.filter { used.contains($0.id) && !hidden.contains($0.id) }
     }
 
     private static let browsableKinds: Set<HomeEntityKind> = [.light, .cover, .switchable, .fan, .scene, .script]

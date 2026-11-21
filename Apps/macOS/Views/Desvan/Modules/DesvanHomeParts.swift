@@ -55,7 +55,11 @@ struct DesvanHomeTile: View {
     private var state: HomeEntityState { store.state(of: entity) }
     private var isPending: Bool { store.isPending(entity.id) }
     private var isAvailable: Bool { state.isAvailable }
-    private var isFavourite: Bool { store.isFavourite(entity.id) }
+    @Environment(\.homeSelection) private var selection
+    /// The page this tile's menu edits: the user's page when one is shown, Favourites otherwise.
+    private var page: HomePage.ID? { selection.editedPage }
+    /// Whether it has a tile (name, icon, size) on that page to edit.
+    private var isEditable: Bool { store.isOnPage(entity.id, page: page) }
     /// Short plates lay the disc beside the name instead of above it.
     private var isCompact: Bool { height < 76 }
     /// A plate with the whole height to itself (one row): a bigger disc and name.
@@ -402,7 +406,7 @@ struct DesvanHomeTile: View {
 
     @ViewBuilder
     private var menu: some View {
-        if isFavourite {
+        if isEditable {
             Button("Rename…") {
                 draftName = tile.name
                 isRenaming = true
@@ -410,14 +414,14 @@ struct DesvanHomeTile: View {
             }
             Menu("Icon") {
                 Button {
-                    store.setSymbol(entity.id, nil)
+                    store.setSymbol(entity.id, nil, onPage: page)
                 } label: {
                     Label("Default", systemImage: tile.symbol == nil ? "checkmark" : "arrow.uturn.backward")
                 }
                 Divider()
                 ForEach(HomeText.curatedSymbols(for: entity.kind), id: \.self) { symbol in
                     Button {
-                        store.setSymbol(entity.id, symbol)
+                        store.setSymbol(entity.id, symbol, onPage: page)
                     } label: {
                         Image(systemName: symbol)
                     }
@@ -426,19 +430,18 @@ struct DesvanHomeTile: View {
             }
             Menu("Size") {
                 ForEach(HomeTileSize.allCases, id: \.self) { size in
-                    Toggle(isOn: Binding(get: { tile.size == size }, set: { if $0 { store.setSize(entity.id, size) } })) {
+                    Toggle(isOn: Binding(get: { tile.size == size },
+                                         set: { if $0 { store.setSize(entity.id, size, onPage: page) } })) {
                         Text(verbatim: size == .small
                              ? String(localized: "home.tileSize.small", defaultValue: "Small")
                              : String(localized: "home.tileSize.wide", defaultValue: "Wide"))
                     }
                 }
             }
-            Button("Hide") { store.setHidden(entity.id, true) }
+            Button("Hide") { store.setHidden(entity.id, true, onPage: page) }
             Divider()
-            Button("Remove from Favourites") { store.removeFavourite(entity.id) }
-        } else {
-            Button("Add to Favourites") { store.addFavourite(entity.id) }
         }
+        DesvanHomeMembershipMenu(entity: entity, store: store, selection: selection)
         if DesvanHomeDetail.hasControls(entity) {
             Divider()
             Button("Show Controls", action: openDetail)
@@ -452,7 +455,7 @@ struct DesvanHomeTile: View {
     private func commitRename() {
         guard isRenaming else { return }
         isRenaming = false
-        store.rename(entity.id, to: draftName)
+        store.rename(entity.id, to: draftName, onPage: page)
     }
 }
 
@@ -467,6 +470,7 @@ struct DesvanHomeSceneTag: View {
     @State private var isHovering = false
     @State private var isPressed = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.homeSelection) private var selection
 
     static let height: CGFloat = 34
 
@@ -534,12 +538,11 @@ struct DesvanHomeSceneTag: View {
                 }
         )
         .contextMenu {
-            if store.isFavourite(entity.id) {
-                Button("Hide") { store.setHidden(entity.id, true) }
-                Button("Remove from Favourites") { store.removeFavourite(entity.id) }
-            } else {
-                Button("Add to Favourites") { store.addFavourite(entity.id) }
+            if store.isOnPage(entity.id, page: selection.editedPage) {
+                Button("Hide") { store.setHidden(entity.id, true, onPage: selection.editedPage) }
+                Divider()
             }
+            DesvanHomeMembershipMenu(entity: entity, store: store, selection: selection)
             if let url = store.homeAssistantURL(for: entity.id) {
                 Divider()
                 Button("Open in Home Assistant") { NSWorkspace.shared.open(url) }
