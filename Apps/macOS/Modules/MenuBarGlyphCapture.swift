@@ -23,6 +23,8 @@ final class MenuBarGlyphCapture {
 
     /// A visible glyph is recaptured at most this often (clock and battery-style icons change).
     static let maxAge: Duration = .seconds(60)
+    /// Longest wait for one ScreenCaptureKit call.
+    static let callLimit: Duration = .seconds(2)
 
     init(directory: URL? = MenuBarGlyphCapture.defaultDirectory,
          preflight: @escaping () -> Bool = { CGPreflightScreenCaptureAccess() }) {
@@ -91,10 +93,11 @@ final class MenuBarGlyphCapture {
         guard !pending.isEmpty else { return }
         capturing = true
         defer { capturing = false }
-        let content: SCShareableContent
-        do {
-            content = try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
-        } catch {
+        // ScreenCaptureKit can stall (a pending Screen Recording prompt, a stale grant). Bound each call so a
+        // stuck capture never keeps `capturing` set and blocks every later one.
+        guard let content = await Deadline.value(within: Self.callLimit, {
+            try? await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: false)
+        }) else {
             checkAccess()
             return
         }
@@ -117,8 +120,9 @@ final class MenuBarGlyphCapture {
             configuration.showsCursor = false
             configuration.shouldBeOpaque = false
             configuration.captureResolution = .best
-            guard let bar = try? await SCScreenshotManager.captureImage(contentFilter: filter,
-                                                                         configuration: configuration) else { continue }
+            guard let bar = await Deadline.value(within: Self.callLimit, {
+                try? await SCScreenshotManager.captureImage(contentFilter: filter, configuration: configuration)
+            }) else { continue }
             for entry in inside {
                 let local = entry.frame.offsetBy(dx: -host.frame.minX, dy: -host.frame.minY)
                 guard let pixels = Self.trimmedGlyph(from: bar, crop: local, scale: scale) else { continue }

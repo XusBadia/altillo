@@ -678,3 +678,37 @@ struct DrawerTests {
         #expect(lookups == [1, 2, 3, 3, 2])
     }
 }
+
+/// Hiding must never wait on a stalled ScreenCaptureKit call (a pending Screen Recording prompt, a stale grant).
+@MainActor
+struct DeadlineTests {
+    @Test func stopsWaitingForWorkThatNeverFinishes() async {
+        let start = ContinuousClock.now
+        let finished = await Deadline.wait(atMost: .milliseconds(100)) {
+            await withCheckedContinuation { (_: CheckedContinuation<Void, Never>) in }
+        }
+        #expect(!finished)
+        #expect(ContinuousClock.now - start < .seconds(2))
+    }
+
+    @Test func returnsTheValueOfWorkThatFinishesInTime() async {
+        let value = await Deadline.value(within: .seconds(5)) { () async -> Int? in
+            try? await Task.sleep(for: .milliseconds(10))
+            return 42
+        }
+        #expect(value == 42)
+    }
+
+    @Test func cancellingTheCallerEndsTheWait() async {
+        let waiter = Task { @MainActor in
+            await Deadline.wait(atMost: .seconds(30)) {
+                await withCheckedContinuation { (_: CheckedContinuation<Void, Never>) in }
+            }
+        }
+        try? await Task.sleep(for: .milliseconds(50))
+        waiter.cancel()
+        let start = ContinuousClock.now
+        #expect(await waiter.value == false)
+        #expect(ContinuousClock.now - start < .seconds(2))
+    }
+}

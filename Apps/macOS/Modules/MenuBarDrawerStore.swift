@@ -124,6 +124,8 @@ final class MenuBarDrawerStore: NSObject {
     @ObservationIgnored private let runningBundleIDs: @MainActor () -> Set<String>
 
     static let catalogMaxAge: Duration = .seconds(30)
+    /// How long hiding waits to keep the glyphs of icons about to disappear (a capture takes ~50–150 ms).
+    static let leavingGlyphsLimit: Duration = .milliseconds(700)
     /// Bounded permission reconciliation after the user asks for access (2 s × 60 = 2 min).
     static let permissionCheckInterval: Duration = .seconds(2)
     static let permissionCheckCount = 60
@@ -451,8 +453,14 @@ final class MenuBarDrawerStore: NSObject {
             let leaving = self.entries.filter { entry in
                 self.shownThisSession.contains(entry.application.bundleID) && !list.bundleIDs.contains(entry.application.bundleID)
             }
+            // Best effort and bounded: ScreenCaptureKit can stall (a pending Screen Recording prompt, a stale
+            // grant), and hiding must never wait on it. Before this bound, one stalled capture kept every later
+            // move into the Drawer from hiding its icon until Altillo restarted.
             if !leaving.isEmpty, self.glyphs.hasAccess {
-                await self.glyphs.capture(await self.withCurrentFrames(leaving), force: true)
+                let captured = await Deadline.wait(atMost: Self.leavingGlyphsLimit) {
+                    await self.glyphs.capture(await self.withCurrentFrames(leaving), force: true)
+                }
+                if !captured { Self.log.notice("hiding without waiting for leaving glyphs") }
             }
             guard !Task.isCancelled, self.wantsConcealment else { return }
             let concealed = await self.concealer.conceal(allowing: list)
