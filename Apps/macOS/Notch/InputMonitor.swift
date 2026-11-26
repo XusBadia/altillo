@@ -23,11 +23,16 @@ final class InputMonitor {
         })
         add(NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             let isRight = Self.isSecondary(event)
-            MainActor.assumeIsolated { self?.mouseDown(NSEvent.mouseLocation, false, isRight) }
+            // The pointer may already have moved by the time AppKit delivers this click.
+            MainActor.assumeIsolated { self?.mouseDown(event.locationInWindow, false, isRight) }
         })
         add(NSEvent.addLocalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] event in
             let isRight = Self.isSecondary(event)
-            MainActor.assumeIsolated { self?.mouseDown(NSEvent.mouseLocation, true, isRight) }
+            MainActor.assumeIsolated {
+                let location = event.locationInWindow
+                let point = event.window?.convertPoint(toScreen: location) ?? location
+                self?.mouseDown(point, true, isRight)
+            }
             return event
         })
     }
